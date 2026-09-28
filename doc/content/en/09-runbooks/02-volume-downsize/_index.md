@@ -96,26 +96,10 @@ $ kubectl exec -it -n ongres-db ongres-db-2 -c patroni -- patronictl list
 
 ## Editing the SGCluster Definition
 
-As the downsize is not a common situation, it is necessary to temporary remove the StackGres operator `validating-webhook`, so first, create a backup of the yaml manifest: 
-
-Execute: 
-
-```bash
-kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io stackgres-operator -o yaml > validating-webhook-stackgres-operator.yaml
-```
-
-Now delete the StackGres operator `validating-webhook` exucting:
-
-```bash
-kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io stackgres-operator
-```
-
->**WARNING**: Note that removing the validating webhook might potentially lead to some error in the resources that you may have to solve manually later if after restarting the operator Pod any error arise during the update of the existing resources that the operator executes on bootstrap. Usually manual intervention is not needed, but you should be aware of this.
-
-Now, edit the StackGres cluster volume definition to the new size:
+Edit the StackGres cluster volume definition to the new size:
 
 ```
-kubectl patch sgclusters -n ongres-db ongres-db --type='json' -p '[{ "op": "replace", "path": "/spec/pods/persistentVolume/size", "value": "10Gi" }]'
+kubectl patch sgclusters -n ongres-db ongres-db --type='json' -p '[{ "op": "replace", "path": "/spec/pods/persistentVolume/size", "value": "15Gi" }]'
 ```
 
 You'll get the following message:
@@ -124,25 +108,7 @@ You'll get the following message:
 sgcluster.stackgres.io/ongres-db patched
 ```
 
-Now, if you check the events you will see an error like:
-
-```
-kubectl get events -n ongres-db
-
-....
-Failure executing: PATCH at: https://10.96.0.1/apis/apps/v1/namespaces/ongres-db/statefulsets/ongres-db. Message: StatefulSet.apps "ongres-db" is invalid: spec: Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden. Received status: Status(apiVersion=v1, code=422, details=StatusDetails(causes=[StatusCause(field=spec, message=Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden, reason=FieldValueForbidden, additionalProperties={})], group=apps, kind=StatefulSet, name=ongres-db, retryAfterSeconds=null, uid=null, additionalProperties={}), kind=Status, message=StatefulSet.apps "ongres-db" is invalid: spec: Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden, metadata=ListMeta(_continue=null, remainingItemCount=null, resourceVersion=null, selfLink=null, additionalProperties={}), reason=Invalid, status=Failure, additionalProperties={}).
-....
-```
-
-This is expected because is forbidden to change the spec of a stateful set.
-
-Delete the stateful set and let the StackGres operator recreate it:
-
-```
-$ kubectl delete sts -n ongres-db ongres-db --cascade=orphan
-```
-
-> **Important Note:** Do not forget the parameter `--cascade=orphan` because this will keep the existing pods.
+The operator does not validate the change of the persistent volume size: whether a volume can be expanded or shrunk is up to Kubernetes and the StorageClass implementation. Since the volume claim templates of a StatefulSet can not be changed, the operator recreates the StatefulSet with the new volume size, keeping the existing Pods and PersistentVolumeClaims. The existing PersistentVolumeClaims keep their size, only the ones created from now on get the new size.
 
 ## Verifying the StatefulSet
 
@@ -151,12 +117,6 @@ Verify that the stateful set now has the new volume size:
 ```
 $ kubectl describe sts -n ongres-db ongres-db | grep -i capacity
   Capacity:      15Gi
-```
-
-At this moment it is recommended to resotre the StackGres operator `validating-webhook`:
-
-```bash
-kubectl create -f validating-webhook-stackgres-operator.yaml
 ```
 
 ## Editing the replica size
@@ -304,30 +264,4 @@ NAME                                     STATUS   VOLUME                        
 distributedlogs-data-distributedlogs-0   Bound    pvc-9bab7a68-a209-4d9a-93f7-871a217a28b1   50Gi       RWO            standard       3h24m
 ongres-db-data-ongres-db-0               Bound    pvc-37d96872-b132-4a89-a579-d87f8cf1fa92   15Gi       RWO            gp2-data       9m21s
 ongres-db-data-ongres-db-1               Bound    pvc-46c1433b-26e8-422c-aecf-145b1bb5aac1   15Gi       RWO            gp2-data       5m11s
-```
-
-
-## Last step
-
-As you temporary removed the `validating-webhook` it is necessary to restart the StackGres Operator pod.
-
-Execute:
-
-```bash
-kubectl delete pod -n stackgres -l app=stackgres-operator
-```
-
-Check the pod started successfully:
-
-Execute:
-
-```bash
-kubectl get pod -n stackgres -l app=stackgres-operator
-```
-
-The output should be like:
-
-```bash
-NAME                                  READY   STATUS    RESTARTS   AGE
-stackgres-operator-85df9c556c-c242s   1/1     Running   0          79s
 ```

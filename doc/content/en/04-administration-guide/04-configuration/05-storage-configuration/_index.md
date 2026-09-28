@@ -175,7 +175,7 @@ The difference becomes significant with large volumes or many small files.
 
 ## Volume Expansion
 
-If your storage class supports expansion, you can increase volume size:
+The operator does not validate the change of the persistent volume size: whether a volume can be expanded (the StorageClass must set `allowVolumeExpansion: true`) or shrunk is up to Kubernetes and the StorageClass implementation.
 
 ### Step 1: Update Cluster Spec
 
@@ -190,16 +190,21 @@ spec:
       size: '200Gi'  # Increased from 100Gi
 ```
 
-### Step 2: Apply and Wait
+Since the volume claim templates of a StatefulSet can not be changed, the operator recreates the StatefulSet with the new volume size, keeping the existing Pods and PersistentVolumeClaims. The new size only applies to the PersistentVolumeClaims created from then on.
+
+### Step 2: Expand the Existing PersistentVolumeClaims
+
+Expand each existing PersistentVolumeClaim of the cluster to the new size:
 
 ```bash
-kubectl apply -f cluster.yaml
+kubectl get pvc -l stackgres.io/cluster-name=my-cluster -o name \
+  | xargs -I % kubectl patch % --type merge -p '{"spec":{"resources":{"requests":{"storage":"200Gi"}}}}'
 
 # Monitor PVC status
 kubectl get pvc -l stackgres.io/cluster-name=my-cluster -w
 ```
 
-> **Note**: Volume expansion may require a pod restart depending on the storage provider.
+> **Note**: Volume expansion may require a pod restart depending on the storage provider. Kubernetes does not allow to shrink an existing PersistentVolumeClaim, see the [Volume Downsize Runbook]({{% relref "09-runbooks/02-volume-downsize" %}}) to decrease the size of the volumes of a cluster.
 
 ## Storage for Different Components
 
