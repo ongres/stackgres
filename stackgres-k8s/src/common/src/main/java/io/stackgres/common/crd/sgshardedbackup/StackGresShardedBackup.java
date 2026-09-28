@@ -91,7 +91,7 @@ public final class StackGresShardedBackup
 
   @Override
   public int hashCode() {
-    return Objects.hash(spec, status);
+    return Objects.hash(getMetadata(), spec, status);
   }
 
   @Override
@@ -103,7 +103,8 @@ public final class StackGresShardedBackup
       return false;
     }
     StackGresShardedBackup other = (StackGresShardedBackup) obj;
-    return Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
+    return Objects.equals(getMetadata(), other.getMetadata())
+        && Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
   }
 
   @Override
