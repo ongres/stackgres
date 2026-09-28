@@ -17,7 +17,8 @@ public enum ClusterEventReason implements OperatorEventReason {
   CLUSTER_DELETED(NORMAL, "ClusterDeleted"),
   CLUSTER_SECURITY_WARNING(WARNING, "ClusterSecurityWarning"),
   CLUSTER_MAJOR_UPGRADE(WARNING, "ClusterMajorUpgrade"),
-  CLUSTER_CONFIG_ERROR(WARNING, "ClusterConfigFailed");
+  CLUSTER_CONFIG_ERROR(WARNING, "ClusterConfigFailed"),
+  CLUSTER_PODS_TERMINATION_TIMEOUT(WARNING, "ClusterPodsTerminationTimeout");
 
   private final Type type;
   private final String reason;
