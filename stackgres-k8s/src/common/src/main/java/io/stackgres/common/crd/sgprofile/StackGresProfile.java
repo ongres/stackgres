@@ -78,7 +78,7 @@ public final class StackGresProfile
 
   @Override
   public int hashCode() {
-    return Objects.hash(spec);
+    return Objects.hash(getMetadata(), spec);
   }
 
   @Override
@@ -90,7 +90,8 @@ public final class StackGresProfile
       return false;
     }
     StackGresProfile other = (StackGresProfile) obj;
-    return Objects.equals(spec, other.spec);
+    return Objects.equals(getMetadata(), other.getMetadata())
+        && Objects.equals(spec, other.spec);
   }
 
   @Override
