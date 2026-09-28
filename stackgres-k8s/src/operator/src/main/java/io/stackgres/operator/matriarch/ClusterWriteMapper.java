@@ -6,6 +6,7 @@
 package io.stackgres.operator.matriarch;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.UUID;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -79,7 +80,7 @@ final class ClusterWriteMapper {
     String suffix = idempotencyKey == null || idempotencyKey.isBlank()
         ? UUID.randomUUID().toString().substring(0, 8)
         : idempotencyKey;
-    String name = (clusterName + "-restart-" + suffix).toLowerCase().replaceAll("[^a-z0-9-]", "-");
+    String name = (clusterName + "-restart-" + suffix).toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]", "-");
     if (name.length() > 63) {
       name = name.substring(0, 63);
     }
