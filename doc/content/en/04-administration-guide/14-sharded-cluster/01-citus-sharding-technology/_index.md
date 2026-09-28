@@ -234,6 +234,25 @@ SELECT citus_remove_node('<nodename>', <nodeport>);
 > **NOTE**: a worker that still holds shards of a distributed table is never removed. Move its shards to the remaining workers first
 > (for example with `SELECT citus_drain_node('<nodename>', <nodeport>)`).
 
+## Connection Pooling Between Nodes
+
+By default the Citus nodes connect to each other through the connection pooler ([PgBouncer](https://www.pgbouncer.org/)) running in the Pod of each node, instead of opening their connections directly to Postgres. The coordinator keeps the Citus `pg_dist_poolinfo` table of the coordinator, of the workers and of the query routers updated so that Citus uses the port of PgBouncer (`6432`, or the Envoy entry port `7432` when Envoy is enabled) instead of the Postgres port registered in `pg_dist_node`. Only the port is set, so the connections follow the host that Patroni updates in `pg_dist_node` after a failover. Citus ignores `pg_dist_poolinfo` for the connections that can not go through a pooler (like the ones of the shard rebalancer).
+
+Since the nodes connect through PgBouncer, the `disableConnectionPooling` fields of the coordinator, the workers, the query routers and their overrides are ignored and PgBouncer is always created. To connect directly to Postgres, set `.spec.configurations.citus.connectToPooler` to `false`:
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGShardedCluster
+metadata:
+  name: my-sharded-cluster
+spec:
+  configurations:
+    citus:
+      connectToPooler: false
+```
+
+When disabled, the coordinator removes the entries it created from `pg_dist_poolinfo` on the next update of the nodes (see `.spec.configurations.citus.updateNodeInterval`).
+
 ## Distributed Partitioned Tables
 
 Citus allows creating partitioned tables that are also distributed for time-series workloads. With partitioned tables, removing old historical data is fast and doesn't generate bloat:
