@@ -333,13 +333,14 @@ query_routers_scaling_check() {
 
   set_query_routers 1
 
-  if try_function wait_until eval '! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$ROUTER_CLUSTER" \
-      > /dev/null 2>&1' \
-    && "$RESULT"
+  # The SGCluster of a removed query router is kept running while its group is registered in
+  # pg_dist_node since Citus can only remove a primary node that can be reached
+  if kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$ROUTER_CLUSTER" \
+    --template '{{ .spec.instances }}' | grep -qxF 1
   then
-    success "SGCluster $ROUTER_CLUSTER was removed"
+    success "SGCluster $ROUTER_CLUSTER is kept running while registered in pg_dist_node"
   else
-    fail "SGCluster $ROUTER_CLUSTER was not removed"
+    fail "SGCluster $ROUTER_CLUSTER was scaled down while registered in pg_dist_node"
   fi
 
   # Patroni does not remove a Citus group that is gone from the DCS, the coordinator must do it
@@ -351,6 +352,15 @@ query_routers_scaling_check() {
     success "Query router of group $ROUTER_GROUP was removed from pg_dist_node"
   else
     fail "Query router of group $ROUTER_GROUP was not removed from pg_dist_node"
+  fi
+
+  if try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$ROUTER_CLUSTER" \
+      --template "{{ .spec.instances }}")" = 0 ]' \
+    && "$RESULT"
+  then
+    success "SGCluster $ROUTER_CLUSTER was scaled down once removed from pg_dist_node"
+  else
+    fail "SGCluster $ROUTER_CLUSTER was not scaled down once removed from pg_dist_node"
   fi
 
   # A stale query router would make Citus reject the addition of any node
