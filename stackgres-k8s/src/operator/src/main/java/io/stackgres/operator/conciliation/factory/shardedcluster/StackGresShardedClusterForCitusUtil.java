@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.ManagedSqlCronUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresShardedClusterUtil;
@@ -35,6 +36,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
@@ -57,6 +59,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.impl.DSL;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClusterUtil {
@@ -66,6 +69,8 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
   int QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID = 3;
 
   int REGISTERED_GROUPS_SCRIPT_ID = 4;
+
+  int UPDATE_POOLINFO_SCRIPT_ID = 5;
 
   class Util extends StackGresShardedClusterForUtil {
 
@@ -77,6 +82,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             .build());
       }
       setConfigurationsPatroniInitialConfig(cluster, spec, 0);
+      setConnectionPoolingForPoolInfo(cluster, spec);
       if (spec.getManagedSql() == null) {
         spec.setManagedSql(new StackGresClusterManagedSql());
       }
@@ -99,11 +105,13 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     @Override
     void updateWorkerClusterSpec(StackGresShardedCluster cluster, StackGresClusterSpec spec, int index) {
       setConfigurationsPatroniInitialConfig(cluster, spec, index + 1);
+      setConnectionPoolingForPoolInfo(cluster, spec);
     }
 
     @Override
     void updateQueryRouterClusterSpec(StackGresShardedCluster cluster, StackGresClusterSpec spec, int index) {
       setConfigurationsPatroniInitialConfig(cluster, spec, index + 1);
+      setConnectionPoolingForPoolInfo(cluster, spec);
       spec.getConfigurations().getPatroni().setStartGateAnnotations(mergeMaps(
           spec.getConfigurations().getPatroni().getStartGateAnnotations(),
           Map.entry(StackGresContext.CITUS_GROUP_REGISTERED_ANNOTATION, String.valueOf(index + 1))));
@@ -199,6 +207,18 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
       }
     }
 
+    /**
+     * Citus connects to the nodes through PgBouncer (see {@code pg_dist_poolinfo}) when
+     * {@code SGShardedCluster.spec.configurations.citus.connectToPooler} is {@code true}, so the
+     * connection pooling can not be disabled.
+     */
+    private void setConnectionPoolingForPoolInfo(
+        StackGresShardedCluster cluster, StackGresClusterSpec spec) {
+      if (isConnectToPooler(cluster) && spec.getPods() != null) {
+        spec.getPods().setDisableConnectionPooling(false);
+      }
+    }
+
     private Map<String, String> withCitusGroupLabel(Map<String, String> labels, int index) {
       return mergeMaps(
           labels,
@@ -248,7 +268,8 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             getCitusRemovePgCronJobsScript(context, 1),
             getCitusUpdateNodesScript(context, 2),
             getCitusQueryRoutersWithoutShardsScript(context, QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID),
-            getCitusRegisteredGroupsScript(context, REGISTERED_GROUPS_SCRIPT_ID))
+            getCitusRegisteredGroupsScript(context, REGISTERED_GROUPS_SCRIPT_ID),
+            getCitusUpdatePoolinfoScript(context, UPDATE_POOLINFO_SCRIPT_ID))
         .endSpec()
         .build();
   }
@@ -420,6 +441,61 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             + " FROM (SELECT DISTINCT groupid FROM pg_catalog.pg_dist_node"
             + " WHERE groupid > 0) AS groups")
         .build();
+  }
+
+  private static StackGresScriptEntry getCitusUpdatePoolinfoScript(
+      StackGresShardedClusterContext context, int id) {
+    StackGresShardedCluster cluster = context.getShardedCluster();
+    return new StackGresScriptEntryBuilder()
+        .withId(id)
+        .withName("citus-update-poolinfo")
+        .withDatabase(cluster.getSpec().getDatabase())
+        .withCron(getUpdateNodeCron(cluster))
+        .withScript(Unchecked.supplier(() -> Resources
+            .asCharSource(StackGresShardedClusterForCitusUtil.class.getResource(
+                "/citus/citus-update-poolinfo.sql"),
+                StandardCharsets.UTF_8)
+            .read()).get().formatted(getPoolinfoPorts(context)))
+        .build();
+  }
+
+  /**
+   * Return the {@code VALUES} rows with the Citus group and the port through which Citus has to
+   * connect to the nodes of that group, the port of PgBouncer when Envoy is disabled, the Envoy
+   * entry port (that forwards to PgBouncer) otherwise. When
+   * {@code SGShardedCluster.spec.configurations.citus.connectToPooler} is {@code false} a single
+   * row that matches no group is returned, so that the entries previously created are removed.
+   */
+  private static String getPoolinfoPorts(StackGresShardedClusterContext context) {
+    StackGresShardedCluster cluster = context.getShardedCluster();
+    if (!isConnectToPooler(cluster)) {
+      return "(NULL::integer, NULL::integer)";
+    }
+    return Seq.of(Tuple.tuple(0, context.getCoordinator()))
+        .append(Seq.seq(context.getWorkers())
+            .zipWithIndex()
+            .map(worker -> Tuple.tuple(worker.v2.intValue() + 1, worker.v1)))
+        .append(Seq.seq(context.getQueryRouters())
+            .zipWithIndex()
+            .map(queryRouter -> Tuple.tuple(
+                getQueryRoutersIndexOffset(cluster) + queryRouter.v2.intValue() + 1,
+                queryRouter.v1)))
+        .map(group -> "(" + group.v1 + ", " + getPoolerPort(group.v2) + ")")
+        .toString(", ");
+  }
+
+  private static int getPoolerPort(StackGresCluster cluster) {
+    return Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(true)
+        ? EnvoyUtil.PG_POOL_PORT : EnvoyUtil.PG_ENTRY_PORT;
+  }
+
+  private static boolean isConnectToPooler(StackGresShardedCluster cluster) {
+    return getCitusConfigurations(cluster)
+        .map(StackGresShardedClusterCitusConfigurations::getConnectToPoolerOrDefault)
+        .orElse(true);
   }
 
   private static Optional<StackGresShardedClusterCitusConfigurations> getCitusConfigurations(

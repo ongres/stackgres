@@ -29,6 +29,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromCustomRest
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCitusConfigurations;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinatorConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresServicesBuilder;
@@ -396,6 +398,44 @@ class StackGresShardedClusterForCitusUtilTest {
         cluster.getSpec().getPostgresServices().getReplicas());
   }
 
+  @Test
+  void givenConnectToPoolerNotSet_shouldAlwaysCreateTheConnectionPooler() {
+    var shardedCluster = getMinimalShardedCluster();
+    shardedCluster.getSpec().getCoordinator().setQueryRouterClusters(1);
+    shardedCluster.getSpec().getCoordinator().setPods(new StackGresClusterPods());
+    shardedCluster.getSpec().getCoordinator().getPods().setDisableConnectionPooling(true);
+    shardedCluster.getSpec().getWorkers().setPods(new StackGresClusterPods());
+    shardedCluster.getSpec().getWorkers().getPods().setDisableConnectionPooling(true);
+
+    Assertions.assertFalse(getCoordinatorCluster(JsonUtil.copy(shardedCluster), Optional.empty())
+        .getSpec().getPods().getDisableConnectionPooling());
+    Assertions.assertFalse(getWorkerCluster(JsonUtil.copy(shardedCluster), 0, Optional.empty())
+        .getSpec().getPods().getDisableConnectionPooling());
+    Assertions.assertFalse(getQueryRouterCluster(JsonUtil.copy(shardedCluster), 1024, Optional.empty())
+        .getSpec().getPods().getDisableConnectionPooling());
+  }
+
+  @Test
+  void givenConnectToPoolerFalse_shouldKeepDisableConnectionPooling() {
+    var shardedCluster = getMinimalShardedCluster();
+    shardedCluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    shardedCluster.getSpec().getConfigurations().setCitus(
+        new StackGresShardedClusterCitusConfigurations());
+    shardedCluster.getSpec().getConfigurations().getCitus().setConnectToPooler(false);
+    shardedCluster.getSpec().getCoordinator().setQueryRouterClusters(1);
+    shardedCluster.getSpec().getCoordinator().setPods(new StackGresClusterPods());
+    shardedCluster.getSpec().getCoordinator().getPods().setDisableConnectionPooling(true);
+    shardedCluster.getSpec().getWorkers().setPods(new StackGresClusterPods());
+    shardedCluster.getSpec().getWorkers().getPods().setDisableConnectionPooling(true);
+
+    Assertions.assertTrue(getCoordinatorCluster(JsonUtil.copy(shardedCluster), Optional.empty())
+        .getSpec().getPods().getDisableConnectionPooling());
+    Assertions.assertTrue(getWorkerCluster(JsonUtil.copy(shardedCluster), 0, Optional.empty())
+        .getSpec().getPods().getDisableConnectionPooling());
+    Assertions.assertTrue(getQueryRouterCluster(JsonUtil.copy(shardedCluster), 1024, Optional.empty())
+        .getSpec().getPods().getDisableConnectionPooling());
+  }
+
   private StackGresShardedCluster getMinimalShardedCluster() {
     return Fixtures.shardedCluster().getBuilder()
         .withNewSpec()
@@ -417,6 +457,8 @@ class StackGresShardedClusterForCitusUtilTest {
   @Test
   void givedShardedClusterWithMinimalCoordinator_shouldCopyGlobalSettings() {
     var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
+    // PgBouncer is always created when connecting to the pooler (see withConnectToPooler tests)
+    shardedCluster.getSpec().getConfigurations().getCitus().setConnectToPooler(false);
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -465,6 +507,8 @@ class StackGresShardedClusterForCitusUtilTest {
   @Test
   void givedShardedClusterWithMinimalWorkers_shouldCopyGlobalSettings() {
     var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
+    // PgBouncer is always created when connecting to the pooler (see withConnectToPooler tests)
+    shardedCluster.getSpec().getConfigurations().getCitus().setConnectToPooler(false);
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -506,6 +550,8 @@ class StackGresShardedClusterForCitusUtilTest {
   @Test
   void givedShardedClusterWithCoordinator_shouldCopySettings() {
     var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
+    // PgBouncer is always created when connecting to the pooler (see withConnectToPooler tests)
+    shardedCluster.getSpec().getConfigurations().getCitus().setConnectToPooler(false);
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -535,6 +581,8 @@ class StackGresShardedClusterForCitusUtilTest {
   @Test
   void givedShardedClusterWithWorkers_shouldCopySettings() {
     var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
+    // PgBouncer is always created when connecting to the pooler (see withConnectToPooler tests)
+    shardedCluster.getSpec().getConfigurations().getCitus().setConnectToPooler(false);
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -565,6 +613,8 @@ class StackGresShardedClusterForCitusUtilTest {
   @Test
   void givedShardedClusterWithWorkersOverrides_shouldCopyOverrideSettings() {
     var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
+    // PgBouncer is always created when connecting to the pooler (see withConnectToPooler tests)
+    shardedCluster.getSpec().getConfigurations().getCitus().setConnectToPooler(false);
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -604,6 +654,8 @@ class StackGresShardedClusterForCitusUtilTest {
   @Test
   void givedShardedClusterWithQueryRoutersOverrides_shouldCopyOverrideSettings() {
     var shardedCluster = StackGresShardedClusterTestUtil.createShardedCluster();
+    // PgBouncer is always created when connecting to the pooler (see withConnectToPooler tests)
+    shardedCluster.getSpec().getConfigurations().getCitus().setConnectToPooler(false);
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);

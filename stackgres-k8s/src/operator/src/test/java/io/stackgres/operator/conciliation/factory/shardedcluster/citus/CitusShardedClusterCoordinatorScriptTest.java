@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresShardedClusterUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -51,6 +52,17 @@ class CitusShardedClusterCoordinatorScriptTest {
   void setUp() {
     factory = new CitusShardedClusterCoordinatorScript(labelFactory);
     cluster = Fixtures.shardedCluster().loadDefault().get();
+    lenient().when(context.getCoordinator()).thenReturn(clusterWithEnvoyDisabled(null));
+    lenient().when(context.getWorkers()).thenReturn(List.of(
+        clusterWithEnvoyDisabled(true), clusterWithEnvoyDisabled(false)));
+    lenient().when(context.getQueryRouters()).thenReturn(List.of(
+        clusterWithEnvoyDisabled(true)));
+  }
+
+  private StackGresCluster clusterWithEnvoyDisabled(Boolean disableEnvoy) {
+    StackGresCluster generatedCluster = Fixtures.cluster().loadDefault().get();
+    generatedCluster.getSpec().getPods().setDisableEnvoy(disableEnvoy);
+    return generatedCluster;
   }
 
   @Test
@@ -124,10 +136,10 @@ class CitusShardedClusterCoordinatorScriptTest {
     StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
 
     List<StackGresScriptEntry> entries = script.getSpec().getScripts();
-    assertEquals(List.of(0, 1, 2, 3, 4),
+    assertEquals(List.of(0, 1, 2, 3, 4, 5),
         entries.stream().map(StackGresScriptEntry::getId).toList());
     assertEquals(List.of("citus-update-workers", "citus-remove-pg-cron-jobs", "citus-update-nodes",
-        "citus-query-routers-without-shards", "citus-registered-groups"),
+        "citus-query-routers-without-shards", "citus-registered-groups", "citus-update-poolinfo"),
         entries.stream().map(StackGresScriptEntry::getName).toList());
     assertNull(entries.get(0).getCron());
     assertNull(entries.get(1).getCron());
@@ -172,6 +184,46 @@ class CitusShardedClusterCoordinatorScriptTest {
     assertTrue(entries.get(2).getScript().contains("IF true THEN"));
     assertEquals("0 0/2 * * * ?", entries.get(3).getCron());
     assertEquals("0 0/2 * * * ?", entries.get(4).getCron());
+  }
+
+  @Test
+  void generateResource_whenConnectToPoolerIsNotSet_shouldConnectToThePoolerOfEachGroup() {
+    cluster.getSpec().setType("citus");
+    when(context.getShardedCluster()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getSuperuserUsername()).thenReturn(Optional.empty());
+    lenient().when(context.getSuperuserPassword()).thenReturn(Optional.of("test-pass"));
+    lenient().when(context.getDatabaseSecret()).thenReturn(Optional.empty());
+
+    StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
+
+    StackGresScriptEntry entry = script.getSpec().getScripts().get(5);
+    assertEquals(StackGresShardedClusterForCitusUtil.UPDATE_POOLINFO_SCRIPT_ID, entry.getId());
+    assertEquals("0/10 * * * * ?", entry.getCron());
+    assertEquals(cluster.getSpec().getDatabase(), entry.getDatabase());
+    assertTrue(entry.getScript().contains("(VALUES (0, 6432), (1, 6432), (2, 7432), (1025, 6432))"),
+        entry.getScript());
+    assertTrue(entry.getScript().contains("run_command_on_workers"));
+    assertFalse(entry.getScript().contains("%"));
+  }
+
+  @Test
+  void generateResource_whenConnectToPoolerIsFalse_shouldRemoveThePoolerEntries() {
+    cluster.getSpec().setType("citus");
+    cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    cluster.getSpec().getConfigurations().setCitus(new StackGresShardedClusterCitusConfigurations());
+    cluster.getSpec().getConfigurations().getCitus().setConnectToPooler(false);
+    when(context.getShardedCluster()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getSuperuserUsername()).thenReturn(Optional.empty());
+    lenient().when(context.getSuperuserPassword()).thenReturn(Optional.of("test-pass"));
+    lenient().when(context.getDatabaseSecret()).thenReturn(Optional.empty());
+
+    StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
+
+    StackGresScriptEntry entry = script.getSpec().getScripts().get(5);
+    assertTrue(entry.getScript().contains("(VALUES (NULL::integer, NULL::integer))"),
+        entry.getScript());
   }
 
 }

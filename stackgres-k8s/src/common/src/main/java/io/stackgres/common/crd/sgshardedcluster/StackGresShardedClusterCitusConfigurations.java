@@ -35,6 +35,8 @@ public class StackGresShardedClusterCitusConfigurations extends AdditionalProper
 
   private Boolean enableNodeAutoRemoval;
 
+  private Boolean connectToPooler;
+
   @ReferencedField("updateNodeInterval")
   interface UpdateNodeInterval extends FieldReference {
   }
@@ -80,9 +82,22 @@ public class StackGresShardedClusterCitusConfigurations extends AdditionalProper
     this.enableNodeAutoRemoval = enableNodeAutoRemoval;
   }
 
+  public Boolean getConnectToPooler() {
+    return connectToPooler;
+  }
+
+  @JsonIgnore
+  public boolean getConnectToPoolerOrDefault() {
+    return Optional.ofNullable(connectToPooler).orElse(true);
+  }
+
+  public void setConnectToPooler(Boolean connectToPooler) {
+    this.connectToPooler = connectToPooler;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(enableNodeAutoRemoval, updateNodeInterval);
+    return Objects.hash(connectToPooler, enableNodeAutoRemoval, updateNodeInterval);
   }
 
   @Override
@@ -95,7 +110,8 @@ public class StackGresShardedClusterCitusConfigurations extends AdditionalProper
     }
     StackGresShardedClusterCitusConfigurations other =
         (StackGresShardedClusterCitusConfigurations) obj;
-    return Objects.equals(enableNodeAutoRemoval, other.enableNodeAutoRemoval)
+    return Objects.equals(connectToPooler, other.connectToPooler)
+        && Objects.equals(enableNodeAutoRemoval, other.enableNodeAutoRemoval)
         && Objects.equals(updateNodeInterval, other.updateNodeInterval);
   }
 
