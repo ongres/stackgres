@@ -1606,6 +1606,14 @@ spec:
 
                           **This field can only be set on creation.**
                         "x-kubernetes-preserve-unknown-fields": true
+                      startGateAnnotations:
+                        type: object
+                        description: |
+                          Annotations that must be set on the SGCluster before Patroni is started. When set, the cluster controller of each Pod waits to start Patroni until the SGCluster has all of these annotations with the same values. A Patroni that is already running is never stopped when the annotations are removed.
+
+                          While Patroni is not started the startup probe of the `patroni` container fails, so the container is restarted (and keeps waiting) after the startup probe failure threshold (15 minutes by default, see `.spec.pods.startupProbe`).
+                        additionalProperties:
+                          type: string
                   credentials:
                     type: object
                     description: |

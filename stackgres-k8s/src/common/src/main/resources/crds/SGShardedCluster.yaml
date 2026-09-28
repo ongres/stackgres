@@ -2335,6 +2335,14 @@ spec:
     
                               **This field can only be set on creation.**
                             "x-kubernetes-preserve-unknown-fields": true
+                          startGateAnnotations:
+                            type: object
+                            description: |
+                              Annotations that must be set on the generated SGClusters before Patroni is started. See `SGCluster.spec.configurations.patroni.startGateAnnotations`.
+
+                              If sharding type is `citus` the operator also adds the annotation required to start the query routers only once they have been registered by the coordinator.
+                            additionalProperties:
+                              type: string
                       shardingSphere:
                         type: object
                         description: |

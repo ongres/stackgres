@@ -22,6 +22,8 @@ public class ClusterPatroni extends AdditionalProperties {
 
   private Map<String, Object> initialConfig;
 
+  private Map<String, String> startGateAnnotations;
+
   public Boolean getConnectUsingFqdn() {
     return connectUsingFqdn;
   }
@@ -44,6 +46,14 @@ public class ClusterPatroni extends AdditionalProperties {
 
   public void setInitialConfig(Map<String, Object> initialConfig) {
     this.initialConfig = initialConfig;
+  }
+
+  public Map<String, String> getStartGateAnnotations() {
+    return startGateAnnotations;
+  }
+
+  public void setStartGateAnnotations(Map<String, String> startGateAnnotations) {
+    this.startGateAnnotations = startGateAnnotations;
   }
 
   @Override
