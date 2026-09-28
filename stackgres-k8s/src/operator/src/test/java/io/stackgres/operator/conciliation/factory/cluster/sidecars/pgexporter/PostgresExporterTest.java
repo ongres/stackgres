@@ -146,6 +146,22 @@ class PostgresExporterTest {
     );
   }
 
+  @Test
+  void pgBouncerQueries_shouldDeclareTheColumnsInTheOrderReturnedByPgBouncer125() {
+    ClusterContainerContext context = getClusterContainerContext();
+
+    List<VolumePair> volumes = postgresExporter.buildVolumes(context.getClusterContext()).toList();
+
+    String showStatsQuery = getSourceVolumeDataQuery(volumes, "pgbouncer_show_stats");
+    Assertions.assertTrue(showStatsQuery.contains(
+        "_(database text, total_server_assignment_count bigint, total_xact_count bigint,"));
+    Assertions.assertTrue(showStatsQuery.contains("total_client_parse_count bigint"));
+    Assertions.assertFalse(showStatsQuery.contains("total_client_login_count"));
+    Assertions.assertFalse(showStatsQuery.contains("avg_client_login_count"));
+    String showClientsQuery = getSourceVolumeDataQuery(volumes, "pgbouncer_show_clients");
+    Assertions.assertTrue(showClientsQuery.contains("prepared_statements integer, id bigint)"));
+  }
+
   private ClusterContainerContext getClusterContainerContext() {
     return ImmutableClusterContainerContext.builder()
         .clusterContext(StackGresClusterContext.builder()
@@ -165,6 +181,18 @@ class PostgresExporterTest {
 
   private StackGresCluster getDefaultCluster() {
     return Fixtures.cluster().loadDefault().get();
+  }
+
+  private static String getSourceVolumeDataQuery(List<VolumePair> volumes, String queryName) {
+    return volumes
+      .getFirst()
+      .getSource()
+      .map(ConfigMap.class::cast)
+      .map(ConfigMap::getData)
+      .map(data -> data.get(PostgresExporter.QUERIES_YAML))
+      .map(Unchecked.function(queries -> JsonUtil.yamlMapper().readTree(queries)))
+      .map(queries -> queries.get(queryName).get("query").asText())
+      .orElseThrow();
   }
 
   @NotNull
