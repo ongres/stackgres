@@ -225,12 +225,14 @@ spec:
       enableNodeAutoRemoval: true
 ```
 
-The nodes of the workers or query routers removed by decreasing `.spec.workers.clusters` or `.spec.coordinator.queryRouterClusters` are not removed from the Citus node table by Patroni. Since they can not be reached they make Citus reject any node addition and distributed DDL. Set `.spec.configurations.citus.enableNodeAutoRemoval` to `true` to let the coordinator remove them (it only removes the nodes that hold no shard of a distributed table and can not be reached), or remove them manually on the coordinator primary:
+The nodes of the workers or query routers removed by decreasing `.spec.workers.clusters` or `.spec.coordinator.queryRouterClusters` are not removed from the Citus node table by Patroni. Since Citus can only remove a primary node that can be reached, the SGCluster of a removed worker or query router is kept running while its group is registered in the Citus node table, and is scaled down to 0 instances only once its group has been removed from it. Set `.spec.configurations.citus.enableNodeAutoRemoval` to `true` to let the coordinator remove them (it only removes the nodes that hold no shard of a distributed table and can be reached), or remove them manually on the coordinator primary:
 
 ```sql
-SELECT citus_disable_node('<nodename>', <nodeport>, synchronous => true);
 SELECT citus_remove_node('<nodename>', <nodeport>);
 ```
+
+> **NOTE**: a worker that still holds shards of a distributed table is never removed. Move its shards to the remaining workers first
+> (for example with `SELECT citus_drain_node('<nodename>', <nodeport>)`).
 
 ## Distributed Partitioned Tables
 
