@@ -75,7 +75,8 @@ public interface ManagedSqlUtil {
         String.valueOf(scriptEntry.getRetryOnErrorOrDefault()),
         script,
         // Only included when set so that the hash of existing script entries does not change
-        scriptEntry.getSetValueOrDefault() ? "setValue" : null);
+        scriptEntry.getSetValueOrDefault() ? "setValue" : null,
+        scriptEntry.getCron());
   }
 
   static String defaultName(StackGresCluster cluster) {

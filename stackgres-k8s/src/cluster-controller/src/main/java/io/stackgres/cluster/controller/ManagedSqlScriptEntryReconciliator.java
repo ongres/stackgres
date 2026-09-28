@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryScriptStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryScriptStatusBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryStatus;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
@@ -53,6 +54,9 @@ public class ManagedSqlScriptEntryReconciliator {
   @SuppressFBWarnings(value = "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
       justification = "This is the feature not a bug")
   protected boolean reconcile() {
+    if (managedSqlScriptEntry.getScriptEntry().getCron() != null) {
+      return reconcileCron();
+    }
     final var managedScriptEntryStatus = getOrCreateScriptEntryStatus();
     if ((managedSqlReconciliator.isScriptEntryExecutionHang(
         managedSqlScriptEntry.getScriptEntry(), managedScriptEntryStatus)
@@ -83,6 +87,100 @@ public class ManagedSqlScriptEntryReconciliator {
         managedSqlScriptEntry.getManagedScript(), managedSqlScriptEntry.getScriptEntry(),
         managedScriptEntryStatus, isScriptEntryUpToDate);
     return isScriptEntryUpToDate;
+  }
+
+  /**
+   * A script entry with a {@code cron} is executed each time it is due, regardless of
+   * {@code retryOnError}, and the SGCluster status is only updated (and an event sent) when the
+   * status of the entry changes (e.g. the value changed or the execution failed or recovered), so
+   * that frequent schedules do not generate an update of the SGCluster on each execution.
+   *
+   * @return {@code true} if the current version of the script entry was executed successfully at
+   *     least once, so that a failure of a scheduled execution does not block the execution of the
+   *     following script entries.
+   */
+  @SuppressFBWarnings(value = "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+      justification = "This is the feature not a bug")
+  private boolean reconcileCron() {
+    final var managedScriptEntryStatus = getOrCreateScriptEntryStatus();
+    final var previousManagedScriptEntryStatus =
+        new StackGresClusterManagedScriptEntryScriptStatusBuilder(managedScriptEntryStatus)
+        .build();
+    final String sql = managedSqlReconciliator.getSql(
+        context, managedSqlScriptEntry.getScriptEntry());
+    if (!isSqlSameStatusHash(sql)) {
+      LOGGER.warn("Skipping execution due to hash mismatch for managed script {}",
+          managedSqlScriptEntry.getManagedScriptEntryDescription());
+      return false;
+    }
+    final boolean failedBefore = managedScriptEntryStatus.getFailureCode() != null;
+    // Scheduled executions are only logged the first time, when they fail or when they recover
+    if (managedSqlReconciliator.getCronScheduler().isFirstExecution(
+        managedSqlScriptEntry.getManagedScript(), managedSqlScriptEntry.getScriptEntry())) {
+      LOGGER.info("Executing managed script {} that will be re-executed following the schedule {}"
+          + " (further executions will only be logged if they fail)",
+          managedSqlScriptEntry.getManagedScriptEntryDescription(),
+          managedSqlReconciliator.getCronScheduler().getCadence(
+              managedSqlScriptEntry.getScriptEntry()));
+    }
+    Exception failure = null;
+    try {
+      final Optional<String> value = managedSqlReconciliator.getManagedSqlScriptEntryExecutor()
+          .executeScriptEntry(managedSqlScriptEntry, sql, superuserUsername);
+      managedScriptEntryStatus.setVersion(managedSqlScriptEntry.getScriptEntry().getVersion());
+      resetIntentsAndFailure(managedScriptEntryStatus);
+      if (managedSqlScriptEntry.getScriptEntry().getSetValueOrDefault()) {
+        managedScriptEntryStatus.setValue(value.orElse(null));
+      }
+    } catch (Exception ex) {
+      failure = ex;
+      managedScriptEntryStatus.setIntents(1);
+      managedScriptEntryStatus.setFailureCode(
+          ex instanceof SQLException sqlException ? sqlException.getSQLState() : "XX500");
+      managedScriptEntryStatus.setFailure(ex.getMessage());
+    } finally {
+      managedSqlReconciliator.getCronScheduler().executed(
+          managedSqlScriptEntry.getManagedScript(), managedSqlScriptEntry.getScriptEntry());
+    }
+    final boolean failed = managedScriptEntryStatus.getFailureCode() != null;
+    final boolean changed =
+        !Objects.equals(previousManagedScriptEntryStatus, managedScriptEntryStatus);
+    if (failure != null && changed) {
+      LOGGER.error("An error occurred while executing a managed script {}",
+          managedSqlScriptEntry.getManagedScriptEntryDescription(), failure);
+    } else if (failure != null) {
+      LOGGER.debug("The managed script {} failed again: {}",
+          managedSqlScriptEntry.getManagedScriptEntryDescription(), failure.getMessage());
+    } else if (failedBefore) {
+      LOGGER.info("The managed script {} was executed successfully after failing",
+          managedSqlScriptEntry.getManagedScriptEntryDescription());
+    }
+    if (changed) {
+      final String now = Instant.now().toString();
+      final var managedScriptStatus = managedSqlScriptEntry.getManagedScriptStatus();
+      if (managedScriptStatus.getStartedAt() == null) {
+        managedScriptStatus.setStartedAt(now);
+      }
+      managedScriptStatus.setUpdatedAt(now);
+      if (failed) {
+        managedScriptStatus.setFailedAt(now);
+      } else if (failedBefore
+          && managedScriptStatus.getScripts().stream()
+          .map(StackGresClusterManagedScriptEntryScriptStatus::getFailureCode)
+          .allMatch(Objects::isNull)) {
+        managedScriptStatus.setFailedAt(null);
+        managedScriptStatus.setCompletedAt(now);
+      }
+      managedSqlReconciliator.updateManagedSqlStatus(context,
+          managedSqlScriptEntry.getManagedSqlStatus());
+      if (failed != failedBefore || failed || previousManagedScriptEntryStatus.getVersion() == null) {
+        managedSqlReconciliator.sendEvent(client, context,
+            managedSqlScriptEntry.getManagedScript(), managedSqlScriptEntry.getScriptEntry(),
+            managedScriptEntryStatus, !failed);
+      }
+    }
+    return Objects.equals(
+        managedScriptEntryStatus.getVersion(), managedSqlScriptEntry.getScriptEntry().getVersion());
   }
 
   private StackGresClusterManagedScriptEntryScriptStatus getOrCreateScriptEntryStatus() {

@@ -63,6 +63,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
   private final CustomResourceWriter<StackGresCluster> clusterWriter;
   private final String podName;
   private final EventController eventController;
+  private final ManagedSqlCronScheduler cronScheduler;
 
   @Dependent
   public static class Parameters {
@@ -74,6 +75,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
     @Inject ResourceFinder<ConfigMap> configMapFinder;
     @Inject CustomResourceWriter<StackGresCluster> clusterWriter;
     @Inject EventController eventController;
+    @Inject ManagedSqlCronScheduler cronScheduler;
   }
 
   @Inject
@@ -89,13 +91,19 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
     this.eventController = parameters.eventController;
+    this.cronScheduler = parameters.cronScheduler;
   }
 
+  /**
+   * Only called by the {@link ManagedSqlReconciliationCycle}, that owns the execution of the
+   * SGScripts and the updates of the section {@code SGCluster.status.managedSql}.
+   */
   @Override
   public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client,
-      StackGresClusterContext context) throws Exception {
+      StackGresClusterContext context) {
     StackGresClusterManagedSqlStatus managedSqlStatus = getManagedSqlStatus(context);
     if (!reconcileManagedSql.get() || managedSqlStatus == null) {
+      cronScheduler.unschedule();
       return new ReconciliationResult<>(false);
     }
     try {
@@ -136,6 +144,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
         .flatMap(List::stream)
         .count() == 0
         || !isBootstrappedLeader(context)) {
+      cronScheduler.unschedule();
       return;
     }
     String superuserUsername = secretFinder.findByNameAndNamespace(
@@ -161,13 +170,20 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
         .map(t -> t.concat(findScript(context, t.v1)))
         .map(t -> t.concat(findManagedScriptStatus(scriptsStatus, t.v1)))
         .toList();
+    cronScheduler.schedule(managedScripts.stream()
+        .map(managedScript -> managedScript.v2.getSpec())
+        .map(StackGresScriptSpec::getScripts)
+        .filter(Objects::nonNull)
+        .flatMap(List::stream)
+        .filter(scriptEntry -> scriptEntry.getCron() != null)
+        .toList());
     for (var managedScript : managedScripts) {
       var managedScriptEntries = Optional.of(managedScript.v2.getSpec())
           .map(StackGresScriptSpec::getScripts)
           .stream()
           .flatMap(List::stream)
           .map(managedScript::concat)
-          .filter(t -> !isScriptEntryUpToDate(t.v4, t.v3))
+          .filter(t -> isScriptEntryToExecute(t.v1, t.v4, t.v3))
           .map(t -> t.concat(findScriptStatus(t.v1.getId(), t.v2, t.v4)))
           .toList();
       boolean scriptResult = true;
@@ -197,6 +213,17 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
         break;
       }
     }
+  }
+
+  private boolean isScriptEntryToExecute(
+      StackGresClusterManagedScriptEntry managedScript,
+      StackGresScriptEntry scriptEntry,
+      StackGresClusterManagedScriptEntryStatus managedScriptStatus) {
+    if (scriptEntry.getCron() == null) {
+      return !isScriptEntryUpToDate(scriptEntry, managedScriptStatus);
+    }
+    return !isScriptEntryUpToDate(scriptEntry, managedScriptStatus)
+        || cronScheduler.isDue(managedScript, scriptEntry);
   }
 
   private boolean doesScriptEntryContinueOnError(StackGresScript script) {
@@ -356,6 +383,10 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
 
   protected ManagedSqlScriptEntryExecutor getManagedSqlScriptEntryExecutor() {
     return managedSqlScriptEntryExecutor;
+  }
+
+  protected ManagedSqlCronScheduler getCronScheduler() {
+    return cronScheduler;
   }
 
 }

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.AdditionalProperties;
+import io.stackgres.common.ManagedSqlCronUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -52,6 +53,8 @@ public class StackGresScriptEntry extends AdditionalProperties {
 
   private Boolean setValue;
 
+  private String cron;
+
   private String user;
 
   private String script;
@@ -70,6 +73,9 @@ public class StackGresScriptEntry extends AdditionalProperties {
 
   @ReferencedField("storeStatusInDatabase")
   interface StoreStatusInDatabase extends FieldReference { }
+
+  @ReferencedField("cron")
+  interface Cron extends FieldReference { }
 
   @JsonIgnore
   @AssertTrue(message = "script and scriptFrom are mutually exclusive and required.",
@@ -93,6 +99,19 @@ public class StackGresScriptEntry extends AdditionalProperties {
     return storeStatusInDatabase == null || !storeStatusInDatabase || wrapInTransaction != null;
   }
 
+  @JsonIgnore
+  @AssertTrue(message = "cron must be a valid Quartz cron expression.",
+      payload = Cron.class)
+  public boolean isCronValid() {
+    return cron == null || ManagedSqlCronUtil.isValid(cron);
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "Can not set cron when storeStatusInDatabase is set.",
+      payload = Cron.class)
+  public boolean isStoreStatusInDatabaseNotSetWhenCronIsSet() {
+    return cron == null || storeStatusInDatabase == null || !storeStatusInDatabase;
+  }
 
   public String getName() {
     return name;
@@ -186,6 +205,14 @@ public class StackGresScriptEntry extends AdditionalProperties {
     this.setValue = setValue;
   }
 
+  public String getCron() {
+    return cron;
+  }
+
+  public void setCron(String cron) {
+    this.cron = cron;
+  }
+
   public String getScript() {
     return script;
   }
@@ -204,7 +231,7 @@ public class StackGresScriptEntry extends AdditionalProperties {
 
   @Override
   public int hashCode() {
-    return Objects.hash(database, id, name, retryOnError, script, scriptFrom, setValue,
+    return Objects.hash(cron, database, id, name, retryOnError, script, scriptFrom, setValue,
         storeStatusInDatabase, user, version, wrapInTransaction);
   }
 
@@ -217,7 +244,8 @@ public class StackGresScriptEntry extends AdditionalProperties {
       return false;
     }
     StackGresScriptEntry other = (StackGresScriptEntry) obj;
-    return Objects.equals(database, other.database) && Objects.equals(id, other.id)
+    return Objects.equals(cron, other.cron)
+        && Objects.equals(database, other.database) && Objects.equals(id, other.id)
         && Objects.equals(name, other.name) && Objects.equals(retryOnError, other.retryOnError)
         && Objects.equals(script, other.script) && Objects.equals(scriptFrom, other.scriptFrom)
         && Objects.equals(setValue, other.setValue)

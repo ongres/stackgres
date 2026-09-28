@@ -75,21 +75,21 @@ public class ManagedSqlScriptEntryExecutor {
       String superuserUsername)
       throws SQLException {
     if (scriptEntry.getScriptEntry().getWrapInTransaction() == null) {
-      LOGGER.info("Executing managed script {} with no transaction",
+      logExecution(scriptEntry, "Executing managed script {} with no transaction",
           scriptEntry.getManagedScriptEntryDescription());
       return executeScriptEntryWithoutTransaction(scriptEntry, sql, superuserUsername);
     } else {
       StackGresScriptTransactionIsolationLevel transactionIsolationLevel =
           fromString(scriptEntry.getScriptEntry().getWrapInTransaction());
       if (scriptEntry.getScriptEntry().getStoreStatusInDatabaseOrDefault()) {
-        LOGGER.info("Executing managed script {} and store status wrapped in a transaction with"
+        logExecution(scriptEntry, "Executing managed script {} and store status wrapped in a transaction with"
             + " isolation level {}",
             scriptEntry.getManagedScriptEntryDescription(),
             transactionIsolationLevel.toSqlString());
         return executeScriptEntryAndStoreStatusInTransaction(
             scriptEntry, transactionIsolationLevel, sql, superuserUsername);
       } else {
-        LOGGER.info("Executing managed script {} wrapped in a transaction with isolation level {}",
+        logExecution(scriptEntry, "Executing managed script {} wrapped in a transaction with isolation level {}",
             scriptEntry.getManagedScriptEntryDescription(),
             transactionIsolationLevel.toSqlString());
         return executeScriptEntryInTransaction(
@@ -178,6 +178,18 @@ public class ManagedSqlScriptEntryExecutor {
         connection.rollback();
         throw ex;
       }
+    }
+  }
+
+  /**
+   * The executions of a script entry that sets the field {@code cron} are only logged at debug
+   * level, since they may be frequent (the first one is logged by the reconciliator).
+   */
+  private void logExecution(ManagedSqlScriptEntry scriptEntry, String format, Object... arguments) {
+    if (scriptEntry.getScriptEntry().getCron() == null) {
+      LOGGER.info(format, arguments);
+    } else {
+      LOGGER.debug(format, arguments);
     }
   }
 

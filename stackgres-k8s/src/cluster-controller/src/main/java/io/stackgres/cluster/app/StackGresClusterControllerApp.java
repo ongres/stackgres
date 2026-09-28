@@ -22,6 +22,7 @@ public class StackGresClusterControllerApp {
   private ClusterControllerWatchersHandler operatorWatchersHandler;
   private ClusterControllerReconciliationClock reconciliationClock;
   private PatroniExternalCdsReconciliationClock patroniReconciliationClock;
+  private ManagedSqlReconciliationClock managedSqlReconciliationClock;
   private ClusterControllerBootstrap operatorBootstrap;
 
   void onStart(@Observes StackGresClusterControllerAppStartupEvent ev) {
@@ -31,6 +32,9 @@ public class StackGresClusterControllerApp {
     if (ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PATRONI_LABELS.getBoolean()) {
       patroniReconciliationClock.start();
     }
+    if (ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL.getBoolean()) {
+      managedSqlReconciliationClock.start();
+    }
   }
 
   void onStop(@Observes StackGresClusterControllerAppShutdownEvent ev) {
@@ -39,6 +43,9 @@ public class StackGresClusterControllerApp {
     reconciliationClock.stop();
     if (ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PATRONI_LABELS.getBoolean()) {
       patroniReconciliationClock.stop();
+    }
+    if (ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL.getBoolean()) {
+      managedSqlReconciliationClock.stop();
     }
   }
 
@@ -57,6 +64,12 @@ public class StackGresClusterControllerApp {
   public void setPatroniExternalCdsReconciliationClock(
       PatroniExternalCdsReconciliationClock patroniReconciliationClock) {
     this.patroniReconciliationClock = patroniReconciliationClock;
+  }
+
+  @Inject
+  public void setManagedSqlReconciliationClock(
+      ManagedSqlReconciliationClock managedSqlReconciliationClock) {
+    this.managedSqlReconciliationClock = managedSqlReconciliationClock;
   }
 
   @Inject

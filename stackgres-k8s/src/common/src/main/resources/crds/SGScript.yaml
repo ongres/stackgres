@@ -121,6 +121,19 @@ spec:
                         The status is only updated when the value changes.
 
                         This is `false` by default.
+                    cron:
+                      type: string
+                      description: |
+                        When set the script entry is executed following the specified schedule instead of being executed once
+                          for each version. The schedule is a [Quartz cron expression](https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html)
+                          (with seconds, e.g. `0/10 * * * * ?` to execute the script entry every 10 seconds) interpreted in UTC.
+
+                        The script entry is still executed as soon as its version changes. A failed execution is retried at
+                          the next scheduled time, regardless of the value of `retryOnError`. The status of the SGCluster is
+                          only updated when the execution fails, when it recovers from a failure or when the value changes
+                          (see `setValue`).
+
+                        This field can not be set together with `storeStatusInDatabase`.
                     script:
                       type: string
                       description: |

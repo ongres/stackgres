@@ -18,10 +18,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -152,6 +156,7 @@ public class ManagedSqlReconciliatorTest {
     parameters.configMapFinder = configMapFinder;
     parameters.clusterWriter = clusterWriter;
     parameters.eventController = eventController;
+    parameters.cronScheduler = new ManagedSqlCronScheduler();
 
     reconciliator = new ManagedSqlReconciliator(parameters);
     clusterSecretName = PatroniUtil.secretName(
@@ -1453,6 +1458,93 @@ public class ManagedSqlReconciliatorTest {
   }
 
   @SuppressWarnings("unchecked")
+  @Test
+  void testReconciliationWithCronScript_executesWhenDueAndUpdatesStatusOnlyOnChange()
+      throws Exception {
+    final MutableClock clock = new MutableClock(Instant.parse("2026-09-28T10:00:05Z"));
+    parameters.cronScheduler = new ManagedSqlCronScheduler(clock);
+    reconciliator = new ManagedSqlReconciliator(parameters);
+    var scriptEntry = script.getSpec().getScripts().get(0);
+    scriptEntry.setCron("0/10 * * * * ?");
+    scriptEntry.setSetValue(true);
+    scriptEntry.setStoreStatusInDatabase(null);
+    script.getSpec().setScripts(List.of(scriptEntry));
+    script.getStatus().setScripts(List.of(script.getStatus().getScripts().get(0)));
+    script.getStatus().getScripts().get(0).setHash(
+        ManagedSqlUtil.generateScriptEntryHash(scriptEntry, scripts.get(0)));
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
+    when(context.getCluster()).thenReturn(cluster);
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
+    when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
+    when(managedSqlScriptEntryExecutor.executeScriptEntry(any(), any(), any()))
+        .thenReturn(Optional.of("1025"));
+
+    reconciliator.reconcile(client, context);
+
+    verify(managedSqlScriptEntryExecutor, times(1)).executeScriptEntry(any(), any(), any());
+    verify(clusterWriter, times(1)).update(any(), any());
+    var scriptEntryStatus = cluster.getStatus().getManagedSql().getScripts().get(0)
+        .getScripts().stream()
+        .filter(status -> Objects.equals(scriptEntry.getId(), status.getId()))
+        .findFirst()
+        .orElseThrow();
+    assertEquals("1025", scriptEntryStatus.getValue());
+    assertEquals(scriptEntry.getVersion(), scriptEntryStatus.getVersion());
+    assertNull(scriptEntryStatus.getIntents());
+
+    clock.setInstant(Instant.parse("2026-09-28T10:00:08Z"));
+    reconciliator.reconcile(client, context);
+
+    verify(managedSqlScriptEntryExecutor, times(1)).executeScriptEntry(any(), any(), any());
+
+    clock.setInstant(Instant.parse("2026-09-28T10:00:11Z"));
+    reconciliator.reconcile(client, context);
+
+    verify(managedSqlScriptEntryExecutor, times(2)).executeScriptEntry(any(), any(), any());
+    verify(clusterWriter, times(1)).update(any(), any());
+
+    when(managedSqlScriptEntryExecutor.executeScriptEntry(any(), any(), any()))
+        .thenReturn(Optional.of("1025,1026"));
+    clock.setInstant(Instant.parse("2026-09-28T10:00:21Z"));
+    reconciliator.reconcile(client, context);
+
+    verify(managedSqlScriptEntryExecutor, times(3)).executeScriptEntry(any(), any(), any());
+    verify(clusterWriter, times(2)).update(any(), any());
+    assertEquals("1025,1026", scriptEntryStatus.getValue());
+  }
+
+  static class MutableClock extends Clock {
+
+    private Instant instant;
+
+    MutableClock(Instant instant) {
+      this.instant = instant;
+    }
+
+    void setInstant(Instant instant) {
+      this.instant = instant;
+    }
+
+    @Override
+    public ZoneId getZone() {
+      return ZoneOffset.UTC;
+    }
+
+    @Override
+    public Clock withZone(ZoneId zone) {
+      return this;
+    }
+
+    @Override
+    public Instant instant() {
+      return instant;
+    }
+
+  }
+
   @Test
   void testReconciliationWithSetValueScript_storesTheValueInTheStatus() throws Exception {
     var scriptEntry = script.getSpec().getScripts().get(0);

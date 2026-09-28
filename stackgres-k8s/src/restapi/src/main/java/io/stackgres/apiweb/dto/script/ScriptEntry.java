@@ -36,6 +36,8 @@ public class ScriptEntry extends AdditionalProperties {
 
   private Boolean setValue;
 
+  private String cron;
+
   public String getName() {
     return name;
   }
@@ -122,6 +124,14 @@ public class ScriptEntry extends AdditionalProperties {
 
   public void setSetValue(Boolean setValue) {
     this.setValue = setValue;
+  }
+
+  public String getCron() {
+    return cron;
+  }
+
+  public void setCron(String cron) {
+    this.cron = cron;
   }
 
   @Override
