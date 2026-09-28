@@ -49,6 +49,9 @@ e2e_test() {
 
   run_test "Checking that sharded technology is configured and working" sharded_check
 
+  run_test "Checking that the nodes connect to each other through the connection pooler" \
+    pooler_connections_check
+
   run_test "Check that pgbouncer database is accesible using the service" pgbouncer_database_check
 
   run_test "Checking that managed SQL is working" check_managed_sql_is_working
@@ -137,6 +140,44 @@ sharded_check() {
     success "Sharding workers service is working"
   else
     fail "Sharding workers service is not working"
+  fi
+}
+
+pooler_connections_check() {
+  local RESULT EXIT_CODE
+  local POOLINFO_QUERY="SELECT COUNT(*) FROM pg_dist_node LEFT JOIN pg_dist_poolinfo USING (nodeid)
+    WHERE poolinfo IS DISTINCT FROM 'port=6432'"
+  local WORKERS_POOLINFO_QUERY="SELECT bool_and(success AND result = '0')
+    FROM run_command_on_workers(\$poolinfo\$$POOLINFO_QUERY\$poolinfo\$)"
+
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
+    -d citus -q "$POOLINFO_QUERY" | grep -xF 0'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "The coordinator connects to the nodes through the connection pooler"
+  else
+    fail "The coordinator does not connect to the nodes through the connection pooler"
+  fi
+
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
+    -d citus -q "$WORKERS_POOLINFO_QUERY" | grep -xF t'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "The workers connect to the nodes through the connection pooler"
+  else
+    fail "The workers do not connect to the nodes through the connection pooler"
+  fi
+
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
+    -d citus -q "SELECT COUNT(*) FROM query_router_test" | grep -xF 0'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "A distributed query can be executed through the connection pooler"
+  else
+    fail "A distributed query can not be executed through the connection pooler"
   fi
 }
 
