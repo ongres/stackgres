@@ -209,7 +209,28 @@ kubectl patch sgshardedcluster my-sharded-cluster --type merge \
   -p '{"spec":{"coordinator":{"queryRouterClusters":3}}}'
 ```
 
-Query routers do not store sharded data, so adding or removing them does not require resharding. The operator updates the Citus node table automatically and a scheduled job (registered via `pg_cron`) keeps the `shouldhaveshards` flag of the query router nodes set to `false`.
+Query routers do not store sharded data, so adding or removing them does not require resharding. The coordinator registers each query router in the Citus node table (`pg_dist_node`) with the `shouldhaveshards` flag set to `false` before Patroni of the query router is started, so that no shard of a distributed table can ever be placed on a query router. The SGCluster of a query router is generated with `.spec.configurations.patroni.startGateAnnotations` and the operator sets the corresponding annotation on it only once the coordinator reports the query router as registered.
+
+The coordinator updates the Citus node table on a schedule that can be changed with `.spec.configurations.citus.updateNodeInterval` (every 10 seconds by default):
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGShardedCluster
+metadata:
+  name: my-sharded-cluster
+spec:
+  configurations:
+    citus:
+      updateNodeInterval: PT10S
+      enableNodeAutoRemoval: true
+```
+
+The nodes of the workers or query routers removed by decreasing `.spec.workers.clusters` or `.spec.coordinator.queryRouterClusters` are not removed from the Citus node table by Patroni. Since they can not be reached they make Citus reject any node addition and distributed DDL. Set `.spec.configurations.citus.enableNodeAutoRemoval` to `true` to let the coordinator remove them (it only removes the nodes that hold no shard of a distributed table and can not be reached), or remove them manually on the coordinator primary:
+
+```sql
+SELECT citus_disable_node('<nodename>', <nodeport>, synchronous => true);
+SELECT citus_remove_node('<nodename>', <nodeport>);
+```
 
 ## Distributed Partitioned Tables
 
