@@ -68,6 +68,25 @@ kubectl get pods -n default
 No resources found in default namespace.
 ```
 
+> **NOTE**: the SGCluster has the `stackgres.io/wait-pods-termination` finalizer. While the SGCluster
+> is being deleted the operator scales its StatefulSet to 0 and deletes its Pods, and the deletion
+> completes only once they have terminated. This prevents the Pods of the deleted cluster from
+> interfering with a new cluster created with the same name. The finalizer does not wait:
+>
+> * When the SGCluster is deleted with `kubectl delete sgcluster my-db-cluster --cascade=orphan`. In that
+>   case the StatefulSet and its Pods are left untouched and keep running.
+> * For the Pods that did not terminate within 2 minutes after their termination grace period, for example
+>   because their node is unreachable. Those Pods are never force deleted and a `ClusterPodsTerminationTimeout`
+>   warning event is sent.
+>
+> The finalizer is removed by the operator. If the operator is not running (for example because it has already
+> been uninstalled) the SGCluster deletion will hang. Remove the finalizer manually to complete the deletion:
+>
+> ```
+> kubectl patch sgcluster my-db-cluster -n default --type json \
+>   -p '[{"op":"remove","path":"/metadata/finalizers"}]'
+> ```
+
 ### SGShardedClusters
 
 List the available clusters:
@@ -254,6 +273,10 @@ sgpoolingconfig.stackgres.io "generated-from-default-1609864616550" deleted
 ```
 
 ## Uninstall the Operator
+
+> **IMPORTANT**: delete all the SGClusters and SGShardedClusters before uninstalling the operator. The operator
+> removes the finalizer of an SGCluster that is being deleted, so an SGCluster deleted after the operator has been
+> uninstalled needs its finalizer to be removed manually (see the [SGClusters](#sgclusters) section).
 
 See also the section about [uninstalling unnamespaced resources](#cleanup-unnamespaced-resources)
 
