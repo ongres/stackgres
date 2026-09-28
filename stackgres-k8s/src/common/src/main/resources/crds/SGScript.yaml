@@ -111,6 +111,16 @@ spec:
                           starting from 10 seconds and a standard deviation of 10 seconds.
 
                         This is `false` by default.
+                    setValue:
+                      type: boolean
+                      description: |
+                        When set to `true` the value of the first column of the first row returned by the last query of the
+                          script entry is stored, as text, in the field `SGCluster.status.managedSql.scripts[].scripts[].value`
+                          of each SGCluster that uses this SGScript. When the query returns no rows the field is removed.
+
+                        The status is only updated when the value changes.
+
+                        This is `false` by default.
                     script:
                       type: string
                       description: |

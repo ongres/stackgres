@@ -73,7 +73,9 @@ public interface ManagedSqlUtil {
         scriptEntry.getWrapInTransaction(),
         String.valueOf(scriptEntry.getStoreStatusInDatabaseOrDefault()),
         String.valueOf(scriptEntry.getRetryOnErrorOrDefault()),
-        script);
+        script,
+        // Only included when set so that the hash of existing script entries does not change
+        scriptEntry.getSetValueOrDefault() ? "setValue" : null);
   }
 
   static String defaultName(StackGresCluster cluster) {

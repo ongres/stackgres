@@ -2896,6 +2896,9 @@ spec:
                               failure:
                                 type: string
                                 description: If failed, a message of the failure
+                              value:
+                                type: string
+                                description: The value returned by the last execution of the script entry when its field `setValue` is `true`
               binding:
                 type: object
                 description: |

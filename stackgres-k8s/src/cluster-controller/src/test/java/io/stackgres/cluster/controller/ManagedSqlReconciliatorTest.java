@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.reset;
@@ -641,7 +641,7 @@ public class ManagedSqlReconciliatorTest {
         .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(eq(scriptSecretName), any())).thenReturn(Optional.of(secret));
-    doNothing().doThrow(new RuntimeException("test"))
+    doReturn(Optional.empty()).doThrow(new RuntimeException("test"))
         .when(managedSqlScriptEntryExecutor).executeScriptEntry(any(), any(), any());
     var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
     when(clusterWriter.update(any(), any())).then(invocation -> {
@@ -771,7 +771,7 @@ public class ManagedSqlReconciliatorTest {
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(eq(scriptSecretName), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
-    doNothing().doThrow(new RuntimeException("test")).doNothing()
+    doReturn(Optional.empty()).doThrow(new RuntimeException("test")).doReturn(Optional.empty())
         .when(managedSqlScriptEntryExecutor).executeScriptEntry(any(), any(), any());
     var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
     when(clusterWriter.update(any(), any())).then(invocation -> {
@@ -1453,6 +1453,37 @@ public class ManagedSqlReconciliatorTest {
   }
 
   @SuppressWarnings("unchecked")
+  @Test
+  void testReconciliationWithSetValueScript_storesTheValueInTheStatus() throws Exception {
+    var scriptEntry = script.getSpec().getScripts().get(0);
+    scriptEntry.setSetValue(true);
+    script.getStatus().getScripts().get(0).setHash(
+        ManagedSqlUtil.generateScriptEntryHash(scriptEntry, scripts.get(0)));
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
+    when(context.getCluster()).thenReturn(cluster);
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
+    when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
+    when(secretFinder.findByNameAndNamespace(eq(scriptSecretName), any())).thenReturn(Optional.of(secret));
+    when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
+    when(managedSqlScriptEntryExecutor.executeScriptEntry(any(), any(), any()))
+        .thenReturn(Optional.of("test-value"));
+
+    reconciliator.reconcile(client, context);
+
+    var scriptEntryStatuses = cluster.getStatus().getManagedSql().getScripts().get(0).getScripts();
+    assertEquals("test-value", scriptEntryStatuses.stream()
+        .filter(status -> status.getId().equals(scriptEntry.getId()))
+        .findFirst()
+        .orElseThrow()
+        .getValue());
+    scriptEntryStatuses.stream()
+        .filter(status -> !status.getId().equals(scriptEntry.getId()))
+        .forEach(status -> assertNull(status.getValue()));
+  }
+
   private void addUpdatedManagedSqlStatus(InvocationOnMock invocation, StackGresCluster cluster,
       ArrayList<StackGresClusterManagedSqlStatus> actualUpdatedManagedSqlStatusList) {
     var updater = (Consumer<StackGresCluster>)

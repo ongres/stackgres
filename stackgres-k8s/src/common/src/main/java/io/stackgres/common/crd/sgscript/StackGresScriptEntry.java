@@ -50,6 +50,8 @@ public class StackGresScriptEntry extends AdditionalProperties {
 
   private Boolean retryOnError;
 
+  private Boolean setValue;
+
   private String user;
 
   private String script;
@@ -90,6 +92,7 @@ public class StackGresScriptEntry extends AdditionalProperties {
   public boolean isWrapInTransactionSetWhenStoreStatusInDatabaseIsSet() {
     return storeStatusInDatabase == null || !storeStatusInDatabase || wrapInTransaction != null;
   }
+
 
   public String getName() {
     return name;
@@ -170,6 +173,19 @@ public class StackGresScriptEntry extends AdditionalProperties {
     this.retryOnError = retryOnError;
   }
 
+  public Boolean getSetValue() {
+    return setValue;
+  }
+
+  @JsonIgnore
+  public boolean getSetValueOrDefault() {
+    return Optional.ofNullable(setValue).orElse(false);
+  }
+
+  public void setSetValue(Boolean setValue) {
+    this.setValue = setValue;
+  }
+
   public String getScript() {
     return script;
   }
@@ -188,8 +204,8 @@ public class StackGresScriptEntry extends AdditionalProperties {
 
   @Override
   public int hashCode() {
-    return Objects.hash(database, id, name, retryOnError, script, scriptFrom, storeStatusInDatabase,
-        user, version, wrapInTransaction);
+    return Objects.hash(database, id, name, retryOnError, script, scriptFrom, setValue,
+        storeStatusInDatabase, user, version, wrapInTransaction);
   }
 
   @Override
@@ -204,6 +220,7 @@ public class StackGresScriptEntry extends AdditionalProperties {
     return Objects.equals(database, other.database) && Objects.equals(id, other.id)
         && Objects.equals(name, other.name) && Objects.equals(retryOnError, other.retryOnError)
         && Objects.equals(script, other.script) && Objects.equals(scriptFrom, other.scriptFrom)
+        && Objects.equals(setValue, other.setValue)
         && Objects.equals(storeStatusInDatabase, other.storeStatusInDatabase)
         && Objects.equals(user, other.user) && Objects.equals(version, other.version)
         && Objects.equals(wrapInTransaction, other.wrapInTransaction);

@@ -34,6 +34,8 @@ public class ScriptEntry extends AdditionalProperties {
 
   private ScriptFrom scriptFrom;
 
+  private Boolean setValue;
+
   public String getName() {
     return name;
   }
@@ -112,6 +114,14 @@ public class ScriptEntry extends AdditionalProperties {
 
   public void setScriptFrom(ScriptFrom scriptFrom) {
     this.scriptFrom = scriptFrom;
+  }
+
+  public Boolean getSetValue() {
+    return setValue;
+  }
+
+  public void setSetValue(Boolean setValue) {
+    this.setValue = setValue;
   }
 
   @Override

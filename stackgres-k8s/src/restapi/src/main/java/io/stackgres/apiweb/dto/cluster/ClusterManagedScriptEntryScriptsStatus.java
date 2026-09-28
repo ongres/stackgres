@@ -24,6 +24,8 @@ public class ClusterManagedScriptEntryScriptsStatus extends AdditionalProperties
 
   private String failure;
 
+  private String value;
+
   public Integer getId() {
     return id;
   }
@@ -62,6 +64,14 @@ public class ClusterManagedScriptEntryScriptsStatus extends AdditionalProperties
 
   public void setFailure(String failure) {
     this.failure = failure;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
   }
 
   @Override

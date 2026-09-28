@@ -35,6 +35,8 @@ public class StackGresClusterManagedScriptEntryScriptStatus extends AdditionalPr
 
   private String failure;
 
+  private String value;
+
   public Integer getId() {
     return id;
   }
@@ -75,9 +77,17 @@ public class StackGresClusterManagedScriptEntryScriptStatus extends AdditionalPr
     this.failure = failure;
   }
 
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(failure, failureCode, id, intents, version);
+    return Objects.hash(failure, failureCode, id, intents, value, version);
   }
 
   @Override
@@ -92,7 +102,7 @@ public class StackGresClusterManagedScriptEntryScriptStatus extends AdditionalPr
         (StackGresClusterManagedScriptEntryScriptStatus) obj;
     return Objects.equals(failure, other.failure) && Objects.equals(failureCode, other.failureCode)
         && Objects.equals(id, other.id) && Objects.equals(intents, other.intents)
-        && Objects.equals(version, other.version);
+        && Objects.equals(value, other.value) && Objects.equals(version, other.version);
   }
 
   @Override

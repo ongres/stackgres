@@ -145,9 +145,12 @@ public class ManagedSqlScriptEntryReconciliator {
       managedSqlScriptEntry.getManagedScriptStatus().setUpdatedAt(Instant.now().toString());
       managedSqlReconciliator.updateManagedSqlStatus(context,
           managedSqlScriptEntry.getManagedSqlStatus());
-      managedSqlReconciliator.getManagedSqlScriptEntryExecutor()
+      final Optional<String> value = managedSqlReconciliator.getManagedSqlScriptEntryExecutor()
           .executeScriptEntry(managedSqlScriptEntry, sql, superuserUsername);
       resetIntentsAndFailure(managedScriptEntryStatus);
+      if (managedSqlScriptEntry.getScriptEntry().getSetValueOrDefault()) {
+        managedScriptEntryStatus.setValue(value.orElse(null));
+      }
       if (Seq.seq(managedSqlScriptEntry.getScript().getSpec().getScripts()).findLast()
           .orElseThrow() == managedSqlScriptEntry.getScriptEntry()
           && managedSqlScriptEntry.getManagedScriptStatus().getScripts().stream()
