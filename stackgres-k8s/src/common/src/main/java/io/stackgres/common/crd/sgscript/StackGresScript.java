@@ -92,7 +92,7 @@ public final class StackGresScript
 
   @Override
   public int hashCode() {
-    return Objects.hash(spec, status);
+    return Objects.hash(getMetadata(), spec, status);
   }
 
   @Override
@@ -104,7 +104,8 @@ public final class StackGresScript
       return false;
     }
     StackGresScript other = (StackGresScript) obj;
-    return Objects.equals(spec, other.spec)
+    return Objects.equals(getMetadata(), other.getMetadata())
+        && Objects.equals(spec, other.spec)
         && Objects.equals(status, other.status);
   }
 

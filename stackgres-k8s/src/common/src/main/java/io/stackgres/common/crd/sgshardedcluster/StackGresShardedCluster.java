@@ -89,7 +89,7 @@ public final class StackGresShardedCluster
 
   @Override
   public int hashCode() {
-    return Objects.hash(spec, status);
+    return Objects.hash(getMetadata(), spec, status);
   }
 
   @Override
@@ -101,7 +101,8 @@ public final class StackGresShardedCluster
       return false;
     }
     StackGresShardedCluster other = (StackGresShardedCluster) obj;
-    return Objects.equals(spec, other.spec)
+    return Objects.equals(getMetadata(), other.getMetadata())
+        && Objects.equals(spec, other.spec)
         && Objects.equals(status, other.status);
   }
 

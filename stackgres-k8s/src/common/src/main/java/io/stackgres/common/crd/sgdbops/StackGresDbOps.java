@@ -91,7 +91,7 @@ public final class StackGresDbOps
 
   @Override
   public int hashCode() {
-    return Objects.hash(spec, status);
+    return Objects.hash(getMetadata(), spec, status);
   }
 
   @Override
@@ -103,7 +103,8 @@ public final class StackGresDbOps
       return false;
     }
     StackGresDbOps other = (StackGresDbOps) obj;
-    return Objects.equals(spec, other.spec)
+    return Objects.equals(getMetadata(), other.getMetadata())
+        && Objects.equals(spec, other.spec)
         && Objects.equals(status, other.status);
   }
 

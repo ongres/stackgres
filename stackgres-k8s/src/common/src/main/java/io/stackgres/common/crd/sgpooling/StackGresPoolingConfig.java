@@ -91,7 +91,7 @@ public final class StackGresPoolingConfig
 
   @Override
   public int hashCode() {
-    return Objects.hash(spec, status);
+    return Objects.hash(getMetadata(), spec, status);
   }
 
   @Override
@@ -103,7 +103,8 @@ public final class StackGresPoolingConfig
       return false;
     }
     StackGresPoolingConfig other = (StackGresPoolingConfig) obj;
-    return Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
+    return Objects.equals(getMetadata(), other.getMetadata())
+        && Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
   }
 
   @Override
