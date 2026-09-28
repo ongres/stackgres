@@ -12,8 +12,10 @@ import static io.stackgres.operator.conciliation.factory.shardedcluster.StackGre
 import static io.stackgres.testutil.ModelTestUtil.createWithRandomData;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.CustomServicePortBuilder;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -325,6 +327,20 @@ class StackGresShardedClusterForCitusUtilTest {
         .withEnabled(false)
         .build(),
         cluster.getSpec().getPostgresServices().getReplicas());
+  }
+
+  @Test
+  void givenQueryRouterCluster_shouldStartPatroniOnlyOnceRegisteredByTheCoordinator() {
+    var shardedCluster = getMinimalShardedCluster();
+    shardedCluster.getSpec().getCoordinator().setQueryRouterClusters(2);
+    var cluster = getQueryRouterCluster(JsonUtil.copy(shardedCluster), 1025, Optional.empty());
+    var coordinator = getCoordinatorCluster(JsonUtil.copy(shardedCluster), Optional.empty());
+
+    Assertions.assertEquals(
+        Map.of(StackGresContext.CITUS_GROUP_REGISTERED_ANNOTATION, "1026"),
+        cluster.getSpec().getConfigurations().getPatroni().getStartGateAnnotations());
+    Assertions.assertNull(
+        coordinator.getSpec().getConfigurations().getPatroni().getStartGateAnnotations());
   }
 
   @Test

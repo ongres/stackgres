@@ -51,6 +51,15 @@ public interface StackGresContext {
   String COORDINATOR_KEY = "coordinator";
   String WORKERS_KEY = "workers";
   String QUERY_ROUTERS_KEY = "query-routers";
+  String CITUS_GROUP_KEY = "citus-group";
+  String CITUS_GROUP_REGISTERED_KEY = "citus-group-registered";
+  /**
+   * The annotation that must be set on a Citus query router SGCluster in order for its Patroni to
+   * be started (see {@code SGCluster.spec.configurations.patroni.startGateAnnotations}), with the
+   * Citus group as value. The SGShardedCluster sets it once the coordinator registered the group
+   * in {@code pg_dist_node} without shards.
+   */
+  String CITUS_GROUP_REGISTERED_ANNOTATION = STACKGRES_KEY_PREFIX + CITUS_GROUP_REGISTERED_KEY;
   String SHARDED_BACKUP_KEY = "sharded-backup";
   String SHARDED_DBOPS_KEY = "sharded-db-ops";
   String SCHEDULED_SHARDED_BACKUP_KEY = "scheduled-sharded-backup";

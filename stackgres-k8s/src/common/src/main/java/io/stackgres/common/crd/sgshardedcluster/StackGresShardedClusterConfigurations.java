@@ -42,6 +42,9 @@ public class StackGresShardedClusterConfigurations extends AdditionalProperties 
   @Valid
   private StackGresClusterPostgresExporter postgresExporter;
 
+  @Valid
+  private StackGresShardedClusterCitusConfigurations citus;
+
   public List<StackGresShardedClusterBackupConfiguration> getBackups() {
     return backups;
   }
@@ -82,9 +85,17 @@ public class StackGresShardedClusterConfigurations extends AdditionalProperties 
     this.postgresExporter = postgresExporter;
   }
 
+  public StackGresShardedClusterCitusConfigurations getCitus() {
+    return citus;
+  }
+
+  public void setCitus(StackGresShardedClusterCitusConfigurations citus) {
+    this.citus = citus;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backups, binding, credentials, observability, postgresExporter);
+    return Objects.hash(backups, binding, citus, credentials, observability, postgresExporter);
   }
 
   @Override
@@ -97,6 +108,7 @@ public class StackGresShardedClusterConfigurations extends AdditionalProperties 
     }
     StackGresShardedClusterConfigurations other = (StackGresShardedClusterConfigurations) obj;
     return Objects.equals(backups, other.backups) && Objects.equals(binding, other.binding)
+        && Objects.equals(citus, other.citus)
         && Objects.equals(credentials, other.credentials)
         && Objects.equals(observability, other.observability)
         && Objects.equals(postgresExporter, other.postgresExporter);

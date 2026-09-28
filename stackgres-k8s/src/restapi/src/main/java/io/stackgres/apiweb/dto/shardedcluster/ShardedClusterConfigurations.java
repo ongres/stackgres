@@ -30,6 +30,8 @@ public class ShardedClusterConfigurations extends AdditionalProperties {
 
   private ClusterPostgresExporter postgresExporter;
 
+  private ShardedClusterCitusConfigurations citus;
+
   public List<ShardedClusterBackupConfiguration> getBackups() {
     return backups;
   }
@@ -68,6 +70,14 @@ public class ShardedClusterConfigurations extends AdditionalProperties {
 
   public void setPostgresExporter(ClusterPostgresExporter postgresExporter) {
     this.postgresExporter = postgresExporter;
+  }
+
+  public ShardedClusterCitusConfigurations getCitus() {
+    return citus;
+  }
+
+  public void setCitus(ShardedClusterCitusConfigurations citus) {
+    this.citus = citus;
   }
 
   @Override
