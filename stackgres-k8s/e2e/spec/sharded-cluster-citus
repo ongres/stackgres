@@ -60,6 +60,9 @@ e2e_test() {
 
   run_test "Checking that a query router override can reference its own SGPostgresConfig" \
     query_router_postgres_config_override_check
+
+  run_test "Checking that query routers are removed from and added to pg_dist_node on scaling" \
+    query_routers_scaling_check
 }
 
 # A settled SGShardedCluster must reconcile to a no-op. For Citus every child cluster renews its
@@ -313,5 +316,95 @@ EOF
     success "Query router is running with the overridden SGPostgresConfig"
   else
     fail "Query router is not running with the overridden SGPostgresConfig"
+  fi
+}
+
+query_routers_scaling_check() {
+  local ROUTER_CLUSTER="$CLUSTER_NAME-router1"
+  local ROUTER_GROUP=1026
+  local RESULT EXIT_CODE
+
+  # The nodes of the removed groups are only removed from pg_dist_node when enabled
+  kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
+    -p '{"spec":{"configurations":{"citus":{"enableNodeAutoRemoval":true}}}}'
+
+  set_query_routers 2
+  wait_query_router_registered "$ROUTER_CLUSTER" "$ROUTER_GROUP"
+
+  set_query_routers 1
+
+  if try_function wait_until eval '! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$ROUTER_CLUSTER" \
+      > /dev/null 2>&1' \
+    && "$RESULT"
+  then
+    success "SGCluster $ROUTER_CLUSTER was removed"
+  else
+    fail "SGCluster $ROUTER_CLUSTER was not removed"
+  fi
+
+  # Patroni does not remove a Citus group that is gone from the DCS, the coordinator must do it
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
+    -d citus -q "SELECT COUNT(*) FROM pg_dist_node WHERE groupid = $ROUTER_GROUP" | grep -xF 0'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "Query router of group $ROUTER_GROUP was removed from pg_dist_node"
+  else
+    fail "Query router of group $ROUTER_GROUP was not removed from pg_dist_node"
+  fi
+
+  # A stale query router would make Citus reject the addition of any node
+  set_query_routers 2
+  wait_query_router_registered "$ROUTER_CLUSTER" "$ROUTER_GROUP"
+
+  if run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 -d citus \
+    -q "SELECT COUNT(*) FROM pg_dist_placement
+      JOIN pg_dist_shard USING (shardid) JOIN pg_dist_partition USING (logicalrelid)
+      WHERE groupid > 1024 AND partmethod <> 'n'" | grep -xF 0
+  then
+    success "Query routers do not hold shards of distributed tables"
+  else
+    fail "Query routers hold shards of distributed tables"
+  fi
+}
+
+set_query_routers() {
+  kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
+    -p '{"spec":{"coordinator":{"queryRouterClusters":'"$1"'}}}'
+}
+
+wait_query_router_registered() {
+  local ROUTER_CLUSTER="$1"
+  local ROUTER_GROUP="$2"
+
+  if try_function wait_until eval '[ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+      "$ROUTER_CLUSTER-0" --template "{{ .status.phase }}" 2>/dev/null)" = Running ]' \
+    && "$RESULT"
+  then
+    success "Query router pod $ROUTER_CLUSTER-0 is Running"
+  else
+    fail "Query router pod $ROUTER_CLUSTER-0 did not reach Running phase"
+  fi
+
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
+    -d citus -q "SELECT COUNT(*) FROM pg_dist_node WHERE groupid = $ROUTER_GROUP
+      AND noderole = '"'primary'"' AND isactive AND hasmetadata AND NOT shouldhaveshards" | grep -xF 1'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "Query router of group $ROUTER_GROUP is registered in pg_dist_node without shards"
+  else
+    fail "Query router of group $ROUTER_GROUP is not registered in pg_dist_node without shards"
+  fi
+
+  # Patroni of the query router is only started once the SGShardedCluster set the start gate annotation
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$ROUTER_CLUSTER" \
+    --template '{{ index .spec.configurations.patroni.startGateAnnotations "stackgres.io/citus-group-registered" }}')" = "$ROUTER_GROUP" ] \
+    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$ROUTER_CLUSTER" \
+    --template '{{ index .metadata.annotations "stackgres.io/citus-group-registered" }}')" = "$ROUTER_GROUP" ]
+  then
+    success "SGCluster $ROUTER_CLUSTER has the start gate annotation set by the SGShardedCluster"
+  else
+    fail "SGCluster $ROUTER_CLUSTER does not have the start gate annotation set by the SGShardedCluster"
   fi
 }
