@@ -1,0 +1,164 @@
+# SeaweedFS S3 storage used by the e2e tests in place of minio. The
+# ${MINIO_NAME}, ${BUCKET_NAME}, ${MINIO_ACCESS_KEY}, ${MINIO_SECRET_KEY} and
+# ${E2E_TIMEOUT} placeholders are replaced by install_minio in utils/minio and
+# by install/helm/build-helm-templates.sh, which renders it as minio-demo.yml.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${MINIO_NAME}
+  labels:
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/instance: ${MINIO_NAME}
+stringData:
+  accesskey: ${MINIO_ACCESS_KEY}
+  secretkey: ${MINIO_SECRET_KEY}
+  s3.json: |
+    {
+      "identities": [
+        {
+          "name": "admin",
+          "credentials": [
+            {
+              "accessKey": "${MINIO_ACCESS_KEY}",
+              "secretKey": "${MINIO_SECRET_KEY}"
+            }
+          ],
+          "actions": ["Admin", "Read", "List", "Tagging", "Write"]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${MINIO_NAME}
+  labels:
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/instance: ${MINIO_NAME}
+spec:
+  selector:
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/instance: ${MINIO_NAME}
+  ports:
+  - name: s3
+    port: 9000
+    targetPort: s3
+  - name: master
+    port: 9333
+    targetPort: master
+  - name: master-grpc
+    port: 19333
+    targetPort: master-grpc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ${MINIO_NAME}
+  labels:
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/instance: ${MINIO_NAME}
+spec:
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: 128Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${MINIO_NAME}
+  labels:
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/instance: ${MINIO_NAME}
+spec:
+  replicas: 1
+  # The volume can only be attached to one Pod at a time
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: seaweedfs
+      app.kubernetes.io/instance: ${MINIO_NAME}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: seaweedfs
+        app.kubernetes.io/instance: ${MINIO_NAME}
+    spec:
+      containers:
+      - name: seaweedfs
+        image: chrislusf/seaweedfs:4.48
+        args:
+        - server
+        - -ip=$(POD_IP)
+        - -ip.bind=0.0.0.0
+        - -s3
+        - -s3.port=8333
+        - -s3.config=/etc/seaweedfs/config/s3.json
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        ports:
+        - name: s3
+          containerPort: 8333
+        - name: master
+          containerPort: 9333
+        - name: master-grpc
+          containerPort: 19333
+        readinessProbe:
+          tcpSocket:
+            port: s3
+          periodSeconds: 2
+        resources:
+          requests:
+            memory: 128Mi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: config
+          mountPath: /etc/seaweedfs/config
+          readOnly: true
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: ${MINIO_NAME}
+      - name: config
+        secret:
+          secretName: ${MINIO_NAME}
+          items:
+          - key: s3.json
+            path: s3.json
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${MINIO_NAME}-make-bucket
+  labels:
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/instance: ${MINIO_NAME}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: ${E2E_TIMEOUT}
+  # Leaves install_minio the time to see the Job complete before it and its Pod are removed
+  ttlSecondsAfterFinished: 60
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: seaweedfs-init
+        app.kubernetes.io/instance: ${MINIO_NAME}
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: seaweedfs-init
+        image: chrislusf/seaweedfs:4.48
+        command:
+        - /bin/sh
+        - -c
+        - |
+          until echo 's3.bucket.create -name ${BUCKET_NAME}' | weed shell -master=${MINIO_NAME}:9333 \
+            && echo 's3.bucket.list' | weed shell -master=${MINIO_NAME}:9333 | grep -q '^ *${BUCKET_NAME}\b'
+          do
+            sleep 2
+          done

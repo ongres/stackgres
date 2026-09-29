@@ -162,6 +162,9 @@ EOF
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
 
   helm uninstall "$CLUSTER_NAME" --namespace "$CLUSTER_NAMESPACE"
+
+  # helm uninstall does not wait for the SGCluster finalizer to complete the deletion
+  wait_until eval '! kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"'
 }
 
 get_cluster_json() {

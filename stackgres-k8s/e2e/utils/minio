@@ -1,26 +1,37 @@
-#!/bin/sh
+# minio stand-in backed by SeaweedFS (see resources/seaweedfs.yaml). It keeps the
+# names the tests rely on: the Service and the Secret are both named after
+# MINIO_NAME, the Service serves S3 on port 9000, the Secret holds the
+# credentials under the accesskey and secretkey keys, and the bucket named
+# after BUCKET_NAME is already created once install_minio returns. With --tls
+# S3 is served over HTTPS on that same port, using a certificate stored in the
+# MINIO_NAME-certs TLS Secret.
 
 is_minio_installed() {
   MINIO_NAME="${MINIO_NAME:-$CLUSTER_NAME-minio}"
   MINIO_NAMESPACE="${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}"
-  helm list -A | tail -n +2 | tr -s '\t ' ' ' | grep -q "$MINIO_NAME $MINIO_NAMESPACE "
+  kubectl get deployment --namespace "$MINIO_NAMESPACE" "$MINIO_NAME" > /dev/null 2>&1
 }
 
 uninstall_minio() {
   MINIO_NAME="${MINIO_NAME:-$CLUSTER_NAME-minio}"
   MINIO_NAMESPACE="${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}"
-  helm uninstall --namespace "$MINIO_NAMESPACE" "$MINIO_NAME"
-  # The credentials Secret is not part of the chart release, so helm leaves it behind
-  kubectl delete secret --namespace "$MINIO_NAMESPACE" "$MINIO_NAME" --ignore-not-found
+  kubectl delete --namespace "$MINIO_NAMESPACE" deployment,service,job,secret,pvc \
+    -l "app.kubernetes.io/instance=$MINIO_NAME" --ignore-not-found
+  kubectl delete secret --namespace "$MINIO_NAMESPACE" "$MINIO_NAME"-certs --ignore-not-found
 }
 
 install_minio() {
   MINIO_NAME="${MINIO_NAME:-$CLUSTER_NAME-minio}"
   BUCKET_NAME="${BUCKET_NAME:-stackgres}"
   MINIO_NAMESPACE="${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}"
+  local MINIO_TLS=false
+  if [ "$1" = --tls ]
+  then
+    MINIO_TLS=true
+  fi
   kubectl create namespace "$MINIO_NAMESPACE" || true
 
-  if printf %s "$*" | grep -qF 'tls.enabled=true'
+  if [ "$MINIO_TLS" = true ]
   then
     cat << EOF > "$LOG_PATH/minio-cert.config"
 [req]
@@ -54,68 +65,46 @@ EOF
       --key="$LOG_PATH/minio-cert.key"
   fi
 
-  # The chart only reads the root credentials from the rootUser and rootPassword
-  # keys, but the tests read them from the accesskey and secretkey keys that the
-  # chart used to generate, so the Secret is created here under both key names
-  # and handed over to the chart as an existing one.
   MINIO_ACCESS_KEY="$(openssl rand -hex 10)"
   MINIO_SECRET_KEY="$(openssl rand -hex 20)"
-  kubectl create secret generic -n "$MINIO_NAMESPACE" "$MINIO_NAME" \
-    --from-literal=accesskey="$MINIO_ACCESS_KEY" \
-    --from-literal=secretkey="$MINIO_SECRET_KEY" \
-    --from-literal=rootUser="$MINIO_ACCESS_KEY" \
-    --from-literal=rootPassword="$MINIO_SECRET_KEY" \
-    --dry-run=client -o yaml | kubectl apply -f -
+  sed \
+    -e "s/\${MINIO_NAME}/$MINIO_NAME/g" \
+    -e "s/\${BUCKET_NAME}/$BUCKET_NAME/g" \
+    -e "s/\${MINIO_ACCESS_KEY}/$MINIO_ACCESS_KEY/g" \
+    -e "s/\${MINIO_SECRET_KEY}/$MINIO_SECRET_KEY/g" \
+    -e "s/\${E2E_TIMEOUT}/$E2E_TIMEOUT/g" \
+    "$E2E_PATH/resources/seaweedfs.yaml" \
+    | yq "
+      if .kind == \"Deployment\" and $MINIO_TLS
+      then
+        .spec.template.spec.containers[0].args += [
+          \"-s3.cert.file=/etc/seaweedfs/certs/tls.crt\",
+          \"-s3.key.file=/etc/seaweedfs/certs/tls.key\"
+          ]
+        | .spec.template.spec.containers[0].volumeMounts += [
+          { name: \"certs\", mountPath: \"/etc/seaweedfs/certs\", readOnly: true }
+          ]
+        | .spec.template.spec.volumes += [
+          { name: \"certs\", secret: { secretName: \"$MINIO_NAME-certs\" } }
+          ]
+      else
+        .
+      end
+      | if .kind == \"Deployment\" and \"$E2E_ENV\" == \"kind\"
+      then
+        .spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution
+          .nodeSelectorTerms = [{ matchExpressions: [{
+            key: \"kubernetes.io/hostname\",
+            operator: \"In\",
+            values: [ \"${KIND_NAME}-worker\", \"${KIND_NAME}-control-plane\" ]
+            }] }]
+      else
+        .
+      end
+      " \
+    > "$LOG_PATH/minio.yaml"
+  kubectl apply --namespace "$MINIO_NAMESPACE" -f "$LOG_PATH/minio.yaml"
 
-  cat << EOF > "$LOG_PATH/minio.yaml"
-mode: standalone
-existingSecret: $MINIO_NAME
-resources:
-  requests:
-    memory: 128Mi
-persistence:
-  enabled: true
-  size: 128Mi
-buckets:
-  - name: $BUCKET_NAME
-    policy: none
-    purge: true
-EOF
-  if [ "$E2E_ENV" = "kind" ]
-  then
-    cat << EOF >> "$LOG_PATH/minio.yaml"
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-          - key: "kubernetes.io/hostname"
-            operator: "In"
-            values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
-EOF
-  fi
-  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
-  then
-    if [ "$E2E_ENV" = "minishift" ]
-    then
-      eval "$(minishift oc-env)"
-    fi
-    if [ "$E2E_ENV" = "crc" ]
-    then
-      eval "$(crc oc-env)"
-    fi
-    if [ "$E2E_ENV" = "microshift" ]
-    then
-      alias oc="docker exec -ti '$K8S_NAME' oc"
-    fi
-    oc adm policy add-scc-to-user anyuid -n "$MINIO_NAMESPACE" -z "$MINIO_NAME"
-    cat << EOF >> "$LOG_PATH/minio.yaml"
-securityContext:
-  enabled: false
-EOF
-  fi
-
-  helm install --namespace "$MINIO_NAMESPACE" "$MINIO_NAME" \
-    "$E2E_PATH/helm/minio-5.4.0.tgz" -f "$LOG_PATH/minio.yaml" \
-    "$@"
+  kubectl wait --timeout="$((E2E_TIMEOUT * 2))s" --namespace "$MINIO_NAMESPACE" \
+    job/"$MINIO_NAME"-make-bucket --for=condition=Complete
 }
