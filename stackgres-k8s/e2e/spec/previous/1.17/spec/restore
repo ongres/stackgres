@@ -6,11 +6,7 @@ e2e_test_install() {
   MINIO_NAME="$CLUSTER_NAME-backup-minio"
   BUCKET_NAME="$CLUSTER_NAME-backup"
   MINIO_NAMESPACE="$BACKUP_CLUSTER_NAMESPACE"
-  install_minio \
-    --set tls.enabled=true \
-    --set-string tls.certSecret=restore-backup-minio-certs \
-    --set-string tls.publicCrt=tls.crt \
-    --set-string tls.privateKey=tls.key 
+  install_minio --tls
 
   BACKUP_ENDPOINT="https://restore-backup-minio.$BACKUP_CLUSTER_NAMESPACE:9000"
   create_or_replace_cluster_only "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \

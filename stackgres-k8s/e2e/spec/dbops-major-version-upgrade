@@ -139,7 +139,7 @@ EOF
   fi
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
-  helm delete --namespace "$MINIO_NAMESPACE" "$MINIO_NAME"
+  uninstall_minio
 }
 
 check_major_version_upgrade_check_is_working() {
