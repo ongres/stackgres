@@ -209,7 +209,7 @@ kubectl patch sgshardedcluster my-sharded-cluster --type merge \
   -p '{"spec":{"coordinator":{"queryRouterClusters":3}}}'
 ```
 
-Query routers do not store sharded data, so adding or removing them does not require resharding. The coordinator registers each query router in the Citus node table (`pg_dist_node`) with the `shouldhaveshards` flag set to `false` before Patroni of the query router is started, so that no shard of a distributed table can ever be placed on a query router. The SGCluster of a query router is generated with `.spec.configurations.patroni.startGateAnnotations` and the operator sets the corresponding annotation on it only once the coordinator reports the query router as registered.
+Query routers do not store sharded data, so adding or removing them does not require resharding. The coordinator registers each query router in the Citus node table (`pg_dist_node`) with the `shouldhaveshards` flag set to `false` before Patroni of the query router is started, so that no shard of a distributed table can ever be placed on a query router. The SGCluster of a query router is generated with `.spec.configurations.patroni.startGateAnnotations` and the operator sets the corresponding annotation on it only once the coordinator reports the query router as registered. When `.spec.replicateFrom` is set the SGShardedCluster is a replica whose `pg_dist_node` is replicated from the source, so the SGCluster of a query router is generated without the start gate and its Patroni is started immediately.
 
 The coordinator updates the Citus node table on a schedule that can be changed with `.spec.configurations.citus.updateNodeInterval` (every 10 seconds by default):
 
