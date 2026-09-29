@@ -11,11 +11,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterExtension;
 import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedDbOpsMajorVersionUpgrade {
+public class ShardedDbOpsMajorVersionUpgrade extends AdditionalProperties {
 
   private String postgresVersion;
 

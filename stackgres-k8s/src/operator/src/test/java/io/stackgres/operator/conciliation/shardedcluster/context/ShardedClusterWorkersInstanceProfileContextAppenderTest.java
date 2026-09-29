@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.shardedcluster.context;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,8 @@ import io.stackgres.common.crd.sgprofile.StackGresInstanceProfile;
 import io.stackgres.common.crd.sgprofile.StackGresInstanceProfileBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorker;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorkerBuilder;
+import io.stackgres.common.crd.sgshardedcluster.StackGresWorkerType;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
@@ -99,6 +102,8 @@ class ShardedClusterWorkersInstanceProfileContextAppenderTest {
   void givenClusterWithoutDefaultProfile_shouldPass() {
     cluster.getSpec().getWorkers().setSgInstanceProfile(
         defaultProfileFactory.getDefaultResourceName(cluster));
+    cluster.getSpec().getCoordinator().setSgInstanceProfile(
+        defaultProfileFactory.getDefaultResourceName(cluster));
     when(profileFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
     contextAppender.appendContext(cluster, contextBuilder, workers, queryRouters);
@@ -107,6 +112,58 @@ class ShardedClusterWorkersInstanceProfileContextAppenderTest {
         Tuple.tuple(1, Optional.empty())));
     verify(contextBuilder).queryRoutersProfiles(List.of(
         Tuple.tuple(1024, Optional.empty())));
+  }
+
+  @Test
+  void givenClusterWithoutQueryRouterOverride_shouldUseCoordinatorProfile() {
+    cluster.getSpec().getCoordinator().setSgInstanceProfile("size-xs");
+    final var workersProfile = Optional.of(profile("size-s"));
+    final var coordinatorProfile = Optional.of(profile("size-xs"));
+    when(profileFinder.findByNameAndNamespace(eq("size-s"), any()))
+        .thenReturn(workersProfile);
+    when(profileFinder.findByNameAndNamespace(eq("size-xs"), any()))
+        .thenReturn(coordinatorProfile);
+    contextAppender.appendContext(cluster, contextBuilder, workers, queryRouters);
+    verify(contextBuilder).workersProfiles(List.of(
+        Tuple.tuple(0, workersProfile),
+        Tuple.tuple(1, workersProfile)));
+    verify(contextBuilder).queryRoutersProfiles(List.of(
+        Tuple.tuple(1024, coordinatorProfile)));
+  }
+
+  @Test
+  void givenClusterWithQueryRouterOverride_shouldUseOverriddenProfile() {
+    queryRouters = List.of(
+        Tuple.tuple(1024, Optional.of(
+            new StackGresShardedClusterWorkerBuilder()
+            .withIndex(1024)
+            .withType(StackGresWorkerType.QUERY_ROUTER.toString())
+            .withSgInstanceProfile("size-xs")
+            .build()),
+            StackGresShardedClusterForCitusUtil
+            .getQueryRouterCluster(cluster, 1024, Optional.empty())));
+    final var workersProfile = Optional.of(profile("size-s"));
+    final var overriddenProfile = Optional.of(profile("size-xs"));
+    when(profileFinder.findByNameAndNamespace(eq("size-s"), any()))
+        .thenReturn(workersProfile);
+    when(profileFinder.findByNameAndNamespace(eq("size-xs"), any()))
+        .thenReturn(overriddenProfile);
+    contextAppender.appendContext(cluster, contextBuilder, workers, queryRouters);
+    verify(contextBuilder).workersProfiles(List.of(
+        Tuple.tuple(0, workersProfile),
+        Tuple.tuple(1, workersProfile)));
+    verify(contextBuilder).queryRoutersProfiles(List.of(
+        Tuple.tuple(1024, overriddenProfile)));
+  }
+
+  private StackGresInstanceProfile profile(String name) {
+    return new StackGresInstanceProfileBuilder()
+        .withNewMetadata()
+        .withName(name)
+        .endMetadata()
+        .withNewSpec()
+        .endSpec()
+        .build();
   }
 
 }

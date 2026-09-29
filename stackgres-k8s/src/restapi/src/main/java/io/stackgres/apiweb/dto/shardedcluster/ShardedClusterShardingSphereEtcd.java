@@ -10,12 +10,13 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ShardedClusterShardingSphereEtcd {
+public class ShardedClusterShardingSphereEtcd extends AdditionalProperties {
 
   private List<String> serverList;
 

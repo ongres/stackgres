@@ -40,22 +40,28 @@ public class ShardedClusterWorkersInstanceProfileContextAppender {
       List<Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster>> queryRouters) {
     var workersProfiles = workers
         .stream()
-        .map(worker -> findProfiles(cluster, worker))
+        .map(worker -> findProfiles(cluster, worker,
+            cluster.getSpec().getWorkers().getSgInstanceProfile()))
         .toList();
     contextBuilder.workersProfiles(workersProfiles);
+    // Query routers inherit their spec from the coordinator (see
+    // StackGresShardedClusterForUtil.getBaseQueryRouterCluster), so the coordinator
+    // SGInstanceProfile, and not the workers one, is their default.
     var queryRoutersProfiles = queryRouters
         .stream()
-        .map(queryRouter -> findProfiles(cluster, queryRouter))
+        .map(queryRouter -> findProfiles(cluster, queryRouter,
+            cluster.getSpec().getCoordinator().getSgInstanceProfile()))
         .toList();
     contextBuilder.queryRoutersProfiles(queryRoutersProfiles);
   }
 
   private Tuple2<Integer, Optional<StackGresInstanceProfile>> findProfiles(
       StackGresShardedCluster cluster,
-      Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster> worker) {
+      Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster> worker,
+      String defaultInstanceProfileName) {
     final String workerInstanceProfileName = worker.v2
         .map(StackGresShardedClusterWorker::getSgInstanceProfile)
-        .orElse(cluster.getSpec().getWorkers().getSgInstanceProfile());
+        .orElse(defaultInstanceProfileName);
     final Optional<StackGresInstanceProfile> workersProfile = profileFinder
         .findByNameAndNamespace(
             workerInstanceProfileName,

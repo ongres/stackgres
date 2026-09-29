@@ -111,6 +111,10 @@ switch_cluster_to_first() {
     --template="{{ .metadata.annotations.leader }}")"
   if [ "$LEADER" != "$RELEASE-0" ]
   then
+    # async replica may be still out of sync
+    wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      psql -t -A -c "\du" \
+      | grep -q "^authenticator|"'
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
     PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
@@ -158,6 +162,10 @@ wait_cluster_external_dcs() {
 
   if [ "$SWITCHOVER_TO_FIRST" = true ] && [ "$LEADER" != "$RELEASE-0" ]
   then
+    # async replica may be still out of sync
+    wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      psql -t -A -c "\du" \
+      | grep -q "^authenticator|"'
     PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
       patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
     wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
@@ -413,6 +421,28 @@ wait_sharded_cluster() {
 
     INDEX="$((INDEX + 1))"
   done
+
+  if [ "$SHARDING_TYPE" = citus ] \
+    && [ "$WAIT_CLUSTER_AUTHENTICATOR_ONLY" != true ] \
+    && [ "$WAIT_CLUSTER_BOOTSTRAP_ONLY" != true ]
+  then
+    local DATABASE
+    local EXPECTED_WORKERS
+    DATABASE="$(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.database }}')"
+    EXPECTED_WORKERS="$(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" \
+      --template '{{ if .spec.workers }}{{ .spec.workers.clusters }}{{ else }}{{ .spec.shards.clusters }}{{ end }}')"
+    # Citus registers the workers in pg_dist_node of the coordinator asynchronously, after
+    # the coordinator and the workers leaders are up. Until it does, the coordinator reports
+    # no worker node and creating a distributed table fails with
+    # "replication_factor (N) exceeds number of worker nodes (0)". Only the workers are
+    # expected to hold shards: the coordinator and the query routers are registered with
+    # shouldhaveshards set to false.
+    wait_until eval '[ "$(run_query -n "$NAMESPACE" -c "$SHARDED_RELEASE" -d "$DATABASE" \
+      -x "$(kubectl get endpoints --namespace "$NAMESPACE" "$SHARDED_RELEASE-0" \
+        --template "{{ .metadata.annotations.leader }}")" \
+      -p 5432 -q "SELECT count(*) FROM pg_dist_node WHERE shouldhaveshards")" \
+      -ge "$EXPECTED_WORKERS" ]'
+  fi
 }
 
 switch_sharded_cluster_to_first() {
@@ -467,6 +497,10 @@ switch_sharded_cluster_to_first() {
       --template="{{ .metadata.annotations.leader }}")"
     if [ "$LEADER" != "$RELEASE-0" ]
     then
+      # async replica may be still out of sync
+      wait_until eval 'kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+        psql -t -A -c "\du" \
+        | grep -q "^authenticator|"'
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
       PATRONI_MAJOR_VERSION="$(kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \

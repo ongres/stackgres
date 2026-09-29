@@ -60,6 +60,8 @@ public interface StackGresShardedClusterContext
 
   List<StackGresCluster> getQueryRouters();
 
+  Optional<StackGresCluster> getDeployedCoordinator();
+
   List<Tuple2<Integer, Optional<StackGresInstanceProfile>>> getQueryRoutersProfiles();
 
   List<Tuple2<Integer, Optional<StackGresPostgresConfig>>> getQueryRoutersPostgresConfigs();

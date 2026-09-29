@@ -1046,6 +1046,17 @@ spec:
                       This section indicates the strategy that the SGCluster controller will use to perform updates.
                       
                       It includes any additional parameters necessary to perform the update for the indicated strategy.
+
+                      When a change only require the Postgres instance to be restarted, and not the Pod to be re-created, the Postgres instances of
+                       the replicas are restarted first and a switchover to the ready replica with the least lag is then performed, so that the
+                       primary is demoted instead of being restarted.
+
+                      The Postgres instance of the primary is restarted in place, without performing any switchover, only when any of the parameters
+                       `max_connections`, `max_prepared_transactions`, `max_locks_per_transaction`, `max_wal_senders` or `max_worker_processes` is
+                       decreased (a hot standby require those parameters to be set to a value greater than or equal to the value set on the primary,
+                       see https://www.postgresql.org/docs/current/hot-standby.html#HOT-STANDBY-ADMIN) or when no replica is available to switchover
+                       to. Patroni only reports the parameters that are pending a change since version 4, when they are not reported a switchover is
+                       performed.
                     properties:
                       type:
                         type: string
@@ -1077,6 +1088,12 @@ spec:
                           
                           * `InPlace`: update will be performed on the existing instances.
                           * `ReducedImpact`: before an update is performed on the existing instances a new instance if created to reduce the impact on read-only replicas.
+                      restartDelay:
+                        type: string
+                        default: PT5M
+                        description: |
+                          An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass between the restart of a
+                           Postgres instance performed by the SGCluster controller and the next one. Default is `PT5M`.
                       schedule:
                         type: array
                         description: Indicates a list of windows of time where an update can be performed.
@@ -1589,6 +1606,14 @@ spec:
 
                           **This field can only be set on creation.**
                         "x-kubernetes-preserve-unknown-fields": true
+                      startGateAnnotations:
+                        type: object
+                        description: |
+                          Annotations that must be set on the SGCluster before Patroni is started. When set, the cluster controller of each Pod waits to start Patroni until the SGCluster has all of these annotations with the same values. A Patroni that is already running is never stopped when the annotations are removed.
+
+                          While Patroni is not started the startup probe of the `patroni` container fails, so the container is restarted (and keeps waiting) after the startup probe failure threshold (15 minutes by default, see `.spec.pods.startupProbe`).
+                        additionalProperties:
+                          type: string
                   credentials:
                     type: object
                     description: |
@@ -2871,6 +2896,9 @@ spec:
                               failure:
                                 type: string
                                 description: If failed, a message of the failure
+                              value:
+                                type: string
+                                description: The value returned by the last execution of the script entry when its field `setValue` is `true`
               binding:
                 type: object
                 description: |

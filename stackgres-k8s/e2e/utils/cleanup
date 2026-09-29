@@ -120,12 +120,37 @@ traceable_k8s_async_cleanup() {
       | xargs -r -I % kubectl delete --ignore-not-found '%'
 }
 
+k8s_stackgres_finalizers_cleanup() {
+  notrace_function traceable_k8s_stackgres_finalizers_cleanup "$@"
+}
+
+# Remove the finalizers of every stackgres.io custom resource, of the namespace passed as first
+# argument or of every namespace when none is passed. The operator is the only one that removes the
+# finalizers it sets, so a custom resource that still has one blocks the deletion of its
+# CustomResourceDefinition and of the namespace that contains it, forever once the operator is gone.
+traceable_k8s_stackgres_finalizers_cleanup() {
+  echo "Cleanup of finalizers of stackgres.io custom resources${1:+ in namespace $1}"
+  local RESOURCE
+  for RESOURCE in $(kubectl api-resources --api-group=stackgres.io -o name 2>/dev/null)
+  do
+    kubectl get "$RESOURCE" $([ "x$1" = x ] && printf %s --all-namespaces || printf '%s %s' -n "$1") \
+      -o 'jsonpath={range .items[*]}{.metadata.namespace}{" "}{.metadata.name}{"\n"}{end}' 2>/dev/null \
+      | while read NAMESPACE NAME
+        do
+          [ "x$NAME" = x ] \
+            || kubectl patch "$RESOURCE" -n "$NAMESPACE" "$NAME" --type merge \
+              -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
+        done
+  done
+}
+
 k8s_unnamespaced_cleanup() {
   notrace_function traceable_k8s_unnamespaced_cleanup "$@"
 }
 
 traceable_k8s_unnamespaced_cleanup() {
   traceable_k8s_webhook_cleanup
+  traceable_k8s_stackgres_finalizers_cleanup
   echo "Cleanup of k8s crds"
   kubectl get crd -o name \
     | grep -v "\.operators\.coreos\.com$" \
@@ -363,6 +388,13 @@ EOF
     return
   fi
   cat << EOF
+for RESOURCE in \$(kubectl api-resources --api-group=stackgres.io -o name 2>/dev/null)
+do
+  for NAME in \$(kubectl get "\$RESOURCE" -n "@" -o name 2>/dev/null)
+  do
+    kubectl patch -n "@" "\$NAME" --type merge -p '{"metadata":{"finalizers":null}}' >/dev/null 2>&1 || true
+  done
+done
 kubectl api-resources --namespaced -o name \
   | grep -v 'reviews\.\(authentication\|authorization\)\.k8s\.io$' \
   | xargs -r -I + -P "$E2E_PARALLELISM" '$SHELL' $SHELL_XTRACE -ec 'kubectl get "+" -n "@" -o name \

@@ -7,11 +7,12 @@ package io.stackgres.apiweb.dto.script;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ScriptEntry {
+public class ScriptEntry extends AdditionalProperties {
 
   private String name;
 
@@ -32,6 +33,10 @@ public class ScriptEntry {
   private String script;
 
   private ScriptFrom scriptFrom;
+
+  private Boolean setValue;
+
+  private String cron;
 
   public String getName() {
     return name;
@@ -111,6 +116,22 @@ public class ScriptEntry {
 
   public void setScriptFrom(ScriptFrom scriptFrom) {
     this.scriptFrom = scriptFrom;
+  }
+
+  public Boolean getSetValue() {
+    return setValue;
+  }
+
+  public void setSetValue(Boolean setValue) {
+    this.setValue = setValue;
+  }
+
+  public String getCron() {
+    return cron;
+  }
+
+  public void setCron(String cron) {
+    this.cron = cron;
   }
 
   @Override

@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -151,4 +152,33 @@ class SingleReconciliationCycleTest {
     return Fixtures.cluster().loadDefault().get();
   }
 
+  @Test
+  void getContainer_shouldPropagateTheInstallationExtraMetadata() {
+    ClusterContainerContext context = buildContext(getDefaultCluster());
+    System.setProperty(
+        StackGresProperty.INSTALLATION_EXTRA_METADATA.getPropertyName(), "Env stackgres-ci");
+    try {
+      Container container = singleReconciliationCycle.getContainer(context);
+
+      Assertions.assertEquals("Env stackgres-ci", container.getEnv().stream()
+          .filter(env -> env.getName().equals(
+              StackGresProperty.INSTALLATION_EXTRA_METADATA.getEnvironmentVariableName()))
+          .findFirst()
+          .orElseThrow()
+          .getValue());
+    } finally {
+      System.clearProperty(StackGresProperty.INSTALLATION_EXTRA_METADATA.getPropertyName());
+    }
+  }
+
+  @Test
+  void getContainer_withoutInstallationExtraMetadata_shouldNotSetTheVariable() {
+    ClusterContainerContext context = buildContext(getDefaultCluster());
+
+    Container container = singleReconciliationCycle.getContainer(context);
+
+    Assertions.assertTrue(container.getEnv().stream()
+        .noneMatch(env -> env.getName().equals(
+            StackGresProperty.INSTALLATION_EXTRA_METADATA.getEnvironmentVariableName())));
+  }
 }

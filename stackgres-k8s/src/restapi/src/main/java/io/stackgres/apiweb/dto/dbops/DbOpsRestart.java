@@ -7,17 +7,20 @@ package io.stackgres.apiweb.dto.dbops;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DbOpsRestart {
+public class DbOpsRestart extends AdditionalProperties {
 
   private String method;
 
   private Boolean restartPrimaryFirst;
 
   private Boolean onlyPendingRestart;
+
+  private String statusUpdateDelay;
 
   public String getMethod() {
     return method;
@@ -41,6 +44,14 @@ public class DbOpsRestart {
 
   public void setOnlyPendingRestart(Boolean onlyPendingRestart) {
     this.onlyPendingRestart = onlyPendingRestart;
+  }
+
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
   }
 
   @Override

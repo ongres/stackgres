@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
@@ -22,7 +23,7 @@ import jakarta.validation.constraints.NotEmpty;
 @Buildable(editableEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresDbOpsMinorVersionUpgrade {
+public class StackGresDbOpsMinorVersionUpgrade extends AdditionalProperties {
 
   @NotEmpty(message = "spec.minorVersionUpgrade.postgresVersion must not be empty")
   private String postgresVersion;
@@ -30,6 +31,8 @@ public class StackGresDbOpsMinorVersionUpgrade {
   @ValidEnum(enumClass = DbOpsMethodType.class, allowNulls = true,
       message = "method must be InPlace or ReducedImpact")
   private String method;
+
+  private String statusUpdateDelay;
 
   @JsonIgnore
   public boolean isMethodReducedImpact() {
@@ -52,9 +55,17 @@ public class StackGresDbOpsMinorVersionUpgrade {
     this.method = method;
   }
 
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(method, postgresVersion);
+    return Objects.hash(method, postgresVersion, statusUpdateDelay);
   }
 
   @Override
@@ -67,7 +78,8 @@ public class StackGresDbOpsMinorVersionUpgrade {
     }
     StackGresDbOpsMinorVersionUpgrade other = (StackGresDbOpsMinorVersionUpgrade) obj;
     return Objects.equals(method, other.method)
-        && Objects.equals(postgresVersion, other.postgresVersion);
+        && Objects.equals(postgresVersion, other.postgresVersion)
+        && Objects.equals(statusUpdateDelay, other.statusUpdateDelay);
   }
 
   @Override

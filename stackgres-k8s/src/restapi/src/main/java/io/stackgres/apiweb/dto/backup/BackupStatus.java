@@ -7,12 +7,13 @@ package io.stackgres.apiweb.dto.backup;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackupVolumeSnapshotStatus;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class BackupStatus {
+public class BackupStatus extends AdditionalProperties {
 
   private BackupConfigSpec sgBackupConfig;
 

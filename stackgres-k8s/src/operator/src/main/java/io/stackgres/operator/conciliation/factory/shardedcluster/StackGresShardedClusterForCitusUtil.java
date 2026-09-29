@@ -9,25 +9,37 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.EnvoyUtil;
+import io.stackgres.common.ManagedSqlCronUtil;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurationsBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryScriptStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.crd.sgscript.StackGresScript;
@@ -35,6 +47,8 @@ import io.stackgres.common.crd.sgscript.StackGresScriptBuilder;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntryBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCitusConfigurations;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecLabels;
@@ -45,11 +59,18 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.impl.DSL;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClusterUtil {
 
   Util UTIL = new Util();
+
+  int QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID = 3;
+
+  int REGISTERED_GROUPS_SCRIPT_ID = 4;
+
+  int UPDATE_POOLINFO_SCRIPT_ID = 5;
 
   class Util extends StackGresShardedClusterForUtil {
 
@@ -61,6 +82,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             .build());
       }
       setConfigurationsPatroniInitialConfig(cluster, spec, 0);
+      setConnectionPoolingForPoolInfo(cluster, spec);
       if (spec.getManagedSql() == null) {
         spec.setManagedSql(new StackGresClusterManagedSql());
       }
@@ -83,11 +105,21 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     @Override
     void updateWorkerClusterSpec(StackGresShardedCluster cluster, StackGresClusterSpec spec, int index) {
       setConfigurationsPatroniInitialConfig(cluster, spec, index + 1);
+      setConnectionPoolingForPoolInfo(cluster, spec);
     }
 
     @Override
     void updateQueryRouterClusterSpec(StackGresShardedCluster cluster, StackGresClusterSpec spec, int index) {
       setConfigurationsPatroniInitialConfig(cluster, spec, index + 1);
+      setConnectionPoolingForPoolInfo(cluster, spec);
+      // A replica SGShardedCluster replicates pg_dist_node from the source and its coordinator
+      // never registers the query routers, so their Patroni must not wait for it
+      if (cluster.getSpec().getReplicateFrom() != null) {
+        return;
+      }
+      spec.getConfigurations().getPatroni().setStartGateAnnotations(mergeMaps(
+          spec.getConfigurations().getPatroni().getStartGateAnnotations(),
+          Map.entry(StackGresContext.CITUS_GROUP_REGISTERED_ANNOTATION, String.valueOf(index + 1))));
     }
 
     @Override
@@ -117,6 +149,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
       }
       spec.getConfigurations().getPatroni().setConnectUsingFqdn(patroni.getConnectUsingFqdn());
       spec.getConfigurations().getPatroni().setDynamicConfig(patroni.getDynamicConfig());
+      spec.getConfigurations().getPatroni().setStartGateAnnotations(patroni.getStartGateAnnotations());
       if (patroni.getInitialConfig() == null) {
         spec.getConfigurations().getPatroni()
             .setInitialConfig(new StackGresClusterPatroniConfig());
@@ -179,10 +212,22 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
       }
     }
 
+    /**
+     * Citus connects to the nodes through PgBouncer (see {@code pg_dist_poolinfo}) when
+     * {@code SGShardedCluster.spec.configurations.citus.connectToPooler} is {@code true}, so the
+     * connection pooling can not be disabled.
+     */
+    private void setConnectionPoolingForPoolInfo(
+        StackGresShardedCluster cluster, StackGresClusterSpec spec) {
+      if (isConnectToPooler(cluster) && spec.getPods() != null) {
+        spec.getPods().setDisableConnectionPooling(false);
+      }
+    }
+
     private Map<String, String> withCitusGroupLabel(Map<String, String> labels, int index) {
       return mergeMaps(
           labels,
-          Map.entry("citus-group", String.valueOf(index)));
+          Map.entry(StackGresContext.CITUS_GROUP_KEY, String.valueOf(index)));
     }
   }
 
@@ -225,7 +270,11 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         .editSpec()
         .withScripts(
             getCitusUpdateWorkersScript(context, 0),
-            getCitusUpdateQueryRoutersScript(context, 1))
+            getCitusRemovePgCronJobsScript(context, 1),
+            getCitusUpdateNodesScript(context, 2),
+            getCitusQueryRoutersWithoutShardsScript(context, QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID),
+            getCitusRegisteredGroupsScript(context, REGISTERED_GROUPS_SCRIPT_ID),
+            getCitusUpdatePoolinfoScript(context, UPDATE_POOLINFO_SCRIPT_ID))
         .endSpec()
         .build();
   }
@@ -332,34 +381,221 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     return secret;
   }
 
-  private static StackGresScriptEntry getCitusUpdateQueryRoutersScript(
+  private static StackGresScriptEntry getCitusRemovePgCronJobsScript(
+      StackGresShardedClusterContext context, int id) {
+    return new StackGresScriptEntryBuilder()
+        .withId(id)
+        .withName("citus-remove-pg-cron-jobs")
+        .withRetryOnError(true)
+        .withScript(Unchecked.supplier(() -> Resources
+            .asCharSource(StackGresShardedClusterForCitusUtil.class.getResource(
+                "/citus/citus-remove-pg-cron-jobs.sql"),
+                StandardCharsets.UTF_8)
+            .read()).get())
+        .build();
+  }
+
+  private static StackGresScriptEntry getCitusUpdateNodesScript(
       StackGresShardedClusterContext context, int id) {
     StackGresShardedCluster cluster = context.getShardedCluster();
-    final int queryRoutersStartIndex = Optional.of(cluster)
+    return new StackGresScriptEntryBuilder()
+        .withId(id)
+        .withName("citus-update-nodes")
+        .withDatabase(cluster.getSpec().getDatabase())
+        .withCron(getUpdateNodeCron(cluster))
+        .withScript(Unchecked.supplier(() -> Resources
+            .asCharSource(StackGresShardedClusterForCitusUtil.class.getResource(
+                "/citus/citus-update-nodes.sql"),
+                StandardCharsets.UTF_8)
+            .read()).get().formatted(
+                String.valueOf(getQueryRoutersIndexOffset(cluster)),
+                String.valueOf(getQueryRoutersEndIndex(cluster)),
+                String.valueOf(cluster.getSpec().getWorkers().getClusters()),
+                String.valueOf(getCitusConfigurations(cluster)
+                    .map(StackGresShardedClusterCitusConfigurations::getEnableNodeAutoRemovalOrDefault)
+                    .orElse(false))))
+        .build();
+  }
+
+  private static StackGresScriptEntry getCitusQueryRoutersWithoutShardsScript(
+      StackGresShardedClusterContext context, int id) {
+    StackGresShardedCluster cluster = context.getShardedCluster();
+    return new StackGresScriptEntryBuilder()
+        .withId(id)
+        .withName("citus-query-routers-without-shards")
+        .withDatabase(cluster.getSpec().getDatabase())
+        .withCron(getUpdateNodeCron(cluster))
+        .withSetValue(true)
+        .withScript("SELECT string_agg(groupid::text, ',' ORDER BY groupid)"
+            + " FROM pg_catalog.pg_dist_node"
+            + " WHERE noderole = 'primary' AND NOT shouldhaveshards"
+            + " AND groupid > " + getQueryRoutersIndexOffset(cluster))
+        .build();
+  }
+
+  private static StackGresScriptEntry getCitusRegisteredGroupsScript(
+      StackGresShardedClusterContext context, int id) {
+    StackGresShardedCluster cluster = context.getShardedCluster();
+    return new StackGresScriptEntryBuilder()
+        .withId(id)
+        .withName("citus-registered-groups")
+        .withDatabase(cluster.getSpec().getDatabase())
+        .withCron(getUpdateNodeCron(cluster))
+        .withSetValue(true)
+        .withScript("SELECT string_agg(groupid::text, ',' ORDER BY groupid)"
+            + " FROM (SELECT DISTINCT groupid FROM pg_catalog.pg_dist_node"
+            + " WHERE groupid > 0) AS groups")
+        .build();
+  }
+
+  private static StackGresScriptEntry getCitusUpdatePoolinfoScript(
+      StackGresShardedClusterContext context, int id) {
+    StackGresShardedCluster cluster = context.getShardedCluster();
+    return new StackGresScriptEntryBuilder()
+        .withId(id)
+        .withName("citus-update-poolinfo")
+        .withDatabase(cluster.getSpec().getDatabase())
+        .withCron(getUpdateNodeCron(cluster))
+        .withScript(Unchecked.supplier(() -> Resources
+            .asCharSource(StackGresShardedClusterForCitusUtil.class.getResource(
+                "/citus/citus-update-poolinfo.sql"),
+                StandardCharsets.UTF_8)
+            .read()).get().formatted(getPoolinfoPorts(context)))
+        .build();
+  }
+
+  /**
+   * Return the {@code VALUES} rows with the Citus group and the port through which Citus has to
+   * connect to the nodes of that group, the port of PgBouncer when Envoy is disabled, the Envoy
+   * entry port (that forwards to PgBouncer) otherwise. When
+   * {@code SGShardedCluster.spec.configurations.citus.connectToPooler} is {@code false} a single
+   * row that matches no group is returned, so that the entries previously created are removed.
+   */
+  private static String getPoolinfoPorts(StackGresShardedClusterContext context) {
+    StackGresShardedCluster cluster = context.getShardedCluster();
+    if (!isConnectToPooler(cluster)) {
+      return "(NULL::integer, NULL::integer)";
+    }
+    return Seq.of(Tuple.tuple(0, context.getCoordinator()))
+        .append(Seq.seq(context.getWorkers())
+            .zipWithIndex()
+            .map(worker -> Tuple.tuple(worker.v2.intValue() + 1, worker.v1)))
+        .append(Seq.seq(context.getQueryRouters())
+            .zipWithIndex()
+            .map(queryRouter -> Tuple.tuple(
+                getQueryRoutersIndexOffset(cluster) + queryRouter.v2.intValue() + 1,
+                queryRouter.v1)))
+        .map(group -> "(" + group.v1 + ", " + getPoolerPort(group.v2) + ")")
+        .toString(", ");
+  }
+
+  private static int getPoolerPort(StackGresCluster cluster) {
+    return Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableEnvoy)
+        .orElse(true)
+        ? EnvoyUtil.PG_POOL_PORT : EnvoyUtil.PG_ENTRY_PORT;
+  }
+
+  private static boolean isConnectToPooler(StackGresShardedCluster cluster) {
+    return getCitusConfigurations(cluster)
+        .map(StackGresShardedClusterCitusConfigurations::getConnectToPoolerOrDefault)
+        .orElse(true);
+  }
+
+  private static Optional<StackGresShardedClusterCitusConfigurations> getCitusConfigurations(
+      StackGresShardedCluster cluster) {
+    return Optional.of(cluster.getSpec())
+        .map(StackGresShardedClusterSpec::getConfigurations)
+        .map(StackGresShardedClusterConfigurations::getCitus);
+  }
+
+  private static String getUpdateNodeCron(StackGresShardedCluster cluster) {
+    return ManagedSqlCronUtil.everyInterval(getCitusConfigurations(cluster)
+        .map(StackGresShardedClusterCitusConfigurations::getUpdateNodeIntervalOrDefault)
+        .orElse(StackGresShardedClusterCitusConfigurations.DEFAULT_UPDATE_NODE_INTERVAL));
+  }
+
+  private static int getQueryRoutersIndexOffset(StackGresShardedCluster cluster) {
+    return Optional.of(cluster)
         .map(StackGresShardedCluster::getSpec)
         .map(StackGresShardedClusterSpec::getCoordinator)
         .map(StackGresShardedClusterCoordinator::getQueryRouterIndexOffset)
         .orElse(1024);
-    final int queryRoutersEndIndex = queryRoutersStartIndex
+  }
+
+  private static int getQueryRoutersEndIndex(StackGresShardedCluster cluster) {
+    return getQueryRoutersIndexOffset(cluster)
         + Optional.of(cluster)
         .map(StackGresShardedCluster::getSpec)
         .map(StackGresShardedClusterSpec::getCoordinator)
         .map(StackGresShardedClusterCoordinator::getQueryRouterClusters)
         .orElse(0);
-    final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
-        .withId(id)
-        .withName("citus-update-query-routers")
-        .withRetryOnError(true)
-        .withScript(Unchecked.supplier(() -> Resources
-            .asCharSource(StackGresShardedClusterForCitusUtil.class.getResource(
-                "/citus/citus-update-query-routers.sql"),
-                StandardCharsets.UTF_8)
-            .read()).get().formatted(
-                String.valueOf(queryRoutersStartIndex),
-                String.valueOf(queryRoutersEndIndex),
-                DSL.inline(cluster.getSpec().getDatabase())))
-        .build();
-    return script;
+  }
+
+  /**
+   * Return {@code true} if the Patroni of the query router of the specified Citus group can be
+   * started: the coordinator SGScript returned the group among those registered in
+   * {@code pg_dist_node} without shards. The cluster-controller of the query router Pods and of the
+   * coordinator Pods are only upgraded when their Pods are restarted, so a coordinator that does not
+   * support the SGScript fields {@code setValue} and {@code cron} yet will eventually report the
+   * group once restarted, allowing the query router to start.
+   */
+  static boolean isQueryRouterRegistered(StackGresShardedClusterContext context, int group) {
+    return getCoordinatorScriptGroups(
+        context.getShardedCluster(),
+        context.getDeployedCoordinator(),
+        QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID)
+        .anyMatch(Integer.valueOf(group)::equals);
+  }
+
+  /**
+   * Return the names of the worker and query router SGClusters whose Citus group is registered in
+   * {@code pg_dist_node}, as reported by the coordinator SGScript. Such SGClusters must not be
+   * removed (scaled down to 0 instances) since Citus can only remove a primary node while it can
+   * be reached.
+   */
+  static Set<String> getRegisteredClusterNames(
+      StackGresShardedCluster cluster,
+      Optional<StackGresCluster> deployedCoordinator) {
+    return getCoordinatorScriptGroups(cluster, deployedCoordinator, REGISTERED_GROUPS_SCRIPT_ID)
+        .filter(group -> group > 0)
+        .map(group -> StackGresShardedClusterUtil.getClusterName(cluster, group))
+        .collect(Collectors.toUnmodifiableSet());
+  }
+
+  private static Stream<Integer> getCoordinatorScriptGroups(
+      StackGresShardedCluster cluster,
+      Optional<StackGresCluster> deployedCoordinator,
+      int scriptId) {
+    final String coordinatorScriptName = StackGresShardedClusterUtil.coordinatorScriptName(cluster);
+    final Optional<Integer> coordinatorScriptId = deployedCoordinator
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getManagedSql)
+        .map(StackGresClusterManagedSql::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .filter(managedScript -> coordinatorScriptName.equals(managedScript.getSgScript()))
+        .map(StackGresClusterManagedScriptEntry::getId)
+        .findFirst();
+    return deployedCoordinator
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getManagedSql)
+        .map(StackGresClusterManagedSqlStatus::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .filter(managedScriptStatus -> coordinatorScriptId
+            .filter(managedScriptStatus.getId()::equals).isPresent())
+        .map(StackGresClusterManagedScriptEntryStatus::getScripts)
+        .filter(Objects::nonNull)
+        .flatMap(List::stream)
+        .filter(scriptStatus -> Objects.equals(scriptId, scriptStatus.getId()))
+        .map(StackGresClusterManagedScriptEntryScriptStatus::getValue)
+        .filter(Objects::nonNull)
+        .flatMap(value -> Stream.of(value.split(",")))
+        .map(String::trim)
+        .filter(Predicate.not(String::isEmpty))
+        .map(Integer::valueOf);
   }
 
   static String getUpdateWorkersSecretName(StackGresShardedCluster cluster) {

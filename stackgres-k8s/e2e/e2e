@@ -7,6 +7,7 @@ export PROJECT_PATH="${PROJECT_PATH:-$E2E_PATH/../..}"
 export E2E_PARALLELISM="${E2E_PARALLELISM:-$(( $(getconf _NPROCESSORS_ONLN) / 8 ))}"
 export TARGET_PATH="${TARGET_PATH:-$E2E_PATH/target}"
 export LOG_PATH="$TARGET_PATH"
+export E2E_INSTALLATION_EXTRA_METADATA="${E2E_INSTALLATION_EXTRA_METADATA:-Env stackgres-ci}"
 
 if ! command -v local > /dev/null 2>&1
 then

@@ -44,6 +44,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
+import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniCtlInstance;
@@ -255,23 +256,27 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       startPrimaryIfRemoved(context, requiredSts, appLabel, latestPrimaryFromPatroni, writer);
     }
 
-    final List<Pod> pods = findStatefulSetPods(requiredSts, appLabel);
-    if (desiredReplicas > 0) {
-      pods.stream()
-          .filter(pod -> latestPrimaryFromPatroni.map(pod.getMetadata().getName()::equals).orElse(false))
-          .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
-          .filter(pod -> !isNonDisruptable(context, pod))
-          .forEach(pod -> makePrimaryPodNonDisruptable(context, pod));
-      long nonDisruptablePodsRemaining =
-          countNonDisruptablePods(context, pods, lastReplicaIndex);
-      int replicas = Math.max(0, (int) (desiredReplicas - nonDisruptablePodsRemaining));
-      requiredSts.getSpec().setReplicas(replicas);
-    } else {
-      pods.stream()
-          .filter(pod -> isNonDisruptable(context, pod))
-          .forEach(pod -> makePrimaryPodDisruptable(context, pod));
-      requiredSts.getSpec().setReplicas(0);
-    }
+    // Retry the whole operation on conflict: it scans the resources again, so the retry only
+    // patches what is still left to patch. See fixPods for the details.
+    KubernetesClientUtil.retryOnConflict(() -> {
+      final List<Pod> pods = findStatefulSetPods(requiredSts, appLabel);
+      if (desiredReplicas > 0) {
+        pods.stream()
+            .filter(pod -> latestPrimaryFromPatroni.map(pod.getMetadata().getName()::equals).orElse(false))
+            .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
+            .filter(pod -> !isNonDisruptable(context, pod))
+            .forEach(pod -> makePrimaryPodNonDisruptable(context, pod));
+        long nonDisruptablePodsRemaining =
+            countNonDisruptablePods(context, pods, lastReplicaIndex);
+        int replicas = Math.max(0, (int) (desiredReplicas - nonDisruptablePodsRemaining));
+        requiredSts.getSpec().setReplicas(replicas);
+      } else {
+        pods.stream()
+            .filter(pod -> isNonDisruptable(context, pod))
+            .forEach(pod -> makePrimaryPodDisruptable(context, pod));
+        requiredSts.getSpec().setReplicas(0);
+      }
+    });
 
     final var updatedSts = writer.apply(context, requiredSts);
 
@@ -386,17 +391,20 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       handler.delete(context, anyOtherPodAndPendingRestartAnyReason.get());
       return;
     }
-    if (foundPrimaryPod
-        .map(pod -> ClusterRolloutUtil.getPostgresRestartReasons(pod, patroniMembers)
-            .requiresRestart())
-        .orElse(false)) {
+    final Optional<Pod> foundPrimaryPodAndPendingPostgresRestart = foundPrimaryPod
+        .filter(pod -> ClusterRolloutUtil.getPostgresRestartReasons(pod, patroniMembers)
+            .requiresRestart());
+    if (foundPrimaryPodAndPendingPostgresRestart
+        .filter(pod -> ClusterRolloutUtil.requiresPostgresRestartWithoutSwitchover(pod, patroniMembers))
+        .isPresent()) {
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Restarting Postgres instance of primary Pod {} since pending restart",
-            foundPrimaryPod.get().getMetadata().getName());
+        LOGGER.debug("Restarting Postgres instance of primary Pod {} since pending restart"
+            + " of a hot standby sensitive parameter that is being decreased",
+            foundPrimaryPodAndPendingPostgresRestart.get().getMetadata().getName());
       }
       var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
       patroniCtl.restart(credentials.v1, credentials.v2,
-          foundPrimaryPod.get().getMetadata().getName());
+          foundPrimaryPodAndPendingPostgresRestart.get().getMetadata().getName());
       return;
     }
     var anyOtherPodAndPendingRestartInstance = otherPods
@@ -432,7 +440,8 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       handler.delete(context, anyOtherPodAndPendingRestartAnyReason.get());
       return;
     }
-    if (foundPrimaryPodAndPendingRestart.isPresent()) {
+    if (foundPrimaryPodAndPendingRestart.isPresent()
+        || foundPrimaryPodAndPendingPostgresRestart.isPresent()) {
       final Optional<PatroniMember> leastLagPatroniMemberAndReady =
           patroniMembers
           .stream()
@@ -479,12 +488,22 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
             foundPrimaryPod.get().getMetadata().getName(),
             otherLeastLagPodAndReady.get().getMetadata().getName());
         return;
-      } else {
+      } else if (foundPrimaryPodAndPendingRestart.isPresent()) {
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug("Re-creating primary Pod {} since pending restart",
               foundPrimaryPodAndPendingRestart.get().getMetadata().getName());
         }
         handler.delete(context, foundPrimaryPodAndPendingRestart.get());
+        return;
+      } else {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Restarting Postgres instance of primary Pod {} since pending restart"
+              + " and no replica is available to switchover to",
+              foundPrimaryPodAndPendingPostgresRestart.get().getMetadata().getName());
+        }
+        var credentials = getPatroniCredentials(context.getMetadata().getName(), context.getMetadata().getNamespace());
+        patroniCtl.restart(credentials.v1, credentials.v2,
+            foundPrimaryPodAndPendingPostgresRestart.get().getMetadata().getName());
         return;
       }
     }
@@ -632,56 +651,64 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       final StackGresCluster context,
       final StatefulSet deployedStatefulSet,
       final Map<String, String> appLabel) {
-    var podsToProtect = findStatefulSetPods(deployedStatefulSet, appLabel);
-    var requiredOwnerReferences = List.of(
-        new OwnerReferenceBuilder()
-        .withApiVersion(deployedStatefulSet.getApiVersion())
-        .withKind(deployedStatefulSet.getKind())
-        .withName(deployedStatefulSet.getMetadata().getName())
-        .withUid(deployedStatefulSet.getMetadata().getUid())
-        .withBlockOwnerDeletion(true)
-        .withController(true)
-        .build(),
-        ResourceUtil.getOwnerReference(context));
+    // Retry the whole operation on conflict: it scans the resources again, so the retry only
+    // patches what is still left to patch. See fixPods for the details.
+    KubernetesClientUtil.retryOnConflict(() -> {
+      var podsToProtect = findStatefulSetPods(deployedStatefulSet, appLabel);
+      var requiredOwnerReferences = List.of(
+          new OwnerReferenceBuilder()
+          .withApiVersion(deployedStatefulSet.getApiVersion())
+          .withKind(deployedStatefulSet.getKind())
+          .withName(deployedStatefulSet.getMetadata().getName())
+          .withUid(deployedStatefulSet.getMetadata().getUid())
+          .withBlockOwnerDeletion(true)
+          .withController(true)
+          .build(),
+          ResourceUtil.getOwnerReference(context));
 
-    Seq.seq(podsToProtect)
-        .filter(pod -> !Objects.equals(
-            pod.getMetadata().getOwnerReferences(),
-            requiredOwnerReferences))
-        .map(pod -> fixPodOwnerReferences(
-            requiredOwnerReferences, pod,
-            deployedStatefulSet.getMetadata().getName()))
-        .grouped(pod -> pod.getMetadata().getName())
-        .map(Tuple2::v2).map(Seq::findFirst)
-        .map(Optional::get)
-        .forEach(pod -> protectHandler.patch(context, pod, null));
+      Seq.seq(podsToProtect)
+          .filter(pod -> !Objects.equals(
+              pod.getMetadata().getOwnerReferences(),
+              requiredOwnerReferences))
+          .map(pod -> fixPodOwnerReferences(
+              requiredOwnerReferences, pod,
+              deployedStatefulSet.getMetadata().getName()))
+          .grouped(pod -> pod.getMetadata().getName())
+          .map(Tuple2::v2).map(Seq::findFirst)
+          .map(Optional::get)
+          .forEach(pod -> protectHandler.patch(context, pod, null));
+    });
   }
 
   private void protectPvcsFromStatefulSetRemoval(
       StackGresCluster context,
       StatefulSet deployedStatefulSet,
       Map<String, String> appLabel) {
-    final String namespace = deployedStatefulSet.getMetadata().getNamespace();
-    Pattern statefulSetPodDataPersistentVolumeClaimPattern = ResourceUtil.getNameWithIndexPattern(
-        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context));
-    var pvcsToProtect = pvcScanner.getResourcesInNamespaceWithLabels(namespace, appLabel).stream()
-        .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
-        .toList();
-    var requiredOwnerReferences = List.of(
-        ResourceUtil.getOwnerReference(context));
+    // Retry the whole operation on conflict: it scans the resources again, so the retry only
+    // patches what is still left to patch. See fixPods for the details.
+    KubernetesClientUtil.retryOnConflict(() -> {
+      final String namespace = deployedStatefulSet.getMetadata().getNamespace();
+      Pattern statefulSetPodDataPersistentVolumeClaimPattern = ResourceUtil.getNameWithIndexPattern(
+          StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context));
+      var pvcsToProtect = pvcScanner.getResourcesInNamespaceWithLabels(namespace, appLabel).stream()
+          .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
+          .toList();
+      var requiredOwnerReferences = List.of(
+          ResourceUtil.getOwnerReference(context));
 
-    Seq.seq(pvcsToProtect)
-        .filter(pvc -> !Objects.equals(
-            pvc.getMetadata().getOwnerReferences(),
-            requiredOwnerReferences))
-        .map(pvc -> fixPvcOwnerReferences(
-            requiredOwnerReferences, pvc,
-            deployedStatefulSet.getMetadata().getName()))
-        .grouped(pvc -> pvc.getMetadata().getName())
-        .map(Tuple2::v2)
-        .map(Seq::findFirst)
-        .map(Optional::get)
-        .forEach(pvc -> protectHandler.patch(context, pvc, null));
+      Seq.seq(pvcsToProtect)
+          .filter(pvc -> !Objects.equals(
+              pvc.getMetadata().getOwnerReferences(),
+              requiredOwnerReferences))
+          .map(pvc -> fixPvcOwnerReferences(
+              requiredOwnerReferences, pvc,
+              deployedStatefulSet.getMetadata().getName()))
+          .grouped(pvc -> pvc.getMetadata().getName())
+          .map(Tuple2::v2)
+          .map(Seq::findFirst)
+          .map(Optional::get)
+          .forEach(pvc -> protectHandler.patch(context, pvc, null));
+    });
   }
 
   private void fixPods(
@@ -690,30 +717,39 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       final StatefulSet deployedStatefulSet,
       final Map<String, String> appLabel,
       PatroniCtlInstance patroniCtl) {
-    var podsToFix = findStatefulSetPods(statefulSet, appLabel);
-    List<Pod> disruptablePodsToPatch =
-        fixNonDisruptablePods(context, statefulSet, patroniCtl, podsToFix);
-    final List<Pod> podPatroniLabelsToPatch;
-    if (!isPatroniOnKubernetes(context)) {
-      podPatroniLabelsToPatch = fixPodsPatroniLabels(context, statefulSet, patroniCtl, podsToFix);
-    } else {
-      podPatroniLabelsToPatch = List.of();
-    }
-    List<Pod> podAnnotationsToPatch = fixPodsAnnotations(statefulSet, podsToFix);
-    List<Pod> podOwnerReferencesToPatch = fixPodsOwnerReferences(
-        context, deployedStatefulSet, podsToFix);
-    List<Pod> podLabelsToPatch =
-        fixPodsLabels(context, statefulSet, podsToFix);
-    Seq.seq(disruptablePodsToPatch)
-        .append(podPatroniLabelsToPatch)
-        .append(podAnnotationsToPatch)
-        .append(podOwnerReferencesToPatch)
-        .append(podLabelsToPatch)
-        .grouped(pod -> pod.getMetadata().getName())
-        .map(Tuple2::v2)
-        .map(Seq::findFirst)
-        .map(Optional::get)
-        .forEach(pod -> handler.patch(context, pod, null));
+    // These resources are read from the API and keep the resourceVersion they had when they were
+    // scanned, which the server side apply of the handler turns into an optimistic concurrency
+    // precondition. Pods are the most contended objects of a cluster being restarted, since
+    // patroni, the kubelet and the StatefulSet controller all write to them, so a 409 here is
+    // expected rather than exceptional. Retry the whole operation instead of the single patch:
+    // it scans the resources again, so the retry recomputes what is left to fix and does not
+    // patch again what was already patched.
+    KubernetesClientUtil.retryOnConflict(() -> {
+      var podsToFix = findStatefulSetPods(statefulSet, appLabel);
+      List<Pod> disruptablePodsToPatch =
+          fixNonDisruptablePods(context, statefulSet, patroniCtl, podsToFix);
+      final List<Pod> podPatroniLabelsToPatch;
+      if (!isPatroniOnKubernetes(context)) {
+        podPatroniLabelsToPatch = fixPodsPatroniLabels(context, statefulSet, patroniCtl, podsToFix);
+      } else {
+        podPatroniLabelsToPatch = List.of();
+      }
+      List<Pod> podAnnotationsToPatch = fixPodsAnnotations(statefulSet, podsToFix);
+      List<Pod> podOwnerReferencesToPatch = fixPodsOwnerReferences(
+          context, deployedStatefulSet, podsToFix);
+      List<Pod> podLabelsToPatch =
+          fixPodsLabels(context, statefulSet, podsToFix);
+      Seq.seq(disruptablePodsToPatch)
+          .append(podPatroniLabelsToPatch)
+          .append(podAnnotationsToPatch)
+          .append(podOwnerReferencesToPatch)
+          .append(podLabelsToPatch)
+          .grouped(pod -> pod.getMetadata().getName())
+          .map(Tuple2::v2)
+          .map(Seq::findFirst)
+          .map(Optional::get)
+          .forEach(pod -> handler.patch(context, pod, null));
+    });
   }
 
   private List<Pod> fixNonDisruptablePods(
@@ -939,26 +975,30 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
       StatefulSet statefulSet,
       final StatefulSet deployedStatefulSet,
       Map<String, String> appLabel) {
-    final String namespace = statefulSet.getMetadata().getNamespace();
-    Pattern statefulSetPodDataPersistentVolumeClaimPattern = ResourceUtil.getNameWithIndexPattern(
-        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context));
-    var pvcsToFix = pvcScanner.getResourcesInNamespaceWithLabels(namespace, appLabel).stream()
-        .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
-        .toList();
-    List<PersistentVolumeClaim> pvcAnnotationsToPatch = fixPvcsAnnotations(
-        statefulSet, pvcsToFix);
-    List<PersistentVolumeClaim> pvcLabelsToPatch = fixPvcsLabels(
-        statefulSet, pvcsToFix);
-    List<PersistentVolumeClaim> pvcOwnerReferencesToPatch = fixPvcOwnerReferences(
-        context, deployedStatefulSet, pvcsToFix);
-    Seq.seq(pvcAnnotationsToPatch)
-        .append(pvcLabelsToPatch)
-        .append(pvcOwnerReferencesToPatch)
-        .grouped(pvc -> pvc.getMetadata().getName())
-        .map(Tuple2::v2)
-        .map(Seq::findFirst)
-        .map(Optional::get)
-        .forEach(pvc -> handler.patch(context, pvc, null));
+    // Retry the whole operation on conflict: it scans the resources again, so the retry only
+    // patches what is still left to patch. See fixPods for the details.
+    KubernetesClientUtil.retryOnConflict(() -> {
+      final String namespace = statefulSet.getMetadata().getNamespace();
+      Pattern statefulSetPodDataPersistentVolumeClaimPattern = ResourceUtil.getNameWithIndexPattern(
+          StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context));
+      var pvcsToFix = pvcScanner.getResourcesInNamespaceWithLabels(namespace, appLabel).stream()
+          .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
+          .toList();
+      List<PersistentVolumeClaim> pvcAnnotationsToPatch = fixPvcsAnnotations(
+          statefulSet, pvcsToFix);
+      List<PersistentVolumeClaim> pvcLabelsToPatch = fixPvcsLabels(
+          statefulSet, pvcsToFix);
+      List<PersistentVolumeClaim> pvcOwnerReferencesToPatch = fixPvcOwnerReferences(
+          context, deployedStatefulSet, pvcsToFix);
+      Seq.seq(pvcAnnotationsToPatch)
+          .append(pvcLabelsToPatch)
+          .append(pvcOwnerReferencesToPatch)
+          .grouped(pvc -> pvc.getMetadata().getName())
+          .map(Tuple2::v2)
+          .map(Seq::findFirst)
+          .map(Optional::get)
+          .forEach(pvc -> handler.patch(context, pvc, null));
+    });
   }
 
   private List<PersistentVolumeClaim> fixPvcsAnnotations(

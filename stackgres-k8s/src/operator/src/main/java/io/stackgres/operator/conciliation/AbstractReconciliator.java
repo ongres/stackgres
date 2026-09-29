@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -249,7 +250,12 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
 
   protected void reconciliationsCycle(List<Optional<Tuple2<T, Integer>>> configs) {
     mergedConfigs(configs).stream()
-        .filter(t -> Optional.ofNullable(t.v1.getMetadata().getAnnotations())
+        // A custom resource that requires a finalizer is reconciled while it is being deleted even
+        // if its reconciliation is paused, or pausing the reconciliation would make it impossible
+        // to remove the finalizer and the custom resource could never be deleted.
+        .filter(t -> (!getFinalizers().isEmpty()
+            && t.v1.getMetadata().getDeletionTimestamp() != null)
+            || Optional.ofNullable(t.v1.getMetadata().getAnnotations())
             .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
             .map(Boolean::parseBoolean)
             .map(b -> !b)
@@ -321,7 +327,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
 
     List<Exception> exceptions = new ArrayList<>();
     try {
-      final T configUnmutated;
+      T configUnmutated;
       if (load) {
         var configFound = finder.findByNameAndNamespace(
             metadata.getName(), metadata.getNamespace());
@@ -332,6 +338,21 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
         configUnmutated = configFound.get();
       } else {
         configUnmutated = configKey;
+      }
+      final List<String> finalizers = getFinalizers();
+      if (!finalizers.isEmpty()) {
+        if (configUnmutated.getMetadata().getDeletionTimestamp() != null) {
+          if (hasAnyFinalizer(configUnmutated, finalizers)) {
+            reconcileDeletion(configUnmutated, configId, finalizers, retry);
+          } else {
+            LOGGER.debug("{} is being deleted, skipping reconciliation", configId);
+          }
+          return;
+        }
+        if (!hasAnyFinalizer(configUnmutated, finalizers)) {
+          LOGGER.debug("Adding finalizers {} to {}", finalizers, configId);
+          configUnmutated = addFinalizers(configUnmutated, finalizers);
+        }
       }
       final T config;
       if (this.enableReconciliationWebhooks) {
@@ -462,6 +483,83 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
     }
     metrics.incrementReconciliationTotalPerformed(configKey.getClass());
     metrics.setReconciliationLastDuration(configKey.getClass(), System.currentTimeMillis() - startTimestamp);
+  }
+
+  /**
+   * The finalizers to set on the custom resource so that its deletion is delayed until
+   * {@link #onFinalizer(CustomResource, String)} allows it, empty when the custom resource does not
+   * require to delay its deletion.
+   */
+  protected List<String> getFinalizers() {
+    return List.of();
+  }
+
+  /**
+   * Invoked on each reconciliation cycle while the custom resource is being deleted and any of the
+   * finalizers returned by {@link #getFinalizers()} is still set on it. Returns true when the
+   * finalizers can be removed so that the deletion of the custom resource completes.
+   */
+  protected boolean onFinalizer(T config, String finalizer) {
+    return true;
+  }
+
+  private boolean hasAnyFinalizer(T config, List<String> finalizers) {
+    return Optional.of(config.getMetadata())
+        .map(ObjectMeta::getFinalizers)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(finalizers::contains);
+  }
+
+  private T addFinalizers(T config, List<String> finalizers) {
+    return writer.update(config, currentConfig -> {
+      if (currentConfig.getMetadata().getFinalizers() == null) {
+        currentConfig.getMetadata().setFinalizers(new ArrayList<>());
+      }
+      for (String finalizer : finalizers) {
+        if (!currentConfig.getMetadata().getFinalizers().contains(finalizer)) {
+          currentConfig.getMetadata().getFinalizers().add(finalizer);
+        }
+      }
+    });
+  }
+
+  private void reconcileDeletion(T config, String configId, List<String> finalizers, int retry) {
+    List<String> pendingFinalizers = Optional
+        .ofNullable(config.getMetadata().getFinalizers())
+        .orElse(List.of())
+        .stream()
+        .filter(finalizers::contains)
+        .toList();
+    ArrayList<String> toRemoveFinalizers = new ArrayList<>(finalizers.size());
+    for (String finalizer : pendingFinalizers) {
+      if (onFinalizer(config, finalizer)) {
+        toRemoveFinalizers.add(finalizer);
+      }
+    }
+    if (!toRemoveFinalizers.isEmpty()) {
+      LOGGER.debug("Removing finalizers {} from {}", toRemoveFinalizers, configId);
+      writer.update(config, currentConfig -> Optional.of(currentConfig.getMetadata())
+          .map(ObjectMeta::getFinalizers)
+          .ifPresent(currentFinalizers -> currentFinalizers.removeIf(toRemoveFinalizers::contains)));
+    }
+    List<String> remainingFinalizers = pendingFinalizers
+        .stream()
+        .filter(Predicate.not(toRemoveFinalizers::contains))
+        .toList();
+    if (!remainingFinalizers.isEmpty()) {
+      LOGGER.debug("{} is being deleted, waiting before removing the finalizers {}",
+          configId, remainingFinalizers);
+      // A watch event of any of the resources the custom resource is waiting for will trigger a new
+      // reconciliation cycle. Reschedule anyway so that the finalizer is removed even if such an
+      // event is missed, that would otherwise block the deletion forever.
+      backoffExecutorService.schedule(() -> reconcile(config, retry + 1),
+          RetryUtil.calculateExponentialBackoffDelay(
+              reconciliationInitialBackoff,
+              reconciliationMaxBackoff,
+              reconciliationBackoffVariation,
+              retry + 1), TimeUnit.SECONDS);
+    }
   }
 
   private T mutateAndValidate(final T configUnmutated) {

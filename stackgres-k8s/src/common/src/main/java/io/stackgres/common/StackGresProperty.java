@@ -10,6 +10,7 @@ import java.util.Properties;
 public enum StackGresProperty implements StackGresPropertyReader {
 
   OPERATOR_VERSION("stackgres.operatorVersion"),
+  INSTALLATION_EXTRA_METADATA("stackgres.installationExtraMetadata"),
   OPERATOR_IMAGE_VERSION("stackgres.operatorImageVersion"),
   OPERATOR_JVM_IMAGE_VERSION("stackgres.operatorJvmImageVersion"),
   OPERATOR_NATIVE_IMAGE_VERSION("stackgres.operatorNativeImageVersion"),

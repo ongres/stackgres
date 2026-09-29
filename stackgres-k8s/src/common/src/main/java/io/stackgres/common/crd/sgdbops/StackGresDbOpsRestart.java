@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
@@ -21,7 +22,7 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresDbOpsRestart {
+public class StackGresDbOpsRestart extends AdditionalProperties {
 
   @ValidEnum(enumClass = DbOpsMethodType.class, allowNulls = true,
       message = "method must be InPlace or ReducedImpact")
@@ -30,6 +31,8 @@ public class StackGresDbOpsRestart {
   private Boolean restartPrimaryFirst;
 
   private Boolean onlyPendingRestart;
+
+  private String statusUpdateDelay;
 
   @JsonIgnore
   public boolean isMethodReducedImpact() {
@@ -52,6 +55,14 @@ public class StackGresDbOpsRestart {
     this.restartPrimaryFirst = restartPrimaryFirst;
   }
 
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
+  }
+
   public Boolean getOnlyPendingRestart() {
     return onlyPendingRestart;
   }
@@ -62,7 +73,7 @@ public class StackGresDbOpsRestart {
 
   @Override
   public int hashCode() {
-    return Objects.hash(method, restartPrimaryFirst);
+    return Objects.hash(method, restartPrimaryFirst, statusUpdateDelay);
   }
 
   @Override
@@ -75,7 +86,8 @@ public class StackGresDbOpsRestart {
     }
     StackGresDbOpsRestart other = (StackGresDbOpsRestart) obj;
     return Objects.equals(method, other.method)
-        && Objects.equals(restartPrimaryFirst, other.restartPrimaryFirst);
+        && Objects.equals(restartPrimaryFirst, other.restartPrimaryFirst)
+        && Objects.equals(statusUpdateDelay, other.statusUpdateDelay);
   }
 
   @Override

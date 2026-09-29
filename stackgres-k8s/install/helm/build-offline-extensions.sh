@@ -17,6 +17,7 @@ fi
 
 docker build \
   --build-arg EXTENSIONS_CACHE_PRELOADED_EXTENSIONS="$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" \
+  --build-arg EXTENSIONS_CACHE_USER_AGENT="StackGres/$(sh ../../ci/build/version.sh) (Env stackgres-offline-build; 0)" \
   $(echo "$-" | grep -q x && printf %s '--build-arg EXTENSIONS_CACHE_LOG_LEVEL=TRACE' || true) \
   -t "${IMAGE:-stackgres-offline-extensions}" \
   -f Dockerfile.offline-extensions .

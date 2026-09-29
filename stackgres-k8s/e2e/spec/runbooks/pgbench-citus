@@ -39,7 +39,7 @@ spec:
     script: |
       CREATE EXTENSION IF NOT EXISTS pg_cron;
       DO \$setup\$BEGIN
-        IF EXISTS (SELECT * FROM cron.job WHERE jobname = 'update-query-routers-flags') THEN
+        IF EXISTS (SELECT * FROM cron.job WHERE jobname = 'pgbench-citus-query-routers-flags') THEN
           PERFORM cron.alter_job(
             jobid,
             '30 seconds',
@@ -51,10 +51,10 @@ spec:
               END\$\$
             \$sql\$,
             'citus')
-          FROM cron.job WHERE jobname = 'update-query-routers-flags';
+          FROM cron.job WHERE jobname = 'pgbench-citus-query-routers-flags';
         ELSE
           PERFORM cron.schedule_in_database(
-            'update-query-routers-flags',
+            'pgbench-citus-query-routers-flags',
             '30 seconds',
             \$sql\$
               DO \$\$BEGIN

@@ -63,6 +63,14 @@ Each schedule entry has the following fields:
 | `cron` | string | A UNIX cron expression indicating the start of the update window. |
 | `duration` | string | An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the window duration. |
 
+#### Restart delay
+
+The `restartDelay` field is an ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass between the restart of a Postgres instance performed by the SGCluster controller and the next one. The default value is `PT5M`.
+
+The delay is enforced by the cluster controller, that do not start a new restart operation until such delay has passed since the Postgres instance has been restarted. This paces the restart of the Postgres instances during a rollout, giving patroni the time to update the status between them.
+
+> Note that this delay does not apply to the re-creation of the Pods, only to the restart of the Postgres instances performed by the SGCluster controller.
+
 ### Examples
 
 #### Default Configuration (OnlyDbOps)
@@ -118,6 +126,22 @@ spec:
           duration: "PT2H"      # 2 hour window
 ```
 
+#### Custom Restart Delay
+
+Wait at least 10 minutes between the restart of a Postgres instance and the next one:
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: my-cluster
+spec:
+  pods:
+    updateStrategy:
+      type: Always
+      restartDelay: "PT10M"
+```
+
 #### Manual Updates Only
 
 Disable automatic updates entirely. Pods must be deleted manually:
@@ -132,6 +156,24 @@ spec:
     updateStrategy:
       type: Never
 ```
+
+### Restart of the Primary Instance
+
+When a change only requires the Postgres instance to be restarted, and not the Pod to be re-created, the rollout restarts the Postgres instance of the replicas first and then performs a switchover to the ready replica with the least lag, so that the primary is demoted instead of being restarted and the read-write service disruption is kept to a minimum.
+
+The only exception is when any of the following parameters is **decreased**:
+
+* `max_connections`
+* `max_prepared_transactions`
+* `max_locks_per_transaction`
+* `max_wal_senders`
+* `max_worker_processes`
+
+A hot standby requires those parameters to be set to a value greater than or equal to the value set on the primary (see the [PostgreSQL Hot Standby Parameter Reference](https://www.postgresql.org/docs/current/hot-standby.html#HOT-STANDBY-ADMIN)). Therefore, when any of them is decreased the primary has to apply the new value first and its Postgres instance is restarted in place, without performing any switchover.
+
+When no replica is available to switchover to, the Postgres instance of the primary is restarted in place.
+
+> Patroni only reports the parameters that are pending a change since version 4. When they are not reported it is not possible to tell if any of the parameters above is being decreased and a switchover is performed.
 
 ### How Update Strategy Interacts with SGDbOps
 

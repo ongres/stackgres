@@ -51,6 +51,15 @@ public interface StackGresContext {
   String COORDINATOR_KEY = "coordinator";
   String WORKERS_KEY = "workers";
   String QUERY_ROUTERS_KEY = "query-routers";
+  String CITUS_GROUP_KEY = "citus-group";
+  String CITUS_GROUP_REGISTERED_KEY = "citus-group-registered";
+  /**
+   * The annotation that must be set on a Citus query router SGCluster in order for its Patroni to
+   * be started (see {@code SGCluster.spec.configurations.patroni.startGateAnnotations}), with the
+   * Citus group as value. The SGShardedCluster sets it once the coordinator registered the group
+   * in {@code pg_dist_node} without shards.
+   */
+  String CITUS_GROUP_REGISTERED_ANNOTATION = STACKGRES_KEY_PREFIX + CITUS_GROUP_REGISTERED_KEY;
   String SHARDED_BACKUP_KEY = "sharded-backup";
   String SHARDED_DBOPS_KEY = "sharded-db-ops";
   String SCHEDULED_SHARDED_BACKUP_KEY = "scheduled-sharded-backup";
@@ -93,8 +102,13 @@ public interface StackGresContext {
   String ROLLOUT_NEVER_VALUE = "never";
 
   String PATRONI_OPERATION_KEY = STACKGRES_KEY_PREFIX + "patroni-operation";
+  String PATRONI_OPERATION_TYPE_FIELD = "type";
+  String PATRONI_OPERATION_ISSUED_FIELD = "issued";
+  String PATRONI_OPERATION_STARTED_FIELD = "started";
+  String PATRONI_OPERATION_RESTART_TYPE = "restart";
 
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
+  String WAIT_PODS_TERMINATION_FINALIZER = STACKGRES_KEY_PREFIX + "wait-pods-termination";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
   String CLUSTER_CONTROLLER_VERSION_KEY = STACKGRES_KEY_PREFIX + "cluster-controller-version";
   String POSTGRES_VERSION_KEY = STACKGRES_KEY_PREFIX + "postgresql-version";

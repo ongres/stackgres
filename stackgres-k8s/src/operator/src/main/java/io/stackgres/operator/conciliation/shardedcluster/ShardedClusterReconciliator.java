@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
@@ -13,6 +15,7 @@ import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -141,7 +144,16 @@ public class ShardedClusterReconciliator
 
     clusterWriter.update(config,
         (currentShardedCluster) -> {
+          // status.dbOps is not set by the reconciliation cycle but by the SGShardedDbOps job, that
+          // sets it when a major version upgrade starts and removes it when it completes. Take its
+          // value from the SGShardedCluster that has just been read so that a change performed while
+          // this reconciliation cycle was running is not reverted by the status that was read when
+          // the cycle started (see https://gitlab.com/ongresinc/stackgres/-/issues/3241).
+          var targetDbOps = Optional.ofNullable(currentShardedCluster.getStatus())
+              .map(StackGresShardedClusterStatus::getDbOps)
+              .orElse(null);
           if (config.getStatus() != null) {
+            config.getStatus().setDbOps(targetDbOps);
             currentShardedCluster.setStatus(config.getStatus());
           }
         });

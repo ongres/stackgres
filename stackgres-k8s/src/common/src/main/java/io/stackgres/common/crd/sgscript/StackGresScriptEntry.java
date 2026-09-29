@@ -14,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
+import io.stackgres.common.ManagedSqlCronUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -29,7 +31,7 @@ import jakarta.validation.constraints.NotNull;
 @Buildable(editableEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresScriptEntry {
+public class StackGresScriptEntry extends AdditionalProperties {
 
   private String name;
 
@@ -49,6 +51,10 @@ public class StackGresScriptEntry {
 
   private Boolean retryOnError;
 
+  private Boolean setValue;
+
+  private String cron;
+
   private String user;
 
   private String script;
@@ -67,6 +73,9 @@ public class StackGresScriptEntry {
 
   @ReferencedField("storeStatusInDatabase")
   interface StoreStatusInDatabase extends FieldReference { }
+
+  @ReferencedField("cron")
+  interface Cron extends FieldReference { }
 
   @JsonIgnore
   @AssertTrue(message = "script and scriptFrom are mutually exclusive and required.",
@@ -88,6 +97,20 @@ public class StackGresScriptEntry {
       payload = StoreStatusInDatabase.class)
   public boolean isWrapInTransactionSetWhenStoreStatusInDatabaseIsSet() {
     return storeStatusInDatabase == null || !storeStatusInDatabase || wrapInTransaction != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "cron must be a valid Quartz cron expression.",
+      payload = Cron.class)
+  public boolean isCronValid() {
+    return cron == null || ManagedSqlCronUtil.isValid(cron);
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "Can not set cron when storeStatusInDatabase is set.",
+      payload = Cron.class)
+  public boolean isStoreStatusInDatabaseNotSetWhenCronIsSet() {
+    return cron == null || storeStatusInDatabase == null || !storeStatusInDatabase;
   }
 
   public String getName() {
@@ -169,6 +192,27 @@ public class StackGresScriptEntry {
     this.retryOnError = retryOnError;
   }
 
+  public Boolean getSetValue() {
+    return setValue;
+  }
+
+  @JsonIgnore
+  public boolean getSetValueOrDefault() {
+    return Optional.ofNullable(setValue).orElse(false);
+  }
+
+  public void setSetValue(Boolean setValue) {
+    this.setValue = setValue;
+  }
+
+  public String getCron() {
+    return cron;
+  }
+
+  public void setCron(String cron) {
+    this.cron = cron;
+  }
+
   public String getScript() {
     return script;
   }
@@ -187,8 +231,8 @@ public class StackGresScriptEntry {
 
   @Override
   public int hashCode() {
-    return Objects.hash(database, id, name, retryOnError, script, scriptFrom, storeStatusInDatabase,
-        user, version, wrapInTransaction);
+    return Objects.hash(cron, database, id, name, retryOnError, script, scriptFrom, setValue,
+        storeStatusInDatabase, user, version, wrapInTransaction);
   }
 
   @Override
@@ -200,9 +244,11 @@ public class StackGresScriptEntry {
       return false;
     }
     StackGresScriptEntry other = (StackGresScriptEntry) obj;
-    return Objects.equals(database, other.database) && Objects.equals(id, other.id)
+    return Objects.equals(cron, other.cron)
+        && Objects.equals(database, other.database) && Objects.equals(id, other.id)
         && Objects.equals(name, other.name) && Objects.equals(retryOnError, other.retryOnError)
         && Objects.equals(script, other.script) && Objects.equals(scriptFrom, other.scriptFrom)
+        && Objects.equals(setValue, other.setValue)
         && Objects.equals(storeStatusInDatabase, other.storeStatusInDatabase)
         && Objects.equals(user, other.user) && Objects.equals(version, other.version)
         && Objects.equals(wrapInTransaction, other.wrapInTransaction);

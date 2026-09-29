@@ -38,6 +38,7 @@ e2e_test() {
   run_test "Check that operator can be installed with affinity properties" check_operator_helm_affinity
   run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_node_selector
   run_test "Check that operator can be installed with annotations properties" check_operator_helm_annotations
+  run_test "Check that operator can be installed with allowedNamespaces properties" check_operator_helm_allowed_namespaces
 }
 
 check_operator_install() {
@@ -385,3 +386,42 @@ check_operator_specific_property() {
   done;
 }
 
+check_operator_helm_allowed_namespaces() {
+  delete_operator_only
+
+  for app in operator restapi; do
+    wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
+  done
+
+  # Remove the label so that it can only be there if the Job that sets it did run.
+  kubectl label namespace "$CLUSTER_NAMESPACE" "$OPERATOR_NAMESPACE" stackgres.io/scope- 2>/dev/null || true
+
+  # The Job that labels the allowed namespaces is a pre-install hook, so helm waits for it to
+  # complete and the installation fails when it can not run. It used to be rejected by the kubelet
+  # with "container has runAsNonRoot and image has non-numeric user (stackgres), cannot verify user
+  # is non-root" since the Pod security context set runAsNonRoot without setting runAsUser
+  # (see https://gitlab.com/ongresinc/stackgres/-/issues/3243).
+  local EXIT_CODE RESULT
+  try_function install_operator_only --set allowedNamespaces="{$CLUSTER_NAMESPACE}"
+  if "$RESULT"
+  then
+    success "The operator was installed with allowedNamespaces set"
+  else
+    fail "The operator was not installed with allowedNamespaces set"
+  fi
+
+  local NAMESPACE
+  for NAMESPACE in "$CLUSTER_NAMESPACE" "$OPERATOR_NAMESPACE"
+  do
+    if [ "$(kubectl get namespace "$NAMESPACE" \
+      --template '{{ if .metadata.labels }}{{ index .metadata.labels "stackgres.io/scope" }}{{ end }}')" \
+      = "$OPERATOR_NAMESPACE.stackgres-operator" ]
+    then
+      success "Namespace $NAMESPACE was labelled by the annotate namespaces Job"
+    else
+      fail "Namespace $NAMESPACE was not labelled by the annotate namespaces Job"
+    fi
+  done
+
+  check_operator_installed
+}

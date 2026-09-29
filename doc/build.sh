@@ -81,7 +81,6 @@ cat "$CRD_PATH/index.txt" \
       head -n "$((INCLUDE_LINE - 1))" "$TARGET_PATH/_index.template.md" > "$TARGET_PATH/_index.md"
       cat "generated/${CRD_FILE%.yaml}.md" >> "$TARGET_PATH/_index.md"
       tail -n +"$((INCLUDE_LINE + 1))" "$TARGET_PATH/_index.template.md" >> "$TARGET_PATH/_index.md"
-      sed -i -z 's/```\([a-z]*\)/\n```\1\n/g' "$TARGET_PATH/_index.md"
     done
     }
 (

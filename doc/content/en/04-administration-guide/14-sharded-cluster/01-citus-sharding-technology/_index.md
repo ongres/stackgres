@@ -179,6 +179,25 @@ This setting is propagated to the primary Service of every query router SGCluste
 
 Like worker overrides, you can override individual query router clusters via `spec.workers.overrides` by setting `type: QueryRouter` on the override entry. The `index` (or `indexes`) refers to the zero-based query router identifier (i.e. `0` selects the first query router), not the offset Citus group identifier.
 
+Whatever an override entry does not set is inherited from `spec.coordinator`, as the rest of the query router spec. A query router with no override therefore uses `spec.coordinator.sgInstanceProfile` and `spec.coordinator.configurations` (`sgPostgresConfig` and `sgPoolingConfig`); the `spec.workers` ones are never applied to a query router. Since the index spaces of the two types are distinct, a `type: Worker` entry and a `type: QueryRouter` entry may share the same `index`.
+
+Give the query routers their own Postgres configuration by referencing it from a `type: QueryRouter` entry:
+
+```yaml
+spec:
+  coordinator:
+    queryRouterClusters: 2
+  workers:
+    clusters: 4
+    overrides:
+    - indexes: ["all"]
+      type: QueryRouter
+      configurations:
+        sgPostgresConfig: routers-postgres-config
+```
+
+For citus sharded clusters the operator does not use the referenced `SGPostgresConfig` directly: it generates a per query router `SGPostgresConfig` named `<query router SGCluster name>-<postgres major version>` out of it, adding the parameters Citus requires.
+
 See [Cluster Names and Overrides]({{% relref "04-administration-guide/14-sharded-cluster/04-cluster-names-and-overrides" %}}) for the full reference of the `index`, `indexes` and `type` fields.
 
 ### Scaling Query Routers
@@ -190,7 +209,49 @@ kubectl patch sgshardedcluster my-sharded-cluster --type merge \
   -p '{"spec":{"coordinator":{"queryRouterClusters":3}}}'
 ```
 
-Query routers do not store sharded data, so adding or removing them does not require resharding. The operator updates the Citus node table automatically and a scheduled job (registered via `pg_cron`) keeps the `shouldhaveshards` flag of the query router nodes set to `false`.
+Query routers do not store sharded data, so adding or removing them does not require resharding. The coordinator registers each query router in the Citus node table (`pg_dist_node`) with the `shouldhaveshards` flag set to `false` before Patroni of the query router is started, so that no shard of a distributed table can ever be placed on a query router. The SGCluster of a query router is generated with `.spec.configurations.patroni.startGateAnnotations` and the operator sets the corresponding annotation on it only once the coordinator reports the query router as registered. When `.spec.replicateFrom` is set the SGShardedCluster is a replica whose `pg_dist_node` is replicated from the source, so the SGCluster of a query router is generated without the start gate and its Patroni is started immediately.
+
+The coordinator updates the Citus node table on a schedule that can be changed with `.spec.configurations.citus.updateNodeInterval` (every 10 seconds by default):
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGShardedCluster
+metadata:
+  name: my-sharded-cluster
+spec:
+  configurations:
+    citus:
+      updateNodeInterval: PT10S
+      enableNodeAutoRemoval: true
+```
+
+The nodes of the workers or query routers removed by decreasing `.spec.workers.clusters` or `.spec.coordinator.queryRouterClusters` are not removed from the Citus node table by Patroni. Since Citus can only remove a primary node that can be reached, the SGCluster of a removed worker or query router is kept running while its group is registered in the Citus node table, and is scaled down to 0 instances only once its group has been removed from it. Set `.spec.configurations.citus.enableNodeAutoRemoval` to `true` to let the coordinator remove them (it only removes the nodes that hold no shard of a distributed table and can be reached), or remove them manually on the coordinator primary:
+
+```sql
+SELECT citus_remove_node('<nodename>', <nodeport>);
+```
+
+> **NOTE**: a worker that still holds shards of a distributed table is never removed. Move its shards to the remaining workers first
+> (for example with `SELECT citus_drain_node('<nodename>', <nodeport>)`).
+
+## Connection Pooling Between Nodes
+
+By default the Citus nodes connect to each other through the connection pooler ([PgBouncer](https://www.pgbouncer.org/)) running in the Pod of each node, instead of opening their connections directly to Postgres. The coordinator keeps the Citus `pg_dist_poolinfo` table of the coordinator, of the workers and of the query routers updated so that Citus uses the port of PgBouncer (`6432`, or the Envoy entry port `7432` when Envoy is enabled) instead of the Postgres port registered in `pg_dist_node`. Only the port is set, so the connections follow the host that Patroni updates in `pg_dist_node` after a failover. Citus ignores `pg_dist_poolinfo` for the connections that can not go through a pooler (like the ones of the shard rebalancer).
+
+Since the nodes connect through PgBouncer, the `disableConnectionPooling` fields of the coordinator, the workers, the query routers and their overrides are ignored and PgBouncer is always created. To connect directly to Postgres, set `.spec.configurations.citus.connectToPooler` to `false`:
+
+```yaml
+apiVersion: stackgres.io/v1beta1
+kind: SGShardedCluster
+metadata:
+  name: my-sharded-cluster
+spec:
+  configurations:
+    citus:
+      connectToPooler: false
+```
+
+When disabled, the coordinator removes the entries it created from `pg_dist_poolinfo` on the next update of the nodes (see `.spec.configurations.citus.updateNodeInterval`).
 
 ## Distributed Partitioned Tables
 

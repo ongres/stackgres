@@ -36,7 +36,7 @@ export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 
 export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.16 12.18 13.9 13.12 14.9 14.10 15.3 15.5 16.1 16.2 ${E2E_POSTGRES_VERSION:-15.3} $E2E_UI_POSTGRES_VERSOIN"
 
-export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.18.8}"
+export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.18.9}"
 
 export E2E_LOCAL_OPERATOR_IP="${E2E_LOCAL_OPERATOR_IP:-172.20.0.1}"
 export E2E_LOCAL_OPERATOR_PORT="${E2E_LOCAL_OPERATOR_PORT:-9080}"
@@ -621,6 +621,7 @@ install_operator_vanilla_from() {
   local OPERATOR_FROM=true
   before_operator_install_or_upgrade
   helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" \
+    --set-string developer.extraEnv.INSTALLATION_EXTRA_METADATA="$E2E_INSTALLATION_EXTRA_METADATA" \
     $(
       if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
       then
@@ -687,6 +688,7 @@ upgrade_operator_vanilla() {
     helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" \
       --set deploy.operator=false \
       --set cert.createForOperator=false \
+      --set-string developer.extraEnv.INSTALLATION_EXTRA_METADATA="$E2E_INSTALLATION_EXTRA_METADATA" \
       --set developer.externalOperatorIp="$E2E_LOCAL_OPERATOR_IP" \
       --set developer.externalOperatorPort="$E2E_LOCAL_OPERATOR_SSL_PORT" \
       $(
@@ -706,6 +708,7 @@ upgrade_operator_vanilla() {
       "$@"
   else
     helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" \
+      --set-string developer.extraEnv.INSTALLATION_EXTRA_METADATA="$E2E_INSTALLATION_EXTRA_METADATA" \
       $(
         if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
         then

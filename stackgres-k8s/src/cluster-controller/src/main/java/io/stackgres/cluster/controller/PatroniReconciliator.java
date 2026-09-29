@@ -175,6 +175,11 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
    */
   private boolean reconcilePatroni(KubernetesClient client, StackGresClusterContext context)
       throws IOException {
+    if (isStartGateClosed(context.getCluster())) {
+      LOGGER.info("Patroni will not be started until the SGCluster has the annotations {}",
+          context.getCluster().getSpec().getConfigurations().getPatroni().getStartGateAnnotations());
+      return false;
+    }
     if (Files.exists(PATRONI_START_FILE_PATH)) {
       Files.setLastModifiedTime(PATRONI_START_FILE_PATH, FileTime.from(Instant.now()));
     } else {
@@ -249,6 +254,24 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     final boolean statusUpdated =
         setPodReplicatinGroupInClusterStatus(cluster, podReplicationRole.get().v2.intValue());
     return statusUpdated;
+  }
+
+  /**
+   * Return {@code true} if Patroni must not be started since the SGCluster does not have all the
+   * annotations specified in {@code SGCluster.spec.configurations.patroni.startGateAnnotations}.
+   */
+  static boolean isStartGateClosed(StackGresCluster cluster) {
+    final Map<String, String> startGateAnnotations = Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getPatroni)
+        .map(StackGresClusterPatroni::getStartGateAnnotations)
+        .orElse(Map.of());
+    final Map<String, String> annotations =
+        Optional.ofNullable(cluster.getMetadata().getAnnotations())
+        .orElse(Map.of());
+    return startGateAnnotations.entrySet().stream()
+        .anyMatch(startGateAnnotation -> !Objects.equals(
+            annotations.get(startGateAnnotation.getKey()), startGateAnnotation.getValue()));
   }
 
   private boolean setPodReplicatinGroupInClusterStatus(final StackGresCluster cluster,

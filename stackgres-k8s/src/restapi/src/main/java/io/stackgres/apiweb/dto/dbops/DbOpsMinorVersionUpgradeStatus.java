@@ -9,11 +9,12 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DbOpsMinorVersionUpgradeStatus {
+public class DbOpsMinorVersionUpgradeStatus extends AdditionalProperties {
 
   private String primaryInstance;
 
@@ -28,6 +29,8 @@ public class DbOpsMinorVersionUpgradeStatus {
   private String switchoverFinalized;
 
   private String failure;
+
+  private String lastUpdate;
 
   public String getPrimaryInstance() {
     return primaryInstance;
@@ -83,6 +86,14 @@ public class DbOpsMinorVersionUpgradeStatus {
 
   public void setFailure(String failure) {
     this.failure = failure;
+  }
+
+  public String getLastUpdate() {
+    return lastUpdate;
+  }
+
+  public void setLastUpdate(String lastUpdate) {
+    this.lastUpdate = lastUpdate;
   }
 
   @Override

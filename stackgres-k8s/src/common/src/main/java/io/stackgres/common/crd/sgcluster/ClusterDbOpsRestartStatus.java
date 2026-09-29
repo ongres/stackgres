@@ -9,9 +9,10 @@ import java.util.List;
 import java.util.Objects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 
 @RegisterForReflection
-public abstract class ClusterDbOpsRestartStatus {
+public abstract class ClusterDbOpsRestartStatus extends AdditionalProperties {
 
   private List<String> initialInstances;
 

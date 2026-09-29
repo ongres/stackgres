@@ -5,23 +5,27 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StackGresClusterPatroni {
+public class StackGresClusterPatroni extends AdditionalProperties {
 
   private Boolean connectUsingFqdn;
 
   private StackGresClusterPatroniDynamicConfig dynamicConfig;
 
   private StackGresClusterPatroniConfig initialConfig;
+
+  private Map<String, String> startGateAnnotations;
 
   public Boolean getConnectUsingFqdn() {
     return connectUsingFqdn;
@@ -47,9 +51,17 @@ public class StackGresClusterPatroni {
     this.initialConfig = initialConfig;
   }
 
+  public Map<String, String> getStartGateAnnotations() {
+    return startGateAnnotations;
+  }
+
+  public void setStartGateAnnotations(Map<String, String> startGateAnnotations) {
+    this.startGateAnnotations = startGateAnnotations;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(connectUsingFqdn, dynamicConfig, initialConfig);
+    return Objects.hash(connectUsingFqdn, dynamicConfig, initialConfig, startGateAnnotations);
   }
 
   @Override
@@ -63,7 +75,8 @@ public class StackGresClusterPatroni {
     StackGresClusterPatroni other = (StackGresClusterPatroni) obj;
     return Objects.equals(connectUsingFqdn, other.connectUsingFqdn)
         && Objects.equals(dynamicConfig, other.dynamicConfig)
-        && Objects.equals(initialConfig, other.initialConfig);
+        && Objects.equals(initialConfig, other.initialConfig)
+        && Objects.equals(startGateAnnotations, other.startGateAnnotations);
   }
 
   public String toString() {
