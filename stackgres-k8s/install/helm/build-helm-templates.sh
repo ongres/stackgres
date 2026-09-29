@@ -111,13 +111,14 @@ helm template --namespace default simple \
   --set nonProductionOptions.disableClusterPodAntiAffinity=true \
   > "target/templates/stackgres-simple-cluster-demo.yml"
 
-rm -rf target/minio
-
-helm template --namespace default minio \
-  ../../e2e/helm/minio-5.4.0.tgz \
-  --kube-version 1.27 \
-  --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true \
-  | grep -v '^ \+namespace: "\?default"\?$' \
+sed \
+  -e '/^#/d' \
+  -e 's/${MINIO_NAME}/minio/g' \
+  -e 's/${BUCKET_NAME}/stackgres/g' \
+  -e "s/\${MINIO_ACCESS_KEY}/$(od -An -N10 -tx1 /dev/urandom | tr -d ' \n')/g" \
+  -e "s/\${MINIO_SECRET_KEY}/$(od -An -N20 -tx1 /dev/urandom | tr -d ' \n')/g" \
+  -e 's/${E2E_TIMEOUT}/300/g' \
+  ../../e2e/resources/seaweedfs.yaml \
   > "target/templates/minio-demo.yml"
 
 mkdir -p "target/public/downloads/stackgres-k8s/stackgres"
