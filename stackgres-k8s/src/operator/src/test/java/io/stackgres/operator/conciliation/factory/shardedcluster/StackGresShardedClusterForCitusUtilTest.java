@@ -346,6 +346,27 @@ class StackGresShardedClusterForCitusUtilTest {
   }
 
   @Test
+  void givenQueryRouterClusterOfShardedClusterReplicatingFrom_shouldNotWaitToStartPatroni() {
+    var shardedCluster = getMinimalShardedCluster();
+    shardedCluster.getMetadata().setName("stackgres");
+    shardedCluster.getSpec().getCoordinator().setQueryRouterClusters(2);
+    shardedCluster.getSpec().setReplicateFrom(new StackGresShardedClusterReplicateFrom());
+    shardedCluster.getSpec().getReplicateFrom().setInstance(
+        new StackGresShardedClusterReplicateFromInstance());
+    shardedCluster.getSpec().getReplicateFrom().getInstance().setSgShardedCluster("source");
+
+    var replicateCluster = getMinimalShardedCluster();
+    replicateCluster.getMetadata().setName("source");
+    replicateCluster.getSpec().getCoordinator().setQueryRouterClusters(2);
+
+    var cluster = getQueryRouterCluster(
+        JsonUtil.copy(shardedCluster), 1025, Optional.of(replicateCluster));
+
+    Assertions.assertNull(
+        cluster.getSpec().getConfigurations().getPatroni().getStartGateAnnotations());
+  }
+
+  @Test
   void givenQueryRouterClusterNameTemplate_shouldUseIt() {
     var shardedCluster = getMinimalShardedCluster();
     shardedCluster.getMetadata().setName("stackgres");

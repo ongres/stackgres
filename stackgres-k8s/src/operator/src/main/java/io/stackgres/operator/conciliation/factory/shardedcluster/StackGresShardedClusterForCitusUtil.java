@@ -112,6 +112,11 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     void updateQueryRouterClusterSpec(StackGresShardedCluster cluster, StackGresClusterSpec spec, int index) {
       setConfigurationsPatroniInitialConfig(cluster, spec, index + 1);
       setConnectionPoolingForPoolInfo(cluster, spec);
+      // A replica SGShardedCluster replicates pg_dist_node from the source and its coordinator
+      // never registers the query routers, so their Patroni must not wait for it
+      if (cluster.getSpec().getReplicateFrom() != null) {
+        return;
+      }
       spec.getConfigurations().getPatroni().setStartGateAnnotations(mergeMaps(
           spec.getConfigurations().getPatroni().getStartGateAnnotations(),
           Map.entry(StackGresContext.CITUS_GROUP_REGISTERED_ANNOTATION, String.valueOf(index + 1))));
