@@ -41,14 +41,21 @@ then
   sed -i 's#/root/.docker/config.json#$${HOME}/.docker/config.json#g' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
   sed -i 's#--security-opt label=disable#--security-opt label=disable -e HOME=$${HOME}#' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
   make -C "$FORK_GIT_PATH/operators/$PROJECT_NAME" fbc-onboarding
-  # Onboarding embeds each bundle's full manifests ("olm.bundle.object"), so the
-  # StackGres catalogs (huge CRDs x many versions) blow past GitHub's 100 MB
-  # per-file limit. Re-render to the compact "olm.csv.metadata" form (CRDs are
-  # pulled from the bundle image at install time); OLM and the Red Hat pipelines
-  # accept it. e.g. community v4.16 drops from ~150 MB to ~42 MB.
+  # Onboarding embeds each bundle's full manifests ("olm.bundle.object"). From
+  # v4.17 the compact "olm.csv.metadata" form is used instead, and is in fact
+  # required there, so re-render those catalogs (the CRDs are then pulled from
+  # the bundle image at install time).
+  #
+  # Only from v4.17: render_catalogs.sh, which 'make catalogs' runs, and the FBC
+  # auto-release both migrate only catalogs >= v4.17, so migrating the older ones
+  # here would commit a catalog that neither of them reproduces - the next render
+  # would silently rewrite it back, several times larger. The size of the older
+  # catalogs is kept down by carrying fewer versions in them instead, which is
+  # what remove.sh is for.
   for CATALOG_DIR in "$FORK_GIT_PATH"/catalogs/v4.*/"$PROJECT_NAME"
   do
     [ -d "$CATALOG_DIR" ] || continue
+    is_catalog_v4_17_plus "$(basename "$(dirname "$CATALOG_DIR")")" || continue
     opm render "$CATALOG_DIR" --migrate-level=bundle-object-to-csv-metadata --output=yaml \
       > "$CATALOG_DIR/catalog.yaml.new"
     mv "$CATALOG_DIR/catalog.yaml.new" "$CATALOG_DIR/catalog.yaml"

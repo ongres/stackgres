@@ -171,6 +171,18 @@ sort_versions() {
   sed 's/-/~/' | sort -V | sed 's/~/-/'
 }
 
+# Whether a catalog name is v4.17 or higher, which is where the compact
+# "olm.csv.metadata" form replaces "olm.bundle.object". Mirrors
+# requires_migrate_level() in the operator-pipelines render_catalogs.sh and
+# is_catalog_v4_17_plus() in its add_bundle_to_fbc.py, so that what we commit is
+# what those reproduce.
+is_catalog_v4_17_plus() {
+  CATALOG_MAJOR="$(printf %s "${1#v}" | cut -d . -f 1)"
+  CATALOG_MINOR="$(printf %s "${1#v}" | cut -d . -f 2)"
+  case "$CATALOG_MAJOR$CATALOG_MINOR" in *[!0-9]*|'') return 1 ;; esac
+  [ "$CATALOG_MAJOR" -gt 4 ] || { [ "$CATALOG_MAJOR" -eq 4 ] && [ "$CATALOG_MINOR" -ge 17 ]; }
+}
+
 # Greatest minor version present in the catalog templates of this catalog.
 latest_catalog_minor() {
   for CATALOG_NAME in $(catalog_names)
