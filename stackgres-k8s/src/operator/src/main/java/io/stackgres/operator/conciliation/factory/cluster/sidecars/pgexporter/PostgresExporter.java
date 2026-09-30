@@ -28,6 +28,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.Volume;
@@ -217,7 +218,13 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
             .map(StackGresClusterPods::getDisableConnectionPooling)
             .orElse(false);
 
-    final String queriesResourcePath = "/prometheus-postgres-exporter/queries.yaml";
+    final String queriesResourcePath;
+    if (StackGresVersion.getStackGresVersionAsNumber(context.getCluster())
+        <= StackGresVersion.V_1_17.getVersionAsNumber()) {
+      queriesResourcePath = "/prometheus-postgres-exporter/queries-1.25.yaml";
+    } else {
+      queriesResourcePath = "/prometheus-postgres-exporter/queries.yaml";
+    }
 
     final YAMLMapper yamlMapper = yamlMapperProvider.get();
     final ObjectNode queries;
