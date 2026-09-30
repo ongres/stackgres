@@ -140,6 +140,18 @@ bundle_image_repository() {
     | cut -d @ -f 1
 }
 
+# Versions published in a bundle image repository, in ascending order. Red Hat
+# tags each bundle both as "<version>" and as "<version>-<build id>", and both
+# point at the same image, so only the plain tags are listed. Empty when skopeo
+# is not available, since it is only used to improve an error message.
+published_versions() {
+  command -v skopeo > /dev/null 2>&1 || return 0
+  skopeo list-tags "docker://$1" 2>/dev/null \
+    | jq -r '.Tags[]?' \
+    | grep -E '^[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)[0-9.]*)?$' \
+    | sort_versions
+}
+
 # Print the head bundle of a channel in a catalog template (the entry that no
 # other entry replaces or skips). Empty when the channel is absent.
 channel_head() {

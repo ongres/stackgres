@@ -58,7 +58,14 @@ do
   if [ -z "$BUNDLE_IMAGE_DIGEST" ]
   then
     >&2 echo "Digest not found for image $BUNDLE_IMAGE."
-    >&2 echo "This may mean the bundle PR has not been merged yet, or that Red Hat has not published the bundle image."
+    LATEST_PUBLISHED_VERSION="$(published_versions "$BUNDLE_IMAGE_REPOSITORY" | tail -n 1)"
+    if [ -n "$LATEST_PUBLISHED_VERSION" ]
+    then
+      >&2 echo "The latest version published in $BUNDLE_IMAGE_REPOSITORY is $LATEST_PUBLISHED_VERSION."
+    fi
+    >&2 echo "Merging the bundle PR is not enough: Red Hat publishes the bundle image separately, and the"
+    >&2 echo "catalog can only reference it by digest. Check the pipeline of the merged PR, and open a"
+    >&2 echo "support case for the certification project if the image never appears."
     >&2 echo "You will have to wait before inserting the version in the catalog :("
     exit 1
   fi
