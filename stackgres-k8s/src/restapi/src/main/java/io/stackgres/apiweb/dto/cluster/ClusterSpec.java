@@ -7,11 +7,12 @@ package io.stackgres.apiweb.dto.cluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterSpec {
+public class ClusterSpec extends AdditionalProperties {
 
   private String profile;
 

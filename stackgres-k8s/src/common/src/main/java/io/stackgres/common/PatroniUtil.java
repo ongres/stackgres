@@ -7,6 +7,8 @@ package io.stackgres.common;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterUpdateStrategy;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtlInstance;
@@ -46,6 +49,8 @@ import org.slf4j.LoggerFactory;
 public interface PatroniUtil {
 
   int PATRONI_VERSION_4 = 4;
+
+  Duration DEFAULT_RESTART_DELAY = Duration.ofMinutes(5);
 
   String PATRONI_READ_ONLY_SERVICE_NAME = "PATRONI_READ_ONLY_SERVICE_NAME";
   String REPLICATION_SERVICE_PORT_ENV = "REPLICATION_SERVICE_PORT";
@@ -218,6 +223,31 @@ public interface PatroniUtil {
       LoggerFactory.getLogger(PatroniUtil.class)
           .warn("Unable to parse patroni history to indentify previous primary instance", ex);
       return Optional.empty();
+    }
+  }
+
+  /**
+   * The delay that has to pass after a restart operation has been performed by the cluster
+   * controller before another one can be performed.
+   */
+  static Duration getRestartDelay(StackGresCluster cluster) {
+    return Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getUpdateStrategy)
+        .map(StackGresClusterUpdateStrategy::getRestartDelay)
+        .map(PatroniUtil::parseRestartDelay)
+        .orElse(DEFAULT_RESTART_DELAY);
+  }
+
+  private static Duration parseRestartDelay(String restartDelay) {
+    try {
+      return Duration.parse(restartDelay);
+    } catch (DateTimeParseException ex) {
+      LoggerFactory.getLogger(PatroniUtil.class)
+          .warn("Restart delay {} is not valid, using the default of {}",
+              restartDelay, DEFAULT_RESTART_DELAY, ex);
+      return DEFAULT_RESTART_DELAY;
     }
   }
 

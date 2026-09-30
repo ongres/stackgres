@@ -599,6 +599,37 @@ spec:
                       - sgObjectStorage: 'backupconf'
                   ```
                 properties:
+                  citus:
+                    type: object
+                    description: |
+                      Configuration specific to the citus sharding technology. It is ignored for other sharding types.
+                    properties:
+                      updateNodeInterval:
+                        type: string
+                        description: |
+                          The interval at which the coordinator updates the nodes registered in `pg_dist_node`: it registers the query routers (with `shouldhaveshards` set to `false`, before their Patroni is started), fixes the `shouldhaveshards` flag of the query routers, activates the registered query routers and, if `enableNodeAutoRemoval` is `true`, removes the nodes of the removed groups.
+
+                          An ISO 8601 duration in the format `PnDTnHnMn.nS`, truncated to seconds if lower than a minute, to minutes if lower than an hour and to hours otherwise (up to 23 hours). An interval that does not divide its unit restarts at the beginning of each minute, hour or day.
+
+                          Defaults to: `PT10S`.
+                      enableNodeAutoRemoval:
+                        type: boolean
+                        default: false
+                        description: |
+                          When `true` the coordinator removes from `pg_dist_node` the nodes of the groups that are no longer part of the sharded cluster (after decreasing `.spec.workers.clusters` or `.spec.coordinator.queryRouterClusters`), as long as they hold no shard of a distributed table and can be reached.
+
+                          Patroni only maintains the Citus groups that exist, so the nodes of a removed group would otherwise stay in `pg_dist_node` and, once they can not be reached, make Citus reject any node addition and distributed DDL.
+
+                          Regardless of this setting, the SGCluster of a removed worker or query router is kept running while its group is registered in `pg_dist_node` (Citus can only remove a primary node that can be reached) and is scaled down to 0 instances once its group has been removed from `pg_dist_node`.
+                      connectToPooler:
+                        type: boolean
+                        default: true
+                        description: |
+                          When `true` (the default) Citus connects to each node through the connection pooler ([PgBouncer](https://www.pgbouncer.org/)) running in its Pod instead of connecting directly to Postgres: the coordinator maintains `pg_dist_poolinfo` on the coordinator and on every worker and query router so that the port `6432` of PgBouncer (or the Envoy entry port `7432` when Envoy is enabled) is used instead of the Postgres port registered in `pg_dist_node`. Only the port is set, so the host keeps following the one that Patroni updates in `pg_dist_node` after a failover. Citus ignores `pg_dist_poolinfo` for the connections that can not go through a pooler (like the ones of the shard rebalancer).
+
+                          When `true` the `disableConnectionPooling` fields of the coordinator, the workers, the query routers and their overrides (`.spec.coordinator.pods.disableConnectionPooling`, `.spec.workers.pods.disableConnectionPooling` and `.spec.workers.overrides[].pods.disableConnectionPooling`) are ignored and PgBouncer is always created.
+
+                          When `false` the coordinator removes from `pg_dist_poolinfo` the entries it created.
                   postgresExporter:
                     type: object
                     description: Section to configure the [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) component.
@@ -1817,6 +1848,8 @@ spec:
                         default: false
                         description: |
                           If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
+
+                          If sharding type is `citus` and `.spec.configurations.citus.connectToPooler` is `true` (the default) this field is ignored.
                       
                           If sharding type is `shardingsphere` then this field is ignored.
 
@@ -1957,6 +1990,17 @@ spec:
                           This section indicates the strategy that the SGCluster controller will use to perform updates.
                           
                           It includes any additional parameters necessary to perform the update for the indicated strategy.
+
+                          When a change only require the Postgres instance to be restarted, and not the Pod to be re-created, the Postgres instances of
+                           the replicas are restarted first and a switchover to the ready replica with the least lag is then performed, so that the
+                           primary is demoted instead of being restarted.
+
+                          The Postgres instance of the primary is restarted in place, without performing any switchover, only when any of the parameters
+                           `max_connections`, `max_prepared_transactions`, `max_locks_per_transaction`, `max_wal_senders` or `max_worker_processes` is
+                           decreased (a hot standby require those parameters to be set to a value greater than or equal to the value set on the primary,
+                           see https://www.postgresql.org/docs/current/hot-standby.html#HOT-STANDBY-ADMIN) or when no replica is available to switchover
+                           to. Patroni only reports the parameters that are pending a change since version 4, when they are not reported a switchover is
+                           performed.
                         properties:
                           type:
                             type: string
@@ -1988,6 +2032,12 @@ spec:
                               
                               * `InPlace`: update will be performed on the existing instances.
                               * `ReducedImpact`: before an update is performed on the existing instances a new instance if created to reduce the impact on read-only replicas.
+                          restartDelay:
+                            type: string
+                            default: PT5M
+                            description: |
+                              An ISO 8601 duration in the format `PnDTnHnMn.nS` indicating the delay that has to pass between the restart of a
+                               Postgres instance performed by the SGCluster controller and the next one. Default is `PT5M`.
                           schedule:
                             type: array
                             description: Indicates a list of windows of time where an update can be performed.
@@ -2318,6 +2368,14 @@ spec:
     
                               **This field can only be set on creation.**
                             "x-kubernetes-preserve-unknown-fields": true
+                          startGateAnnotations:
+                            type: object
+                            description: |
+                              Annotations that must be set on the generated SGClusters before Patroni is started. See `SGCluster.spec.configurations.patroni.startGateAnnotations`.
+
+                              If sharding type is `citus` the operator also adds the annotation required to start the query routers only once they have been registered by the coordinator.
+                            additionalProperties:
+                              type: string
                       shardingSphere:
                         type: object
                         description: |
@@ -2828,6 +2886,8 @@ spec:
                         description: |
                           If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
 
+                          If sharding type is `citus` and `.spec.configurations.citus.connectToPooler` is `true` (the default) this field is ignored.
+
                           **Changing this field may require a restart.**
                       disableMetricsExporter:
                         type: boolean
@@ -3145,6 +3205,17 @@ spec:
                     type: array
                     description: |
                       Any worker can be overridden by this section.
+
+                      An entry only overrides the SGClusters of its `type` (see field `type`), and the
+                      `index` (or `indexes`) is always relative to that type. An entry of type `Worker`
+                      and an entry of type `QueryRouter` may therefore use the same index without
+                      overlapping.
+
+                      Any field that is not set in an entry is inherited from the section the overridden
+                      SGCluster is generated from: `.spec.workers` for workers and `.spec.coordinator`
+                      for query routers. In particular a query router with no override uses
+                      `.spec.coordinator.sgInstanceProfile` and `.spec.coordinator.configurations`, and
+                      **not** the ones of `.spec.workers`.
                     items:
                       type: object
                       description: |
@@ -3156,6 +3227,11 @@ spec:
                           description: |
                             Identifier of the SGCluster worker to override (starting from 0).
 
+                            The identifier is relative to the `type` of the entry. When `type` is
+                            `QueryRouter` it is the zero-based identifier of the query router (i.e. `0`
+                            selects the first query router) and not the Citus group identifier, that is
+                            offset by `.spec.coordinator.queryRouterIndexOffset`.
+
                             This field is mutually exclusive with `indexes` and one of the two must be set.
                         indexes:
                           type: array
@@ -3166,6 +3242,9 @@ spec:
                             an initial and a final identifier (both included) separated by a dash
                             character (e.g. `1-2` will override clusters with index 1 and 2) or `all` to
                             specify all the identifiers. Type of the entry is IntOrString.
+
+                            The identifiers are relative to the `type` of the entry, as described in field
+                            `index`.
 
                             This field is mutually exclusive with `index` and one of the two must be set.
                           items:
@@ -3180,6 +3259,11 @@ spec:
                             * `QueryRouter`: SGClusters that do not store data but route read/write queries. See also `.spec.coordinator.queryRouterClusters`.
 
                             Defaults to `Worker` when not specified.
+
+                            The fields that are not set in an entry of type `Worker` are inherited from
+                            `.spec.workers`, while those of an entry of type `QueryRouter` are inherited
+                            from `.spec.coordinator`, since query routers are generated from the
+                            coordinator section.
                         instancesPerCluster:
                           type: integer
                           minimum: 0
@@ -3292,6 +3376,8 @@ spec:
                               default: false
                               description: |
                                 If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
+
+                                If sharding type is `citus` and `.spec.configurations.citus.connectToPooler` is `true` (the default) this field is ignored.
 
                                 **Changing this field may require a restart.**
                             disableMetricsExporter:

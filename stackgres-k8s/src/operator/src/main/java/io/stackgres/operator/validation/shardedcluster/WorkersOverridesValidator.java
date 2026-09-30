@@ -6,12 +6,11 @@
 package io.stackgres.operator.validation.shardedcluster;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorker;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.validation.ValidationType;
@@ -31,9 +30,13 @@ public class WorkersOverridesValidator implements ShardedClusterValidator {
     StackGresShardedCluster cluster = review.getRequest().getObject();
     if (review.getRequest().getOperation() == Operation.UPDATE
         || review.getRequest().getOperation() == Operation.CREATE) {
-      var overridesWorkers = Optional.of(cluster.getSpec())
-          .map(StackGresShardedClusterSpec::getPlainOverrides)
-          .orElse(List.of());
+      // Workers and query routers live in disjoint index spaces (query routers indexes are
+      // shifted by coordinator.queryRouterIndexOffset), so an override of each type may use
+      // the same index without overlapping.
+      var overridesWorkers = Stream.concat(
+          cluster.getSpec().getWorkersOverrides().stream(),
+          cluster.getSpec().getQueryRoutersOverrides().stream())
+          .toList();
       checkIndexesUniqueness(overridesWorkers);
     }
   }

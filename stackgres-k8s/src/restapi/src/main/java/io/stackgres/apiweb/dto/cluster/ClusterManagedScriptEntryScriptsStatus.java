@@ -7,11 +7,12 @@ package io.stackgres.apiweb.dto.cluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterManagedScriptEntryScriptsStatus {
+public class ClusterManagedScriptEntryScriptsStatus extends AdditionalProperties {
 
   private Integer id;
 
@@ -22,6 +23,8 @@ public class ClusterManagedScriptEntryScriptsStatus {
   private String failureCode;
 
   private String failure;
+
+  private String value;
 
   public Integer getId() {
     return id;
@@ -61,6 +64,14 @@ public class ClusterManagedScriptEntryScriptsStatus {
 
   public void setFailure(String failure) {
     this.failure = failure;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
   }
 
   @Override

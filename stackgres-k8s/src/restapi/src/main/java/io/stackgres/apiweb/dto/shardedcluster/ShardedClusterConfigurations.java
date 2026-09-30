@@ -13,11 +13,12 @@ import io.stackgres.apiweb.dto.cluster.ClusterCredentials;
 import io.stackgres.apiweb.dto.cluster.ClusterObservability;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresExporter;
 import io.stackgres.apiweb.dto.cluster.ClusterServiceBinding;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedClusterConfigurations {
+public class ShardedClusterConfigurations extends AdditionalProperties {
 
   private List<ShardedClusterBackupConfiguration> backups;
 
@@ -28,6 +29,8 @@ public class ShardedClusterConfigurations {
   private ClusterObservability observability;
 
   private ClusterPostgresExporter postgresExporter;
+
+  private ShardedClusterCitusConfigurations citus;
 
   public List<ShardedClusterBackupConfiguration> getBackups() {
     return backups;
@@ -67,6 +70,14 @@ public class ShardedClusterConfigurations {
 
   public void setPostgresExporter(ClusterPostgresExporter postgresExporter) {
     this.postgresExporter = postgresExporter;
+  }
+
+  public ShardedClusterCitusConfigurations getCitus() {
+    return citus;
+  }
+
+  public void setCitus(ShardedClusterCitusConfigurations citus) {
+    this.citus = citus;
   }
 
   @Override

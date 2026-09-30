@@ -41,7 +41,6 @@ public class ClusterControllerReconciliator
   private final ClusterPersistentVolumeSizeReconciliator pvcSizeReconciliator;
   private final IoLimitsReconciliator ioLimitsReconciliator;
   private final PatroniReconciliator patroniReconciliator;
-  private final ManagedSqlReconciliator managedSqlReconciliator;
   private final SslReconciliator sslReconciliator;
   private final PatroniStandbyReconciliator patroniStandbyReconciliator;
   private final PatroniConfigReconciliator patroniConfigReconciliator;
@@ -62,7 +61,6 @@ public class ClusterControllerReconciliator
     this.pvcSizeReconciliator = parameters.clusterPersistentVolumeSizeReconciliator;
     this.ioLimitsReconciliator = parameters.ioLimitsReconciliator;
     this.patroniReconciliator = parameters.patroniReconciliator;
-    this.managedSqlReconciliator = parameters.managedSqlReconciliator;
     this.sslReconciliator = parameters.sslReconciliator;
     this.patroniStandbyReconciliator = parameters.patroniStandbyReconciliator;
     this.patroniConfigReconciliator = parameters.patroniConfigReconciliator;
@@ -87,7 +85,6 @@ public class ClusterControllerReconciliator
     this.pvcSizeReconciliator = null;
     this.ioLimitsReconciliator = null;
     this.patroniReconciliator = null;
-    this.managedSqlReconciliator = null;
     this.sslReconciliator = null;
     this.patroniStandbyReconciliator = null;
     this.patroniConfigReconciliator = null;
@@ -144,8 +141,6 @@ public class ClusterControllerReconciliator
         ioLimitsReconciliator.reconcile(client, context);
     var patroniReconciliationResult =
         patroniReconciliator.reconcile(client, context);
-    var managedSqlReconciliationResult =
-        managedSqlReconciliator.reconcile(client, context);
     var postgresSslReconciliationResult =
         sslReconciliator.reconcile(client, context);
     var patroniStandbyReconciliatorResult =
@@ -199,7 +194,6 @@ public class ClusterControllerReconciliator
         .join(extensionReconciliationResult)
         .join(pgbouncerReconciliationResult)
         .join(patroniReconciliationResult)
-        .join(managedSqlReconciliationResult)
         .join(postgresSslReconciliationResult)
         .join(patroniStandbyReconciliatorResult)
         .join(patroniConfigReconciliationResult)
@@ -256,7 +250,6 @@ public class ClusterControllerReconciliator
     @Inject ClusterPersistentVolumeSizeReconciliator clusterPersistentVolumeSizeReconciliator;
     @Inject IoLimitsReconciliator ioLimitsReconciliator;
     @Inject PatroniReconciliator patroniReconciliator;
-    @Inject ManagedSqlReconciliator managedSqlReconciliator;
     @Inject SslReconciliator sslReconciliator;
     @Inject PatroniStandbyReconciliator patroniStandbyReconciliator;
     @Inject PatroniConfigReconciliator patroniConfigReconciliator;

@@ -307,7 +307,7 @@ public class ClusterStatusManager
    */
   private void appendExtensionUpgradesMessage(
       StringBuilder message, List<ExtensionUpgrade> upgrades) {
-    message.append(" The following").append(upgrades.size())
+    message.append(" The following ").append(upgrades.size())
         .append(upgrades.size() == 1 ? " extension can be upgraded: " : " extensions can be"
             + " upgraded: ");
     int shown = 0;

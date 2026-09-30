@@ -10,6 +10,7 @@ import static io.stackgres.common.crd.sgscript.StackGresScriptTransactionIsolati
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -64,34 +65,40 @@ public class ManagedSqlScriptEntryExecutor {
     this.postgresConnectionManager = postgresConnectionManager;
   }
 
-  protected void executeScriptEntry(
+  /**
+   * Execute the script entry and return, when the script entry field {@code setValue} is
+   * {@code true}, the value of the first column of the first row returned by the last query.
+   */
+  protected Optional<String> executeScriptEntry(
       ManagedSqlScriptEntry scriptEntry,
       String sql,
       String superuserUsername)
       throws SQLException {
     if (scriptEntry.getScriptEntry().getWrapInTransaction() == null) {
-      LOGGER.info("Executing managed script {} with no transaction",
+      logExecution(scriptEntry, "Executing managed script {} with no transaction",
           scriptEntry.getManagedScriptEntryDescription());
-      executeScriptEntryWithoutTransaction(scriptEntry, sql, superuserUsername);
+      return executeScriptEntryWithoutTransaction(scriptEntry, sql, superuserUsername);
     } else {
       StackGresScriptTransactionIsolationLevel transactionIsolationLevel =
           fromString(scriptEntry.getScriptEntry().getWrapInTransaction());
       if (scriptEntry.getScriptEntry().getStoreStatusInDatabaseOrDefault()) {
-        LOGGER.info("Executing managed script {} and store status wrapped in a transaction with"
+        logExecution(scriptEntry, "Executing managed script {} and store status wrapped in a transaction with"
             + " isolation level {}",
             scriptEntry.getManagedScriptEntryDescription(),
             transactionIsolationLevel.toSqlString());
-        executeScriptEntryAndStoreStatusInTransaction(scriptEntry, transactionIsolationLevel, sql, superuserUsername);
+        return executeScriptEntryAndStoreStatusInTransaction(
+            scriptEntry, transactionIsolationLevel, sql, superuserUsername);
       } else {
-        LOGGER.info("Executing managed script {} wrapped in a transaction with isolation level {}",
+        logExecution(scriptEntry, "Executing managed script {} wrapped in a transaction with isolation level {}",
             scriptEntry.getManagedScriptEntryDescription(),
             transactionIsolationLevel.toSqlString());
-        executeScriptEntryInTransaction(scriptEntry, transactionIsolationLevel, sql, superuserUsername);
+        return executeScriptEntryInTransaction(
+            scriptEntry, transactionIsolationLevel, sql, superuserUsername);
       }
     }
   }
 
-  private void executeScriptEntryWithoutTransaction(
+  private Optional<String> executeScriptEntryWithoutTransaction(
       ManagedSqlScriptEntry scriptEntry,
       String sql,
       String superuserUsername)
@@ -100,13 +107,11 @@ public class ManagedSqlScriptEntryExecutor {
         scriptEntry.getScriptEntry().getDatabaseOrDefault(),
         Optional.ofNullable(scriptEntry.getScriptEntry().getUser())
         .orElse(superuserUsername))) {
-      try (var statement = connection.createStatement()) {
-        statement.execute(sql);
-      }
+      return execute(scriptEntry, connection, sql);
     }
   }
 
-  private void executeScriptEntryInTransaction(ManagedSqlScriptEntry scriptEntry,
+  private Optional<String> executeScriptEntryInTransaction(ManagedSqlScriptEntry scriptEntry,
       StackGresScriptTransactionIsolationLevel transactionIsolationLevel,
       String sql,
       String superuserUsername)
@@ -118,10 +123,9 @@ public class ManagedSqlScriptEntryExecutor {
       connection.setAutoCommit(false);
       connection.setTransactionIsolation(transactionIsolationLevel.toJdbcConstant());
       try {
-        try (var statement = connection.createStatement()) {
-          statement.execute(sql);
-        }
+        Optional<String> value = execute(scriptEntry, connection, sql);
         connection.commit();
+        return value;
       } catch (SQLException | RuntimeException ex) {
         connection.rollback();
         throw ex;
@@ -129,7 +133,7 @@ public class ManagedSqlScriptEntryExecutor {
     }
   }
 
-  private void executeScriptEntryAndStoreStatusInTransaction(
+  private Optional<String> executeScriptEntryAndStoreStatusInTransaction(
       ManagedSqlScriptEntry scriptEntry,
       StackGresScriptTransactionIsolationLevel transactionIsolationLevel,
       String sql,
@@ -164,18 +168,56 @@ public class ManagedSqlScriptEntryExecutor {
           LOGGER.warn("Script {} was already applied at timestamp {}, skipping execution",
               scriptEntry.getManagedScriptEntryDescription(),
               foundScriptAppliedTimestamp.orElseThrow());
-          return;
+          return Optional.empty();
         }
-        try (var statement = connection.createStatement()) {
-          statement.execute(sql);
-        }
+        Optional<String> value = execute(scriptEntry, connection, sql);
         updateManagedSqlStatusTable(scriptEntry, connection);
         connection.commit();
+        return value;
       } catch (SQLException | RuntimeException ex) {
         connection.rollback();
         throw ex;
       }
     }
+  }
+
+  /**
+   * The executions of a script entry that sets the field {@code cron} are only logged at debug
+   * level, since they may be frequent (the first one is logged by the reconciliator).
+   */
+  private void logExecution(ManagedSqlScriptEntry scriptEntry, String format, Object... arguments) {
+    if (scriptEntry.getScriptEntry().getCron() == null) {
+      LOGGER.info(format, arguments);
+    } else {
+      LOGGER.debug(format, arguments);
+    }
+  }
+
+  private Optional<String> execute(
+      ManagedSqlScriptEntry scriptEntry,
+      Connection connection,
+      String sql) throws SQLException {
+    try (var statement = connection.createStatement()) {
+      boolean isResultSet = statement.execute(sql);
+      if (!scriptEntry.getScriptEntry().getSetValueOrDefault()) {
+        return Optional.empty();
+      }
+      return getLastResultSetValue(statement, isResultSet);
+    }
+  }
+
+  private Optional<String> getLastResultSetValue(Statement statement, boolean isResultSet)
+      throws SQLException {
+    Optional<String> value = Optional.empty();
+    while (isResultSet || statement.getUpdateCount() != -1) {
+      if (isResultSet) {
+        try (ResultSet resultSet = statement.getResultSet()) {
+          value = resultSet.next() ? Optional.ofNullable(resultSet.getString(1)) : Optional.empty();
+        }
+      }
+      isResultSet = statement.getMoreResults();
+    }
+    return value;
   }
 
   private boolean isManagedSqlStatusTableMissing(Connection connection) throws SQLException {

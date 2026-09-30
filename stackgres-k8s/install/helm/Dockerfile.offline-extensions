@@ -7,6 +7,8 @@ FROM quay.io/ongres/kubectl AS offline-extensions
   USER stackgres
   ARG EXTENSIONS_CACHE_PRELOADED_EXTENSIONS
   ARG EXTENSIONS_CACHE_LOG_LEVEL=INFO
+  ARG EXTENSIONS_CACHE_USER_AGENT
+  ENV EXTENSIONS_CACHE_USER_AGENT=$EXTENSIONS_CACHE_USER_AGENT
   RUN sh /extensions-cache-conciliator.sh run offline offline
 
 FROM registry.access.redhat.com/ubi8/nginx-120

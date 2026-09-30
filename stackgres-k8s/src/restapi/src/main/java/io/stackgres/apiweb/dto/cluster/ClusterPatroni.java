@@ -9,17 +9,20 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterPatroni {
+public class ClusterPatroni extends AdditionalProperties {
 
   private Boolean connectUsingFqdn;
 
   private Map<String, Object> dynamicConfig;
 
   private Map<String, Object> initialConfig;
+
+  private Map<String, String> startGateAnnotations;
 
   public Boolean getConnectUsingFqdn() {
     return connectUsingFqdn;
@@ -43,6 +46,14 @@ public class ClusterPatroni {
 
   public void setInitialConfig(Map<String, Object> initialConfig) {
     this.initialConfig = initialConfig;
+  }
+
+  public Map<String, String> getStartGateAnnotations() {
+    return startGateAnnotations;
+  }
+
+  public void setStartGateAnnotations(Map<String, String> startGateAnnotations) {
+    this.startGateAnnotations = startGateAnnotations;
   }
 
   @Override

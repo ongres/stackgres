@@ -182,7 +182,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
         StackGresClusterList.class,
         onCreateOrUpdateAndOnDelete(
             putCluster()
-            .andThen(reconcileCluster()),
+            .andThen(reconcileCluster())
+            .andThen(reconcileClusterShardedClusters()),
             invalidateCluster()
             .andThen(removeCluster()))));
 
@@ -861,6 +862,28 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             .map(StackGresClusterManagedScriptEntry::getSgScript)
             .anyMatch(script.getMetadata().getName()::equals))
         .forEach(cluster -> reconcileShardedCluster().accept(action, cluster));
+  }
+
+  /**
+   * The coordinator SGCluster status holds values read by the coordinator SGScript that the
+   * SGShardedCluster uses to generate the other SGClusters (e.g. the registered query routers).
+   */
+  private BiConsumer<Action, StackGresCluster> reconcileClusterShardedClusters() {
+    String shardedClusterNameKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_CLUSTER_NAME_KEY;
+    String coordinatorKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.COORDINATOR_KEY;
+    return (action, cluster) -> Optional.ofNullable(cluster.getMetadata().getLabels())
+        .filter(labels -> StackGresContext.RIGHT_VALUE.equals(labels.get(coordinatorKey)))
+        .map(labels -> labels.get(shardedClusterNameKey))
+        .ifPresent(shardedClusterName -> synchronizedCopyOfValues(shardedClusters)
+            .stream()
+            .filter(shardedCluster -> Objects.equals(
+                shardedCluster.getMetadata().getNamespace(),
+                cluster.getMetadata().getNamespace()))
+            .filter(shardedCluster -> Objects.equals(
+                shardedCluster.getMetadata().getName(), shardedClusterName))
+            .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster)));
   }
 
   private BiConsumer<Action, Endpoints> reconcileEndpointsShardedClusters() {

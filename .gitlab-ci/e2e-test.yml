@@ -51,12 +51,6 @@
   variables:
     E2E_JOB: "jvm-image"
     IMAGE_TAG_SUFFIX: "-jvm"
-  rules:
-  - if: |
-     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
-       || $CI_PIPELINE_SOURCE == 'merge_request_event' )
-       && (
-        $SKIP_E2E != "true" ) )
 
 .e2e ex tests jvm amd64:
   extends: .e2e tests jvm amd64
@@ -70,14 +64,6 @@
     E2E_JOB: "native-image"
     IMAGE_TAG_SUFFIX: ""
     IS_NATIVE: "true"
-  rules:
-  - if: |
-     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
-       || $CI_PIPELINE_SOURCE == 'merge_request_event' )
-       && (
-        ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
-        || ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG )
-        || $DO_NATIVE ) )
 
 .e2e ex tests native amd64:
   extends: .e2e tests native amd64
@@ -90,23 +76,9 @@
   variables:
     E2E_JOB: "jvm-image"
     IMAGE_TAG_SUFFIX: "-jvm"
-  rules:
-  - if: |
-     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
-       || $CI_PIPELINE_SOURCE == 'merge_request_event' )
-       && (
-        ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_ARM ) )
 
 .e2e ex tests jvm arm64:
   extends: .e2e tests jvm arm64
-  rules:
-  - if: |
-     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
-       || $CI_PIPELINE_SOURCE == 'merge_request_event' )
-       && (
-        ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || $DO_ARM ) )
 
 .e2e tests native arm64:
   extends: .e2e tests
@@ -117,23 +89,9 @@
     E2E_JOB: "native-image"
     IMAGE_TAG_SUFFIX: ""
     IS_NATIVE: "true"
-  rules:
-  - if: |
-     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
-       || $CI_PIPELINE_SOURCE == 'merge_request_event' )
-       && (
-        ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_NATIVE && $DO_ARM ) ) )
 
 .e2e ex tests native arm64:
   extends: .e2e tests native arm64
-  rules:
-  - if: |
-     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
-       || $CI_PIPELINE_SOURCE == 'merge_request_event' )
-       && (
-        ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_NATIVE && $DO_ARM ) ) )
 
 e2e tests jvm 1 amd64:
   extends: .e2e tests jvm amd64
@@ -329,6 +287,14 @@ e2e tests native 1 amd64:
   extends: .e2e tests native amd64
   variables:
     E2E_RUN_ONLY: non_exclusive:1/$E2E_JOBS
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || $CI_PIPELINE_SOURCE == 'merge_request_event' )
+       && (
+        ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/ )
+        || ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG )
+        || $DO_NATIVE ) )
 
 e2e tests native 2 amd64:
   extends: .e2e tests native amd64
@@ -544,7 +510,7 @@ e2e tests jvm 1 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || $DO_ARM )
+        || $DO_ARM ) && $DO_FULL_ARM
        && ( $E2E_TEST != "ui" ) )
 
 e2e tests jvm 2 arm64:
@@ -557,7 +523,7 @@ e2e tests jvm 2 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || $DO_ARM )
+        || $DO_ARM ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[1]$/ ) ) )
 
@@ -571,7 +537,7 @@ e2e tests jvm 3 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || $DO_ARM )
+        || $DO_ARM ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[12]$/ ) ) )
 
@@ -585,7 +551,7 @@ e2e tests jvm 4 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || $DO_ARM )
+        || $DO_ARM ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[123]$/ ) ) )
 
@@ -599,7 +565,7 @@ e2e tests jvm 5 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || $DO_ARM )
+        || $DO_ARM ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[1234]$/ ) ) )
 
@@ -613,7 +579,7 @@ e2e tests jvm 6 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || $DO_ARM )
+        || $DO_ARM ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[12345]$/ ) ) )
 
@@ -719,7 +685,7 @@ e2e ui chrome tests jvm arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || $DO_ARM )
+        || $DO_ARM ) && $DO_FULL_ARM
        && ( $E2E_TEST == null || $E2E_TEST =~ /(^ui$|^ui | ui | ui$)/ ) )
 
 e2e ui firefox tests jvm arm64:
@@ -735,13 +701,20 @@ e2e ui firefox tests jvm arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || $DO_ARM )
+        || $DO_ARM ) && $DO_FULL_ARM
        && ( $E2E_TEST == null || $E2E_TEST =~ /(^ui$|^ui | ui | ui$)/ ) )
 
 e2e tests native 1 arm64:
   extends: .e2e tests native arm64
   variables:
     E2E_RUN_ONLY: non_exclusive:1/$E2E_JOBS
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || $CI_PIPELINE_SOURCE == 'merge_request_event' )
+       && (
+        ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        || ( $DO_NATIVE && $DO_ARM ) ) ) && $DO_FULL_ARM
 
 e2e tests native 2 arm64:
   extends: .e2e tests native arm64
@@ -753,7 +726,7 @@ e2e tests native 2 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_NATIVE && $DO_ARM ) )
+        || ( $DO_NATIVE && $DO_ARM ) ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[1]$/ ) ) )
 
@@ -767,7 +740,7 @@ e2e tests native 3 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_NATIVE && $DO_ARM ) )
+        || ( $DO_NATIVE && $DO_ARM ) ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[12]$/ ) ) )
 
@@ -781,7 +754,7 @@ e2e tests native 4 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_NATIVE && $DO_ARM ) )
+        || ( $DO_NATIVE && $DO_ARM ) ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[123]$/ ) ) )
 
@@ -795,7 +768,7 @@ e2e tests native 5 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_NATIVE && $DO_ARM ) )
+        || ( $DO_NATIVE && $DO_ARM ) ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[1234]$/ ) ) )
 
@@ -809,7 +782,7 @@ e2e tests native 6 arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_NATIVE && $DO_ARM ) )
+        || ( $DO_NATIVE && $DO_ARM ) ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_JOBS !~ /^[12345]$/ ) ) )
 
@@ -915,7 +888,7 @@ e2e ui chrome tests native arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_NATIVE && $DO_ARM ) )
+        || ( $DO_NATIVE && $DO_ARM ) ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_TEST == null || $E2E_TEST =~ /(^ui$|^ui | ui | ui$)/ ) ) )
 
@@ -932,6 +905,6 @@ e2e ui firefox tests native arm64:
        || $CI_PIPELINE_SOURCE == 'merge_request_event' )
        && (
         ( $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG )
-        || ( $DO_NATIVE && $DO_ARM ) )
+        || ( $DO_NATIVE && $DO_ARM ) ) && $DO_FULL_ARM
        && ( $E2E_TEST == null
         && ( $E2E_TEST == null || $E2E_TEST =~ /(^ui$|^ui | ui | ui$)/ ) ) )

@@ -10,6 +10,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +21,7 @@ import jakarta.validation.constraints.NotNull;
 @Buildable(editableEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresClusterManagedScriptEntryScriptStatus {
+public class StackGresClusterManagedScriptEntryScriptStatus extends AdditionalProperties {
 
   @NotNull(message = "id can not be null")
   private Integer id;
@@ -33,6 +34,8 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
   private String failureCode;
 
   private String failure;
+
+  private String value;
 
   public Integer getId() {
     return id;
@@ -74,9 +77,17 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
     this.failure = failure;
   }
 
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(failure, failureCode, id, intents, version);
+    return Objects.hash(failure, failureCode, id, intents, value, version);
   }
 
   @Override
@@ -91,7 +102,7 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
         (StackGresClusterManagedScriptEntryScriptStatus) obj;
     return Objects.equals(failure, other.failure) && Objects.equals(failureCode, other.failureCode)
         && Objects.equals(id, other.id) && Objects.equals(intents, other.intents)
-        && Objects.equals(version, other.version);
+        && Objects.equals(value, other.value) && Objects.equals(version, other.version);
   }
 
   @Override

@@ -5,7 +5,9 @@
 
 package io.stackgres.apiweb.dto.dbops;
 
-public abstract class DbOpsVacuumConfig {
+import io.stackgres.common.AdditionalProperties;
+
+public abstract class DbOpsVacuumConfig extends AdditionalProperties {
 
   protected Boolean full;
 

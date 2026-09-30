@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
+import io.stackgres.cluster.controller.ManagedSqlReconciliationCycle;
 import io.stackgres.cluster.controller.ResourceWatcherFactory;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.PatroniUtil;
@@ -38,6 +39,7 @@ public class ClusterControllerWatchersHandler {
 
   private final KubernetesClient client;
   private final ClusterControllerReconciliationCycle clusterReconciliationCycle;
+  private final ManagedSqlReconciliationCycle managedSqlReconciliationCycle;
   private final ResourceWatcherFactory watcherFactory;
   private final AtomicReference<Optional<StackGresCluster>> clusterReference =
       new AtomicReference<>(Optional.empty());
@@ -49,9 +51,11 @@ public class ClusterControllerWatchersHandler {
       ClusterControllerPropertyContext propertyContext,
       KubernetesClient client,
       ClusterControllerReconciliationCycle clusterReconciliationCycle,
+      ManagedSqlReconciliationCycle managedSqlReconciliationCycle,
       ResourceWatcherFactory watcherFactory) {
     this.client = client;
     this.clusterReconciliationCycle = clusterReconciliationCycle;
+    this.managedSqlReconciliationCycle = managedSqlReconciliationCycle;
     this.watcherFactory = watcherFactory;
     this.podName = propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
@@ -108,6 +112,12 @@ public class ClusterControllerWatchersHandler {
   private void reconcileCluster(StackGresCluster cluster) {
     clusterReference.set(Optional.of(cluster));
     clusterReconciliationCycle.reconcile(cluster);
+    managedSqlReconciliationCycle.reconcile(cluster);
+  }
+
+  private void reconcileClusterAndManagedSql(StackGresCluster cluster) {
+    clusterReconciliationCycle.reconcile(cluster);
+    managedSqlReconciliationCycle.reconcile(cluster);
   }
 
   private BiConsumer<Action, Endpoints> recponcileClusterEndpoints() {
@@ -123,13 +133,13 @@ public class ClusterControllerWatchersHandler {
         .orElse(null))) {
       if (!wasLeaderReference.get()) {
         clusterReference.get()
-            .ifPresent(clusterReconciliationCycle::reconcile);
+            .ifPresent(this::reconcileClusterAndManagedSql);
         wasLeaderReference.set(true);
       }
     } else {
       if (wasLeaderReference.get()) {
         clusterReference.get()
-            .ifPresent(clusterReconciliationCycle::reconcile);
+            .ifPresent(this::reconcileClusterAndManagedSql);
         wasLeaderReference.set(false);
       }
     }

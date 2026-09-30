@@ -7,13 +7,16 @@ package io.stackgres.apiweb.dto.dbops;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DbOpsSecurityUpgrade {
+public class DbOpsSecurityUpgrade extends AdditionalProperties {
 
   private String method;
+
+  private String statusUpdateDelay;
 
   public String getMethod() {
     return method;
@@ -21,6 +24,14 @@ public class DbOpsSecurityUpgrade {
 
   public void setMethod(String method) {
     this.method = method;
+  }
+
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
   }
 
   @Override

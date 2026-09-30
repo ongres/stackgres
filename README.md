@@ -40,7 +40,7 @@ Also, on our web https://stackgres.io/install/, you can get the one-line command
 - [Integrated server-side connection pooling](https://stackgres.io/features/#connection-pooling)
 - [Enhanced observability via Envoy Proxy’s Postgres filter](https://stackgres.io/features/#envoy-proxy)
 - [Expertly tuned by default](https://stackgres.io/features/#expertly-tuned)
-- [Lightweight, secure container images based on RedHat’s UBI 8](https://stackgres.io/features/#redhat-based)
+- [Lightweight, secure container images based on Red Hat’s Universal Base Image (UBI)](https://stackgres.io/features/#redhat-based)
 
 ## Community
 
@@ -60,7 +60,7 @@ To ensure a more open and welcoming community, StackGres adheres to a [Code of C
 
 This repository holds one of the major components around StackGres and is the StackGres Operator
 build around Kubernetes. An Operator is a method of packaging, deploying and managing a Kubernetes
-application. Some applications, such as databases, required more hand-holding, and a cloud-native
+application. Some applications, such as databases, require more hand-holding, and a cloud-native
 Postgres requires an operator to provide additional knowledge of how to maintain state and integrate
 all the components.
 
@@ -88,14 +88,17 @@ repository.
 
 ### Is there a StackGres commercial license that is “GPL-free”?
 Yes. Contact us if you want a trial or commercial license that does not contain the GPL clauses.
-Will you ever switch from an open-source license to a source-available one?
+
+### Will you ever switch from an open-source license to a source-available one?
 Our promise is that no, this won’t happen. We respect others who switch to or are directly built
 as source-available software, but we don’t follow this approach.
 We love the concept of GitLab’s stewardship, and in the same spirit, we promise here that
 StackGres will always be open source software.
 
 ### What PostgreSQL versions are supported?
-As of now, PostgreSQL major version 12 and 13. As a general rule, StackGres will support the last 2 Postgres version. 
+As of now, PostgreSQL major versions from 12 to 18. Check the
+[Versions page](https://stackgres.io/doc/latest/intro/versions/) for the complete list of
+supported versions.
 
 ### Where does it run?
 StackGres has been designed to run on any Kubernetes-certified platform. Whether is a
@@ -107,7 +110,7 @@ High Availability and automatic failover are based on Patroni, a well-reputed an
 for PostgreSQL. No external DCS (Distributed Consistent Storage) is required, as it relies on
 K8s APIs for this (which in turns reach etcd).
 
-### Why is used UBI as the base image for StackGres?
+### Why is UBI used as the base image for StackGres?
 Red Hat Universal Base Images (UBI) are OCI-compliant container base operating system images with
 complementary runtime languages and packages that are freely redistributable. UBI lets developers
 create the image once and deploy anywhere using enterprise-grade packages. For more information read

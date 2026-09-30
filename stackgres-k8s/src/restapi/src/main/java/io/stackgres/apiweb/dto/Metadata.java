@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
@@ -22,7 +23,7 @@ import io.stackgres.common.StackGresUtil;
     value = {"clusterName", "deletionGracePeriodSeconds",
         "generateName", "generation", "managedFields",
         "selfLink"})
-public class Metadata {
+public class Metadata extends AdditionalProperties {
 
   private Map<String, String> annotations = new LinkedHashMap<>();
 

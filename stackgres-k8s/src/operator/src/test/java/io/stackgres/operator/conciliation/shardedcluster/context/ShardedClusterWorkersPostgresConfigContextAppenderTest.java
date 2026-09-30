@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.shardedcluster.context;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,8 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorker;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterWorkerBuilder;
+import io.stackgres.common.crd.sgshardedcluster.StackGresWorkerType;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
@@ -120,6 +123,8 @@ class ShardedClusterWorkersPostgresConfigContextAppenderTest {
   void givenClusterWithoutDefaultPostgresConfig_shouldPass() {
     cluster.getSpec().getWorkers().getConfigurations().setSgPostgresConfig(
         defaultPostgresConfigFactory.getDefaultResourceName(cluster));
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().setSgPostgresConfig(
+        defaultPostgresConfigFactory.getDefaultResourceName(cluster));
     when(postgresConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
     contextAppender.appendContext(
@@ -130,6 +135,95 @@ class ShardedClusterWorkersPostgresConfigContextAppenderTest {
         Tuple.tuple(1, Optional.empty())));
     verify(contextBuilder).queryRoutersPostgresConfigs(List.of(
         Tuple.tuple(1024, Optional.empty())));
+  }
+
+  @Test
+  void givenClusterWithoutQueryRouterOverride_shouldUseCoordinatorPostgresConfig() {
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
+        .setSgPostgresConfig("coordinator-postgresconf");
+    final var workersPostgresConfig = Optional.of(postgresConfig("postgresconf"));
+    final var coordinatorPostgresConfig = Optional.of(postgresConfig("coordinator-postgresconf"));
+    when(postgresConfigFinder.findByNameAndNamespace(eq("postgresconf"), any()))
+        .thenReturn(workersPostgresConfig);
+    when(postgresConfigFinder.findByNameAndNamespace(eq("coordinator-postgresconf"), any()))
+        .thenReturn(coordinatorPostgresConfig);
+    contextAppender.appendContext(
+        cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion(),
+        workers, queryRouters);
+    verify(contextBuilder).workersPostgresConfigs(List.of(
+        Tuple.tuple(0, workersPostgresConfig),
+        Tuple.tuple(1, workersPostgresConfig)));
+    verify(contextBuilder).queryRoutersPostgresConfigs(List.of(
+        Tuple.tuple(1024, coordinatorPostgresConfig)));
+  }
+
+  @Test
+  void givenClusterWithQueryRouterOverride_shouldUseOverriddenPostgresConfig() {
+    queryRouters = List.of(
+        Tuple.tuple(1024, Optional.of(
+            new StackGresShardedClusterWorkerBuilder()
+            .withIndex(1024)
+            .withType(StackGresWorkerType.QUERY_ROUTER.toString())
+            .withNewConfigurationsForWorkers()
+            .withSgPostgresConfig("router-postgresconf")
+            .endConfigurationsForWorkers()
+            .build()),
+            StackGresShardedClusterForCitusUtil
+            .getQueryRouterCluster(cluster, 1024, Optional.empty())));
+    final var workersPostgresConfig = Optional.of(postgresConfig("postgresconf"));
+    final var overriddenPostgresConfig = Optional.of(postgresConfig("router-postgresconf"));
+    when(postgresConfigFinder.findByNameAndNamespace(eq("postgresconf"), any()))
+        .thenReturn(workersPostgresConfig);
+    when(postgresConfigFinder.findByNameAndNamespace(eq("router-postgresconf"), any()))
+        .thenReturn(overriddenPostgresConfig);
+    contextAppender.appendContext(
+        cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion(),
+        workers, queryRouters);
+    verify(contextBuilder).workersPostgresConfigs(List.of(
+        Tuple.tuple(0, workersPostgresConfig),
+        Tuple.tuple(1, workersPostgresConfig)));
+    verify(contextBuilder).queryRoutersPostgresConfigs(List.of(
+        Tuple.tuple(1024, overriddenPostgresConfig)));
+  }
+
+  @Test
+  void givenClusterWithWorkerOverride_shouldUseOverriddenPostgresConfig() {
+    workers = List.of(
+        Tuple.tuple(0, Optional.of(
+            new StackGresShardedClusterWorkerBuilder()
+            .withIndex(0)
+            .withNewConfigurationsForWorkers()
+            .withSgPostgresConfig("worker-postgresconf")
+            .endConfigurationsForWorkers()
+            .build()),
+            StackGresShardedClusterForCitusUtil
+            .getWorkerCluster(cluster, 0, Optional.empty())),
+        workers.get(1));
+    final var workersPostgresConfig = Optional.of(postgresConfig("postgresconf"));
+    final var overriddenPostgresConfig = Optional.of(postgresConfig("worker-postgresconf"));
+    when(postgresConfigFinder.findByNameAndNamespace(eq("postgresconf"), any()))
+        .thenReturn(workersPostgresConfig);
+    when(postgresConfigFinder.findByNameAndNamespace(eq("worker-postgresconf"), any()))
+        .thenReturn(overriddenPostgresConfig);
+    contextAppender.appendContext(
+        cluster, contextBuilder, cluster.getSpec().getPostgres().getVersion(),
+        workers, queryRouters);
+    verify(contextBuilder).workersPostgresConfigs(List.of(
+        Tuple.tuple(0, overriddenPostgresConfig),
+        Tuple.tuple(1, workersPostgresConfig)));
+    verify(contextBuilder).queryRoutersPostgresConfigs(List.of(
+        Tuple.tuple(1024, workersPostgresConfig)));
+  }
+
+  private StackGresPostgresConfig postgresConfig(String name) {
+    return new StackGresPostgresConfigBuilder()
+        .withNewMetadata()
+        .withName(name)
+        .endMetadata()
+        .withNewSpec()
+        .withPostgresVersion(cluster.getSpec().getPostgres().getVersion().replaceAll("\\..*$", ""))
+        .endSpec()
+        .build();
   }
 
 }

@@ -5,7 +5,12 @@
 
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
+import java.util.Optional;
+
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpecMetadata;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.AbstractShardedClusterMetadataDecorator;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
@@ -17,8 +22,16 @@ public class ShardedClusterMetadataDecorator
     extends AbstractShardedClusterMetadataDecorator<StackGresShardedClusterContext> {
 
   @Override
-  protected StackGresShardedCluster getShardedCluster(StackGresShardedClusterContext context) {
-    return context.getShardedCluster();
+  protected Optional<StackGresShardedClusterSpecMetadata> getSpecMetadata(
+      StackGresShardedClusterContext context) {
+    return Optional.of(context.getShardedCluster())
+        .map(StackGresShardedCluster::getSpec)
+        .map(StackGresShardedClusterSpec::getMetadata);
+  }
+
+  @Override
+  protected Optional<ObjectMeta> getMetadata(StackGresShardedClusterContext context) {
+    return Optional.of(context.getShardedCluster()).map(StackGresShardedCluster::getMetadata);
   }
 
 }

@@ -42,27 +42,40 @@ public class ShardedClusterWorkersPoolingConfigContextAppender {
       List<Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster>> queryRouters) {
     var workersPoolingConfigs = workers
         .stream()
-        .map(worker -> findPoolingConfig(cluster, worker))
+        .map(worker -> findPoolingConfig(cluster, worker,
+            cluster.getSpec().getWorkers().getConfigurations().getSgPoolingConfig(),
+            cluster.getSpec().getWorkers().getPods().getDisableConnectionPooling()))
         .toList();
     contextBuilder.workersPoolingConfigs(workersPoolingConfigs);
+    // Query routers inherit their spec from the coordinator (see
+    // StackGresShardedClusterForUtil.getBaseQueryRouterCluster), so the coordinator
+    // SGPoolingConfig and pods configuration, and not the workers one, are their default.
     var queryRoutersPoolingConfigs = queryRouters
         .stream()
-        .map(queryRouter -> findPoolingConfig(cluster, queryRouter))
+        .map(queryRouter -> findPoolingConfig(cluster, queryRouter,
+            cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
+            .getSgPoolingConfig(),
+            cluster.getSpec().getCoordinator().getPods().getDisableConnectionPooling()))
         .toList();
     contextBuilder.queryRoutersPoolingConfigs(queryRoutersPoolingConfigs);
   }
 
   private Tuple2<Integer, Optional<StackGresPoolingConfig>> findPoolingConfig(
       StackGresShardedCluster cluster,
-      Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster> worker) {
+      Tuple3<Integer, Optional<StackGresShardedClusterWorker>, StackGresCluster> worker,
+      String defaultPoolingConfigName,
+      Boolean defaultDisableConnectionPooling) {
+    // The overrides carry their configurations and pods in configurationsForWorkers and
+    // podsForWorkers (JSON `configurations` and `pods`), the inherited StackGresClusterSpec
+    // fields are never set on them.
     final String workerPoolingConfigName = worker.v2
-        .map(StackGresShardedClusterWorker::getConfigurations)
+        .map(StackGresShardedClusterWorker::getConfigurationsForWorkers)
         .map(StackGresClusterConfigurations::getSgPoolingConfig)
-        .orElse(cluster.getSpec().getWorkers().getConfigurations().getSgPoolingConfig());
+        .orElse(defaultPoolingConfigName);
     final Boolean workerDisableConnectionPooling = worker.v2
-        .map(StackGresShardedClusterWorker::getPods)
+        .map(StackGresShardedClusterWorker::getPodsForWorkers)
         .map(StackGresClusterPods::getDisableConnectionPooling)
-        .orElse(cluster.getSpec().getWorkers().getPods().getDisableConnectionPooling());
+        .orElse(defaultDisableConnectionPooling);
     final Optional<StackGresPoolingConfig> workersPoolingConfig = Optional
         .ofNullable(workerPoolingConfigName)
         .flatMap(poolingConfigName -> poolingConfigFinder

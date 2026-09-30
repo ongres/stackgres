@@ -5,7 +5,9 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -152,7 +154,7 @@ public class DbOpsStatusManager
         .getResourcesInNamespaceWithLabels(
             source.getMetadata().getNamespace(), labelFactory.clusterLabels(cluster));
     List<PatroniMember> patroniMembers = patroniCtl.instanceFor(cluster).list();
-    boolean primaryIsReadyAndUpdated = pods.stream()
+    final boolean primaryIsReadyAndUpdated = pods.stream()
         .filter(ClusterRolloutUtil::isPodReady)
         .filter(pod -> !ClusterRolloutUtil.getPodRestartReasons(
             cluster, statefulSet, pod).requiresRestart()
@@ -161,7 +163,7 @@ public class DbOpsStatusManager
         .anyMatch(pod -> patroniMembers.stream()
             .anyMatch(patroniMember -> patroniMember.getMember().equals(pod.getMetadata().getName())
                 && patroniMember.isPrimary()));
-    boolean primaryIsExternal = patroniMembers.stream()
+    final boolean primaryIsExternal = patroniMembers.stream()
         .filter(PatroniMember::isPrimary)
         .anyMatch(patroniMember -> pods.stream()
             .map(HasMetadata::getMetadata)
@@ -214,10 +216,50 @@ public class DbOpsStatusManager
     if (source.getStatus() == null) {
       source.setStatus(new StackGresDbOpsStatus());
     }
-    if ((primaryIsReadyAndUpdated || primaryIsExternal)
+    final DbOpsRestartStatus restartStatus;
+    if ("restart".equals(source.getSpec().getOp())) {
+      if (source.getStatus().getRestart() == null) {
+        source.getStatus().setRestart(new StackGresDbOpsRestartStatus());
+      }
+      restartStatus = source.getStatus().getRestart();
+    } else if ("securityUpgrade".equals(source.getSpec().getOp())) {
+      if (source.getStatus().getSecurityUpgrade() == null) {
+        source.getStatus().setSecurityUpgrade(new StackGresDbOpsSecurityUpgradeStatus());
+      }
+      restartStatus = source.getStatus().getSecurityUpgrade();
+    } else if ("minorVersionUpgrade".equals(source.getSpec().getOp())) {
+      if (source.getStatus().getMinorVersionUpgrade() == null) {
+        source.getStatus().setMinorVersionUpgrade(new StackGresDbOpsMinorVersionUpgradeStatus());
+      }
+      restartStatus = source.getStatus().getMinorVersionUpgrade();
+      source.getStatus().getMinorVersionUpgrade().setTargetPostgresVersion(
+          source.getSpec().getMinorVersionUpgrade().getPostgresVersion());
+    } else {
+      throw new UnsupportedOperationException(
+          "Operation " + source.getSpec().getOp() + " is not a rollout operation");
+    }
+
+    // The status of patroni and of the StatefulSet is not updated immediately, so the rollout may
+    // look completed while some Pod has still to be restarted. To avoid completing the operation
+    // too early the completion is postponed until the status of the SGDbOps has not been updated
+    // for at least the configured status update delay.
+    final Duration statusUpdateDelay = DbOpsUtil.getStatusUpdateDelay(source);
+    final String previousLastUpdate = restartStatus.getLastUpdate();
+    restartStatus.setLastUpdate(null);
+    final String previousStatus = source.getStatus().toString();
+    final boolean isStatusUpdateDelayElapsed =
+        isStatusUpdateDelayElapsed(previousLastUpdate, statusUpdateDelay, now);
+    final boolean wasRolloutCompleted = Optional.of(source)
+          .map(StackGresDbOps::getStatus)
+          .map(StackGresDbOpsStatus::getConditions)
+          .stream()
+          .flatMap(List::stream)
+          .anyMatch(DbOpsStatusCondition.DBOPS_ROLLOUT_COMPLETED::isCondition);
+    final boolean isRolloutCompleted = (primaryIsReadyAndUpdated || primaryIsExternal)
         && securityUpgradeWasApplied
         && minorVersionUpgradeWasApplied
-        && pods.size() == podsReadyAndUpdated.size()) {
+        && pods.size() == podsReadyAndUpdated.size();
+    if (isRolloutCompleted && (isStatusUpdateDelayElapsed || wasRolloutCompleted)) {
       updateCondition(getRolloutCompleted(), source);
       if (Optional.ofNullable(cluster.getMetadata().getAnnotations())
           .map(Map::entrySet)
@@ -230,6 +272,10 @@ public class DbOpsStatusManager
         updateCondition(getCompleted(), source);
       }
     } else {
+      if (isRolloutCompleted && LOGGER.isDebugEnabled()) {
+        LOGGER.debug("DbOps {} rollout completed but waiting the status update delay of {} to pass"
+            + " since the last status update", getDbOpsId(source), statusUpdateDelay);
+      }
       updateCondition(getRunning(), source);
       updateCondition(getFalseRestartCompleted(), source);
       updateCondition(getFalseCompleted(), source);
@@ -305,28 +351,6 @@ public class DbOpsStatusManager
             .filter(Predicate.not(primary::equals))
             .map(ignored -> now.toString()))
         .orElse(null);
-    final DbOpsRestartStatus restartStatus;
-    if ("restart".equals(source.getSpec().getOp())) {
-      if (source.getStatus().getRestart() == null) {
-        source.getStatus().setRestart(new StackGresDbOpsRestartStatus());
-      }
-      restartStatus = source.getStatus().getRestart();
-    } else if ("securityUpgrade".equals(source.getSpec().getOp())) {
-      if (source.getStatus().getSecurityUpgrade() == null) {
-        source.getStatus().setSecurityUpgrade(new StackGresDbOpsSecurityUpgradeStatus());
-      }
-      restartStatus = source.getStatus().getSecurityUpgrade();
-    } else if ("minorVersionUpgrade".equals(source.getSpec().getOp())) {
-      if (source.getStatus().getMinorVersionUpgrade() == null) {
-        source.getStatus().setMinorVersionUpgrade(new StackGresDbOpsMinorVersionUpgradeStatus());
-      }
-      restartStatus = source.getStatus().getMinorVersionUpgrade();
-      source.getStatus().getMinorVersionUpgrade().setTargetPostgresVersion(
-          source.getSpec().getMinorVersionUpgrade().getPostgresVersion());
-    } else {
-      throw new UnsupportedOperationException(
-          "Operation " + source.getSpec().getOp() + " is not a rollout operation");
-    }
 
     restartStatus.setInitialInstances(initialInstances);
     restartStatus.setPrimaryInstance(primaryInstance);
@@ -352,6 +376,22 @@ public class DbOpsStatusManager
         && restartStatus.getSwitchoverInitiated() != null
         && restartStatus.getSwitchoverFinalized() == null) {
       restartStatus.setSwitchoverFinalized(switchoverFinalized.get());
+    }
+    final boolean isStatusUpdated = !Objects.equals(previousStatus, source.getStatus().toString());
+    restartStatus.setLastUpdate(isStatusUpdated || previousLastUpdate == null
+        ? now.toString() : previousLastUpdate);
+  }
+
+  private boolean isStatusUpdateDelayElapsed(
+      String lastUpdate, Duration statusUpdateDelay, Instant now) {
+    if (lastUpdate == null) {
+      return false;
+    }
+    try {
+      return Instant.parse(lastUpdate).plus(statusUpdateDelay).isBefore(now);
+    } catch (DateTimeParseException ex) {
+      LOGGER.warn("Last update {} is not valid", lastUpdate, ex);
+      return false;
     }
   }
 

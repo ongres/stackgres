@@ -8,12 +8,13 @@ package io.stackgres.apiweb.dto.cluster;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterReplicateFromInstance {
+public class ClusterReplicateFromInstance extends AdditionalProperties {
 
   private String sgCluster;
 

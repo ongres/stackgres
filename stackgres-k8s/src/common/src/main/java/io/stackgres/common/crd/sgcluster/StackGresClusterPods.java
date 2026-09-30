@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.PodDNSConfig;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomEnvFromSource;
@@ -35,7 +36,7 @@ import jakarta.validation.constraints.AssertTrue;
 @Buildable(editableEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresClusterPods {
+public class StackGresClusterPods extends AdditionalProperties {
 
   @Valid
   private StackGresClusterPodsPersistentVolume persistentVolume;

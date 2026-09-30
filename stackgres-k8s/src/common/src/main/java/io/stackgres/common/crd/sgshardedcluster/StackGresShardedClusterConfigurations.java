@@ -11,6 +11,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterObservability;
@@ -25,7 +26,7 @@ import jakarta.validation.Valid;
 @Buildable(editableEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresShardedClusterConfigurations {
+public class StackGresShardedClusterConfigurations extends AdditionalProperties {
 
   private List<@Valid StackGresShardedClusterBackupConfiguration> backups;
 
@@ -40,6 +41,9 @@ public class StackGresShardedClusterConfigurations {
 
   @Valid
   private StackGresClusterPostgresExporter postgresExporter;
+
+  @Valid
+  private StackGresShardedClusterCitusConfigurations citus;
 
   public List<StackGresShardedClusterBackupConfiguration> getBackups() {
     return backups;
@@ -81,9 +85,17 @@ public class StackGresShardedClusterConfigurations {
     this.postgresExporter = postgresExporter;
   }
 
+  public StackGresShardedClusterCitusConfigurations getCitus() {
+    return citus;
+  }
+
+  public void setCitus(StackGresShardedClusterCitusConfigurations citus) {
+    this.citus = citus;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backups, binding, credentials, observability, postgresExporter);
+    return Objects.hash(backups, binding, citus, credentials, observability, postgresExporter);
   }
 
   @Override
@@ -96,6 +108,7 @@ public class StackGresShardedClusterConfigurations {
     }
     StackGresShardedClusterConfigurations other = (StackGresShardedClusterConfigurations) obj;
     return Objects.equals(backups, other.backups) && Objects.equals(binding, other.binding)
+        && Objects.equals(citus, other.citus)
         && Objects.equals(credentials, other.credentials)
         && Objects.equals(observability, other.observability)
         && Objects.equals(postgresExporter, other.postgresExporter);

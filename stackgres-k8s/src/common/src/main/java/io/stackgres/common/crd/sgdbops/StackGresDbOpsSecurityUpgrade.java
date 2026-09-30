@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
@@ -21,11 +22,13 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresDbOpsSecurityUpgrade {
+public class StackGresDbOpsSecurityUpgrade extends AdditionalProperties {
 
   @ValidEnum(enumClass = DbOpsMethodType.class, allowNulls = true,
       message = "method must be InPlace or ReducedImpact")
   private String method;
+
+  private String statusUpdateDelay;
 
   @JsonIgnore
   public boolean isMethodReducedImpact() {
@@ -40,9 +43,17 @@ public class StackGresDbOpsSecurityUpgrade {
     this.method = method;
   }
 
+  public String getStatusUpdateDelay() {
+    return statusUpdateDelay;
+  }
+
+  public void setStatusUpdateDelay(String statusUpdateDelay) {
+    this.statusUpdateDelay = statusUpdateDelay;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(method);
+    return Objects.hash(method, statusUpdateDelay);
   }
 
   @Override
@@ -54,7 +65,8 @@ public class StackGresDbOpsSecurityUpgrade {
       return false;
     }
     StackGresDbOpsSecurityUpgrade other = (StackGresDbOpsSecurityUpgrade) obj;
-    return Objects.equals(method, other.method);
+    return Objects.equals(method, other.method)
+        && Objects.equals(statusUpdateDelay, other.statusUpdateDelay);
   }
 
   @Override

@@ -105,11 +105,7 @@ spec:
               metadata:
                 name: {{ .Release.Name }}
                 namespace: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
-                {{- $spec := dict }}
-                {{- range .Values.specFields }}
-                {{- $spec := set $spec . (index $.Values .) }}
-                {{- end }}
-              spec: {{ toJson $spec }}
+              spec: {{ include "sgconfig-spec" . }}
           {{- end }}
 
           - name: INSTALL_CRDS

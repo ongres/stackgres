@@ -1,21 +1,36 @@
-var lunrIndex, pagesIndex;
+var lunrIndex, pagesIndex, lunrIndexPromise;
 
 function endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
-// Initialize lunrjs using our generated index file
-function initLunr() {
-    if (!endsWith(baseurl,"/")){
-        baseurl = baseurl+'/'
-    };
+function normalizeBaseUrl(url) {
+    return endsWith(url, "/") ? url : url + '/';
+}
 
-    // First retrieve the index file
-    $.ajax({
-        url: baseurl +"index.json",
-    }).done(function(index) {
+// Retrieve the pages index (index.json) of a documentation version.
+// The index is parsed as text since older versions may contain unescaped control characters.
+function fetchPagesIndex(versionBaseUrl) {
+    return $.ajax({
+        url: normalizeBaseUrl(versionBaseUrl) + "index.json",
+        dataType: 'text'
+    }).then(function(text) {
+        return JSON.parse(text.replace(/[\n\r\t]/g, ""));
+    });
+}
+
+// Initialize lunrjs using our generated index file.
+// The index is built lazily the first time the search box is used: index.json contains the
+// content of the whole site and indexing it on every page load is too expensive for
+// low-end devices (and unnecessary for the vast majority of page views).
+function initLunr() {
+    if (lunrIndexPromise) {
+        return lunrIndexPromise;
+    }
+
+    lunrIndexPromise = fetchPagesIndex(baseurl).then(function(index) {
         pagesIndex = index;
-        
+
         // Set up lunrjs by declaring the fields we use
         // Also provide their boost level for the ranking
         lunrIndex = lunr(function() {
@@ -29,50 +44,24 @@ function initLunr() {
             this.field("content", {
         boost: 5
             });
-            
+
             this.pipeline.remove(lunr.stemmer);
             this.searchPipeline.remove(lunr.stemmer);
-            
+
             // Feed lunr with each file and let lunr actually index them
             pagesIndex.forEach(function(page) {
                 this.add(page);
-
-                // Set version selector URL
-                if(page.uri == window.location.href) {
-
-                    let currentVersion = baseurl.includes('latest') ? 'latest' : $('#sgVersion option:selected').text().replace(' (development)','');
-                    $('#sgVersion option:not(:selected)').each(function(index, alt) {
-
-                        let altVersion = alt.text.replace(' (development)','');
-
-                        if(baseurl.includes('localhost')) { // If testing locally
-                            var altVersionIndex = baseurl+'index-'+altVersion+'.json';
-                        } else { // If on Live site 
-                            var altVersionIndex = baseurl.replace(currentVersion, altVersion) + 'index.json';
-                        } 
-
-                        $.ajax({
-                            url: altVersionIndex,
-                            dataType: 'text'
-                        }).done(function(altVersionIndex){
-                            altVersionIndex = JSON.parse(altVersionIndex.replace(/[\n\r\t]/g,""))
-                            let vPage = altVersionIndex.find(p => (p.title == page.title))
-                            
-                            if(vPage !== undefined) {
-                                $(alt).val(vPage.uri)
-                            } else {
-                                $(alt).val( baseurl.replace(currentVersion, altVersion) + '?not-found=1');
-                            }
-                        })
-                    });
-                }
-                    
             }, this);
-        })
-    }).fail(function(jqxhr, textStatus, error) {
+        });
+
+        return lunrIndex;
+    }, function(jqxhr, textStatus, error) {
         var err = textStatus + ", " + error;
         console.error("Error getting Hugo index file:", err);
+        lunrIndexPromise = null; // allow to retry on next search
     });
+
+    return lunrIndexPromise;
 }
 
 /**
@@ -82,6 +71,9 @@ function initLunr() {
  * @return {Array}  results
  */
 function search(queryTerm) {
+    if (!lunrIndex) {
+        return [];
+    }
     // Find the item in our index corresponding to the lunr one to have more info
     return lunrIndex.search(queryTerm+"^100"+" "+queryTerm+"*^10"+" "+"*"+queryTerm+"^10"+" "+queryTerm+"~2^1").map(function(result) {
             return pagesIndex.filter(function(page) {
@@ -90,15 +82,39 @@ function search(queryTerm) {
         });
 }
 
+/**
+ * Find the page with the given title in another documentation version
+ *
+ * @param  {String} versionBaseUrl base URL of the documentation version
+ * @param  {String} title          title of the page to look for
+ * @return {Promise} resolved with the URI of the page, or undefined if not found
+ */
+function findPageInVersion(versionBaseUrl, title) {
+    return fetchPagesIndex(versionBaseUrl).then(function(index) {
+        var page = index.find(function(p) {
+            return p.title == title;
+        });
+        return page !== undefined ? page.uri : undefined;
+    });
+}
+
 // Let's get started
-initLunr();
 $( document ).ready(function() {
+    var searchInput = $("#search-by");
+
+    // Start loading the index as soon as the user shows the intention to search
+    searchInput.one('focus', function() {
+        initLunr();
+    });
+
     var searchList = new autoComplete({
         /* selector for the search box element */
-        selector: $("#search-by").get(0),
+        selector: searchInput.get(0),
         /* source is the callback to perform the search */
         source: function(term, response) {
-            response(search(term));
+            initLunr().then(function() {
+                response(search(term));
+            });
         },
         /* renderItem displays individual search results */
         renderItem: function(item, term) {

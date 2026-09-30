@@ -209,12 +209,15 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
               .map(ObjectNode.class::cast)
               .orElseGet(objectMapper::createObjectNode);
           if (!Objects.equals(
-              Optional.ofNullable(patroniOperation.get("type"))
+              Optional.ofNullable(patroniOperation.get(StackGresContext.PATRONI_OPERATION_TYPE_FIELD))
               .map(JsonNode::asText)
               .orElse(null),
-              "restart")) {
-            patroniOperation.put("type", "restart");
-            patroniOperation.put("issued", now.toString());
+              StackGresContext.PATRONI_OPERATION_RESTART_TYPE)) {
+            patroniOperation.put(
+                StackGresContext.PATRONI_OPERATION_TYPE_FIELD,
+                StackGresContext.PATRONI_OPERATION_RESTART_TYPE);
+            patroniOperation.put(
+                StackGresContext.PATRONI_OPERATION_ISSUED_FIELD, now.toString());
             annotations.put(StackGresContext.PATRONI_OPERATION_KEY, patroniOperation.toString());
           }
           return pod
@@ -224,11 +227,7 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
             .endMetadata()
             .build();
         }));
-    if (Optional.ofNullable(memberPod.getMetadata().getAnnotations())
-        .map(annotations -> annotations.get(StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY))
-        .map(StackGresVersion::getVersionAsNumberOrNull)
-        .orElse(StackGresVersion.V_1_18.getVersionAsNumber())
-        <= StackGresVersion.V_1_18.getVersionAsNumber()) {
+    if (isLegacyClusterController(memberPod)) {
       patroniCtlBinaryInstance.restart(username, password, member);
       return;
     }
@@ -241,9 +240,9 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
           .map(ObjectMeta::getAnnotations)
           .map(annotations -> annotations.get(StackGresContext.PATRONI_OPERATION_KEY))
           .map(Unchecked.function(objectMapper::readTree))
-          .map(patroniOperation -> patroniOperation.get("type"))
+          .map(patroniOperation -> patroniOperation.get(StackGresContext.PATRONI_OPERATION_TYPE_FIELD))
           .map(JsonNode::asText)
-          .filter("restart"::equals)
+          .filter(StackGresContext.PATRONI_OPERATION_RESTART_TYPE::equals)
           .isEmpty()) {
         return;
       }
@@ -253,6 +252,27 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
       }
       Unchecked.runnable(() -> Thread.sleep(1000)).run();
     }
+  }
+
+  /**
+   * A cluster controller before version 1.19 does not perform the restart operation written in the
+   * Pod annotation, so the restart has to be sent to patroni directly.
+   *
+   * <p>
+   * The version is taken from the image tag of the cluster controller, that is not a version for
+   * development builds. Such a build is never a cluster controller before version 1.19, therefore
+   * only the absence of the version is assumed to be a legacy cluster controller.
+   * </p>
+   */
+  private boolean isLegacyClusterController(Pod memberPod) {
+    return Optional.ofNullable(memberPod.getMetadata().getAnnotations())
+        .map(annotations -> annotations.get(StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY))
+        .map(clusterControllerVersion -> Optional
+            .ofNullable(StackGresVersion.getVersionAsNumberOrNull(clusterControllerVersion))
+            .map(versionAsNumber ->
+                versionAsNumber <= StackGresVersion.V_1_18.getVersionAsNumber())
+            .orElse(false))
+        .orElse(true);
   }
 
   @Override
@@ -396,6 +416,20 @@ public class PatroniCtlKubernetesInstance implements PatroniCtlInstance {
     member.setPendingRestart(
         Optional.ofNullable(status.get("pending_restart"))
         .map(JsonNode::asText)
+        .orElse(null));
+    member.setPendingRestartReason(
+        Optional.ofNullable(status.get("pending_restart_reason"))
+        .filter(JsonNode::isObject)
+        .map(pendingRestartReason -> Seq.seq(pendingRestartReason.properties())
+            .map(parameter -> parameter.getKey() + ": "
+                + Optional.ofNullable(parameter.getValue().get("old_value"))
+                .map(JsonNode::asText)
+                .orElse("")
+                + "->"
+                + Optional.ofNullable(parameter.getValue().get("new_value"))
+                .map(JsonNode::asText)
+                .orElse(""))
+            .toString("\n"))
         .orElse(null));
     member.setScheduledRestart(
         Optional.ofNullable(status.get("scheduled_restart"))

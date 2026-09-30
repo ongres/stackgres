@@ -9,11 +9,12 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterManagedSqlStatus {
+public class ClusterManagedSqlStatus extends AdditionalProperties {
 
   private Integer lastId;
 
