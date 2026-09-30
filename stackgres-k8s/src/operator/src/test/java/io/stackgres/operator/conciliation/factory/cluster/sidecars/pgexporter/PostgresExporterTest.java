@@ -5,11 +5,16 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.Volume;
@@ -147,8 +152,21 @@ class PostgresExporterTest {
   }
 
   @Test
-  void pgBouncerQueries_shouldDeclareTheColumnsInTheOrderReturnedByPgBouncer125() {
+  void ifClusterVersionIsLatest_shouldUsePgBouncerShowStatsColumnsOfPgBouncer126() {
     ClusterContainerContext context = getClusterContainerContext();
+    setClusterVersion(context, StackGresVersion.V_1_18);
+
+    List<VolumePair> volumes = postgresExporter.buildVolumes(context.getClusterContext()).toList();
+
+    String showStatsQuery = getSourceVolumeDataQuery(volumes, "pgbouncer_show_stats");
+    Assertions.assertTrue(showStatsQuery.contains("total_client_login_count bigint"));
+    Assertions.assertTrue(showStatsQuery.contains("avg_client_login_count bigint"));
+  }
+
+  @Test
+  void ifClusterVersionIs117_shouldUsePgBouncerShowStatsColumnsOfPgBouncer125() {
+    ClusterContainerContext context = getClusterContainerContext();
+    setClusterVersion(context, StackGresVersion.V_1_17);
 
     List<VolumePair> volumes = postgresExporter.buildVolumes(context.getClusterContext()).toList();
 
@@ -160,6 +178,14 @@ class PostgresExporterTest {
     Assertions.assertFalse(showStatsQuery.contains("avg_client_login_count"));
     String showClientsQuery = getSourceVolumeDataQuery(volumes, "pgbouncer_show_clients");
     Assertions.assertTrue(showClientsQuery.contains("prepared_statements integer, id bigint)"));
+  }
+
+  private void setClusterVersion(ClusterContainerContext context, StackGresVersion version) {
+    StackGresCluster cluster = context.getClusterContext().getCluster();
+    Map<String, String> annotations = new HashMap<>(
+        Optional.ofNullable(cluster.getMetadata().getAnnotations()).orElse(Map.of()));
+    annotations.put(StackGresContext.VERSION_KEY, version.getVersion());
+    cluster.getMetadata().setAnnotations(annotations);
   }
 
   private ClusterContainerContext getClusterContainerContext() {
