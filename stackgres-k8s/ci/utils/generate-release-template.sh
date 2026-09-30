@@ -24,6 +24,7 @@ TO_REMOVE_FROM_SCHEDULED_MINOR_VERSION="$(printf %s "$VERSION" | cut -d . -f 1).
 IS_NEW_MINOR_VERSION="${IS_NEW_MINOR_VERSION:-$(printf %s "$VERSION" | grep -q '\.0-rc1$' && printf true || printf false)}"
 IS_UPGRADE_VERSION="$(printf %s "$VERSION" | grep -q '[-]\(alpha\|beta\)[0-9]\+$' && printf false || printf true)"
 IS_GA_VERSION="$(printf %s "$VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+$' && printf true || printf false)"
+IS_PATCH_VERSION="$(printf %s "$VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[1-9][0-9]*$' && printf true || printf false)"
 if "$IS_GA_VERSION"
 then
   NEXT_PATCH_VERSION="$(printf %s "$VERSION" | cut -d . -f 1-2).$(( $(printf %s "$VERSION" | cut -d - -f 1 | cut -d . -f 3) + 1 ))"
