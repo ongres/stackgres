@@ -2,9 +2,13 @@
 
 . "$SPEC_PATH/abstract/patroni"
 
+. "$SPEC_PATH/abstract/metrics"
+
 e2e_test_extra_hash() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/patroni")"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/metrics")"
 }
 
 e2e_test_install() {
@@ -36,6 +40,8 @@ e2e_test() {
   run_test "Check that pgbouncer database is accesible using the service" pgbouncer_database_check
 
   run_test "Check that users configured in pgbouncer can access using the service" pgbouncer_users_check
+
+  run_test "Check that the cluster-controller exposes its metrics" check_cluster_controller_metrics
 }
 
 check_password_required() {

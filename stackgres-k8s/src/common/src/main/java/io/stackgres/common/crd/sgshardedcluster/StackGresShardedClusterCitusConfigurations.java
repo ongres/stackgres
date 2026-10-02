@@ -35,6 +35,8 @@ public class StackGresShardedClusterCitusConfigurations extends AdditionalProper
 
   private Boolean enableNodeAutoRemoval;
 
+  private Boolean autoReplicateReferenceTables;
+
   private Boolean connectToPooler;
 
   @ReferencedField("updateNodeInterval")
@@ -82,6 +84,19 @@ public class StackGresShardedClusterCitusConfigurations extends AdditionalProper
     this.enableNodeAutoRemoval = enableNodeAutoRemoval;
   }
 
+  public Boolean getAutoReplicateReferenceTables() {
+    return autoReplicateReferenceTables;
+  }
+
+  @JsonIgnore
+  public boolean getAutoReplicateReferenceTablesOrDefault() {
+    return Optional.ofNullable(autoReplicateReferenceTables).orElse(false);
+  }
+
+  public void setAutoReplicateReferenceTables(Boolean autoReplicateReferenceTables) {
+    this.autoReplicateReferenceTables = autoReplicateReferenceTables;
+  }
+
   public Boolean getConnectToPooler() {
     return connectToPooler;
   }
@@ -97,7 +112,8 @@ public class StackGresShardedClusterCitusConfigurations extends AdditionalProper
 
   @Override
   public int hashCode() {
-    return Objects.hash(connectToPooler, enableNodeAutoRemoval, updateNodeInterval);
+    return Objects.hash(autoReplicateReferenceTables, connectToPooler, enableNodeAutoRemoval,
+        updateNodeInterval);
   }
 
   @Override
@@ -110,7 +126,8 @@ public class StackGresShardedClusterCitusConfigurations extends AdditionalProper
     }
     StackGresShardedClusterCitusConfigurations other =
         (StackGresShardedClusterCitusConfigurations) obj;
-    return Objects.equals(connectToPooler, other.connectToPooler)
+    return Objects.equals(autoReplicateReferenceTables, other.autoReplicateReferenceTables)
+        && Objects.equals(connectToPooler, other.connectToPooler)
         && Objects.equals(enableNodeAutoRemoval, other.enableNodeAutoRemoval)
         && Objects.equals(updateNodeInterval, other.updateNodeInterval);
   }

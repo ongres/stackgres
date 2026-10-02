@@ -114,9 +114,11 @@ public class ManagedSqlScriptEntryReconciliator {
       return false;
     }
     final boolean failedBefore = managedScriptEntryStatus.getFailureCode() != null;
-    // Scheduled executions are only logged the first time, when they fail or when they recover
-    if (managedSqlReconciliator.getCronScheduler().isFirstExecution(
-        managedSqlScriptEntry.getManagedScript(), managedSqlScriptEntry.getScriptEntry())) {
+    // Scheduled executions are only logged at INFO level the first time since the start of the
+    // cluster-controller or since the cron expression or the script changed, when they fail or
+    // when they recover (each execution is logged at TRACE level)
+    if (managedSqlReconciliator.getCronScheduler().isScheduleToNotify(
+        managedSqlScriptEntry.getManagedScript(), managedSqlScriptEntry.getScriptEntry(), sql)) {
       LOGGER.info("Executing managed script {} that will be re-executed following the schedule {}"
           + " (further executions will only be logged if they fail)",
           managedSqlScriptEntry.getManagedScriptEntryDescription(),

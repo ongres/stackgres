@@ -32,6 +32,7 @@ public class ManagedSqlCronScheduler {
 
   private final Clock clock;
   private final Map<String, Instant> lastExecutions = new ConcurrentHashMap<>();
+  private final Map<String, String> notifiedSchedules = new ConcurrentHashMap<>();
   private final AtomicReference<Instant> nextExecution = new AtomicReference<>();
 
   public ManagedSqlCronScheduler() {
@@ -64,13 +65,17 @@ public class ManagedSqlCronScheduler {
   }
 
   /**
-   * Return {@code true} if the script entry (with its current version) was never executed by this
-   * cluster-controller.
+   * Return {@code true}, only once since the start of this cluster-controller, the first time that
+   * the script entry is executed with the specified cron expression and SQL, so that the schedule
+   * of a script entry is notified again when any of them change.
    */
-  public boolean isFirstExecution(
+  public boolean isScheduleToNotify(
       StackGresClusterManagedScriptEntry managedScript,
-      StackGresScriptEntry scriptEntry) {
-    return !lastExecutions.containsKey(key(managedScript, scriptEntry));
+      StackGresScriptEntry scriptEntry,
+      String sql) {
+    final String schedule = scriptEntry.getCron() + "\n" + sql;
+    return !Objects.equals(
+        notifiedSchedules.put(scheduleKey(managedScript, scriptEntry), schedule), schedule);
   }
 
   /**
@@ -121,8 +126,14 @@ public class ManagedSqlCronScheduler {
   private String key(
       StackGresClusterManagedScriptEntry managedScript,
       StackGresScriptEntry scriptEntry) {
+    return scheduleKey(managedScript, scriptEntry) + "/" + scriptEntry.getVersion();
+  }
+
+  private String scheduleKey(
+      StackGresClusterManagedScriptEntry managedScript,
+      StackGresScriptEntry scriptEntry) {
     return managedScript.getId() + "/" + managedScript.getSgScript()
-        + "/" + scriptEntry.getId() + "/" + scriptEntry.getVersion();
+        + "/" + scriptEntry.getId();
   }
 
 }

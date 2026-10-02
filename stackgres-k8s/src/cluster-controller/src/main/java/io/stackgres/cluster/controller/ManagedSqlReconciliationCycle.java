@@ -59,6 +59,9 @@ public class ManagedSqlReconciliationCycle
   private final LabelFactoryForCluster labelFactory;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final ObjectMapper objectMapper;
+  private final Metrics metrics;
+
+  private long reconciliationStart;
 
   @Dependent
   public static class Parameters {
@@ -78,6 +81,8 @@ public class ManagedSqlReconciliationCycle
     CustomResourceFinder<StackGresCluster> clusterFinder;
     @Inject
     ObjectMapper objectMapper;
+    @Inject
+    Metrics metrics;
   }
 
   @Inject
@@ -90,6 +95,7 @@ public class ManagedSqlReconciliationCycle
     this.labelFactory = parameters.labelFactory;
     this.clusterFinder = parameters.clusterFinder;
     this.objectMapper = parameters.objectMapper;
+    this.metrics = parameters.metrics;
   }
 
   public ManagedSqlReconciliationCycle() {
@@ -100,6 +106,7 @@ public class ManagedSqlReconciliationCycle
     this.labelFactory = null;
     this.clusterFinder = null;
     this.objectMapper = null;
+    this.metrics = null;
   }
 
   public static ManagedSqlReconciliationCycle create(Consumer<Parameters> consumer) {
@@ -117,14 +124,20 @@ public class ManagedSqlReconciliationCycle
 
   @Override
   protected void onPreReconciliation(StackGresClusterContext context) {
+    reconciliationStart = System.currentTimeMillis();
   }
 
   @Override
   protected void onPostReconciliation(StackGresClusterContext context) {
+    metrics.setManagedSqlReconciliationLastDuration(
+        StackGresCluster.class,
+        System.currentTimeMillis() - reconciliationStart);
+    metrics.incrementManagedSqlReconciliationTotalPerformed(StackGresCluster.class);
   }
 
   @Override
   protected void onError(Exception ex) {
+    metrics.incrementManagedSqlReconciliationTotalErrors(StackGresCluster.class);
     String message = MessageFormatter.arrayFormat(
         "StackGres Cluster managed SQL reconciliation cycle failed",
         new String[] {
@@ -137,6 +150,7 @@ public class ManagedSqlReconciliationCycle
   @Override
   protected void onConfigError(StackGresClusterContext context,
       HasMetadata configResource, Exception ex) {
+    metrics.incrementManagedSqlReconciliationTotalErrors(StackGresCluster.class);
     String message = MessageFormatter.arrayFormat(
         "StackGres Cluster {}.{} managed SQL reconciliation failed",
         new String[] {

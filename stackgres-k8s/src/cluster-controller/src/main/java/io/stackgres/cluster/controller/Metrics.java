@@ -7,10 +7,12 @@ package io.stackgres.cluster.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.metrics.AbstractMetrics;
 import jakarta.inject.Inject;
@@ -23,6 +25,8 @@ import org.jooq.lambda.tuple.Tuple2;
 public class Metrics extends AbstractMetrics {
 
   static final String PATRONI_SUFFIX = "-patroni";
+
+  static final String MANAGED_SQL_SUFFIX = "-managed-sql";
 
   private Map<String, Reconciliation> reconciliations;
 
@@ -38,7 +42,8 @@ public class Metrics extends AbstractMetrics {
     super(registry, "controller");
     reconciliations = Seq.<String>of(
         HasMetadata.getSingular(StackGresCluster.class),
-        HasMetadata.getSingular(StackGresCluster.class) + PATRONI_SUFFIX)
+        HasMetadata.getSingular(StackGresCluster.class) + PATRONI_SUFFIX,
+        HasMetadata.getSingular(StackGresCluster.class) + MANAGED_SQL_SUFFIX)
         .map(customResourceClass -> Tuple.tuple(customResourceClass, new Reconciliation()))
         .toMap(Tuple2::v1, Tuple2::v2);
   }
@@ -46,6 +51,11 @@ public class Metrics extends AbstractMetrics {
   public void incrementPatroniReconciliationTotalPerformed(
       Class<?> customResourceClass) {
     incrementReconciliationTotalPerformed(customResourceClass, PATRONI_SUFFIX);
+  }
+
+  public void incrementManagedSqlReconciliationTotalPerformed(
+      Class<?> customResourceClass) {
+    incrementReconciliationTotalPerformed(customResourceClass, MANAGED_SQL_SUFFIX);
   }
 
   public void incrementReconciliationTotalPerformed(
@@ -72,6 +82,10 @@ public class Metrics extends AbstractMetrics {
     return getReconciliationTotalPerformed(StackGresCluster.class, PATRONI_SUFFIX);
   }
 
+  public long getReconciliationManagedSqlClusterTotalPerformed() {
+    return getReconciliationTotalPerformed(StackGresCluster.class, MANAGED_SQL_SUFFIX);
+  }
+
   private long getReconciliationTotalPerformed(
       Class<?> customResourceClass, String suffix) {
     String singular = HasMetadata.getSingular(customResourceClass);
@@ -81,6 +95,11 @@ public class Metrics extends AbstractMetrics {
   public void incrementPatroniReconciliationTotalErrors(
       final Class<?> customResourceClass) {
     incrementReconciliationTotalErrors(customResourceClass, PATRONI_SUFFIX);
+  }
+
+  public void incrementManagedSqlReconciliationTotalErrors(
+      final Class<?> customResourceClass) {
+    incrementReconciliationTotalErrors(customResourceClass, MANAGED_SQL_SUFFIX);
   }
 
   public void incrementReconciliationTotalErrors(
@@ -108,6 +127,10 @@ public class Metrics extends AbstractMetrics {
     return getReconciliationTotalErrors(StackGresCluster.class, PATRONI_SUFFIX);
   }
 
+  public long getReconciliationManagedSqlClusterTotalErrors() {
+    return getReconciliationTotalErrors(StackGresCluster.class, MANAGED_SQL_SUFFIX);
+  }
+
   private long getReconciliationTotalErrors(
       Class<?> customResourceClass,
       String suffix) {
@@ -119,6 +142,12 @@ public class Metrics extends AbstractMetrics {
       final Class<?> customResourceClass,
       final long lastDuration) {
     setReconciliationLastDuration(customResourceClass, PATRONI_SUFFIX, lastDuration);
+  }
+
+  public void setManagedSqlReconciliationLastDuration(
+      final Class<?> customResourceClass,
+      final long lastDuration) {
+    setReconciliationLastDuration(customResourceClass, MANAGED_SQL_SUFFIX, lastDuration);
   }
 
   public void setReconciliationLastDuration(
@@ -148,11 +177,37 @@ public class Metrics extends AbstractMetrics {
     return getReconciliationLastDuration(StackGresCluster.class, PATRONI_SUFFIX);
   }
 
+  public long getReconciliationManagedSqlClusterLastDuration() {
+    return getReconciliationLastDuration(StackGresCluster.class, MANAGED_SQL_SUFFIX);
+  }
+
   private long getReconciliationLastDuration(
       Class<?> customResourceClass,
       String suffix) {
     String singular = HasMetadata.getSingular(customResourceClass);
     return reconciliations.get(singular + suffix).lastDuration;
+  }
+
+  public void incrementScriptEntryExecutions(
+      String sgScript, String scriptEntryName, Integer scriptEntryId) {
+    registryCounter("managed_sql_script_entry_executions",
+        getScriptEntryTags(sgScript, scriptEntryName, scriptEntryId))
+        .increment();
+  }
+
+  public void incrementScriptEntryFailures(
+      String sgScript, String scriptEntryName, Integer scriptEntryId) {
+    registryCounter("managed_sql_script_entry_failures",
+        getScriptEntryTags(sgScript, scriptEntryName, scriptEntryId))
+        .increment();
+  }
+
+  private List<Tag> getScriptEntryTags(
+      String sgScript, String scriptEntryName, Integer scriptEntryId) {
+    return List.of(
+        new ImmutableTag("sgscript", Objects.toString(sgScript, "")),
+        new ImmutableTag("script", Objects.toString(scriptEntryName, "")),
+        new ImmutableTag("id", Objects.toString(scriptEntryId, "")));
   }
 
 }
