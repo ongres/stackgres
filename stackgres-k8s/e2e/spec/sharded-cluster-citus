@@ -171,7 +171,7 @@ pooler_connections_check() {
   fi
 
   try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
-    -d citus -q "SELECT COUNT(*) FROM query_router_test" | grep -xF 0'
+    -d citus -q "SELECT COUNT(*) FROM distributed_table" | grep -xF 1000'
 
   if [ "$EXIT_CODE" = 0 ]
   then
@@ -282,7 +282,7 @@ query_routers_check() {
   fi
 
   try_function wait_until eval 'run_query -c "$ROUTER_CLUSTER" -h "$ROUTER_SERVICE" -i 0 -p 5432 \
-    -d citus -q "INSERT INTO query_router_test VALUES (1)"'
+    -d citus -q "INSERT INTO distributed_table VALUES (1001)"'
 
   if [ "$EXIT_CODE" = 0 ]
   then
@@ -292,13 +292,23 @@ query_routers_check() {
   fi
 
   try_function wait_until eval 'run_query -c "$ROUTER_CLUSTER" -h "$ROUTER_SERVICE" -i 0 -p 5432 \
-    -d citus -q "SELECT COUNT(*) FROM query_router_test" | grep -xF 1'
+    -d citus -q "SELECT COUNT(*) FROM distributed_table" | grep -xF 1001'
 
   if [ "$EXIT_CODE" = 0 ]
   then
     success "Query router can read distributed tables"
   else
     fail "Query router can not read distributed tables"
+  fi
+
+  try_function wait_until eval 'run_query -c "$ROUTER_CLUSTER" -h "$ROUTER_SERVICE" -i 0 -p 5432 \
+    -d citus -q "SELECT COUNT(*) FROM reference_table" | grep -xF 1000'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "Query router can read reference tables"
+  else
+    fail "Query router can not read reference tables"
   fi
 }
 
@@ -370,12 +380,9 @@ query_routers_scaling_check() {
   kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
     -p '{"spec":{"configurations":{"citus":{"enableNodeAutoRemoval":true,"autoReplicateReferenceTables":true}}}}'
 
-  # A query router added once a reference table exists must be activated and get the reference
-  # tables, that citus_activate_node does not replicate
-  run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 -d citus \
-    -q "CREATE TABLE query_routers_scaling_reference (id integer PRIMARY KEY);
-      SELECT create_reference_table('query_routers_scaling_reference');"
-
+  # A query router added once a reference table exists (reference_table is created with the
+  # sharded cluster) must be activated and get the reference tables, that citus_activate_node does
+  # not replicate
   set_query_routers 2
   wait_query_router_registered "$ROUTER_CLUSTER" "$ROUTER_GROUP"
 
