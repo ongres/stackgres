@@ -270,14 +270,19 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             .withName(StackGresShardedClusterUtil.coordinatorScriptName(cluster))
             .build())
         .editSpec()
-        .withScripts(
+        .withScripts(Seq.of(
             getCitusUpdateWorkersScript(context, 0),
             getCitusRemovePgCronJobsScript(context, 1),
-            getCitusUpdateNodesScript(context, 2),
-            getCitusReplicateReferenceTablesScript(context, REPLICATE_REFERENCE_TABLES_SCRIPT_ID),
-            getCitusQueryRoutersWithoutShardsScript(context, QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID),
-            getCitusRegisteredGroupsScript(context, REGISTERED_GROUPS_SCRIPT_ID),
-            getCitusUpdatePoolinfoScript(context, UPDATE_POOLINFO_SCRIPT_ID))
+            getCitusUpdateNodesScript(context, 2))
+            .append(isAutoReplicateReferenceTables(cluster)
+                ? Seq.of(getCitusReplicateReferenceTablesScript(
+                    context, REPLICATE_REFERENCE_TABLES_SCRIPT_ID))
+                : Seq.<StackGresScriptEntry>empty())
+            .append(
+                getCitusQueryRoutersWithoutShardsScript(context, QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID),
+                getCitusRegisteredGroupsScript(context, REGISTERED_GROUPS_SCRIPT_ID),
+                getCitusUpdatePoolinfoScript(context, UPDATE_POOLINFO_SCRIPT_ID))
+            .toList())
         .endSpec()
         .build();
   }
@@ -514,6 +519,12 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         .map(StackGresClusterPods::getDisableEnvoy)
         .orElse(true)
         ? EnvoyUtil.PG_POOL_PORT : EnvoyUtil.PG_ENTRY_PORT;
+  }
+
+  private static boolean isAutoReplicateReferenceTables(StackGresShardedCluster cluster) {
+    return getCitusConfigurations(cluster)
+        .map(StackGresShardedClusterCitusConfigurations::getAutoReplicateReferenceTablesOrDefault)
+        .orElse(false);
   }
 
   private static boolean isConnectToPooler(StackGresShardedCluster cluster) {
