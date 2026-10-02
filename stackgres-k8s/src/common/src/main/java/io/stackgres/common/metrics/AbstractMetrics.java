@@ -14,6 +14,7 @@ import java.util.function.ToDoubleFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.stackgres.common.CdiUtil;
@@ -72,10 +73,18 @@ public abstract class AbstractMetrics {
       final T stateObject,
       final ToDoubleFunction<T> valueFunction) {
     name = prefix + name;
-    if (!registered.contains(name)) {
+    // The same gauge may be registered with different tags
+    final String key = name + tags;
+    if (!registered.contains(key)) {
       registry.gauge(name, tags, stateObject, valueFunction);
-      registered.add(name);
+      registered.add(key);
     }
+  }
+
+  protected Counter registryCounter(
+      String name,
+      final Iterable<Tag> tags) {
+    return registry.counter(prefix + name, tags);
   }
 
   public double getGauge(String key) {
