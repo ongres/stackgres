@@ -142,6 +142,7 @@ public class PatroniExternalCdsControllerReconciliationCycle
   @Override
   protected void onConfigError(StackGresClusterContext context,
       HasMetadata configResource, Exception ex) {
+    metrics.incrementPatroniReconciliationTotalErrors(StackGresCluster.class);
     String message = MessageFormatter.arrayFormat(
         "StackGres Cluster {}.{} reconciliation failed",
         new String[] {
