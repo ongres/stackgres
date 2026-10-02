@@ -66,6 +66,62 @@ e2e_test() {
 
   run_test "Checking that query routers are removed from and added to pg_dist_node on scaling" \
     query_routers_scaling_check
+
+  run_test "Checking that the operator, the cluster-controller and the REST API expose their metrics" \
+    metrics_check
+}
+
+metrics_check() {
+  local OPERATOR_POD COORDINATOR_PRIMARY_POD RESTAPI_POD RESULT EXIT_CODE
+  OPERATOR_POD="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
+    --template '{{ range .items }}{{ .metadata.name }}{{ "\n" }}{{ end }}' | head -n 1)"
+  COORDINATOR_PRIMARY_POD="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "stackgres.io/cluster-name=$CLUSTER_NAME-coord,role=primary" \
+    --template '{{ range .items }}{{ .metadata.name }}{{ "\n" }}{{ end }}' | head -n 1)"
+  RESTAPI_POD="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l stackgres.io/restapi=true \
+    --template '{{ range .items }}{{ .metadata.name }}{{ "\n" }}{{ end }}' | head -n 1)"
+
+  # The gauges of each resource are exposed
+  if try_function wait_until eval 'kubectl exec -n "$OPERATOR_NAMESPACE" "$OPERATOR_POD" -c stackgres-operator \
+      -- curl -s http://localhost:8080/q/metrics > "$LOG_PATH/operator-metrics" \
+      && grep -q "^sg_operator_reconciliation_total_performed{resource=\"sgshardedcluster\"}" "$LOG_PATH/operator-metrics" \
+      && grep -q "^sg_operator_reconciliation_total_performed{resource=\"sgcluster\"}" "$LOG_PATH/operator-metrics"' \
+    && "$RESULT"
+  then
+    success "The operator exposes the reconciliation metrics of each resource"
+  else
+    fail "The operator does not expose the reconciliation metrics of each resource"
+  fi
+
+  if try_function wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$COORDINATOR_PRIMARY_POD" -c cluster-controller \
+      -- curl -s http://localhost:8080/q/metrics > "$LOG_PATH/cluster-controller-metrics" \
+      && grep -q "^sg_controller_reconciliation_total_performed{resource=\"sgcluster\"}" "$LOG_PATH/cluster-controller-metrics" \
+      && grep -q "^sg_controller_reconciliation_total_performed{resource=\"sgcluster-managed-sql\"}" "$LOG_PATH/cluster-controller-metrics"' \
+    && "$RESULT"
+  then
+    success "The cluster-controller exposes the reconciliation metrics"
+  else
+    fail "The cluster-controller does not expose the reconciliation metrics"
+  fi
+
+  if grep -q "^sg_controller_managed_sql_script_entry_executions_total{id=\"2\",script=\"citus-update-nodes\",sgscript=\"$CLUSTER_NAME-coord\"}" \
+    "$LOG_PATH/cluster-controller-metrics"
+  then
+    success "The cluster-controller exposes the executions of the SGScript entries"
+  else
+    fail "The cluster-controller does not expose the executions of the SGScript entries"
+  fi
+
+  kubectl exec -n "$OPERATOR_NAMESPACE" "$RESTAPI_POD" -c stackgres-restapi \
+    -- curl -s -k https://localhost:8443/stackgres/auth/type > /dev/null
+  if kubectl exec -n "$OPERATOR_NAMESPACE" "$RESTAPI_POD" -c stackgres-restapi \
+      -- curl -s -k https://localhost:8443/q/metrics \
+    | grep -q '^http_server_requests_seconds_count{.*status="200",uri="/stackgres/auth/type"}'
+  then
+    success "The REST API exposes the metrics of its requests"
+  else
+    fail "The REST API does not expose the metrics of its requests"
+  fi
 }
 
 # A settled SGShardedCluster must reconcile to a no-op. For Citus every child cluster renews its
