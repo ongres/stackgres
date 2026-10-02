@@ -160,6 +160,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
 
         try {
           logger.trace("{} working on {}", cycleName, contextId);
+          onPreReconciliation(context);
           List<HasMetadata> existingResourcesOnly = getExistingResources(
               client,
               context);
@@ -200,6 +201,8 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
             } catch (RuntimeException rex) {
               logger.error("{} failed sending event while reconciling {}", cycleName, contextId, rex);
             }
+          } else {
+            onPostReconciliation(context);
           }
         } catch (Exception ex) {
           contextExceptions.put(exisitingContextResource, ex);

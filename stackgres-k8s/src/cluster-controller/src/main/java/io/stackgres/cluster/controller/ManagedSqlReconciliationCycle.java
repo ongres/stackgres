@@ -150,6 +150,7 @@ public class ManagedSqlReconciliationCycle
   @Override
   protected void onConfigError(StackGresClusterContext context,
       HasMetadata configResource, Exception ex) {
+    metrics.incrementManagedSqlReconciliationTotalErrors(StackGresCluster.class);
     String message = MessageFormatter.arrayFormat(
         "StackGres Cluster {}.{} managed SQL reconciliation failed",
         new String[] {
