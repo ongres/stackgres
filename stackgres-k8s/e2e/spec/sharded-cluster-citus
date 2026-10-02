@@ -365,9 +365,10 @@ query_routers_scaling_check() {
   local ROUTER_GROUP=1026
   local RESULT EXIT_CODE
 
-  # The nodes of the removed groups are only removed from pg_dist_node when enabled
+  # The nodes of the removed groups are only removed from pg_dist_node when enabled, and the
+  # reference tables are only replicated to the added nodes when enabled
   kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
-    -p '{"spec":{"configurations":{"citus":{"enableNodeAutoRemoval":true}}}}'
+    -p '{"spec":{"configurations":{"citus":{"enableNodeAutoRemoval":true,"autoReplicateReferenceTables":true}}}}'
 
   # A query router added once a reference table exists must be activated and get the reference
   # tables, that citus_activate_node does not replicate
