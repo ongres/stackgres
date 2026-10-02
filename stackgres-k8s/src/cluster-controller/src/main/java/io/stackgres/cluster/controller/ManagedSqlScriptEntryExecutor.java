@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -70,6 +71,27 @@ public class ManagedSqlScriptEntryExecutor {
    * {@code true}, the value of the first column of the first row returned by the last query.
    */
   protected Optional<String> executeScriptEntry(
+      ManagedSqlScriptEntry scriptEntry,
+      String sql,
+      String superuserUsername)
+      throws SQLException {
+    final Instant start = Instant.now();
+    try {
+      final Optional<String> value = doExecuteScriptEntry(scriptEntry, sql, superuserUsername);
+      LOGGER.trace("Managed script {} executed successfully in {}",
+          scriptEntry.getManagedScriptEntryDescription(),
+          Duration.between(start, Instant.now()));
+      return value;
+    } catch (SQLException | RuntimeException ex) {
+      LOGGER.trace("Managed script {} failed after {}: {}",
+          scriptEntry.getManagedScriptEntryDescription(),
+          Duration.between(start, Instant.now()),
+          ex.getMessage());
+      throw ex;
+    }
+  }
+
+  private Optional<String> doExecuteScriptEntry(
       ManagedSqlScriptEntry scriptEntry,
       String sql,
       String superuserUsername)
@@ -182,14 +204,14 @@ public class ManagedSqlScriptEntryExecutor {
   }
 
   /**
-   * The executions of a script entry that sets the field {@code cron} are only logged at debug
+   * The executions of a script entry that sets the field {@code cron} are only logged at trace
    * level, since they may be frequent (the first one is logged by the reconciliator).
    */
   private void logExecution(ManagedSqlScriptEntry scriptEntry, String format, Object... arguments) {
     if (scriptEntry.getScriptEntry().getCron() == null) {
       LOGGER.info(format, arguments);
     } else {
-      LOGGER.debug(format, arguments);
+      LOGGER.trace(format, arguments);
     }
   }
 
