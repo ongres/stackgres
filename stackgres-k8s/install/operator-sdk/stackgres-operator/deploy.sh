@@ -78,7 +78,7 @@ then
   then
     PREVIOUS_VERSION="$(
       ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-        | cut -d / -f 5 | grep -v '.-\(rc\|beta\|alpha\).' | sort -t ' ' -k 1Vr | head -n 1)"
+        | cut -d / -f 5 | grep -v '.-\(rc\|beta\|alpha\).' | sort_versions | tail -n 1)"
     echo "Previous version detected from repository: $PREVIOUS_VERSION"
   else
     echo "Previous version detected from PREVIOUS_VERSION environtment variable: $PREVIOUS_VERSION"
@@ -90,15 +90,15 @@ then
   fi
   PREVIOUS_STABLE_VERSION="$(
     ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | grep -v '.-\(rc\|beta\|alpha\).' | sort -t ' ' -k 1Vr | head -n 1)"
+      | cut -d / -f 5 | grep -v '.-\(rc\|beta\|alpha\).' | sort_versions | tail -n 1)"
   echo "Previous stable version detected from repository: $PREVIOUS_STABLE_VERSION"
   PREVIOUS_CANDIDATE_VERSION="$(
     ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | grep -v '.-\(beta\|alpha\).' | sort -t ' ' -k 1Vr | head -n 1)"
+      | cut -d / -f 5 | grep -v '.-\(beta\|alpha\).' | sort_versions | tail -n 1)"
   echo "Previous candidate version detected from repository: $PREVIOUS_CANDIDATE_VERSION"
   PREVIOUS_FAST_VERSION="$(
     ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | sort -t ' ' -k 1Vr | head -n 1)"
+      | cut -d / -f 5 | sort_versions | tail -n 1)"
   echo "Previous fast version detected from repository: $PREVIOUS_FAST_VERSION"
 fi
 
