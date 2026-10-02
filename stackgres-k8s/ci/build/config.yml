@@ -405,7 +405,7 @@ modules:
         sed 's/^\(\s*tag\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/values.yaml
       - |
         sed 's/^\(version\|appVersion\): "\([0-9]\+\.[0-9]\+\.[0-9]\+\)\(-.*\)\?"$/\1: "\2"/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
-    sources:
+    sources: &helm-packages-sources
       0: stackgres-k8s/install/helm/stackgres-operator/README.md
       1: stackgres-k8s/install/helm/stackgres-operator/templates
       2: stackgres-k8s/install/helm/stackgres-operator/grafana-dashboard.json
@@ -434,7 +434,7 @@ modules:
         sed 's/^\(\s*tag\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/values.yaml
       - |
         sed 's/^\(version\|appVersion\): "\([0-9]\+\.[0-9]\+\.[0-9]\+\)\(-.*\)\?"$/\1: "\2"/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
-    sources:
+    sources: &helm-templates-sources
       0: stackgres-k8s/install/helm/stackgres-operator/README.md
       1: stackgres-k8s/install/helm/stackgres-operator/templates
       2: stackgres-k8s/install/helm/stackgres-operator/grafana-dashboard.json
@@ -584,6 +584,7 @@ modules:
     type: helm-release
     filtered_sources: null
     sources:
+      <<: *helm-packages-sources
       997: stackgres-k8s/install/helm/stackgres-operator
       998: stackgres-k8s/install/helm/stackgres-cluster
       999: stackgres-k8s/src/pom.xml
@@ -592,6 +593,7 @@ modules:
     type: helm-release
     filtered_sources: null
     sources:
+      <<: *helm-templates-sources
       997: stackgres-k8s/install/helm/stackgres-operator
       998: stackgres-k8s/install/helm/stackgres-cluster
       999: stackgres-k8s/src/pom.xml
