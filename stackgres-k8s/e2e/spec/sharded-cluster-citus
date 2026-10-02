@@ -369,6 +369,12 @@ query_routers_scaling_check() {
   kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
     -p '{"spec":{"configurations":{"citus":{"enableNodeAutoRemoval":true}}}}'
 
+  # A query router added once a reference table exists must be activated and get the reference
+  # tables, that citus_activate_node does not replicate
+  run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 -d citus \
+    -q "CREATE TABLE query_routers_scaling_reference (id integer PRIMARY KEY);
+      SELECT create_reference_table('query_routers_scaling_reference');"
+
   set_query_routers 2
   wait_query_router_registered "$ROUTER_CLUSTER" "$ROUTER_GROUP"
 
@@ -446,6 +452,20 @@ wait_query_router_registered() {
     success "Query router of group $ROUTER_GROUP is registered in pg_dist_node without shards"
   else
     fail "Query router of group $ROUTER_GROUP is not registered in pg_dist_node without shards"
+  fi
+
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
+    -d citus -q "SELECT COUNT(*) FROM pg_dist_partition
+      WHERE partmethod = '"'n'"' AND repmodel = '"'t'"'
+      AND NOT EXISTS (SELECT FROM pg_dist_shard JOIN pg_dist_placement USING (shardid)
+        WHERE pg_dist_shard.logicalrelid = pg_dist_partition.logicalrelid
+        AND pg_dist_placement.groupid = $ROUTER_GROUP)" | grep -xF 0'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "Query router of group $ROUTER_GROUP holds the reference tables"
+  else
+    fail "Query router of group $ROUTER_GROUP does not hold the reference tables"
   fi
 
   # Patroni of the query router is only started once the SGShardedCluster set the start gate annotation
