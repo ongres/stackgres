@@ -141,6 +141,21 @@ deploy helm packages and templates:
         docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-release-packages stackgres-k8s/install/helm/target/packages
       sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-release-templates stackgres-k8s/install/helm/target/templates
+      # The CRDs of the helm package must be the ones of the sources (an image of the build cache could
+      # have been built from other sources)
+      CRDS_CHECK_PATH=stackgres-k8s/install/helm/target/crds-check
+      rm -rf "$CRDS_CHECK_PATH"
+      mkdir -p "$CRDS_CHECK_PATH"
+      tar xzf stackgres-k8s/install/helm/target/packages/stackgres-operator.tgz \
+        -C "$CRDS_CHECK_PATH" stackgres-operator/crds
+      for CRD in stackgres-k8s/src/common/src/main/resources/crds/*.yaml
+      do
+        if ! cmp -s "$CRD" "$CRDS_CHECK_PATH/stackgres-operator/crds/${CRD##*/}"
+        then
+          echo "The CRD ${CRD##*/} of the helm package does not match the one of the sources"
+          exit 1
+        fi
+      done
       mkdir -p "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"
       cp -a stackgres-k8s/install/helm/target/templates \
         "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION"
