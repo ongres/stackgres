@@ -238,7 +238,7 @@ SELECT citus_remove_node('<nodename>', <nodeport>);
 
 By default the Citus nodes connect to each other through the connection pooler ([PgBouncer](https://www.pgbouncer.org/)) running in the Pod of each node, instead of opening their connections directly to Postgres. The coordinator keeps the Citus `pg_dist_poolinfo` table of the coordinator, of the workers and of the query routers updated so that Citus uses the port of PgBouncer (`6432`, or the Envoy entry port `7432` when Envoy is enabled) instead of the Postgres port registered in `pg_dist_node`. Only the port is set, so the connections follow the host that Patroni updates in `pg_dist_node` after a failover. Citus ignores `pg_dist_poolinfo` for the connections that can not go through a pooler (like the ones of the shard rebalancer).
 
-Since the nodes connect through PgBouncer, the `disableConnectionPooling` fields of the coordinator, the workers, the query routers and their overrides are ignored and PgBouncer is always created. To connect directly to Postgres, set `.spec.configurations.citus.connectToPooler` to `false`:
+The nodes whose connection pooling is disabled (with the `disableConnectionPooling` fields of the coordinator, the workers, the query routers and their overrides) have no PgBouncer and are not added to `pg_dist_poolinfo`, so the other nodes connect directly to their Postgres. To make all the nodes connect directly to Postgres, set `.spec.configurations.citus.connectToPooler` to `false`:
 
 ```yaml
 apiVersion: stackgres.io/v1beta1
