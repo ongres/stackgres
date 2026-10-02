@@ -634,7 +634,7 @@ spec:
                         description: |
                           When `true` (the default) Citus connects to each node through the connection pooler ([PgBouncer](https://www.pgbouncer.org/)) running in its Pod instead of connecting directly to Postgres: the coordinator maintains `pg_dist_poolinfo` on the coordinator and on every worker and query router so that the port `6432` of PgBouncer (or the Envoy entry port `7432` when Envoy is enabled) is used instead of the Postgres port registered in `pg_dist_node`. Only the port is set, so the host keeps following the one that Patroni updates in `pg_dist_node` after a failover. Citus ignores `pg_dist_poolinfo` for the connections that can not go through a pooler (like the ones of the shard rebalancer).
 
-                          When `true` the `disableConnectionPooling` fields of the coordinator, the workers, the query routers and their overrides (`.spec.coordinator.pods.disableConnectionPooling`, `.spec.workers.pods.disableConnectionPooling` and `.spec.workers.overrides[].pods.disableConnectionPooling`) are ignored and PgBouncer is always created.
+                          The nodes whose connection pooling is disabled (`.spec.coordinator.pods.disableConnectionPooling`, `.spec.workers.pods.disableConnectionPooling` and `.spec.workers.overrides[].pods.disableConnectionPooling`) have no PgBouncer and are not added to `pg_dist_poolinfo`, so Citus connects directly to their Postgres.
 
                           When `false` the coordinator removes from `pg_dist_poolinfo` the entries it created.
                   postgresExporter:
@@ -1856,7 +1856,7 @@ spec:
                         description: |
                           If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
 
-                          If sharding type is `citus` and `.spec.configurations.citus.connectToPooler` is `true` (the default) this field is ignored.
+                          If sharding type is `citus` and `.spec.configurations.citus.connectToPooler` is `true` (the default) the nodes with this field set to `true` are not added to `pg_dist_poolinfo`, so Citus connects directly to their Postgres.
                       
                           If sharding type is `shardingsphere` then this field is ignored.
 
@@ -2893,7 +2893,7 @@ spec:
                         description: |
                           If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
 
-                          If sharding type is `citus` and `.spec.configurations.citus.connectToPooler` is `true` (the default) this field is ignored.
+                          If sharding type is `citus` and `.spec.configurations.citus.connectToPooler` is `true` (the default) the nodes with this field set to `true` are not added to `pg_dist_poolinfo`, so Citus connects directly to their Postgres.
 
                           **Changing this field may require a restart.**
                       disableMetricsExporter:
@@ -3384,7 +3384,7 @@ spec:
                               description: |
                                 If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
 
-                                If sharding type is `citus` and `.spec.configurations.citus.connectToPooler` is `true` (the default) this field is ignored.
+                                If sharding type is `citus` and `.spec.configurations.citus.connectToPooler` is `true` (the default) the nodes with this field set to `true` are not added to `pg_dist_poolinfo`, so Citus connects directly to their Postgres.
 
                                 **Changing this field may require a restart.**
                             disableMetricsExporter:

@@ -236,6 +236,43 @@ class CitusShardedClusterCoordinatorScriptTest {
   }
 
   @Test
+  void generateResource_whenConnectionPoolingIsDisabled_shouldNotConnectToThePoolerOfTheGroup() {
+    cluster.getSpec().setType("citus");
+    when(context.getShardedCluster()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getSuperuserUsername()).thenReturn(Optional.empty());
+    lenient().when(context.getSuperuserPassword()).thenReturn(Optional.of("test-pass"));
+    lenient().when(context.getDatabaseSecret()).thenReturn(Optional.empty());
+    context.getWorkers().getFirst().getSpec().getPods().setDisableConnectionPooling(true);
+    context.getQueryRouters().getFirst().getSpec().getPods().setDisableConnectionPooling(true);
+
+    StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
+
+    StackGresScriptEntry entry = script.getSpec().getScripts().get(5);
+    assertTrue(entry.getScript().contains("(VALUES (0, 6432), (2, 7432))"), entry.getScript());
+  }
+
+  @Test
+  void generateResource_whenConnectionPoolingIsDisabledForAllTheGroups_shouldRemoveThePoolerEntries() {
+    cluster.getSpec().setType("citus");
+    when(context.getShardedCluster()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getSuperuserUsername()).thenReturn(Optional.empty());
+    lenient().when(context.getSuperuserPassword()).thenReturn(Optional.of("test-pass"));
+    lenient().when(context.getDatabaseSecret()).thenReturn(Optional.empty());
+    context.getCoordinator().getSpec().getPods().setDisableConnectionPooling(true);
+    context.getWorkers().forEach(worker -> worker.getSpec().getPods().setDisableConnectionPooling(true));
+    context.getQueryRouters().forEach(
+        queryRouter -> queryRouter.getSpec().getPods().setDisableConnectionPooling(true));
+
+    StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
+
+    StackGresScriptEntry entry = script.getSpec().getScripts().get(5);
+    assertTrue(entry.getScript().contains("(VALUES (NULL::integer, NULL::integer))"),
+        entry.getScript());
+  }
+
+  @Test
   void generateResource_whenConnectToPoolerIsFalse_shouldRemoveThePoolerEntries() {
     cluster.getSpec().setType("citus");
     cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());

@@ -84,7 +84,6 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             .build());
       }
       setConfigurationsPatroniInitialConfig(cluster, spec, 0);
-      setConnectionPoolingForPoolInfo(cluster, spec);
       if (spec.getManagedSql() == null) {
         spec.setManagedSql(new StackGresClusterManagedSql());
       }
@@ -107,13 +106,11 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     @Override
     void updateWorkerClusterSpec(StackGresShardedCluster cluster, StackGresClusterSpec spec, int index) {
       setConfigurationsPatroniInitialConfig(cluster, spec, index + 1);
-      setConnectionPoolingForPoolInfo(cluster, spec);
     }
 
     @Override
     void updateQueryRouterClusterSpec(StackGresShardedCluster cluster, StackGresClusterSpec spec, int index) {
       setConfigurationsPatroniInitialConfig(cluster, spec, index + 1);
-      setConnectionPoolingForPoolInfo(cluster, spec);
       // A replica SGShardedCluster replicates pg_dist_node from the source and its coordinator
       // never registers the query routers, so their Patroni must not wait for it
       if (cluster.getSpec().getReplicateFrom() != null) {
@@ -219,13 +216,6 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
      * {@code SGShardedCluster.spec.configurations.citus.connectToPooler} is {@code true}, so the
      * connection pooling can not be disabled.
      */
-    private void setConnectionPoolingForPoolInfo(
-        StackGresShardedCluster cluster, StackGresClusterSpec spec) {
-      if (isConnectToPooler(cluster) && spec.getPods() != null) {
-        spec.getPods().setDisableConnectionPooling(false);
-      }
-    }
-
     private Map<String, String> withCitusGroupLabel(Map<String, String> labels, int index) {
       return mergeMaps(
           labels,
@@ -500,7 +490,8 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     if (!isConnectToPooler(cluster)) {
       return "(NULL::integer, NULL::integer)";
     }
-    return Seq.of(Tuple.tuple(0, context.getCoordinator()))
+    // The nodes without connection pooling are connected directly to Postgres
+    return Optional.of(Seq.of(Tuple.tuple(0, context.getCoordinator()))
         .append(Seq.seq(context.getWorkers())
             .zipWithIndex()
             .map(worker -> Tuple.tuple(worker.v2.intValue() + 1, worker.v1)))
@@ -509,8 +500,18 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             .map(queryRouter -> Tuple.tuple(
                 getQueryRoutersIndexOffset(cluster) + queryRouter.v2.intValue() + 1,
                 queryRouter.v1)))
+        .filter(group -> !isConnectionPoolingDisabled(group.v2))
         .map(group -> "(" + group.v1 + ", " + getPoolerPort(group.v2) + ")")
-        .toString(", ");
+        .toString(", "))
+        .filter(ports -> !ports.isEmpty())
+        .orElse("(NULL::integer, NULL::integer)");
+  }
+
+  private static boolean isConnectionPoolingDisabled(StackGresCluster cluster) {
+    return Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableConnectionPooling)
+        .orElse(false);
   }
 
   private static int getPoolerPort(StackGresCluster cluster) {
