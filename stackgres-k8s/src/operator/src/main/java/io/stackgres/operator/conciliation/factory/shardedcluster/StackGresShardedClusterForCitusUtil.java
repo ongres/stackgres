@@ -72,6 +72,8 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
 
   int UPDATE_POOLINFO_SCRIPT_ID = 5;
 
+  int REPLICATE_REFERENCE_TABLES_SCRIPT_ID = 6;
+
   class Util extends StackGresShardedClusterForUtil {
 
     @Override
@@ -272,6 +274,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             getCitusUpdateWorkersScript(context, 0),
             getCitusRemovePgCronJobsScript(context, 1),
             getCitusUpdateNodesScript(context, 2),
+            getCitusReplicateReferenceTablesScript(context, REPLICATE_REFERENCE_TABLES_SCRIPT_ID),
             getCitusQueryRoutersWithoutShardsScript(context, QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID),
             getCitusRegisteredGroupsScript(context, REGISTERED_GROUPS_SCRIPT_ID),
             getCitusUpdatePoolinfoScript(context, UPDATE_POOLINFO_SCRIPT_ID))
@@ -414,6 +417,22 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
                 String.valueOf(getCitusConfigurations(cluster)
                     .map(StackGresShardedClusterCitusConfigurations::getEnableNodeAutoRemovalOrDefault)
                     .orElse(false))))
+        .build();
+  }
+
+  private static StackGresScriptEntry getCitusReplicateReferenceTablesScript(
+      StackGresShardedClusterContext context, int id) {
+    StackGresShardedCluster cluster = context.getShardedCluster();
+    return new StackGresScriptEntryBuilder()
+        .withId(id)
+        .withName("citus-replicate-reference-tables")
+        .withDatabase(cluster.getSpec().getDatabase())
+        .withCron(getUpdateNodeCron(cluster))
+        .withScript(Unchecked.supplier(() -> Resources
+            .asCharSource(StackGresShardedClusterForCitusUtil.class.getResource(
+                "/citus/citus-replicate-reference-tables.sql"),
+                StandardCharsets.UTF_8)
+            .read()).get())
         .build();
   }
 

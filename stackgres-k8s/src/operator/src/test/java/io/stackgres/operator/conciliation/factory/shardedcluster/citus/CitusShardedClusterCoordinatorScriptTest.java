@@ -136,10 +136,11 @@ class CitusShardedClusterCoordinatorScriptTest {
     StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
 
     List<StackGresScriptEntry> entries = script.getSpec().getScripts();
-    assertEquals(List.of(0, 1, 2, 3, 4, 5),
+    assertEquals(List.of(0, 1, 2, 6, 3, 4, 5),
         entries.stream().map(StackGresScriptEntry::getId).toList());
     assertEquals(List.of("citus-update-workers", "citus-remove-pg-cron-jobs", "citus-update-nodes",
-        "citus-query-routers-without-shards", "citus-registered-groups", "citus-update-poolinfo"),
+        "citus-replicate-reference-tables", "citus-query-routers-without-shards",
+        "citus-registered-groups", "citus-update-poolinfo"),
         entries.stream().map(StackGresScriptEntry::getName).toList());
     assertNull(entries.get(0).getCron());
     assertNull(entries.get(1).getCron());
@@ -148,20 +149,28 @@ class CitusShardedClusterCoordinatorScriptTest {
     assertEquals(cluster.getSpec().getDatabase(), entries.get(2).getDatabase());
     assertTrue(entries.get(2).getScript().contains("IF false THEN"));
     assertFalse(entries.get(2).getScript().contains("%"));
-    assertEquals("0/10 * * * * ?", entries.get(3).getCron());
-    assertTrue(entries.get(3).getSetValueOrDefault());
-    assertEquals(cluster.getSpec().getDatabase(), entries.get(3).getDatabase());
-    assertTrue(entries.get(3).getScript().contains("NOT shouldhaveshards"));
+    assertFalse(entries.get(2).getScript().contains("replicate_reference_tables"));
     assertEquals(
-        StackGresShardedClusterForCitusUtil.QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID,
+        StackGresShardedClusterForCitusUtil.REPLICATE_REFERENCE_TABLES_SCRIPT_ID,
         entries.get(3).getId());
+    assertEquals("0/10 * * * * ?", entries.get(3).getCron());
+    assertEquals(cluster.getSpec().getDatabase(), entries.get(3).getDatabase());
+    assertNull(entries.get(3).getWrapInTransaction());
+    assertTrue(entries.get(3).getScript().contains("replicate_reference_tables('block_writes')"));
     assertEquals("0/10 * * * * ?", entries.get(4).getCron());
     assertTrue(entries.get(4).getSetValueOrDefault());
     assertEquals(cluster.getSpec().getDatabase(), entries.get(4).getDatabase());
-    assertTrue(entries.get(4).getScript().contains("pg_dist_node"));
+    assertTrue(entries.get(4).getScript().contains("NOT shouldhaveshards"));
+    assertEquals(
+        StackGresShardedClusterForCitusUtil.QUERY_ROUTERS_WITHOUT_SHARDS_SCRIPT_ID,
+        entries.get(4).getId());
+    assertEquals("0/10 * * * * ?", entries.get(5).getCron());
+    assertTrue(entries.get(5).getSetValueOrDefault());
+    assertEquals(cluster.getSpec().getDatabase(), entries.get(5).getDatabase());
+    assertTrue(entries.get(5).getScript().contains("pg_dist_node"));
     assertEquals(
         StackGresShardedClusterForCitusUtil.REGISTERED_GROUPS_SCRIPT_ID,
-        entries.get(4).getId());
+        entries.get(5).getId());
   }
 
   @Test
@@ -184,6 +193,7 @@ class CitusShardedClusterCoordinatorScriptTest {
     assertTrue(entries.get(2).getScript().contains("IF true THEN"));
     assertEquals("0 0/2 * * * ?", entries.get(3).getCron());
     assertEquals("0 0/2 * * * ?", entries.get(4).getCron());
+    assertEquals("0 0/2 * * * ?", entries.get(5).getCron());
   }
 
   @Test
@@ -197,7 +207,7 @@ class CitusShardedClusterCoordinatorScriptTest {
 
     StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
 
-    StackGresScriptEntry entry = script.getSpec().getScripts().get(5);
+    StackGresScriptEntry entry = script.getSpec().getScripts().get(6);
     assertEquals(StackGresShardedClusterForCitusUtil.UPDATE_POOLINFO_SCRIPT_ID, entry.getId());
     assertEquals("0/10 * * * * ?", entry.getCron());
     assertEquals(cluster.getSpec().getDatabase(), entry.getDatabase());
@@ -221,7 +231,7 @@ class CitusShardedClusterCoordinatorScriptTest {
 
     StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
 
-    StackGresScriptEntry entry = script.getSpec().getScripts().get(5);
+    StackGresScriptEntry entry = script.getSpec().getScripts().get(6);
     assertTrue(entry.getScript().contains("(VALUES (NULL::integer, NULL::integer))"),
         entry.getScript());
   }

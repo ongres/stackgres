@@ -607,7 +607,7 @@ spec:
                       updateNodeInterval:
                         type: string
                         description: |
-                          The interval at which the coordinator updates the nodes registered in `pg_dist_node`: it registers the query routers (with `shouldhaveshards` set to `false`, before their Patroni is started), fixes the `shouldhaveshards` flag of the query routers, activates the registered query routers and, if `enableNodeAutoRemoval` is `true`, removes the nodes of the removed groups.
+                          The interval at which the coordinator updates the nodes registered in `pg_dist_node`: it registers the query routers (with `shouldhaveshards` set to `false`, before their Patroni is started), fixes the `shouldhaveshards` flag of the query routers, activates the registered query routers, replicates the reference tables to the active nodes that miss them and, if `enableNodeAutoRemoval` is `true`, removes the nodes of the removed groups.
 
                           An ISO 8601 duration in the format `PnDTnHnMn.nS`, truncated to seconds if lower than a minute, to minutes if lower than an hour and to hours otherwise (up to 23 hours). An interval that does not divide its unit restarts at the beginning of each minute, hour or day.
 
