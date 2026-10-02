@@ -59,11 +59,14 @@ public class ManagedSqlScriptEntryExecutor {
       ManagedSqlScriptEntryExecutor.class);
 
   private final PostgresConnectionManager postgresConnectionManager;
+  private final Metrics metrics;
 
   @Inject
   public ManagedSqlScriptEntryExecutor(
-      PostgresConnectionManager postgresConnectionManager) {
+      PostgresConnectionManager postgresConnectionManager,
+      Metrics metrics) {
     this.postgresConnectionManager = postgresConnectionManager;
+    this.metrics = metrics;
   }
 
   /**
@@ -76,6 +79,10 @@ public class ManagedSqlScriptEntryExecutor {
       String superuserUsername)
       throws SQLException {
     final Instant start = Instant.now();
+    final String sgScript = scriptEntry.getManagedScript().getSgScript();
+    final String scriptEntryName = scriptEntry.getScriptEntry().getName();
+    final Integer scriptEntryId = scriptEntry.getScriptEntry().getId();
+    metrics.incrementScriptEntryExecutions(sgScript, scriptEntryName, scriptEntryId);
     try {
       final Optional<String> value = doExecuteScriptEntry(scriptEntry, sql, superuserUsername);
       LOGGER.trace("Managed script {} executed successfully in {}",
@@ -83,6 +90,7 @@ public class ManagedSqlScriptEntryExecutor {
           Duration.between(start, Instant.now()));
       return value;
     } catch (SQLException | RuntimeException ex) {
+      metrics.incrementScriptEntryFailures(sgScript, scriptEntryName, scriptEntryId);
       LOGGER.trace("Managed script {} failed after {}: {}",
           scriptEntry.getManagedScriptEntryDescription(),
           Duration.between(start, Instant.now()),
