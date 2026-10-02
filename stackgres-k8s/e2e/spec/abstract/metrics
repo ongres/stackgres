@@ -48,3 +48,61 @@ check_metrics() {
     done
   fi
 }
+
+check_operator_metrics() {
+  local NAMESPACE="${1:-$OPERATOR_NAMESPACE}"
+  local OPERATOR_POD
+  OPERATOR_POD="$(kubectl get pod -n "$NAMESPACE" -l app=stackgres-operator \
+    --template '{{ range .items }}{{ .metadata.name }}{{ "\n" }}{{ end }}' | head -n 1)"
+
+  if wait_until eval 'kubectl exec -n "$NAMESPACE" "$OPERATOR_POD" \
+      -- curl -s http://localhost:8080/q/metrics \
+      | grep -q "^sg_operator_reconciliation_total_performed{resource=\"sgconfig\"}"'
+  then
+    success "The operator exposes the reconciliation metrics"
+  else
+    fail "The operator does not expose the reconciliation metrics"
+  fi
+}
+
+check_restapi_metrics() {
+  local NAMESPACE="${1:-$OPERATOR_NAMESPACE}"
+  local RESTAPI_POD
+  RESTAPI_POD="$(kubectl get pod -n "$NAMESPACE" -l stackgres.io/restapi=true \
+    --template '{{ range .items }}{{ .metadata.name }}{{ "\n" }}{{ end }}' | head -n 1)"
+
+  if wait_until eval 'kubectl exec -n "$NAMESPACE" "$RESTAPI_POD" -c stackgres-restapi \
+      -- curl -s -k https://localhost:8443/stackgres/auth/type > /dev/null \
+      && kubectl exec -n "$NAMESPACE" "$RESTAPI_POD" -c stackgres-restapi \
+      -- curl -s -k https://localhost:8443/q/metrics \
+      | grep -q "^http_server_requests_seconds_count{.*status=\"200\",uri=\"/stackgres/auth/type\"}"'
+  then
+    success "The REST API exposes the metrics of its requests"
+  else
+    fail "The REST API does not expose the metrics of its requests"
+  fi
+}
+
+check_cluster_controller_metrics() {
+  local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
+  local CLUSTER_NAMESPACE="${2:-$CLUSTER_NAMESPACE}"
+  local PRIMARY_POD
+  PRIMARY_POD="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=primary" \
+    --template '{{ range .items }}{{ .metadata.name }}{{ "\n" }}{{ end }}' | head -n 1)"
+
+  for METRIC in \
+    'sg_controller_reconciliation_total_performed{resource="sgcluster"}' \
+    'sg_controller_reconciliation_total_performed{resource="sgcluster-managed-sql"}' \
+    'sg_controller_managed_sql_script_entry_executions_total{id="0",script="[^"]*",sgscript="'"$CLUSTER_NAME"'-default"}'
+  do
+    if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_POD" -c cluster-controller \
+        -- curl -s http://localhost:8080/q/metrics \
+        | grep -q "^$METRIC"'
+    then
+      success "The cluster-controller exposes the metric $METRIC"
+    else
+      fail "The cluster-controller does not expose the metric $METRIC"
+    fi
+  done
+}
