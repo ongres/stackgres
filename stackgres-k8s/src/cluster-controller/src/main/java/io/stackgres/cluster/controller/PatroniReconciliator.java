@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.ongres.process.FluentProcess;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterPatroniConfigEventReason;
@@ -36,6 +37,7 @@ import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
@@ -46,6 +48,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.SafeReconciliator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -87,12 +90,16 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
   private final String podName;
   private final EventController eventController;
   private final ObjectMapper objectMapper;
+  private final ResourceFinder<Secret> secretFinder;
+  private final WebClientFactory webClientFactory;
 
   @Dependent
   public static class Parameters {
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject EventController eventController;
     @Inject ObjectMapper objectMapper;
+    @Inject ResourceFinder<Secret> secretFinder;
+    @Inject WebClientFactory webClientFactory;
   }
 
   @Inject
@@ -103,6 +110,8 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
     this.eventController = parameters.eventController;
     this.objectMapper = parameters.objectMapper;
+    this.secretFinder = parameters.secretFinder;
+    this.webClientFactory = parameters.webClientFactory;
   }
 
   public Boolean isStartup() {
@@ -233,7 +242,8 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     }
     if (configChanged(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH)) {
       try {
-        PatroniCommandUtil.reloadPatroniConfig();
+        var credentials = PatroniCommandUtil.getPatorniCredentials(context, secretFinder);
+        PatroniCommandUtil.reloadPatroniConfig(webClientFactory, credentials);
       } catch (Exception ex) {
         LOGGER.warn("Can not reload patroni config now, will retry later: {}", ex.getMessage(), ex);
         return false;

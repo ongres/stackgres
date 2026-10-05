@@ -36,6 +36,7 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
+import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -62,6 +63,7 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
   private final Supplier<Boolean> reconcilePgBouncer;
   private final EventController eventController;
   private final ResourceFinder<Secret> secretFinder;
+  private final WebClientFactory webClientFactory;
   private final PostgresConnectionManager postgresConnectionManager;
 
   @Dependent
@@ -69,6 +71,7 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject EventController eventController;
     @Inject ResourceFinder<Secret> secretFinder;
+    @Inject WebClientFactory webClientFactory;
     @Inject PostgresConnectionManager postgresConnectionManager;
   }
 
@@ -80,6 +83,7 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
         .getBoolean(ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER);
     this.eventController = parameters.eventController;
     this.secretFinder = parameters.secretFinder;
+    this.webClientFactory = parameters.webClientFactory;
     this.postgresConnectionManager = parameters.postgresConnectionManager;
   }
 
@@ -121,7 +125,8 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
       copySsl();
       try {
         if (reconcilePatroni.get()) {
-          PatroniCommandUtil.reloadPatroniConfig();
+          var credentials = PatroniCommandUtil.getPatorniCredentials(context, secretFinder);
+          PatroniCommandUtil.reloadPatroniConfig(webClientFactory, credentials);
         }
         if (reconcilePgBouncer.get()) {
           PgBouncerCommandUtil.reloadPgBouncerConfig();

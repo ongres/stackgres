@@ -8,37 +8,33 @@ package io.stackgres.cluster.common;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_USERNAME_KEY;
 
+import java.net.URI;
+import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
-import com.ongres.process.FluentProcess;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.ClusterContext;
+import io.stackgres.common.EnvoyUtil;
+import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.tuple.Tuple;
 
 public interface PatroniCommandUtil {
 
-  Pattern PATRONI_COMMAND_PATTERN =
-      Pattern.compile("^(/[^/]+)+/python[^ ]* (/[^/]+)+/patroni .*$");
-
-  static void reloadPatroniConfig() {
-    final String patroniPid = findPatroniPid();
-    FluentProcess.start("sh", "-c",
-        String.format("kill -s HUP %s", patroniPid)).join();
-  }
-
-  private static String findPatroniPid() {
-    return ProcessHandle.allProcesses()
-        .filter(process -> process.info().commandLine()
-            .map(command -> PATRONI_COMMAND_PATTERN.matcher(command).matches())
-            .orElse(false))
-        .map(ProcessHandle::pid)
-        .map(String::valueOf)
-        .findAny()
-        .orElseThrow(() -> new IllegalStateException(
-            "Process with pattern " + PATRONI_COMMAND_PATTERN + " not found"));
+  static void reloadPatroniConfig(WebClientFactory webClientFactory, Credentials credentials) {
+    final URI uri = URI.create("http://localhost:" + EnvoyUtil.PATRONI_PORT + "/reload");
+    try (var webClient = webClientFactory.create(uri, Map.ofEntries(
+        webClientFactory.createBasicAuthorizationHeader(
+            credentials.username, credentials.password)))) {
+      int status = webClient.postJson(uri, null).getStatus();
+      if (status >= 300) {
+        throw new RuntimeException("Can not reload patroni configuration."
+            + " Endpoint /reload returned HTTP status " + status);
+      }
+    } catch (Exception ex) {
+      throw new RuntimeException("Can not reload patroni configuration", ex);
+    }
   }
 
   static Credentials getPatorniCredentials(

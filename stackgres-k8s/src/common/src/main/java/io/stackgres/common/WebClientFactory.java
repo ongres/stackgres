@@ -31,6 +31,7 @@ import jakarta.enterprise.context.Dependent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.Invocation.Builder;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -55,6 +56,10 @@ public class WebClientFactory {
   static final String SET_HTTP_SCHEME_PARAMETER = "setHttpScheme";
 
   public WebClient create(@NotNull URI uri) throws Exception {
+    return create(uri, Map.of());
+  }
+
+  public WebClient create(@NotNull URI uri, Map<String, String> headers) throws Exception {
     ClientBuilder clientBuilder = ClientBuilder.newBuilder();
     final boolean skipHostnameVerification =
         getUriQueryParameter(uri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
@@ -71,6 +76,7 @@ public class WebClientFactory {
         String.format(Locale.ROOT, "StackGres/%s (Java %s; %s %s)",
             StackGresProperty.OPERATOR_VERSION.getString(), Runtime.version().feature(),
             System.getProperty("os.name"), System.getProperty("os.arch")));
+    extraHeaders.putAll(headers);
     final boolean setHttpScheme;
     if (optionalProxyUri.isPresent()) {
       final URI proxyUri = optionalProxyUri.get();
@@ -110,6 +116,13 @@ public class WebClientFactory {
         maxRetries, sleepBeforeRetry);
   }
 
+  public Map.Entry<String, String> createBasicAuthorizationHeader(
+      String username, String password) {
+    return Map.entry(HttpHeaders.AUTHORIZATION,
+        "Basic " + Base64.getEncoder().encodeToString(
+            (username + ":" + password).getBytes(StandardCharsets.UTF_8)));
+  }
+
   public static class WebClient implements AutoCloseable {
     private final Client client;
     private final Map<String, String> extraHeaders;
@@ -146,6 +159,16 @@ public class WebClientFactory {
         Seq.seq(extraHeaders).forEach(
             extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
         return request.get();
+      });
+    }
+
+    public Response postJson(URI uri, String json) {
+      return doWithRetry(() -> {
+        final Builder request = client.target(targetUri(uri))
+            .request(MediaType.APPLICATION_JSON);
+        Seq.seq(extraHeaders).forEach(
+            extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
+        return request.post(Entity.json(json));
       });
     }
 
