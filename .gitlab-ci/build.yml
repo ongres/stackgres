@@ -1,10 +1,6 @@
 .build:
   image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 1
-  tags:
-    - stackgres-runner-v2
-    - stackgres-maven-runner
-    - linux-amd64
   script:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
@@ -99,11 +95,9 @@ build ui arm64:
         ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
         ||  $DO_ARM ) )
 
-build documentation:
+.build documentation:
   image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
-  tags:
-    - stackgres-runner
   script:
     - |
       [ "$DEBUG" != true ] || set -x
@@ -121,6 +115,25 @@ build documentation:
         --extract documentation:doc/public \
         documentation
   retry: 2
+
+build documentation amd64:
+  extends: .build documentation
+  tags:
+    - stackgres-runner
+    - linux-amd64
+
+build documentation arm64:
+  extends: .build documentation
+  tags:
+    - stackgres-runner
+    - linux-arm64
+  rules:
+  - if: |
+     ( ( $CI_PIPELINE_SOURCE =~ /^(push|schedule|trigger)$/ || $CI_COMMIT_TAG
+       || $CI_PIPELINE_SOURCE == 'merge_request_event' )
+       && (
+        ( $SKIP_ARM != "true" && $CI_COMMIT_TAG )
+        ||  $DO_ARM ) )
 
 build helm packages:
   image: $CI_REGISTRY/$SG_CI_PROJECT_PATH/$SG_CI_IMAGE_NAME

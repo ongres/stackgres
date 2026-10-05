@@ -201,9 +201,13 @@ pages:
     name: development
     url: https://ongresinc.gitlab.io/stackgres/
   script:
-    - sh stackgres-k8s/ci/build/build-gitlab.sh extract documentation doc/public
-    - tar cC doc public | tar x
-    - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+    - |
+      [ "$DEBUG" != true ] || set -x
+      export DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
+      export DOCUMENTATION_EXTRA_PATH=""
+      sh stackgres-k8s/ci/build/build-gitlab.sh extract documentation doc/public
+      tar cC doc public | tar x
+      find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   cache:
     - key: pages
       paths:
