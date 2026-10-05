@@ -1,6 +1,5 @@
 package io.stackgres.cli.commands.cluster;
 
-import io.stackgres.cli.Strings;
 import io.stackgres.cli.client.MatriarchClient;
 import io.stackgres.cli.commands.InteractivePrompt;
 import io.stackgres.cli.commands.StackGresPicocliException;
@@ -14,11 +13,12 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Spec;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Command(name = "delete", description = "Stops and deletes one or more PostgreSQL clusters", footer = "Either of @|yellow <name>|@, @|yellow --all|@, or @|yellow --tag|@ is required",
-        customSynopsis = "@|bold stackgres cluster delete |@[@|yellow -fhX|@] (@|yellow <name>|@ | @|yellow --all|@)")
+@Command(name = "delete", description = "Stops and deletes one or more PostgreSQL clusters", footer = "Either of @|yellow <name...>|@, @|yellow --all|@, or @|yellow --tag|@ is required",
+        customSynopsis = "@|bold stackgres cluster delete |@[@|yellow -fhX|@] (@|yellow <name...>|@ | @|yellow --all|@ | @|yellow --tag|@=@|italic <key=value>|@)")
 public class DeleteClusterCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();
@@ -26,8 +26,8 @@ public class DeleteClusterCommand extends StackGresSubCommand {
     @Spec
     CommandSpec spec;
 
-    @Parameters(description = "The cluster name", arity = "0..1")
-    String name;
+    @Parameters(description = "One or more cluster names", arity = "0..*", paramLabel = "<name>")
+    List<String> names;
 
     @Option(names = {"-t", "--tag"}, description = "Only delete clusters that are tagged accordingly", split = ",", paramLabel = "<key=value>")
     Map<String, String> tags = new HashMap<>();
@@ -45,18 +45,14 @@ public class DeleteClusterCommand extends StackGresSubCommand {
     @Override
     public void run() {
         boolean tagsPresent = !tags.isEmpty();
-        boolean namePresent = !Strings.isBlank(name);
+        boolean namesPresent = names != null && !names.isEmpty();
 
-        if ((deleteAll && tagsPresent && namePresent) || !(deleteAll ^ tagsPresent ^ namePresent))
-            throw new CommandLine.MutuallyExclusiveArgsException(spec.commandLine(), "Specify exactly one of <name>, --all, or --tag");
-
-        // Resolve (and note the target environment) up front — before the confirmation and the spinner —
-        // so you see which environment you're about to delete from, and any ambiguity fails cleanly.
-        if (namePresent) client.resolveCluster(name, "Targeting");
+        if ((deleteAll ? 1 : 0) + (tagsPresent ? 1 : 0) + (namesPresent ? 1 : 0) != 1)
+            throw new CommandLine.MutuallyExclusiveArgsException(spec.commandLine(), "Specify exactly one of <name...>, --all, or --tag");
 
         if (!force) {
-            if (namePresent)
-                outln("This will delete all data of the " + name + " cluster (including the PGDATA directory and PostgreSQL config)");
+            if (namesPresent)
+                outln("This will delete all data of: " + String.join(", ", names) + " (including the PGDATA directories and PostgreSQL config)");
             else
                 outln("This will delete all data of the clusters (including the PGDATA directories and PostgreSQL config)");
             if (!new InteractivePrompt(spec.commandLine()).confirm("delete"))
@@ -66,16 +62,19 @@ public class DeleteClusterCommand extends StackGresSubCommand {
         ProgressMessages messages = new ProgressMessages(spec.commandLine());
         if (debug) client.setDebug(messages);
         try {
-            if (namePresent) {
-                client.deleteCluster(name, string -> messages.doneAddFirstLine("The cluster " + string + " has been deleted"));
+            if (namesPresent) {
+                // Best-effort over the names; each deleteCluster resolves its own environment and streams.
+                runBatch(names, messages, "cluster", "deleted", name -> client.deleteCluster(name, ignored -> { }));
             } else if (deleteAll) {
                 client.deleteAllClusters(string -> messages.add("- " + string + " deleted"));
                 messages.doneAddFirstLine("All clusters have been deleted");
-            } else if (tagsPresent) {
+            } else {
                 client.deleteClusters(tags, string -> messages.add("- " + string + " deleted"));
                 String tagString = tags.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
                 messages.doneAddFirstLine("Clusters with tags (" + tagString + ") have been deleted");
             }
+        } catch (StackGresPicocliException e) {
+            throw e;   // runBatch already attached the per-item messages
         } catch (Exception e) {
             throw new StackGresPicocliException(e, messages);
         }

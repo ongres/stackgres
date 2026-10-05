@@ -1,6 +1,5 @@
 package io.stackgres.cli.commands.cluster;
 
-import io.stackgres.cli.Strings;
 import io.stackgres.cli.client.MatriarchClient;
 import io.stackgres.cli.commands.StackGresPicocliException;
 import io.stackgres.cli.commands.StackGresSubCommand;
@@ -13,11 +12,12 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Spec;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Command(name = "restart", description = "Stops and restarts one or more PostgreSQL clusters", footer = "Either of @|yellow <name>|@, @|yellow --all|@, or @|yellow --tag|@ is required",
-        customSynopsis = "@|bold stackgres cluster restart |@[@|yellow -hX|@] (@|yellow <name>|@ | @|yellow --all|@ | @|yellow --tag|@=@|italic <key=value>|@)")
+@Command(name = "restart", description = "Stops and restarts one or more PostgreSQL clusters", footer = "Either of @|yellow <name...>|@, @|yellow --all|@, or @|yellow --tag|@ is required",
+        customSynopsis = "@|bold stackgres cluster restart |@[@|yellow -hX|@] (@|yellow <name...>|@ | @|yellow --all|@ | @|yellow --tag|@=@|italic <key=value>|@)")
 public class RestartClusterCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();
@@ -25,8 +25,8 @@ public class RestartClusterCommand extends StackGresSubCommand {
     @Spec
     CommandSpec spec;
 
-    @Parameters(description = "The cluster name", arity = "0..1")
-    String name;
+    @Parameters(description = "One or more cluster names", arity = "0..*", paramLabel = "<name>")
+    List<String> names;
 
     @Option(names = {"-t", "--tag"}, description = "Only restart clusters that are tagged accordingly", split = ",", paramLabel = "<key=value>")
     Map<String, String> tags = new HashMap<>();
@@ -41,29 +41,26 @@ public class RestartClusterCommand extends StackGresSubCommand {
     @Override
     public void run() {
         boolean tagsPresent = !tags.isEmpty();
-        boolean namePresent = !Strings.isBlank(name);
+        boolean namesPresent = names != null && !names.isEmpty();
 
-        if ((restartAll && tagsPresent && namePresent) || !(restartAll ^ tagsPresent ^ namePresent))
-            throw new CommandLine.MutuallyExclusiveArgsException(spec.commandLine(), "Specify exactly one of <name>, --all, or --tag");
-
-        // Resolve (and note the target environment) before the spinner starts, so any cross-environment
-        // note or ambiguity error renders cleanly instead of colliding with ProgressMessages.
-        if (namePresent) client.resolveCluster(name, "Targeting");
+        if ((restartAll ? 1 : 0) + (tagsPresent ? 1 : 0) + (namesPresent ? 1 : 0) != 1)
+            throw new CommandLine.MutuallyExclusiveArgsException(spec.commandLine(), "Specify exactly one of <name...>, --all, or --tag");
 
         ProgressMessages messages = new ProgressMessages(spec.commandLine());
         if (debug) client.setDebug(messages);
         try {
-            if (namePresent) {
-                client.restartCluster(name);
-                messages.doneAddFirstLine("The cluster " + name + " has been restarted");
+            if (namesPresent) {
+                runBatch(names, messages, "cluster", "restarted", client::restartCluster);
             } else if (restartAll) {
                 client.restartAllClusters();
                 messages.doneAddFirstLine("All clusters have been restarted");
-            } else if (tagsPresent) {
+            } else {
                 client.restartClusters(tags);
                 String tagString = tags.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
                 messages.doneAddFirstLine("Clusters with tags (" + tagString + ") have been restarted");
             }
+        } catch (StackGresPicocliException e) {
+            throw e;
         } catch (Exception e) {
             throw new StackGresPicocliException(e, messages);
         }

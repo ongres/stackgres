@@ -3,7 +3,52 @@ package io.stackgres.cli.commands;
 import io.stackgres.cli.Strings;
 import picocli.CommandLine;
 
+import java.util.List;
+
 public abstract class StackGresSubCommand extends StackGresBaseCommand implements Runnable {
+
+    /** An action on a single named target (cluster/environment) that may fail. */
+    @FunctionalInterface
+    public interface NamedAction {
+        void run(String name) throws Exception;
+    }
+
+    /**
+     * Apply {@code action} to every name best-effort: a per-item ✓/✗ line is added to {@code messages} and
+     * failures don't stop the rest. On full success the block's first line becomes a green ✓ roll-up
+     * ("{n} {noun}s {verbPast}"); on any failure it throws {@link StackGresPicocliException} with a
+     * "{ok} of {n} {noun}s {verbPast}, {failed} failed" summary (rendered below the block by the handler,
+     * for a non-zero exit). {@code noun} is the singular target ("cluster"/"environment"); {@code verbPast}
+     * the verb ("deleted").
+     */
+    protected void runBatch(List<String> names, ProgressMessages messages, String noun, String verbPast, NamedAction action) {
+        int failed = 0;
+        for (String name : names) {
+            try {
+                action.run(name);
+                messages.add("✓ " + name + " " + verbPast);
+            } catch (Exception e) {
+                failed++;
+                messages.add("✗ " + name + ": " + rootMessage(e));
+            }
+        }
+        int total = names.size();
+        String nouns = total == 1 ? noun : noun + "s";
+        if (failed > 0) {
+            int ok = total - failed;
+            throw new StackGresPicocliException(ok + " of " + total + " " + nouns + " " + verbPast + ", " + failed + " failed", messages);
+        }
+        messages.doneAddFirstLine(total + " " + nouns + " " + verbPast);
+    }
+
+    /** The exception's own (clean) message, falling back to its cause — for a one-line ✗ entry. */
+    protected static String rootMessage(Throwable e) {
+        if (e.getMessage() != null && !e.getMessage().isBlank()) {
+            return e.getMessage();
+        }
+        Throwable cause = e.getCause();
+        return cause != null && cause.getMessage() != null ? cause.getMessage() : e.toString();
+    }
 
     protected void out(String message) {
         System.out.print(message);
