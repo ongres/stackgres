@@ -132,6 +132,7 @@ EOF
     until {
       DBOPS="$({ kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf .; } | jq -c .)"
       DBOPS="$(printf '%s' "$DBOPS" | jq -c '.status.dbOps = '"$DBOPS_PATCH")"
+      DBOPS="$(printf '%s' "$DBOPS" | jq -c '.metadata.annotations["'"$ROLLOUT_DBOPS_KEY"'"] = "'"$DBOPS_NAME"'"')"
       printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
       }
     do
@@ -412,7 +413,7 @@ EOF
   echo
 
   until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
-      jq 'del(.status.dbOps)' | \
+      jq 'del(.status.dbOps) | del(.metadata.annotations["'"$ROLLOUT_DBOPS_KEY"'"])' | \
       kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
   do
     sleep 1
@@ -712,7 +713,7 @@ rollback_major_version_upgrade() {
   echo
 
   until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
-      jq 'del(.status.dbOps)' | \
+      jq 'del(.status.dbOps) | del(.metadata.annotations["'"$ROLLOUT_DBOPS_KEY"'"])' | \
       kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
   do
     sleep 1

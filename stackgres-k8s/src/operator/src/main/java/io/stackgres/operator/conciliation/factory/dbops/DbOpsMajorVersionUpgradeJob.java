@@ -236,6 +236,10 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
             .withValue(StackGresContext.POSTGRES_VERSION_KEY)
             .build(),
             new EnvVarBuilder()
+            .withName("ROLLOUT_DBOPS_KEY")
+            .withValue(StackGresContext.ROLLOUT_DBOPS_KEY)
+            .build(),
+            new EnvVarBuilder()
             .withName("LOCK_DURATION")
             .withValue(OperatorProperty.LOCK_DURATION.getString())
             .build(),

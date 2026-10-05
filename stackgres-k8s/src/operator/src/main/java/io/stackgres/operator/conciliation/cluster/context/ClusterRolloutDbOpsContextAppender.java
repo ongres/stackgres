@@ -40,7 +40,8 @@ public class ClusterRolloutDbOpsContextAppender
             .findByNameAndNamespace(
                 name,
                 cluster.getMetadata().getNamespace())
-            .filter(dbOp -> DbOpsUtil.ROLLOUT_OPS.contains(dbOp.getSpec().getOp()))
+            .filter(dbOp -> DbOpsUtil.ROLLOUT_OPS.contains(dbOp.getSpec().getOp())
+                || dbOp.getSpec().isOpMajorVersionUpgrade())
             .isEmpty())
         .orElse(false)) {
       cluster.getStatus().getDbOps().setName(ClusterRolloutUtil.DBOPS_NOT_FOUND_NAME);
