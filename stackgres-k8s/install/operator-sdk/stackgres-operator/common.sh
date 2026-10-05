@@ -176,6 +176,26 @@ channel_predecessor() {
     | grep -v '^$' | sort_versions | grep -B 1 -xF "$3" | grep -vxF "$3" || true
 }
 
+# Print the bundle versions of channel $1 that are in the fork repository but not
+# yet in the catalog template $2: those above the channel head and below version
+# $3. Empty when the channel is absent.
+pending_versions() {
+  PENDING_HEAD_VERSION="$(channel_head "$1" "$2" | sed 's/^.*\.v//')"
+  [ -n "$PENDING_HEAD_VERSION" ] || return 0
+  ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
+    | cut -d / -f 5 | { cat; printf '%s\n%s\n' "$PENDING_HEAD_VERSION" "$3"; } \
+    | sort_versions | uniq \
+    | sed -n "/^$(printf %s "$PENDING_HEAD_VERSION" | sed 's/\./\\./g')\$/,/^$(printf %s "$3" | sed 's/\./\\./g')\$/p" \
+    | grep -vxF -e "$PENDING_HEAD_VERSION" -e "$3" \
+    | while read -r PENDING_VERSION
+      do
+        if version_channels "$PENDING_VERSION" | tr ' ' '\n' | grep -qxF "$1"
+        then
+          printf '%s\n' "$PENDING_VERSION"
+        fi
+      done
+}
+
 # Sort versions read from stdin in ascending semver order. GNU sort -V orders
 # 1.19.0 before 1.19.0-rc1, so map '-' to '~', which sorts before everything.
 sort_versions() {

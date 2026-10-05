@@ -258,16 +258,24 @@ then
             REPLACES="$BUNDLE_NAME_PREFIX.v$(eval "printf %s \"\$PREVIOUS_${CHANNEL_UPPERCASE}_VERSION\"")"
           fi
         fi
-        # Set replaces only when the target is present in this template; otherwise
-        # the new bundle becomes the channel head in that catalog.
-        if [ -n "$REPLACES" ] \
-          && grep -qF "name: $REPLACES" "$TEMPLATE_FILE"
+        # The bundle must replace the channel head, and every earlier bundle of the
+        # channel must already be in the template: release-config.yaml is applied
+        # only once the PR is merged, so replacing anything else, or a version that
+        # is still waiting to be added, leaves the channel with two heads.
+        CHANNEL_HEAD="$(channel_head "$CHANNEL" "$TEMPLATE_FILE")"
+        PENDING_VERSIONS="$(pending_versions "$CHANNEL" "$TEMPLATE_FILE" "$STACKGRES_VERSION")"
+        if [ -n "$PENDING_VERSIONS" ]
+        then
+          >&2 echo "Versions $(echo $PENDING_VERSIONS) of channel $CHANNEL are not yet present in $TEMPLATE_FILE."
+          >&2 echo "This may mean that the catalog has not yet been updated by Red Hat. You will have to wait before creating the PR :("
+          exit 1
+        elif [ -n "$REPLACES" ] && [ "$REPLACES" = "$CHANNEL_HEAD" ]
         then
           echo "    replaces: $REPLACES"
           # The CSV can only hold one replaces: use the one of the first channel.
           [ -n "$CSV_REPLACES" ] || CSV_REPLACES="$REPLACES"
         else
-          >&2 echo "Version $REPLACES in not present in $TEMPLATE_FILE."
+          >&2 echo "Version $REPLACES is not the head of channel $CHANNEL in $TEMPLATE_FILE (head is ${CHANNEL_HEAD:-missing})."
           >&2 echo "This may mean that the catalog has not yet been updated by Red Hat. You will have to wait before creating the PR :("
           exit 1
         fi
