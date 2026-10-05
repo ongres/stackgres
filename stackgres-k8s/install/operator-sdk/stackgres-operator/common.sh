@@ -165,6 +165,17 @@ channel_head() {
     ' "$2"
 }
 
+# Print the version a bundle of version $3 replaces in channel $1 of a catalog
+# template $2: the greatest version below it in that channel. Empty when there is
+# none.
+channel_predecessor() {
+  CHANNEL_VERSIONS="$(yq -r --arg ch "$1" \
+    '.entries[] | select(.schema == "olm.channel" and .name == $ch) | .entries[] | .name' \
+    "$2" | sed 's/^.*\.v//')"
+  { printf '%s\n%s\n' "$CHANNEL_VERSIONS" "$3"; } 2>/dev/null \
+    | grep -v '^$' | sort_versions | grep -B 1 -xF "$3" | grep -vxF "$3" || true
+}
+
 # Sort versions read from stdin in ascending semver order. GNU sort -V orders
 # 1.19.0 before 1.19.0-rc1, so map '-' to '~', which sorts before everything.
 sort_versions() {

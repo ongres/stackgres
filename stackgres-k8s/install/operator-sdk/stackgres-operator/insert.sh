@@ -80,11 +80,7 @@ do
     # channel, and the entry that used to replace that one becomes its successor.
     # Placing it in semver order, rather than appending, is what keeps the channel
     # to a single head.
-    CHANNEL_VERSIONS="$(yq -r --arg ch "$CHANNEL" \
-      '.entries[] | select(.schema == "olm.channel" and .name == $ch) | .entries[] | .name' \
-      "$TEMPLATE_FILE" | sed 's/^.*\.v//')"
-    REPLACES_VERSION="$({ printf '%s\n%s\n' "$CHANNEL_VERSIONS" "$STACKGRES_VERSION"; } 2>/dev/null \
-      | grep -v '^$' | sort_versions | grep -B 1 -xF "$STACKGRES_VERSION" | grep -vxF "$STACKGRES_VERSION" || true)"
+    REPLACES_VERSION="$(channel_predecessor "$CHANNEL" "$TEMPLATE_FILE" "$STACKGRES_VERSION")"
 
     if [ -n "$REPLACES_VERSION" ]
     then

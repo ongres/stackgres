@@ -178,14 +178,15 @@ then
     >&2 echo "Can not detect previous version. Set environment variable PREVIOUS_VERSION to set the previous version, or set it to "none" if no previous version is available"
     exit 1
   fi
-  if command -v set_previous_version_override > /dev/null 2>&1
-  then
-    set_previous_version_override
-  else
-    echo "Setting replaces to stackgres.v$PREVIOUS_VERSION"
-    sed -i "s/^\( *\)\(version: $STACKGRES_VERSION\)$/\1\2\n\1replaces: stackgres.v$PREVIOUS_VERSION/" \
-      "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml
-  fi
+fi
+
+# The CSV replaces of a bundle. For FBC the upgrade graph is defined by the
+# catalog templates and the CSV replaces is ignored by Red Hat pipelines, but it
+# is kept consistent with the catalog for anyone reading the bundle.
+CSV_REPLACES=
+if [ "x$PREVIOUS_VERSION" != xnone ] && [ "$DO_ADD_FBC" != true ]
+then
+  CSV_REPLACES="$(bundle_name "$PREVIOUS_VERSION")"
 fi
 
 if [ "$DO_ADD_FBC" = true ] && is_patch_of_older_minor "$STACKGRES_VERSION"
@@ -197,6 +198,19 @@ then
   # two heads and fail catalog validation. Skip release-config.yaml and insert
   # the version into the catalog afterwards with insert-to-*.sh, which places it
   # in semver order and re-points its successor.
+  # The CSV replaces the same version insert.sh will make it replace: the
+  # greatest one below it in the first channel of the first catalog template.
+  if [ "x$PREVIOUS_VERSION" != xnone ]
+  then
+    for CATALOG_NAME in $(catalog_names)
+    do
+      TEMPLATE_FILE="$(catalog_template "$CATALOG_NAME")" || continue
+      REPLACES_VERSION="$(channel_predecessor "$(version_channels "$STACKGRES_VERSION" | cut -d ' ' -f 1)" \
+        "$TEMPLATE_FILE" "$STACKGRES_VERSION")"
+      [ -z "$REPLACES_VERSION" ] || CSV_REPLACES="$(bundle_name "$REPLACES_VERSION")"
+      break
+    done
+  fi
   echo "Version $STACKGRES_VERSION targets minor ${STACKGRES_VERSION%.*}, older than $(latest_catalog_minor) in the catalog."
   echo "Not generating release-config.yaml: the FBC auto-release can not insert a version in the middle of the update graph."
   echo "Once the PR is merged and the bundle image is published, add it to the catalog with:"
@@ -250,6 +264,8 @@ then
           && grep -qF "name: $REPLACES" "$TEMPLATE_FILE"
         then
           echo "    replaces: $REPLACES"
+          # The CSV can only hold one replaces: use the one of the first channel.
+          [ -n "$CSV_REPLACES" ] || CSV_REPLACES="$REPLACES"
         else
           >&2 echo "Version $REPLACES in not present in $TEMPLATE_FILE."
           >&2 echo "This may mean that the catalog has not yet been updated by Red Hat. You will have to wait before creating the PR :("
@@ -260,6 +276,16 @@ then
   } > "$RELEASE_CONFIG"
   echo "Generated release-config.yaml:"
   cat "$RELEASE_CONFIG"
+fi
+
+if command -v set_previous_version_override > /dev/null 2>&1
+then
+  set_previous_version_override
+elif [ -n "$CSV_REPLACES" ]
+then
+  echo "Setting replaces to $CSV_REPLACES"
+  sed -i "s/^\( *\)\(version: $STACKGRES_VERSION\)$/\1\2\n\1replaces: $CSV_REPLACES/" \
+    "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml
 fi
 
 if [ "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml \
