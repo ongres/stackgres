@@ -18,6 +18,8 @@ public class ShardedClusterCitusConfigurations extends AdditionalProperties {
 
   private Boolean enableNodeAutoRemoval;
 
+  private Boolean autoReplicateReferenceTables;
+
   private Boolean connectToPooler;
 
   public String getUpdateNodeInterval() {
@@ -34,6 +36,14 @@ public class ShardedClusterCitusConfigurations extends AdditionalProperties {
 
   public void setEnableNodeAutoRemoval(Boolean enableNodeAutoRemoval) {
     this.enableNodeAutoRemoval = enableNodeAutoRemoval;
+  }
+
+  public Boolean getAutoReplicateReferenceTables() {
+    return autoReplicateReferenceTables;
+  }
+
+  public void setAutoReplicateReferenceTables(Boolean autoReplicateReferenceTables) {
+    this.autoReplicateReferenceTables = autoReplicateReferenceTables;
   }
 
   public Boolean getConnectToPooler() {

@@ -148,6 +148,7 @@ class CitusShardedClusterCoordinatorScriptTest {
     assertEquals(cluster.getSpec().getDatabase(), entries.get(2).getDatabase());
     assertTrue(entries.get(2).getScript().contains("IF false THEN"));
     assertFalse(entries.get(2).getScript().contains("%"));
+    assertFalse(entries.get(2).getScript().contains("replicate_reference_tables"));
     assertEquals("0/10 * * * * ?", entries.get(3).getCron());
     assertTrue(entries.get(3).getSetValueOrDefault());
     assertEquals(cluster.getSpec().getDatabase(), entries.get(3).getDatabase());
@@ -162,6 +163,33 @@ class CitusShardedClusterCoordinatorScriptTest {
     assertEquals(
         StackGresShardedClusterForCitusUtil.REGISTERED_GROUPS_SCRIPT_ID,
         entries.get(4).getId());
+  }
+
+  @Test
+  void generateResource_whenAutoReplicateReferenceTablesIsTrue_shouldReplicateThemAfterUpdatingTheNodes() {
+    cluster.getSpec().setType("citus");
+    cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    cluster.getSpec().getConfigurations().setCitus(new StackGresShardedClusterCitusConfigurations());
+    cluster.getSpec().getConfigurations().getCitus().setAutoReplicateReferenceTables(true);
+    when(context.getShardedCluster()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getSuperuserUsername()).thenReturn(Optional.empty());
+    lenient().when(context.getSuperuserPassword()).thenReturn(Optional.of("test-pass"));
+    lenient().when(context.getDatabaseSecret()).thenReturn(Optional.empty());
+
+    StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
+
+    List<StackGresScriptEntry> entries = script.getSpec().getScripts();
+    assertEquals(List.of(0, 1, 2, 6, 3, 4, 5),
+        entries.stream().map(StackGresScriptEntry::getId).toList());
+    StackGresScriptEntry entry = entries.get(3);
+    assertEquals(
+        StackGresShardedClusterForCitusUtil.REPLICATE_REFERENCE_TABLES_SCRIPT_ID, entry.getId());
+    assertEquals("citus-replicate-reference-tables", entry.getName());
+    assertEquals("0/10 * * * * ?", entry.getCron());
+    assertEquals(cluster.getSpec().getDatabase(), entry.getDatabase());
+    assertNull(entry.getWrapInTransaction());
+    assertTrue(entry.getScript().contains("replicate_reference_tables('block_writes')"));
   }
 
   @Test
@@ -205,6 +233,43 @@ class CitusShardedClusterCoordinatorScriptTest {
         entry.getScript());
     assertTrue(entry.getScript().contains("run_command_on_workers"));
     assertFalse(entry.getScript().contains("%"));
+  }
+
+  @Test
+  void generateResource_whenConnectionPoolingIsDisabled_shouldNotConnectToThePoolerOfTheGroup() {
+    cluster.getSpec().setType("citus");
+    when(context.getShardedCluster()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getSuperuserUsername()).thenReturn(Optional.empty());
+    lenient().when(context.getSuperuserPassword()).thenReturn(Optional.of("test-pass"));
+    lenient().when(context.getDatabaseSecret()).thenReturn(Optional.empty());
+    context.getWorkers().getFirst().getSpec().getPods().setDisableConnectionPooling(true);
+    context.getQueryRouters().getFirst().getSpec().getPods().setDisableConnectionPooling(true);
+
+    StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
+
+    StackGresScriptEntry entry = script.getSpec().getScripts().get(5);
+    assertTrue(entry.getScript().contains("(VALUES (0, 6432), (2, 7432))"), entry.getScript());
+  }
+
+  @Test
+  void generateResource_whenConnectionPoolingIsDisabledForAllTheGroups_shouldRemoveThePoolerEntries() {
+    cluster.getSpec().setType("citus");
+    when(context.getShardedCluster()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getSuperuserUsername()).thenReturn(Optional.empty());
+    lenient().when(context.getSuperuserPassword()).thenReturn(Optional.of("test-pass"));
+    lenient().when(context.getDatabaseSecret()).thenReturn(Optional.empty());
+    context.getCoordinator().getSpec().getPods().setDisableConnectionPooling(true);
+    context.getWorkers().forEach(worker -> worker.getSpec().getPods().setDisableConnectionPooling(true));
+    context.getQueryRouters().forEach(
+        queryRouter -> queryRouter.getSpec().getPods().setDisableConnectionPooling(true));
+
+    StackGresScript script = (StackGresScript) factory.generateResource(context).toList().getFirst();
+
+    StackGresScriptEntry entry = script.getSpec().getScripts().get(5);
+    assertTrue(entry.getScript().contains("(VALUES (NULL::integer, NULL::integer))"),
+        entry.getScript());
   }
 
   @Test

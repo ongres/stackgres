@@ -2,7 +2,6 @@ DO $$
 DECLARE
   node record;
   router_groupid integer;
-  activated boolean := false;
 BEGIN
   -- Do not wait for the default 30 seconds on each Pod that is gone
   PERFORM set_config('citus.node_connection_timeout', '5000', true);
@@ -58,7 +57,9 @@ BEGIN
 
   -- Patroni never activates a node, so activate the registered query routers once they can be
   -- reached (the placeholder host never resolves). Nodes that have metadata were disabled by
-  -- someone else and are left alone.
+  -- someone else and are left alone. citus_add_node replicates the reference tables to the new
+  -- node, citus_activate_node does not: they are replicated by the next script entry, since Citus
+  -- can not replicate them in a transaction that modified pg_dist_node.
   FOR node IN
     SELECT nodename, nodeport, shouldhaveshards FROM pg_dist_node
     WHERE NOT isactive AND NOT hasmetadata AND noderole = 'primary'
@@ -66,11 +67,6 @@ BEGIN
   LOOP
     IF citus_check_connection_to_node(node.nodename, node.nodeport) THEN
       PERFORM citus_activate_node(node.nodename, node.nodeport);
-      activated := true;
     END IF;
   END LOOP;
-  -- citus_add_node replicates the reference tables to the new node, citus_activate_node does not
-  IF activated THEN
-    PERFORM replicate_reference_tables('block_writes');
-  END IF;
 END$$;

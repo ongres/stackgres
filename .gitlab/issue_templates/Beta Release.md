@@ -95,7 +95,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 
     ```
     cd stackgres-k8s/install/operator-sdk/stackgres-operator/
-    . ~/.stackgres/operator-bundle-red-hat-certified-config && sh deploy-to-red-hat-certified.sh
+    . ~/.stackgres/operator-bundle-red-hat-certified-config && STACKGRES_VERSION="1.20.0-beta1" sh deploy-to-red-hat-certified.sh
     ```
 
     > The pipeline may fail and some changes to the operator bunle may be required. Perform such changes only on path `stackgres-k8s/install/operator-sdk/stackgres-operator/` on a separate branch:
@@ -115,7 +115,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 
     ```
     cd stackgres-k8s/install/operator-sdk/stackgres-operator/
-    . ~/.stackgres/operator-bundle-red-hat-marketplace-config && sh deploy-to-red-hat-marketplace.sh
+    . ~/.stackgres/operator-bundle-red-hat-marketplace-config && STACKGRES_VERSION="1.20.0-beta1" sh deploy-to-red-hat-marketplace.sh
     ```
 
     > The pipeline may fail and some changes to the operator bunle may be required. Perform such changes only on path `stackgres-k8s/install/operator-sdk/stackgres-operator/` on a separate branch:
@@ -135,7 +135,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 
     ```
     cd stackgres-k8s/install/operator-sdk/stackgres-operator/
-    . ~/.stackgres/operator-bundle-red-hat-community-config && sh deploy-to-red-hat-community.sh
+    . ~/.stackgres/operator-bundle-red-hat-community-config && STACKGRES_VERSION="1.20.0-beta1" sh deploy-to-red-hat-community.sh
     ```
 
     > The pipeline may fail and some changes to the operator bunle may be required. Perform such changes only on path `stackgres-k8s/install/operator-sdk/stackgres-operator/` on a separate branch:
@@ -155,7 +155,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 
     ```
     cd stackgres-k8s/install/operator-sdk/stackgres-operator/
-    . ~/.stackgres/operator-bundle-operatorhub-config && sh deploy-to-operatorhub.sh
+    . ~/.stackgres/operator-bundle-operatorhub-config && STACKGRES_VERSION="1.20.0-beta1" sh deploy-to-operatorhub.sh
     ```
 
     > The pipeline may fail and some changes to the operator bunle may be required. Perform such changes only on path `stackgres-k8s/install/operator-sdk/stackgres-operator/` on a separate branch:
@@ -170,6 +170,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     > Repeat the PR creation step above.
     > 
     > When PR is merged create a MR to `main-1.20.0-beta1` branch.
+
 1. [ ] Edit the [release notes of tag 1.20.0-beta1](https://gitlab.com/ongresinc/stackgres/-/releases/new?tag_name=1.20.0-beta1) by Copying and Pasting `CHANGELOG.md` section for version `1.20.0-beta1` (GitLab)
 1. [ ] Merge local branch `release-1.20.0-beta1` into `main-1.20`:
     ```

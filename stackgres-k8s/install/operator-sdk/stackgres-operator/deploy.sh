@@ -2,100 +2,18 @@
 
 set -e
 
-if [ -z "$UPSTREAM_NAME" ]
-then
-  >&2 echo "Must set UPSTREAM_NAME env var"
-  exit 1
-fi
-
-if [ -z "$UPSTREAM_GIT_URL" ]
-then
-  >&2 echo "Must set UPSTREAM_GIT_URL env var"
-  exit 1
-fi
-
-if [ -z "$FORK_GIT_URL" ]
-then
-  >&2 echo "Must set FORK_GIT_URL env var"
-  exit 1
-fi
-
-if [ -z "$PROJECT_NAME" ]
-then
-  >&2 echo "Must set PROJECT_NAME env var"
-  exit 1
-fi
-
 PROJECT_PATH=../../../../
 
 cd "$(dirname "$0")"
 
-STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh "$PROJECT_PATH"/stackgres-k8s/ci/build/version.sh)}"
+. ./common.sh
 
-mkdir -p target
-UPSTREAM_SUFFIX="$(printf %s "$UPSTREAM_NAME" | tr '[A-Z] ' '[a-z]-' | tr -dc '[a-z0-9]-')"
-UPSTREAM_GIT_PATH=target/"upstream-$UPSTREAM_SUFFIX"
-FORK_GIT_PATH=target/"fork-$UPSTREAM_SUFFIX"
+require_env
+require_version deploy
+
+setup_fork_repositories
+
 OPERATOR_BUNDLE_IMAGE_TAG="${STACKGRES_VERSION}$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX"
-
-if ! [ -d "$UPSTREAM_GIT_PATH" ] || ! git -C "$UPSTREAM_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qF "origin $UPSTREAM_GIT_URL "
-then
-  echo "Cloning Upstream $UPSTREAM_NAME from $UPSTREAM_GIT_URL"
-  rm -rf "$UPSTREAM_GIT_PATH"
-  git clone "$UPSTREAM_GIT_URL" "$UPSTREAM_GIT_PATH"
-fi
-
-echo "Resetting Upstream $UPSTREAM_NAME from $UPSTREAM_GIT_URL"
-git -C "$UPSTREAM_GIT_PATH" fetch
-git -C "$UPSTREAM_GIT_PATH" reset --hard HEAD
-git -C "$UPSTREAM_GIT_PATH" checkout main
-git -C "$UPSTREAM_GIT_PATH" reset --hard origin/main
-git -C "$UPSTREAM_GIT_PATH" stash save --keep-index --include-untracked
-git -C "$UPSTREAM_GIT_PATH" stash drop || true
-
-if ! [ -d "$FORK_GIT_PATH" ] || ! git -C "$FORK_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qF "origin $FORK_GIT_URL "
-then
-  echo "Cloning OperatorHub fork for StackGres from $FORK_GIT_URL"
-  rm -rf "$FORK_GIT_PATH"
-  git clone "$FORK_GIT_URL" "$FORK_GIT_PATH"
-fi
-
-echo "Resetting OperatorHub fork for StackGres from $FORK_GIT_URL"
-if ! git -C "$FORK_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qF "upstream $UPSTREAM_GIT_URL "
-then
-  git -C "$FORK_GIT_PATH" remote add upstream "$UPSTREAM_GIT_URL"
-fi
-git -C "$FORK_GIT_PATH" fetch upstream
-git -C "$FORK_GIT_PATH" reset --hard HEAD
-git -C "$FORK_GIT_PATH" checkout main
-git -C "$FORK_GIT_PATH" reset --hard upstream/main
-git -C "$FORK_GIT_PATH" stash save --keep-index --include-untracked
-git -C "$FORK_GIT_PATH" stash drop || true
-
-if [ "$(git -C "$FORK_GIT_PATH" rev-list --max-parents=0 HEAD)" != "$(git -C "$UPSTREAM_GIT_PATH" rev-list --max-parents=0 HEAD)" ]
-then
-  >&2 echo "Git repository $FORK_GIT_URL seems not a fork of $UPSTREAM_GIT_URL"
-  exit 1
-fi
-
-show_push_and_pr_instructions() {
-  echo
-  echo "To push use the following command"
-  echo
-  echo git -C "$PROJECT_PATH"/stackgres-k8s/install/operator-sdk/stackgres-operator/"$FORK_GIT_PATH" push -f
-  echo
-  if [ "$UPSTREAM_GIT_URL" != "${UPSTREAM_GIT_URL#https://github.com}" ]
-  then
-    if [ "$FORK_GIT_URL" != "${FORK_GIT_URL#https://github.com}" ]
-    then
-      echo "To create the PR go to: $UPSTREAM_GIT_URL/compare/main...$(printf %s "$FORK_GIT_URL" | cut -d / -f 4):$(printf %s "$FORK_GIT_URL" | cut -d / -f 5):main?expand=1"
-    fi
-    if [ "$FORK_GIT_URL" != "${FORK_GIT_URL#git@github.com}" ]
-    then
-      echo "To create the PR go to: $UPSTREAM_GIT_URL/compare/main...$(printf %s "$FORK_GIT_URL" | cut -d / -f 1 | cut -d : -f 2):$(printf %s "$FORK_GIT_URL" | cut -d / -f 2 | cut -d . -f 1):main?expand=1"
-    fi
-  fi
-}
 
 # Onboarding to file-based catalogs is a one-time migration of the ALREADY
 # PUBLISHED catalog: 'make fbc-onboarding' renders the existing released bundles
@@ -123,14 +41,21 @@ then
   sed -i 's#/root/.docker/config.json#$${HOME}/.docker/config.json#g' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
   sed -i 's#--security-opt label=disable#--security-opt label=disable -e HOME=$${HOME}#' "$FORK_GIT_PATH/operators/$PROJECT_NAME/Makefile"
   make -C "$FORK_GIT_PATH/operators/$PROJECT_NAME" fbc-onboarding
-  # Onboarding embeds each bundle's full manifests ("olm.bundle.object"), so the
-  # StackGres catalogs (huge CRDs x many versions) blow past GitHub's 100 MB
-  # per-file limit. Re-render to the compact "olm.csv.metadata" form (CRDs are
-  # pulled from the bundle image at install time); OLM and the Red Hat pipelines
-  # accept it. e.g. community v4.16 drops from ~150 MB to ~42 MB.
+  # Onboarding embeds each bundle's full manifests ("olm.bundle.object"). From
+  # v4.17 the compact "olm.csv.metadata" form is used instead, and is in fact
+  # required there, so re-render those catalogs (the CRDs are then pulled from
+  # the bundle image at install time).
+  #
+  # Only from v4.17: render_catalogs.sh, which 'make catalogs' runs, and the FBC
+  # auto-release both migrate only catalogs >= v4.17, so migrating the older ones
+  # here would commit a catalog that neither of them reproduces - the next render
+  # would silently rewrite it back, several times larger. The size of the older
+  # catalogs is kept down by carrying fewer versions in them instead, which is
+  # what remove.sh is for.
   for CATALOG_DIR in "$FORK_GIT_PATH"/catalogs/v4.*/"$PROJECT_NAME"
   do
     [ -d "$CATALOG_DIR" ] || continue
+    is_catalog_v4_17_plus "$(basename "$(dirname "$CATALOG_DIR")")" || continue
     opm render "$CATALOG_DIR" --migrate-level=bundle-object-to-csv-metadata --output=yaml \
       > "$CATALOG_DIR/catalog.yaml.new"
     mv "$CATALOG_DIR/catalog.yaml.new" "$CATALOG_DIR/catalog.yaml"
@@ -153,7 +78,7 @@ then
   then
     PREVIOUS_VERSION="$(
       ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-        | cut -d / -f 5 | grep -v '.-\(rc\|beta\|alpha\).' | sort -t ' ' -k 1Vr | head -n 1)"
+        | cut -d / -f 5 | grep -v '.-\(rc\|beta\|alpha\).' | sort_versions | tail -n 1)"
     echo "Previous version detected from repository: $PREVIOUS_VERSION"
   else
     echo "Previous version detected from PREVIOUS_VERSION environtment variable: $PREVIOUS_VERSION"
@@ -165,15 +90,15 @@ then
   fi
   PREVIOUS_STABLE_VERSION="$(
     ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | grep -v '.-\(rc\|beta\|alpha\).' | sort -t ' ' -k 1Vr | head -n 1)"
+      | cut -d / -f 5 | grep -v '.-\(rc\|beta\|alpha\).' | sort_versions | tail -n 1)"
   echo "Previous stable version detected from repository: $PREVIOUS_STABLE_VERSION"
   PREVIOUS_CANDIDATE_VERSION="$(
     ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | grep -v '.-\(beta\|alpha\).' | sort -t ' ' -k 1Vr | head -n 1)"
+      | cut -d / -f 5 | grep -v '.-\(beta\|alpha\).' | sort_versions | tail -n 1)"
   echo "Previous candidate version detected from repository: $PREVIOUS_CANDIDATE_VERSION"
   PREVIOUS_FAST_VERSION="$(
     ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | sort -t ' ' -k 1Vr | head -n 1)"
+      | cut -d / -f 5 | sort_versions | tail -n 1)"
   echo "Previous fast version detected from repository: $PREVIOUS_FAST_VERSION"
 fi
 
@@ -263,7 +188,22 @@ then
   fi
 fi
 
-if [ "$DO_ADD_FBC" = true ]
+if [ "$DO_ADD_FBC" = true ] && is_patch_of_older_minor "$STACKGRES_VERSION"
+then
+  # A version on a minor older than the latest one in the catalog (e.g. 1.18.9
+  # released when 1.19 is out) does not become a channel head: it belongs in the
+  # middle of the update graph. Red Hat's FBC auto-release can only append an
+  # entry, never rewire the existing ones, so it would leave every channel with
+  # two heads and fail catalog validation. Skip release-config.yaml and insert
+  # the version into the catalog afterwards with insert-to-*.sh, which places it
+  # in semver order and re-points its successor.
+  echo "Version $STACKGRES_VERSION targets minor ${STACKGRES_VERSION%.*}, older than $(latest_catalog_minor) in the catalog."
+  echo "Not generating release-config.yaml: the FBC auto-release can not insert a version in the middle of the update graph."
+  echo "Once the PR is merged and the bundle image is published, add it to the catalog with:"
+  echo
+  echo "  STACKGRES_VERSION=$STACKGRES_VERSION sh insert-to-$UPSTREAM_SUFFIX.sh"
+  echo
+elif [ "$DO_ADD_FBC" = true ]
 then
   # Generate release-config.yaml to drive Red Hat's FBC auto-release. On merge,
   # the pipeline builds and publishes the bundle image, then opens a follow-up PR
@@ -272,51 +212,20 @@ then
   # NOT render catalogs here: the pipeline renders them against the certified
   # image it just published (registry.connect.redhat.com), which is the only
   # image with the correct package name.
-  # Channels the version belongs to, by the pre-release types each one admits when
-  # searching for the previous version to replace:
-  #   stable    -> GA only
-  #   candidate -> GA + rc
-  #   fast      -> GA + rc + alpha + beta
-  # A version is added to every channel whose regexp it matches.
-  STABLE_REGEXP='^[0-9]\+\.[0-9]\+\.[0-9]\+$'
-  CANDIDATE_REGEXP='^[0-9]\+\.[0-9]\+\.[0-9]\+\(-rc[0-9.]*\)\?$'
-  FAST_REGEXP='^[0-9]\+\.[0-9]\+\.[0-9]\+\(-\(alpha\|beta\|rc\)[0-9.]*\)\?$'
-  CHANNELS="$(sh channels.sh "$STACKGRES_VERSION" \
-    "stable:$STABLE_REGEXP" \
-    "fast:$FAST_REGEXP" \
-    "candidate:$CANDIDATE_REGEXP")"
-  # Print the head bundle of a channel in a catalog template (the entry that no
-  # other entry replaces or skips). That is the version the new bundle must
-  # replace in that channel; deriving it from the template (the source of truth
-  # for each channel's contents) keeps every channel to a single head. Empty when
-  # the channel is absent from the template.
-  channel_head() {
-    yq -r --arg ch "$1" '
-      .entries[]
-      | select(.schema == "olm.channel" and .name == $ch)
-      | .entries as $e
-      | (($e | map(.replaces // empty)) + ($e | map(.skips // []) | add // [])) as $referenced
-      | (($e | map(.name)) - $referenced)
-      | .[0] // empty
-    ' "$2"
-  }
-  BUNDLE_NAME_PREFIX="$([ "$RENAME_CSV" = true ] && printf %s "$PROJECT_NAME" || printf stackgres)"
-  CATALOG_NAMES="$(yq -c \
-    '.annotations["com.redhat.openshift.versions"] / "-" | map(sub("^v4\\.";"")|tonumber)|[range(.[0];.[1]+1)]|map("v4." + (.|tostring))' \
-    openshift-operator-bundle/metadata/annotations.yaml)"
+  CHANNELS="$(version_channels "$STACKGRES_VERSION")"
+  BUNDLE_NAME_PREFIX="$(bundle_name_prefix)"
   RELEASE_CONFIG="$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION/release-config.yaml"
   {
     echo '---'
     echo 'catalog_templates:'
-    for CATALOG_NAME in $(printf %s "$CATALOG_NAMES" | yq -r '.[]')
+    for CATALOG_NAME in $(catalog_names)
     do
-      TEMPLATE_FILE="$FORK_GIT_PATH/operators/$PROJECT_NAME/catalog-templates/$CATALOG_NAME.yaml"
       # Only target templates that onboarding actually produced for this OCP version.
-      [ -f "$TEMPLATE_FILE" ] || continue
+      TEMPLATE_FILE="$(catalog_template "$CATALOG_NAME")" || continue
       # Emit one entry per channel: each channel keeps its own upgrade edge, so the
       # bundle replaces that channel's own head rather than a single shared version
       # (which would fork the graph and leave the channel with multiple heads).
-      for CHANNEL in $(printf %s "$CHANNELS" | tr ',' ' ')
+      for CHANNEL in $CHANNELS
       do
         echo "  - template_name: $CATALOG_NAME.yaml"
         echo "    channels:"
@@ -332,7 +241,7 @@ then
             REPLACES="$(channel_head "$CHANNEL" "$TEMPLATE_FILE")"
           else
             CHANNEL_UPPERCASE="$(printf %s "$CHANNEL" | tr 'a-z' 'A-Z')"
-            REPLACES="stackgres.v$(eval "printf %s \"\$PREVIOUS_${CHANNEL_UPPERCASE}_VERSION\"")"
+            REPLACES="$BUNDLE_NAME_PREFIX.v$(eval "printf %s \"\$PREVIOUS_${CHANNEL_UPPERCASE}_VERSION\"")"
           fi
         fi
         # Set replaces only when the target is present in this template; otherwise

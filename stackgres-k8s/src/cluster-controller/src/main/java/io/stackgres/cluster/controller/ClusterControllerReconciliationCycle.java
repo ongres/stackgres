@@ -149,6 +149,7 @@ public class ClusterControllerReconciliationCycle
   @Override
   protected void onConfigError(StackGresClusterContext context,
       HasMetadata configResource, Exception ex) {
+    metrics.incrementReconciliationTotalErrors(StackGresCluster.class);
     String message = MessageFormatter.arrayFormat(
         "StackGres Cluster {}.{} reconciliation failed",
         new String[] {

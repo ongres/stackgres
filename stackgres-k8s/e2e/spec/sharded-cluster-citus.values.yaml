@@ -20,8 +20,12 @@ cluster:
     - database: citus
       retryOnError: true
       script: |
-        CREATE TABLE query_router_test(i int);
-        SELECT create_distributed_table('query_router_test','i');
+        CREATE TABLE reference_table(i int PRIMARY KEY);
+        SELECT create_reference_table('reference_table');
+        INSERT INTO reference_table SELECT generate_series(1, 1000);
+        CREATE TABLE distributed_table(i int PRIMARY KEY);
+        SELECT create_distributed_table('distributed_table', 'i');
+        INSERT INTO distributed_table SELECT generate_series(1, 1000);
   pods:
     persistentVolume:
       size: 128Mi

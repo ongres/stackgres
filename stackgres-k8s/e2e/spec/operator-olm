@@ -46,6 +46,10 @@ e2e_test_uninstall() {
 e2e_test() {
   run_test "Check that operator can be installed" check_operator_install
 
+  run_test "Check that the operator exposes its metrics" check_operator_metrics "$OPERATOR_NAMESPACE"
+
+  run_test "Check that the REST API exposes its metrics" check_olm_restapi_metrics
+
   run_test "Check that resources can be created" check_resources_creation
 
   run_test "Checking that metrics are exported" check_metrics "$CLUSTER_1_NAME"
@@ -69,6 +73,13 @@ check_operator_install() {
   olm_check_operator_installed
 
   check_restapi_admin_password
+}
+
+# The REST API is deployed in the namespace of the SGConfig, resolved again since each test runs
+# in a subshell of its own (see olm_resolve_operator_names).
+check_olm_restapi_metrics() {
+  olm_resolve_operator_names
+  check_restapi_metrics "$SGCONFIG_NAMESPACE"
 }
 
 # The password the OLM installed operator generated, so that run_curl can log in.

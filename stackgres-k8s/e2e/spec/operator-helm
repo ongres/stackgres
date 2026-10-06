@@ -1,5 +1,12 @@
 #!/bin/sh
 
+. "$SPEC_PATH/abstract/metrics"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/metrics")"
+}
+
 e2e_exclusive_lock() {
   true
 }
@@ -20,6 +27,8 @@ e2e_test_uninstall() {
 
 e2e_test() {
   run_test "Check that operator can be installed" check_operator_install
+  run_test "Check that the operator exposes its metrics" check_operator_metrics
+  run_test "Check that the REST API exposes its metrics" check_restapi_metrics
   run_test "Check that operator can be upgrade with same values" check_operator_upgrade
   run_test "Check that operator can not be upgrade from an alpha version" check_operator_upgrade_alpha
   run_test "Check that operator can not be upgrade from a beta version" check_operator_upgrade_beta

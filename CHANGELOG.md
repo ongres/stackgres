@@ -1,3 +1,67 @@
+# :rocket: Release 1.19.3 (2026-10-02)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.19.3 is out! :bug: :gun: :confetti_ball: :beers: 
+
+> This release fixes the activation of the query routers of a citus `SGShardedCluster`: a query router
+> added after a reference table was created was never activated, since the coordinator replicated the
+> reference tables in the same transaction that activated it and Citus rejected it. The replication of
+> the reference tables, that blocks the writes to every reference table while they are copied and was
+> performed by default at each activation, is now optional and disabled by default (see
+> `SGShardedCluster.spec.configurations.citus.autoReplicateReferenceTables`).
+> The CRDs of the 1.19.2 helm chart and OLM bundles were also stale, lacking every field added by that
+> release (like `SGShardedCluster.spec.configurations.citus.connectToPooler` or `SGScript.spec.scripts[].cron`),
+> since the release packages were reused from a build performed before the last change of the CRDs.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres!
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* New `SGShardedCluster.spec.configurations.citus.autoReplicateReferenceTables` (disabled by default) to make the coordinator replicate the reference tables to the nodes that miss them, like a query router added after the reference tables were created. When disabled Citus copies them at the next `create_reference_table` or `replicate_reference_tables()`, and in the meantime executes the queries of that node that use a reference table on the nodes that hold it ([#3252](https://gitlab.com/ongresinc/stackgres/-/issues/3252))
+* The cluster controller logs every execution of an `SGScript` entry at TRACE level, with its outcome and duration. The INFO line of an `SGScript` entry with `cron`, that includes its cron expression, is printed the first time it is executed since the start of the cluster controller and again each time its cron expression or its script change ([#3254](https://gitlab.com/ongresinc/stackgres/-/issues/3254))
+* The cluster controller exposes the metrics of the managed SQL reconciliation and the new counters `sg_controller_managed_sql_script_entry_executions` and `sg_controller_managed_sql_script_entry_failures`, with the labels `sgscript`, `script` and `id` of the `SGScript` entry ([#3255](https://gitlab.com/ongresinc/stackgres/-/issues/3255))
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* A query router of a citus `SGShardedCluster` added after a reference table was created was never activated. The coordinator `SGScript` entry `citus-update-nodes` failed at each execution with `cannot replicate reference tables in a transaction that modified node metadata`, and the entries that follow it (the start gate of the query routers, the registered groups and `pg_dist_poolinfo`) were not executed either ([#3250](https://gitlab.com/ongresinc/stackgres/-/issues/3250))
+* The CRDs of the 1.19.2 helm chart and OLM bundles lacked every field added by that release, so on a fresh install the API server pruned them until the operator installed its own CRDs. The release packages and templates were reused from a build performed before the last change of the CRDs, since their hash did not include them ([#3251](https://gitlab.com/ongresinc/stackgres/-/issues/3251))
+* The `disableConnectionPooling` fields of the coordinator, the workers, the query routers and their overrides were ignored when `SGShardedCluster.spec.configurations.citus.connectToPooler` was `true` (the default), so every Pod got a PgBouncer container and the port 5432 of the primary Service started targeting PgBouncer. The nodes without connection pooling are now not added to `pg_dist_poolinfo`, so Citus connects directly to their Postgres ([#3253](https://gitlab.com/ongresinc/stackgres/-/issues/3253))
+* The gauges of the operator and of the cluster controller that share a name with different labels (like the `reconciliation_total_performed` gauge of each resource) were only exposed for the first set of labels registered
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.19.3/helm/stackgres-operator.tgz`
+
+> IMPORTANT: The reference tables are no longer replicated by the coordinator to the nodes added to a citus `SGShardedCluster` unless
+`SGShardedCluster.spec.configurations.citus.autoReplicateReferenceTables` is set to `true`.
+
+> IMPORTANT: The PgBouncer of the coordinator, the workers and the query routers of a citus `SGShardedCluster` that set `disableConnectionPooling`
+to `true` is removed after the upgrade, and the port 5432 of their primary Service targets Postgres directly again.
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.19.3)
+
 # :rocket: Release 1.19.2 (2026-09-29)
 
 ## :notepad_spiral: NOTES

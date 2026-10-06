@@ -13,6 +13,7 @@ import static io.stackgres.cluster.controller.ManagedSqlScriptEntryExecutor.GRAN
 import static io.stackgres.cluster.controller.ManagedSqlScriptEntryExecutor.GRANT_ON_SCHEMA_MANAGED_SQL_STATEMENT;
 import static io.stackgres.cluster.controller.ManagedSqlScriptEntryExecutor.INSERT_SCRIPT_ENTRY_STATEMENT;
 import static io.stackgres.cluster.controller.ManagedSqlScriptEntryExecutor.IS_MANAGED_SQL_STATUS_TABLE_MISSING_QUERY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -27,7 +28,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Objects;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.fixture.Fixtures;
@@ -55,6 +59,8 @@ class ManagedSqlScriptEntryExecutorTest {
 
   private ManagedSqlScriptEntryExecutor scriptEntryExecutor;
 
+  private MeterRegistry registry;
+
   @BeforeEach
   void setUp() throws Exception {
     StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
@@ -69,7 +75,32 @@ class ManagedSqlScriptEntryExecutorTest {
         .build();
     scriptEntry.getScriptEntryStatus().setHash("test");
 
-    scriptEntryExecutor = new ManagedSqlScriptEntryExecutor(postgresConnectionManager);
+    registry = new SimpleMeterRegistry();
+    scriptEntryExecutor = new ManagedSqlScriptEntryExecutor(
+        postgresConnectionManager, new Metrics(registry));
+  }
+
+  @Test
+  void testExecutor_shouldCountTheExecutionsAndTheFailuresOfTheScriptEntry() throws Exception {
+    scriptEntry.getScriptEntry().setWrapInTransaction(null);
+    scriptEntry.getScriptEntry().setStoreStatusInDatabase(false);
+    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
+        .thenReturn(connection);
+    when(connection.createStatement()).thenReturn(statement);
+    when(statement.execute(any())).thenReturn(false).thenThrow(new SQLException("test"));
+
+    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test", "postgres");
+    assertThrows(SQLException.class,
+        () -> scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test", "postgres"));
+
+    String[] tags = new String[] {
+        "sgscript", scriptEntry.getManagedScript().getSgScript(),
+        "script", Objects.toString(scriptEntry.getScriptEntry().getName(), ""),
+        "id", String.valueOf(scriptEntry.getScriptEntry().getId())};
+    assertEquals(2, registry.get("sg_controller_managed_sql_script_entry_executions")
+        .tags(tags).counter().count());
+    assertEquals(1, registry.get("sg_controller_managed_sql_script_entry_failures")
+        .tags(tags).counter().count());
   }
 
   @Test

@@ -99,6 +99,21 @@ class ReconciliationCycleTest {
     verify(reconciliationCycle, times(1)).onConfigError(any(), any(), any());
   }
 
+  @Test
+  void ifResourceIsReconciled_thePostReconciliationHookShouldOnlyBeCalledOnSuccess() throws Exception {
+    reconciliationCycle = Mockito.spy(reconciliationCycle);
+    TestCustomResource resource2 = new TestCustomResource("test2");
+    when(reconciliator.reconcile(any(), any()))
+        .thenThrow(RuntimeException.class)
+        .thenReturn(new ReconciliationResult<>(new RuntimeException("reconciliation failed")))
+        .thenReturn(new ReconciliationResult<>());
+    reconciliationCycle.reconciliationCycle(
+        ImmutableList.of(Optional.of(resource), Optional.of(resource1), Optional.of(resource2)));
+    verify(reconciliator, times(3)).reconcile(any(), any());
+    verify(reconciliationCycle, times(3)).onPreReconciliation(any());
+    verify(reconciliationCycle, times(1)).onPostReconciliation(any());
+  }
+
   class TestReconciliationCycle extends
       ReconciliationCycle<ResourceHandlerContext, TestCustomResource,
       ResourceHandlerSelector<ResourceHandlerContext>> {

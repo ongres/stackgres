@@ -66,6 +66,25 @@ e2e_test() {
 
   run_test "Checking that query routers are removed from and added to pg_dist_node on scaling" \
     query_routers_scaling_check
+
+  run_test "Checking that the cluster-controller exposes the executions of the citus coordinator SGScript entries" \
+    metrics_check
+}
+
+metrics_check() {
+  local COORDINATOR_PRIMARY_POD
+  COORDINATOR_PRIMARY_POD="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "stackgres.io/cluster-name=$CLUSTER_NAME-coord,role=primary" \
+    --template '{{ range .items }}{{ .metadata.name }}{{ "\n" }}{{ end }}' | head -n 1)"
+
+  if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$COORDINATOR_PRIMARY_POD" -c cluster-controller \
+      -- curl -s http://localhost:8080/q/metrics \
+      | grep -q "^sg_controller_managed_sql_script_entry_executions_total{id=\"2\",script=\"citus-update-nodes\",sgscript=\"$CLUSTER_NAME-coord\"}"'
+  then
+    success "The cluster-controller exposes the executions of the citus coordinator SGScript entries"
+  else
+    fail "The cluster-controller does not expose the executions of the citus coordinator SGScript entries"
+  fi
 }
 
 # A settled SGShardedCluster must reconcile to a no-op. For Citus every child cluster renews its
@@ -171,7 +190,7 @@ pooler_connections_check() {
   fi
 
   try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
-    -d citus -q "SELECT COUNT(*) FROM query_router_test" | grep -xF 0'
+    -d citus -q "SELECT COUNT(*) FROM distributed_table" | grep -xF 1000'
 
   if [ "$EXIT_CODE" = 0 ]
   then
@@ -282,7 +301,7 @@ query_routers_check() {
   fi
 
   try_function wait_until eval 'run_query -c "$ROUTER_CLUSTER" -h "$ROUTER_SERVICE" -i 0 -p 5432 \
-    -d citus -q "INSERT INTO query_router_test VALUES (1)"'
+    -d citus -q "INSERT INTO distributed_table VALUES (1001)"'
 
   if [ "$EXIT_CODE" = 0 ]
   then
@@ -292,13 +311,23 @@ query_routers_check() {
   fi
 
   try_function wait_until eval 'run_query -c "$ROUTER_CLUSTER" -h "$ROUTER_SERVICE" -i 0 -p 5432 \
-    -d citus -q "SELECT COUNT(*) FROM query_router_test" | grep -xF 1'
+    -d citus -q "SELECT COUNT(*) FROM distributed_table" | grep -xF 1001'
 
   if [ "$EXIT_CODE" = 0 ]
   then
     success "Query router can read distributed tables"
   else
     fail "Query router can not read distributed tables"
+  fi
+
+  try_function wait_until eval 'run_query -c "$ROUTER_CLUSTER" -h "$ROUTER_SERVICE" -i 0 -p 5432 \
+    -d citus -q "SELECT COUNT(*) FROM reference_table" | grep -xF 1000'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "Query router can read reference tables"
+  else
+    fail "Query router can not read reference tables"
   fi
 }
 
@@ -365,10 +394,14 @@ query_routers_scaling_check() {
   local ROUTER_GROUP=1026
   local RESULT EXIT_CODE
 
-  # The nodes of the removed groups are only removed from pg_dist_node when enabled
+  # The nodes of the removed groups are only removed from pg_dist_node when enabled, and the
+  # reference tables are only replicated to the added nodes when enabled
   kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
-    -p '{"spec":{"configurations":{"citus":{"enableNodeAutoRemoval":true}}}}'
+    -p '{"spec":{"configurations":{"citus":{"enableNodeAutoRemoval":true,"autoReplicateReferenceTables":true}}}}'
 
+  # A query router added once a reference table exists (reference_table is created with the
+  # sharded cluster) must be activated and get the reference tables, that citus_activate_node does
+  # not replicate
   set_query_routers 2
   wait_query_router_registered "$ROUTER_CLUSTER" "$ROUTER_GROUP"
 
@@ -446,6 +479,20 @@ wait_query_router_registered() {
     success "Query router of group $ROUTER_GROUP is registered in pg_dist_node without shards"
   else
     fail "Query router of group $ROUTER_GROUP is not registered in pg_dist_node without shards"
+  fi
+
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
+    -d citus -q "SELECT COUNT(*) FROM pg_dist_partition
+      WHERE partmethod = '"'n'"' AND repmodel = '"'t'"'
+      AND NOT EXISTS (SELECT FROM pg_dist_shard JOIN pg_dist_placement USING (shardid)
+        WHERE pg_dist_shard.logicalrelid = pg_dist_partition.logicalrelid
+        AND pg_dist_placement.groupid = $ROUTER_GROUP)" | grep -xF 0'
+
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    success "Query router of group $ROUTER_GROUP holds the reference tables"
+  else
+    fail "Query router of group $ROUTER_GROUP does not hold the reference tables"
   fi
 
   # Patroni of the query router is only started once the SGShardedCluster set the start gate annotation

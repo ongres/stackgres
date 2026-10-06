@@ -1,21 +1,21 @@
 .unpinned_images:
 .images:
   ci_image: registry.gitlab.com/ongresinc/stackgres/ci:1.31
-  jdk_runtime_image: registry.access.redhat.com/ubi9/openjdk-21:1.24-3.1790007361
+  jdk_runtime_image: registry.access.redhat.com/ubi9/openjdk-21:1.24-3.1790283195
   jdk_build_image: registry.gitlab.com/ongresinc/stackgres/builder:1.11
-  ubi8_micro_image: registry.access.redhat.com/ubi8/ubi-micro:1790163163
-  ubi9_minimal_image: registry.access.redhat.com/ubi9/ubi-minimal:1790074409
+  ubi8_micro_image: registry.access.redhat.com/ubi8/ubi-micro:1790751683
+  ubi9_minimal_image: registry.access.redhat.com/ubi9/ubi-minimal:1790754202
   admin_ui_build_image: registry.access.redhat.com/ubi8/nodejs-20:1-1778648142
-  admin_ui_nginx_image: registry.access.redhat.com/ubi8/nginx-124:1790232881
+  admin_ui_nginx_image: registry.access.redhat.com/ubi8/nginx-124:1791183206
   pglambda_nodejs_image: registry.access.redhat.com/ubi8/nodejs-18:1-140
 .pinned_images:
   ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci@sha256:1d9b332cdc075a00841bf6ee7a7c53ce27ee0f46f14937eba87c3fa85037624c
-  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21@sha256:645710be17ff582b0f2eb5d52f572556a2b73f4367290548bbc89431213e3ece
-  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder@sha256:fc80a5b602bff99a6b7a2fecc4efce596b607fec2fa353a6414ef70ebe46499d
-  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8/ubi-micro@sha256:b2df364e16af80aa65b010decd2c0fbf96923242eabc1ae6c327753c3dc72f0c
-  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9/ubi-minimal@sha256:8ebe2ad8fdf3cab3e5a53c1edc69194c98209cfadab24b884f4ad9ebcf7bbbfc
+  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21@sha256:c1ace6c4a54563bc2912d753b898fcacb9b1c30010cd153419ddd3aa5bbf3b56
+  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder@sha256:325397caa0126b24c15d2f5c8ec800965325f6bebff2f8e6a0a27fb56ca6fdef
+  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8/ubi-micro@sha256:1ffcd8e04fb749a30cb80170c49858d7e978f42b475e7780dfde20f33c387ca8
+  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9/ubi-minimal@sha256:1d7c5517a4a1a8e2688620b39ee980e82505ca1ab7ae5541b5463120ae9b3897
   admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-20@sha256:7abf4acec0ad770ded216a3cfd45a533998c66056f487b5d5396a98ecbdf0512
-  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124@sha256:4cdb8676e563d390c18a5595691b44257186e9174ef6a79cf12e7fae68b13c49
+  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124@sha256:1fd6987287106e1acfaf0c912848ff48f1a8b1a0907eefe81044fc73a5fbdb31
   pglambda_nodejs_image: &pglambda_nodejs_image registry.access.redhat.com/ubi8/nodejs-18@sha256:77d47e5c63e2a45a5d6a5546b145278f04a1a20fcf01b8a3ffaeb1f49056cf11
 build_repository: registry.gitlab.com/ongresinc/stackgres/build
 platforms:
@@ -406,7 +406,7 @@ modules:
         sed 's/^\(\s*tag\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/values.yaml
       - |
         sed 's/^\(version\|appVersion\): "\([0-9]\+\.[0-9]\+\.[0-9]\+\)\(-.*\)\?"$/\1: "\2"/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
-    sources:
+    sources: &helm-packages-sources
       0: stackgres-k8s/install/helm/stackgres-operator/README.md
       1: stackgres-k8s/install/helm/stackgres-operator/templates
       2: stackgres-k8s/install/helm/stackgres-operator/grafana-dashboard.json
@@ -435,7 +435,7 @@ modules:
         sed 's/^\(\s*tag\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/values.yaml
       - |
         sed 's/^\(version\|appVersion\): "\([0-9]\+\.[0-9]\+\.[0-9]\+\)\(-.*\)\?"$/\1: "\2"/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
-    sources:
+    sources: &helm-templates-sources
       0: stackgres-k8s/install/helm/stackgres-operator/README.md
       1: stackgres-k8s/install/helm/stackgres-operator/templates
       2: stackgres-k8s/install/helm/stackgres-operator/grafana-dashboard.json
@@ -585,6 +585,7 @@ modules:
     type: helm-release
     filtered_sources: null
     sources:
+      <<: *helm-packages-sources
       997: stackgres-k8s/install/helm/stackgres-operator
       998: stackgres-k8s/install/helm/stackgres-cluster
       999: stackgres-k8s/src/pom.xml
@@ -593,6 +594,7 @@ modules:
     type: helm-release
     filtered_sources: null
     sources:
+      <<: *helm-templates-sources
       997: stackgres-k8s/install/helm/stackgres-operator
       998: stackgres-k8s/install/helm/stackgres-cluster
       999: stackgres-k8s/src/pom.xml
