@@ -321,4 +321,101 @@ class ClusterReplicationInitializationContextAppenderTest {
             secret));
   }
 
+  @Test
+  void givenClusterWithReplicationInitializationFromNewlyCreatedBackupTooOld_shouldCreateANewOne() {
+    cluster.getSpec().setReplication(
+        new StackGresClusterReplicationBuilder()
+        .withNewInitialization()
+        .withMode(StackGresReplicationInitializationMode.FROM_NEWLY_CREATED_BACKUP.toString())
+        .withBackupNewerThan("PT120S")
+        .endInitialization()
+        .build());
+    final StackGresBackup tooOldBackup =
+        completedBackup("too-old-backup", Instant.now().minusSeconds(600));
+    when(backupScanner.getResources(any()))
+        .thenReturn(List.of(tooOldBackup));
+    when(backupScanner.getResourcesWithLabels(any(), any()))
+        .thenReturn(List.of(tooOldBackup));
+
+    contextAppender.appendContext(cluster, contextBuilder,
+        Optional.of(objectStorage), cluster.getSpec().getPostgres().getVersion());
+
+    verify(secretFinder, never()).findByNameAndNamespace(any(), any());
+    verify(contextBuilder).replicationInitializationBackup(Optional.empty());
+    verify(contextBuilder).replicationInitializationBackupToCreate(Optional.empty());
+    verify(contextBuilder).replicationInitializationSecrets(Map.of());
+  }
+
+  @Test
+  void givenClusterWithReplicationInitializationFailedSgBackupTooOld_shouldUseTheNewlyCreatedOne() {
+    cluster.getSpec().setReplication(
+        new StackGresClusterReplicationBuilder()
+        .withNewInitialization()
+        .withMode(StackGresReplicationInitializationMode.FROM_NEWLY_CREATED_BACKUP.toString())
+        .withBackupNewerThan("PT120S")
+        .endInitialization()
+        .build());
+    cluster.getStatus().setReplicationInitializationFailedSgBackup("too-old-backup");
+    final StackGresBackup tooOldBackup =
+        completedBackup("too-old-backup", Instant.now().minusSeconds(600));
+    final StackGresBackup newlyCreatedBackup =
+        completedBackup("newly-created-backup", Instant.now().minusSeconds(10));
+    when(backupScanner.getResources(any()))
+        .thenReturn(List.of(tooOldBackup, newlyCreatedBackup));
+    when(backupScanner.getResourcesWithLabels(any(), any()))
+        .thenReturn(List.of(newlyCreatedBackup));
+    when(secretFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(secret));
+
+    contextAppender.appendContext(cluster, contextBuilder,
+        Optional.of(objectStorage), cluster.getSpec().getPostgres().getVersion());
+
+    verify(contextBuilder).replicationInitializationBackup(Optional.of(newlyCreatedBackup));
+    verify(contextBuilder).replicationInitializationBackupToCreate(Optional.of(newlyCreatedBackup));
+  }
+
+  @Test
+  void givenClusterWithReplicationInitializationFailedSgBackup_shouldUseThePreviousOne() {
+    cluster.getStatus().setReplicationInitializationFailedSgBackup("latest-backup");
+    final StackGresBackup oldBackup =
+        completedBackup("old-backup", Instant.now().minusSeconds(20));
+    final StackGresBackup latestBackup =
+        completedBackup("latest-backup", Instant.now().minusSeconds(10));
+    when(backupScanner.getResources(any()))
+        .thenReturn(List.of(oldBackup, latestBackup));
+    when(secretFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(secret));
+
+    contextAppender.appendContext(cluster, contextBuilder,
+        Optional.of(objectStorage), cluster.getSpec().getPostgres().getVersion());
+
+    verify(contextBuilder).replicationInitializationBackup(Optional.of(oldBackup));
+  }
+
+  private StackGresBackup completedBackup(String name, Instant end) {
+    return new StackGresBackupBuilder()
+        .withNewMetadata()
+        .withName(name)
+        .endMetadata()
+        .withNewSpec()
+        .withSgCluster(cluster.getMetadata().getName())
+        .endSpec()
+        .withNewStatus()
+        .withNewProcess()
+        .withStatus(BackupStatus.COMPLETED.status())
+        .withNewTiming()
+        .withEnd(end.toString())
+        .endTiming()
+        .endProcess()
+        .withNewBackupInformation()
+        .withPostgresVersion(toNumericPostgresVersion(cluster.getSpec().getPostgres().getVersion()))
+        .endBackupInformation()
+        .withBackupPath(cluster.getSpec().getConfigurations().getBackups().getFirst().getPath())
+        .withNewSgBackupConfig()
+        .withStorage(objectStorage.getSpec())
+        .endSgBackupConfig()
+        .endStatus()
+        .build();
+  }
+
 }
