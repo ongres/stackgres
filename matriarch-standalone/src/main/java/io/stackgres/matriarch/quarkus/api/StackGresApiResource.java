@@ -279,6 +279,24 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
     }
 
     @Override
+    public void deleteNode(DeleteNodeRequest request, StreamObserver<DeleteNodeResponse> responseObserver) {
+        Node node = slonys.currentNode(identity.id());
+        if (node == null) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription("no node to delete").asRuntimeException());
+            return;
+        }
+        // Single-host standalone: if an id is given it must match the one node.
+        String requested = request.getId().getValue();
+        if (!requested.isEmpty() && !node.getId().getValue().equals(requested)) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription("no such node").asRuntimeException());
+            return;
+        }
+        slonys.forgetRegistration();   // detach/forget the single local agent
+        responseObserver.onNext(DeleteNodeResponse.newBuilder().setHostname(node.getHostname()).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
     public void getCluster(GetClusterRequest request, StreamObserver<GetClusterResponse> responseObserver) {
         if (!request.hasId()) {
             responseObserver.onError(Status.UNIMPLEMENTED.withDescription("get is supported by cluster id only in this build").asRuntimeException());

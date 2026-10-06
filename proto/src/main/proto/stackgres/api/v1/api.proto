@@ -54,9 +54,11 @@ service StackGresApi {
   rpc GetClusterDiagnostics(GetClusterDiagnosticsRequest) returns (GetClusterDiagnosticsResponse);
 
   // --- Nodes: the bare-metal slony hosts an environment runs on. Reads are served
-  // from cache like clusters (per-env SourceInfo); tag/delete route down later. ---
+  // from cache like clusters (per-env SourceInfo); DeleteNode routes down to the
+  // owning matriarch over control.v1, like a cluster delete. ---
   rpc ListNodes(ListNodesRequest) returns (ListNodesResponse);
   rpc GetNode(GetNodeRequest) returns (GetNodeResponse);
+  rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse);
 
   // --- Credentials: secret values are NOT on Cluster; fetched here, separately
   // authorized (§3.7, P4). ---
@@ -422,6 +424,16 @@ message GetNodeRequest {
 message GetNodeResponse {
   Node node = 1;
   types.v1.SourceInfo source_info = 2;
+}
+// Delete (forget) a node. On bare-metal this detaches the host's agent
+// registration; k8s/external environments have no nodes and reject it.
+message DeleteNodeRequest {
+  string environment_id = 1;
+  types.v1.Id id = 2;
+  string idempotency_key = 3;
+}
+message DeleteNodeResponse {
+  string hostname = 1;   // the host that was forgotten (echo, for a direct api.v1 caller)
 }
 
 // ===========================================================================

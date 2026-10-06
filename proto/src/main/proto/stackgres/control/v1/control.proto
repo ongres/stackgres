@@ -147,6 +147,7 @@ message ControlRequest {
     stackgres.api.v1.StopClusterRequest    stop    = 5;
     stackgres.api.v1.RestartClusterRequest restart = 6;
     stackgres.api.v1.GetClusterCredentialsRequest credentials = 7;
+    stackgres.api.v1.DeleteNodeRequest delete_node = 8;
   }
 }
 

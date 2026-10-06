@@ -19,6 +19,7 @@ import io.stackgres.matriarch.quarkus.api.StackGresApiResource;
 import io.stackgres.matriarch.quarkus.resources.NodeInventoryChanged;
 import io.stackgres.matriarch.quarkus.resources.Slonys;
 import io.stackgres.proto.api.v1.ClusterOperationProgress;
+import io.stackgres.proto.api.v1.DeleteNodeResponse;
 import io.stackgres.proto.api.v1.Environment;
 import io.stackgres.proto.api.v1.GetClusterCredentialsResponse;
 import io.stackgres.proto.control.v1.*;
@@ -336,6 +337,7 @@ public class CloudUplinkClient {
                 case STOP -> api.stopCluster(req.getStop(), progressRelay(requestId));
                 case RESTART -> api.restartCluster(req.getRestart(), progressRelay(requestId));
                 case CREDENTIALS -> api.getClusterCredentials(req.getCredentials(), credentialsRelay(requestId));
+                case DELETE_NODE -> api.deleteNode(req.getDeleteNode(), nodeDeleteRelay(requestId));
                 case OPERATION_NOT_SET ->
                         sendErrorUp(requestId, Status.INVALID_ARGUMENT.withDescription("empty control request").asRuntimeException());
             }
@@ -383,6 +385,27 @@ public class CloudUplinkClient {
             @Override
             public void onCompleted() {
                 // unary: the credentials frame above is terminal; nothing further to send.
+            }
+        };
+    }
+
+    /** Adapts the unary node-delete response to ControlResponse{completed}, sent up on the actor. */
+    private StreamObserver<DeleteNodeResponse> nodeDeleteRelay(String requestId) {
+        return new StreamObserver<>() {
+            @Override
+            public void onNext(DeleteNodeResponse response) {
+                // unary: the terminal COMPLETED frame is sent on onCompleted below.
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                sendErrorUp(requestId, t);
+            }
+
+            @Override
+            public void onCompleted() {
+                runOnActor(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                        ControlResponse.newBuilder().setRequestId(requestId).setCompleted(Completion.getDefaultInstance())).build()));
             }
         };
     }

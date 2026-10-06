@@ -302,6 +302,12 @@ public class CloudUplinkClient {
       case RESTART -> writeExecutor.execute(() -> writeService.restart(req.getRestart(), progressRelay(requestId)));
       case START -> writeExecutor.execute(() -> writeService.start(req.getStart(), progressRelay(requestId)));
       case STOP -> writeExecutor.execute(() -> writeService.stop(req.getStop(), progressRelay(requestId)));
+      case DELETE_NODE -> sendControlResponse(ControlResponse.newBuilder()
+          .setRequestId(requestId)
+          .setError(com.google.rpc.Status.newBuilder()
+              .setCode(io.grpc.Status.Code.NOT_FOUND.value())
+              .setMessage("k8s environments have no nodes"))
+          .build());
       case OPERATION_NOT_SET -> rejectControl(requestId, "empty control request");
       default -> rejectControl(requestId, "unsupported control operation");
     }
