@@ -127,3 +127,18 @@ The upgrade graph is kept intact: whatever replaced the removed version now
 replaces its predecessor, and the removed version is added to the `skips` of its
 successor, so a cluster still running it is offered an upgrade. Only fresh
 installs of that exact version become impossible.
+
+# Show the published versions
+
+To generate `VERSIONS-<repository>.md`, with a mermaid graph of the update graph
+of every channel currently published in a repository:
+
+```
+sh versions-of-red-hat-certified.sh
+```
+
+The same script exists for the other repositories (`versions-of-operatorhub.sh`,
+`versions-of-red-hat-marketplace.sh`, `versions-of-red-hat-community.sh`). It
+pulls the latest upstream repository first and does not need a fork. For the
+file-based catalogs the graphs of all the OCP catalogs are merged, labeling any
+version or edge that is not in every one of them with the catalogs it is in.

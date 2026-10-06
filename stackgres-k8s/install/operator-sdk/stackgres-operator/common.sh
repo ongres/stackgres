@@ -4,8 +4,11 @@
 # entrypoint (deploy-to-*.sh, insert-to-*.sh, remove-from-*.sh) that sets
 # UPSTREAM_NAME, UPSTREAM_GIT_URL, FORK_GIT_URL, PROJECT_NAME and friends.
 
+# Fail unless every given env var (by default the ones the scripts that push to
+# a fork need) is set.
 require_env() {
-  for REQUIRED_ENV_VAR in UPSTREAM_NAME UPSTREAM_GIT_URL FORK_GIT_URL PROJECT_NAME
+  [ "$#" -gt 0 ] || set -- UPSTREAM_NAME UPSTREAM_GIT_URL FORK_GIT_URL PROJECT_NAME
+  for REQUIRED_ENV_VAR in "$@"
   do
     if [ -z "$(eval "printf %s \"\$$REQUIRED_ENV_VAR\"")" ]
     then
@@ -28,9 +31,9 @@ require_version() {
   fi
 }
 
-# Clone (or reset) the upstream catalog repository and our fork of it, leaving
-# both at upstream/main, and export the paths the callers work with.
-setup_fork_repositories() {
+# Clone (or reset) the upstream catalog repository, leaving it at origin/main,
+# and export the paths the callers work with.
+setup_upstream_repository() {
   mkdir -p target
   UPSTREAM_SUFFIX="$(printf %s "$UPSTREAM_NAME" | tr '[A-Z] ' '[a-z]-' | tr -dc '[a-z0-9]-')"
   UPSTREAM_GIT_PATH=target/"upstream-$UPSTREAM_SUFFIX"
@@ -50,6 +53,12 @@ setup_fork_repositories() {
   git -C "$UPSTREAM_GIT_PATH" reset --hard origin/main
   git -C "$UPSTREAM_GIT_PATH" stash save --keep-index --include-untracked
   git -C "$UPSTREAM_GIT_PATH" stash drop || true
+}
+
+# Clone (or reset) the upstream catalog repository and our fork of it, leaving
+# both at upstream/main.
+setup_fork_repositories() {
+  setup_upstream_repository
 
   if ! [ -d "$FORK_GIT_PATH" ] || ! git -C "$FORK_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qF "origin $FORK_GIT_URL "
   then
