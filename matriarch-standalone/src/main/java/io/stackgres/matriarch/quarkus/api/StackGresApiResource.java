@@ -24,6 +24,7 @@ import org.jboss.logging.Logger;
 
 import io.stackgres.matriarch.model.spec.InstanceSpec;
 import io.stackgres.matriarch.quarkus.grpc.ClusterLogRelay;
+import io.stackgres.matriarch.quarkus.grpc.NodeLogRelay;
 import io.stackgres.matriarch.quarkus.resources.Slons;
 import io.stackgres.matriarch.quarkus.resources.Slonys;
 
@@ -74,6 +75,9 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
 
     @Inject
     ClusterLogRelay clusterLogRelay;
+
+    @Inject
+    NodeLogRelay nodeLogRelay;
 
     @Override
     public void createCluster(CreateClusterRequest request, StreamObserver<ClusterOperationProgress> responseObserver) {
@@ -159,6 +163,42 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
                 slons.abortLogs(sub.getKey(), sub.getValue());
             }
             clusterLogRelay.drop(session);
+        };
+    }
+
+    @Override
+    public void tailNodeLogs(TailNodeLogsRequest request, StreamObserver<LogLine> responseObserver) {
+        Runnable cancel = startTailNodeLogs(request, responseObserver);
+        if (cancel != null && responseObserver instanceof ServerCallStreamObserver<LogLine> cancellable) {
+            cancellable.setOnCancelHandler(cancel);
+        }
+    }
+
+    /**
+     * Start a node (slony host) log tail, emitting {@link LogLine} frames to {@code out}; returns a cancel
+     * handle (or {@code null} if it ended with an error). Like {@link #startTailLogs} but for the single
+     * slony node via {@link NodeLogRelay}; shared by the direct gRPC call and the cloud uplink's AbortLogs.
+     */
+    public Runnable startTailNodeLogs(TailNodeLogsRequest request, StreamObserver<LogLine> out) {
+        Node node = slonys.currentNode(identity.id());
+        if (node == null) {
+            out.onError(Status.NOT_FOUND.withDescription("no node").asRuntimeException());
+            return null;
+        }
+        String requested = request.getId().getValue();
+        if (!requested.isEmpty() && !node.getId().getValue().equals(requested)) {
+            out.onError(Status.NOT_FOUND.withDescription("no such node").asRuntimeException());
+            return null;
+        }
+        UUID logId = UUID.randomUUID();
+        nodeLogRelay.beginLogLine(logId, out, node.getId().getValue());
+        if (!slonys.requestLogs(logId, request.getFollow())) {
+            nodeLogRelay.fail(logId, "slony agent disconnected");
+            return null;
+        }
+        return () -> {
+            slonys.abortLogs(logId);
+            nodeLogRelay.abort(logId);
         };
     }
 

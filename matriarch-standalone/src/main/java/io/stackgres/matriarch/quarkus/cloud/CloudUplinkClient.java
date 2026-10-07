@@ -379,6 +379,12 @@ public class CloudUplinkClient {
                         tails.put(requestId, cancel);
                     }
                 }
+                case TAIL_NODE_LOGS -> {
+                    Runnable cancel = api.startTailNodeLogs(req.getTailNodeLogs(), logRelay(requestId));
+                    if (cancel != null) {
+                        tails.put(requestId, cancel);
+                    }
+                }
                 case ABORT_LOGS -> {
                     Runnable cancel = tails.remove(requestId);
                     if (cancel != null) {

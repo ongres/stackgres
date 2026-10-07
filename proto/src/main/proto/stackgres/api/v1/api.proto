@@ -64,6 +64,9 @@ service StackGresApi {
   // Node events — the slony agent's event pushes, served from cache (per-env
   // SourceInfo) like GetClusterEvents; uplinked so the cloud serves them too.
   rpc GetNodeEvents(GetNodeEventsRequest) returns (GetNodeEventsResponse);
+  // Node log tail — the slony host's logs, served from source over the agent
+  // link (like cluster TailLogs); follow=false is a recent snapshot then end.
+  rpc TailNodeLogs(TailNodeLogsRequest) returns (stream LogLine);
 
   // --- Credentials: secret values are NOT on Cluster; fetched here, separately
   // authorized (§3.7, P4). ---
@@ -467,6 +470,11 @@ message GetNodeEventsRequest {
 message GetNodeEventsResponse {
   repeated types.v1.Event event = 1;
   map<string, types.v1.SourceInfo> source_info = 2;
+}
+message TailNodeLogsRequest {
+  string environment_id = 1;
+  types.v1.Id id = 2;      // node id
+  bool follow = 3;         // true = stream new lines; false = one recent snapshot, then end
 }
 
 // ===========================================================================

@@ -3,10 +3,14 @@ import io.stackgres.matriarch.quarkus.resources.*;
 
 import io.stackgres.proto.cli.GetNodeLogsResponse;
 import io.stackgres.proto.cli.TailNodeLogsResponse;
+import com.google.protobuf.Timestamp;
+import io.stackgres.proto.api.v1.LogLine;
 import io.stackgres.proto.slony.Log;
+import io.stackgres.proto.types.v1.Id;
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,9 +103,49 @@ public class NodeLogRelay {
     }
 
     /**
+     * api.v1 {@code TailNodeLogs} (server stream): emit each raw line as a {@link LogLine} (component
+     * {@code "slony"}, the node id as instance id); a terminal OK completes the stream, non-OK errors it.
+     * follow vs snapshot look identical here — the agent ends a snapshot with its terminal {@code Log}.
+     */
+    public void beginLogLine(UUID logId, StreamObserver<LogLine> client, String nodeId) {
+        byLog.put(logId, new Sink() {
+            @Override
+            public void chunk(String contents) {
+                for (String line : contents.split("\n", -1)) {
+                    if (line.isEmpty()) {
+                        continue;
+                    }
+                    Instant now = Instant.now();
+                    client.onNext(LogLine.newBuilder()
+                            .setTimestamp(Timestamp.newBuilder().setSeconds(now.getEpochSecond()).setNanos(now.getNano()))
+                            .setInstanceId(Id.newBuilder().setValue(nodeId))
+                            .setComponent("slony")
+                            .setLine(line)
+                            .build());
+                }
+            }
+
+            @Override
+            public void terminal(com.google.rpc.Status status) {
+                if (status.getCode() != 0) {
+                    client.onError(io.grpc.Status.fromCodeValue(status.getCode())
+                            .withDescription(status.getMessage()).asRuntimeException());
+                } else {
+                    client.onCompleted();
+                }
+            }
+
+            @Override
+            public void fail(String message) {
+                client.onError(io.grpc.Status.FAILED_PRECONDITION.withDescription(message).asRuntimeException());
+            }
+        });
+    }
+
+    /**
      * The agent couldn't be reached — complete the request with a FAILED_PRECONDITION status.
      */
-    void fail(UUID logId, String message) {
+    public void fail(UUID logId, String message) {
         Sink s = byLog.remove(logId);
         if (s != null) {
             s.fail(message);
@@ -111,7 +155,7 @@ public class NodeLogRelay {
     /**
      * The client cancelled a follow — drop the entry so a late terminal {@code Log} is ignored.
      */
-    void abort(UUID logId) {
+    public void abort(UUID logId) {
         byLog.remove(logId);
     }
 

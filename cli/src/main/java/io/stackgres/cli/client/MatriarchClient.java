@@ -50,7 +50,6 @@ public class MatriarchClient {
     private ClusterServiceGrpc.ClusterServiceStub clusterAsyncStub;
     private AccountServiceGrpc.AccountServiceBlockingV2Stub accountStub;
     private ResourceServiceGrpc.ResourceServiceBlockingV2Stub resourceStub;
-    private ResourceServiceGrpc.ResourceServiceStub resourceAsyncStub;
     // stackgres.api.v1 — cluster CRUD + log tail talk this; the rest still use the cli.proto stubs above.
     private StackGresApiBlockingStub stackGresStub;
     private io.stackgres.proto.api.v1.StackGresApiGrpc.StackGresApiStub stackGresAsyncStub;
@@ -79,7 +78,6 @@ public class MatriarchClient {
         clusterAsyncStub = ClusterServiceGrpc.newStub(channel).withCallCredentials(credential);
         accountStub = AccountServiceGrpc.newBlockingV2Stub(channel).withCallCredentials(credential);
         resourceStub = ResourceServiceGrpc.newBlockingV2Stub(channel).withCallCredentials(credential);
-        resourceAsyncStub = ResourceServiceGrpc.newStub(channel).withCallCredentials(credential);
         stackGresStub = StackGresApiGrpc.newBlockingStub(channel).withCallCredentials(credential);
         stackGresAsyncStub = StackGresApiGrpc.newStub(channel).withCallCredentials(credential);
     }
@@ -112,11 +110,6 @@ public class MatriarchClient {
     private ResourceServiceGrpc.ResourceServiceBlockingV2Stub resourceClient() {
         ensureConnected();
         return resourceStub;
-    }
-
-    private ResourceServiceGrpc.ResourceServiceStub asyncResourceClient() {
-        ensureConnected();
-        return resourceAsyncStub;
     }
 
     // The cloud (skvorets) serves only api.v1; commands still on the old cli.proto services (psql, tunnel,
@@ -995,38 +988,40 @@ public class MatriarchClient {
         }
     }
 
-    public String getNodeLogs(UUID slonyId) {
-        GetNodeLogsRequest request = GetNodeLogsRequest.newBuilder().setSlonyId(mapUUID(slonyId)).build();
+    public String getNodeLogs(UUID nodeId) {
+        StringBuilder block = new StringBuilder();
         try {
-            GetNodeLogsResponse response = resourceClient().getNodeLogs(request);
-            logDebug("Received response: ", response);
-            if (response.hasLogs())
-                return response.getLogs();
-            else if (response.hasStatus())
-                throw new RuntimeException(response.getStatus().getMessage());
-            throw new IllegalStateException("No response sent");
-        } catch (StatusException e) {
-            throw handleStatusException(e);
+            Iterator<LogLine> stream = stackGresClient().tailNodeLogs(tailNodeLogsRequest(nodeId, false));
+            while (stream.hasNext()) {
+                block.append(stream.next().getLine()).append('\n');
+            }
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
         }
+        return block.toString();
     }
 
-    public Runnable followNodeLogs(UUID slonyId, Consumer<String> consumer, Consumer<String> onCompleted) {
-        TailNodeLogsRequest request = TailNodeLogsRequest.newBuilder().setSlonyId(mapUUID(slonyId)).build();
-        StreamObserver<TailNodeLogsResponse> responseObserver = new StreamObserver<>() {
+    public Runnable followNodeLogs(UUID nodeId, Consumer<String> consumer, Consumer<String> onCompleted) {
+        io.stackgres.proto.api.v1.TailNodeLogsRequest request = tailNodeLogsRequest(nodeId, true);
+        // Cancel the server-stream by cancelling this context (the CLI's shutdown hook runs the returned Runnable).
+        io.grpc.Context.CancellableContext ctx = io.grpc.Context.current().withCancellation();
+        StreamObserver<LogLine> responseObserver = new StreamObserver<>() {
             @Override
-            public void onNext(TailNodeLogsResponse response) {
-                logDebug("Received response: ", response);
-                if (response.hasStatus())
-                    onCompleted.accept(response.getStatus().getMessage());
-                else if (response.hasLine())
-                    consumer.accept(response.getLine());
+            public void onNext(LogLine line) {
+                consumer.accept(line.getLine());
             }
 
             @Override
             public void onError(Throwable t) {
                 logDebug("received error from server " + t);
-                onCompleted.accept(isCloudUnsupported(t) ? CLOUD_UNSUPPORTED
-                        : (t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
+                Status.Code code = t instanceof StatusRuntimeException e ? e.getStatus().getCode() : Status.Code.UNKNOWN;
+                if (code == Status.Code.CANCELLED) {
+                    onCompleted.accept(null);   // our own cancel (Ctrl-C) — a clean end
+                } else if (code == Status.Code.UNIMPLEMENTED) {
+                    onCompleted.accept(CLOUD_UNSUPPORTED);
+                } else {
+                    onCompleted.accept(t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName());
+                }
             }
 
             @Override
@@ -1035,9 +1030,16 @@ public class MatriarchClient {
                 onCompleted.accept(null);
             }
         };
-        StreamObserver<TailNodeLogsRequest> requestObserver = asyncResourceClient().tailNodeLogs(responseObserver);
-        requestObserver.onNext(request);
-        return requestObserver::onCompleted;
+        ctx.run(() -> asyncStackGresClient().tailNodeLogs(request, responseObserver));
+        return () -> ctx.cancel(null);
+    }
+
+    private io.stackgres.proto.api.v1.TailNodeLogsRequest tailNodeLogsRequest(UUID nodeId, boolean follow) {
+        return io.stackgres.proto.api.v1.TailNodeLogsRequest.newBuilder()
+                .setEnvironmentId(activeEnvironment())
+                .setId(Id.newBuilder().setValue(nodeId.toString()))
+                .setFollow(follow)
+                .build();
     }
 
     public ClusterDiagnostics getClusterDiagnostics(String name) {
