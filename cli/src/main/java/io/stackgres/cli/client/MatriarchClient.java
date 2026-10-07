@@ -911,7 +911,7 @@ public class MatriarchClient {
 
     public Map<String, String> addNodeTags(UUID nodeId, Map<String, String> tags) {
         io.stackgres.proto.api.v1.AddNodeTagsRequest request = io.stackgres.proto.api.v1.AddNodeTagsRequest.newBuilder()
-                .setEnvironmentId(configuredEnvironment())
+                .setEnvironmentId(activeEnvironment())
                 .setId(Id.newBuilder().setValue(nodeId.toString()))
                 .putAllTags(tags)
                 .setIdempotencyKey(nodeId.toString())
@@ -927,7 +927,7 @@ public class MatriarchClient {
 
     public Map<String, String> removeNodeTags(UUID nodeId, List<String> keys) {
         io.stackgres.proto.api.v1.RemoveNodeTagsRequest request = io.stackgres.proto.api.v1.RemoveNodeTagsRequest.newBuilder()
-                .setEnvironmentId(configuredEnvironment())
+                .setEnvironmentId(activeEnvironment())
                 .setId(Id.newBuilder().setValue(nodeId.toString()))
                 .addAllKey(keys)
                 .setIdempotencyKey(nodeId.toString())
@@ -943,7 +943,7 @@ public class MatriarchClient {
 
     public String deleteNode(UUID nodeId) {
         DeleteNodeRequest request = DeleteNodeRequest.newBuilder()
-                .setEnvironmentId(configuredEnvironment())
+                .setEnvironmentId(activeEnvironment())
                 .setId(Id.newBuilder().setValue(nodeId.toString()))
                 .setIdempotencyKey(nodeId.toString())
                 .build();
