@@ -160,7 +160,7 @@ public interface DbOpsUtil {
             .map(Condition::getLastTransitionTime)
             .findFirst()
             .map(Instant::parse)
-            .map(started -> !started.plus(timeout).isBefore(now))
+            .map(started -> started.plus(timeout).isBefore(now))
                 .orElse(false))
         .orElse(false);
   }
