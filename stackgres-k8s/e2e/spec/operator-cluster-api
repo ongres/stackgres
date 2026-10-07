@@ -190,7 +190,7 @@ test_cluster_stats_pods_ready() {
     --set configurations.objectstorage.create=false \
     --set cluster.configurations.backups.sgObjectStorage=null
 
-  if ! wait_until -t 60 eval '[ "$(get_cluster_stats_pods_ready)" -eq 1 ]'
+  if wait_until -t 60 eval '[ "$(get_cluster_stats_pods_ready)" -eq 1 ]'
   then
     echo "Cluster $CLUSTER_NAME stats are ready"
   else
