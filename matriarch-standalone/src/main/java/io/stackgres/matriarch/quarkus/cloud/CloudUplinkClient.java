@@ -19,7 +19,6 @@ import io.stackgres.matriarch.quarkus.api.StackGresApiResource;
 import io.stackgres.matriarch.quarkus.resources.NodeInventoryChanged;
 import io.stackgres.matriarch.quarkus.resources.Slonys;
 import io.stackgres.proto.api.v1.ClusterOperationProgress;
-import io.stackgres.proto.api.v1.DeleteNodeResponse;
 import io.stackgres.proto.api.v1.Environment;
 import io.stackgres.proto.api.v1.GetClusterCredentialsResponse;
 import io.stackgres.proto.control.v1.*;
@@ -337,7 +336,9 @@ public class CloudUplinkClient {
                 case STOP -> api.stopCluster(req.getStop(), progressRelay(requestId));
                 case RESTART -> api.restartCluster(req.getRestart(), progressRelay(requestId));
                 case CREDENTIALS -> api.getClusterCredentials(req.getCredentials(), credentialsRelay(requestId));
-                case DELETE_NODE -> api.deleteNode(req.getDeleteNode(), nodeDeleteRelay(requestId));
+                case DELETE_NODE -> api.deleteNode(req.getDeleteNode(), completionRelay(requestId));
+                case ADD_NODE_TAGS -> api.addNodeTags(req.getAddNodeTags(), completionRelay(requestId));
+                case REMOVE_NODE_TAGS -> api.removeNodeTags(req.getRemoveNodeTags(), completionRelay(requestId));
                 case OPERATION_NOT_SET ->
                         sendErrorUp(requestId, Status.INVALID_ARGUMENT.withDescription("empty control request").asRuntimeException());
             }
@@ -389,11 +390,15 @@ public class CloudUplinkClient {
         };
     }
 
-    /** Adapts the unary node-delete response to ControlResponse{completed}, sent up on the actor. */
-    private StreamObserver<DeleteNodeResponse> nodeDeleteRelay(String requestId) {
+    /**
+     * Adapts a unary write response (node delete / tag add / tag remove) to ControlResponse{completed},
+     * sent up on the actor. The response body itself isn't relayed — the cloud reads any result (e.g. the
+     * resulting tag set) back from the node snapshot the write pushes up before completing.
+     */
+    private <T> StreamObserver<T> completionRelay(String requestId) {
         return new StreamObserver<>() {
             @Override
-            public void onNext(DeleteNodeResponse response) {
+            public void onNext(T value) {
                 // unary: the terminal COMPLETED frame is sent on onCompleted below.
             }
 

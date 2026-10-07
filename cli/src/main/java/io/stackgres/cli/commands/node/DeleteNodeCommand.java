@@ -39,7 +39,9 @@ public class DeleteNodeCommand extends StackGresSubCommand {
         ProgressMessages messages = new ProgressMessages(spec.commandLine());
         if (debug) client.setDebug(messages);
         try {
-            client.deleteSlony(id, hostname -> messages.doneAddFirstLine("The node " + hostname + " has been removed"));
+            String hostname = client.deleteNode(id);
+            String label = hostname == null || hostname.isBlank() ? id.toString() : hostname;
+            messages.doneAddFirstLine("The node " + label + " has been removed");
         } catch (Exception e) {
             throw new StackGresPicocliException(e, messages);
         }

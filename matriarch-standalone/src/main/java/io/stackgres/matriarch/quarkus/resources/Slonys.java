@@ -202,6 +202,26 @@ public class Slonys {
     }
 
     /**
+     * Apply node tag additions/updates and re-snapshot (so the cloud cache reflects them), returning the
+     * resulting tag set. Backs the api.v1 {@code AddNodeTags} write.
+     */
+    public Map<String, String> putTags(Map<String, String> tags) {
+        nodeTags.putAll(tags);
+        nodeChanges.fire(new NodeInventoryChanged());
+        return Map.copyOf(nodeTags);
+    }
+
+    /**
+     * Remove node tags by key and re-snapshot, returning the resulting tag set. Backs the api.v1
+     * {@code RemoveNodeTags} write.
+     */
+    public Map<String, String> removeTags(List<String> keys) {
+        keys.forEach(nodeTags::remove);
+        nodeChanges.fire(new NodeInventoryChanged());
+        return Map.copyOf(nodeTags);
+    }
+
+    /**
      * This matriarch's node as an api.v1 {@link Node} (from the Registration + live state), or null when
      * no agent is connected. Shared by the api.v1 read handlers (StackGresApiResource) and the cloud
      * uplink snapshot so a directly-connected CLI and the cloud see the same node.

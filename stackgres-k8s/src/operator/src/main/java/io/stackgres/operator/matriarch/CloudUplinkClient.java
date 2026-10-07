@@ -302,12 +302,7 @@ public class CloudUplinkClient {
       case RESTART -> writeExecutor.execute(() -> writeService.restart(req.getRestart(), progressRelay(requestId)));
       case START -> writeExecutor.execute(() -> writeService.start(req.getStart(), progressRelay(requestId)));
       case STOP -> writeExecutor.execute(() -> writeService.stop(req.getStop(), progressRelay(requestId)));
-      case DELETE_NODE -> sendControlResponse(ControlResponse.newBuilder()
-          .setRequestId(requestId)
-          .setError(com.google.rpc.Status.newBuilder()
-              .setCode(io.grpc.Status.Code.NOT_FOUND.value())
-              .setMessage("k8s environments have no nodes"))
-          .build());
+      case DELETE_NODE, ADD_NODE_TAGS, REMOVE_NODE_TAGS -> rejectNoNodes(requestId);
       case OPERATION_NOT_SET -> rejectControl(requestId, "empty control request");
       default -> rejectControl(requestId, "unsupported control operation");
     }
@@ -365,6 +360,16 @@ public class CloudUplinkClient {
         .setError(com.google.rpc.Status.newBuilder()
             .setCode(io.grpc.Status.Code.FAILED_PRECONDITION.value())
             .setMessage(message))
+        .build());
+  }
+
+  /** Reject a node operation (delete / tags) routed to a k8s environment — it has no nodes. */
+  private void rejectNoNodes(String requestId) {
+    sendControlResponse(ControlResponse.newBuilder()
+        .setRequestId(requestId)
+        .setError(com.google.rpc.Status.newBuilder()
+            .setCode(io.grpc.Status.Code.NOT_FOUND.value())
+            .setMessage("k8s environments have no nodes"))
         .build());
   }
 

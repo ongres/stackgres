@@ -2,7 +2,6 @@ package io.stackgres.cli.client;
 
 import com.google.protobuf.ByteString;
 import io.grpc.*;
-import io.grpc.stub.BlockingClientCall;
 import io.grpc.stub.StreamObserver;
 import io.stackgres.cli.CliContext;
 import io.stackgres.cli.Strings;
@@ -344,12 +343,6 @@ public class MatriarchClient {
         } catch (StatusRuntimeException e) {
             throw statusError(e);
         }
-    }
-
-    private void checkActionStatus(com.google.rpc.Status status) {
-        logDebug("Received response: ", status);
-        if (status.getCode() != com.google.rpc.Code.OK.getNumber())
-            throw new RuntimeException(status.getMessage());
     }
 
     // ---- environment resolution (kubectl-namespace model) ----
@@ -916,45 +909,50 @@ public class MatriarchClient {
         }
     }
 
-    public Map<String, String> addNodeTags(UUID slonyId, Map<String, String> tags) {
-        AddNodeTagsRequest request = AddNodeTagsRequest.newBuilder().setId(mapUUID(slonyId)).putAllTags(tags).build();
+    public Map<String, String> addNodeTags(UUID nodeId, Map<String, String> tags) {
+        io.stackgres.proto.api.v1.AddNodeTagsRequest request = io.stackgres.proto.api.v1.AddNodeTagsRequest.newBuilder()
+                .setEnvironmentId(configuredEnvironment())
+                .setId(Id.newBuilder().setValue(nodeId.toString()))
+                .putAllTags(tags)
+                .setIdempotencyKey(nodeId.toString())
+                .build();
         try {
-            AddNodeTagsResponse response = resourceClient().addNodeTags(request);
-            checkActionStatus(response.getStatus());
-            return response.getCurrentTagsMap();
-        } catch (StatusException e) {
-            throw handleStatusException(e);
+            io.stackgres.proto.api.v1.AddNodeTagsResponse response = stackGresClient().addNodeTags(request);
+            logDebug("Received response: ", response);
+            return response.getTagsMap();
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
         }
     }
 
-    public Map<String, String> removeNodeTags(UUID slonyId, List<String> keys) {
-        RemoveNodeTagsRequest request = RemoveNodeTagsRequest.newBuilder().setId(mapUUID(slonyId)).addAllKey(keys).build();
+    public Map<String, String> removeNodeTags(UUID nodeId, List<String> keys) {
+        io.stackgres.proto.api.v1.RemoveNodeTagsRequest request = io.stackgres.proto.api.v1.RemoveNodeTagsRequest.newBuilder()
+                .setEnvironmentId(configuredEnvironment())
+                .setId(Id.newBuilder().setValue(nodeId.toString()))
+                .addAllKey(keys)
+                .setIdempotencyKey(nodeId.toString())
+                .build();
         try {
-            RemoveNodeTagsResponse response = resourceClient().removeNodeTags(request);
-            checkActionStatus(response.getStatus());
-            return response.getCurrentTagsMap();
-        } catch (StatusException e) {
-            throw handleStatusException(e);
+            io.stackgres.proto.api.v1.RemoveNodeTagsResponse response = stackGresClient().removeNodeTags(request);
+            logDebug("Received response: ", response);
+            return response.getTagsMap();
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
         }
     }
 
-    public void deleteSlony(UUID slonyId, Consumer<String> deletionConsumer) {
-        DeleteSlonyRequest request = DeleteSlonyRequest.newBuilder().setId(mapUUID(slonyId)).build();
-        BlockingClientCall<?, DeleteSlonyResponse> invocation = resourceClient().deleteSlony(request);
+    public String deleteNode(UUID nodeId) {
+        DeleteNodeRequest request = DeleteNodeRequest.newBuilder()
+                .setEnvironmentId(configuredEnvironment())
+                .setId(Id.newBuilder().setValue(nodeId.toString()))
+                .setIdempotencyKey(nodeId.toString())
+                .build();
         try {
-            while (invocation.hasNext()) {
-                DeleteSlonyResponse response = invocation.read();
-                logDebug("Received response: ", response);
-                if (response.hasDeleted()) {
-                    deletionConsumer.accept(response.getDeleted().getHostname());
-                } else if (response.hasStatus()) {
-                    throw new RuntimeException(response.getStatus().getMessage());
-                }
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (StatusException e) {
-            throw handleStatusException(e);
+            DeleteNodeResponse response = stackGresClient().deleteNode(request);
+            logDebug("Received response: ", response);
+            return response.getHostname();
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
         }
     }
 

@@ -59,6 +59,8 @@ service StackGresApi {
   rpc ListNodes(ListNodesRequest) returns (ListNodesResponse);
   rpc GetNode(GetNodeRequest) returns (GetNodeResponse);
   rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse);
+  rpc AddNodeTags(AddNodeTagsRequest) returns (AddNodeTagsResponse);
+  rpc RemoveNodeTags(RemoveNodeTagsRequest) returns (RemoveNodeTagsResponse);
 
   // --- Credentials: secret values are NOT on Cluster; fetched here, separately
   // authorized (§3.7, P4). ---
@@ -434,6 +436,26 @@ message DeleteNodeRequest {
 }
 message DeleteNodeResponse {
   string hostname = 1;   // the host that was forgotten (echo, for a direct api.v1 caller)
+}
+// Node tags — writes, routed over control.v1 like DeleteNode. The response carries the resulting tag
+// set (populated on the direct path; over the cloud the edge reads it back from the refreshed cache).
+message AddNodeTagsRequest {
+  string environment_id = 1;
+  types.v1.Id id = 2;
+  map<string, string> tags = 3;
+  string idempotency_key = 4;
+}
+message AddNodeTagsResponse {
+  map<string, string> tags = 1;
+}
+message RemoveNodeTagsRequest {
+  string environment_id = 1;
+  types.v1.Id id = 2;
+  repeated string key = 3;
+  string idempotency_key = 4;
+}
+message RemoveNodeTagsResponse {
+  map<string, string> tags = 1;
 }
 
 // ===========================================================================

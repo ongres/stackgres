@@ -148,6 +148,8 @@ message ControlRequest {
     stackgres.api.v1.RestartClusterRequest restart = 6;
     stackgres.api.v1.GetClusterCredentialsRequest credentials = 7;
     stackgres.api.v1.DeleteNodeRequest delete_node = 8;
+    stackgres.api.v1.AddNodeTagsRequest add_node_tags = 9;
+    stackgres.api.v1.RemoveNodeTagsRequest remove_node_tags = 10;
   }
 }
 

@@ -297,6 +297,28 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
     }
 
     @Override
+    public void addNodeTags(AddNodeTagsRequest request, StreamObserver<AddNodeTagsResponse> responseObserver) {
+        if (slonys.registration() == null) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription("no node").asRuntimeException());
+            return;
+        }
+        Map<String, String> resulting = slonys.putTags(request.getTagsMap());
+        responseObserver.onNext(AddNodeTagsResponse.newBuilder().putAllTags(resulting).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void removeNodeTags(RemoveNodeTagsRequest request, StreamObserver<RemoveNodeTagsResponse> responseObserver) {
+        if (slonys.registration() == null) {
+            responseObserver.onError(Status.NOT_FOUND.withDescription("no node").asRuntimeException());
+            return;
+        }
+        Map<String, String> resulting = slonys.removeTags(request.getKeyList());
+        responseObserver.onNext(RemoveNodeTagsResponse.newBuilder().putAllTags(resulting).build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
     public void getCluster(GetClusterRequest request, StreamObserver<GetClusterResponse> responseObserver) {
         if (!request.hasId()) {
             responseObserver.onError(Status.UNIMPLEMENTED.withDescription("get is supported by cluster id only in this build").asRuntimeException());
