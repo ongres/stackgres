@@ -161,13 +161,27 @@ check_replica_in_none_group_not_elegible_as_primary() {
 }
 
 check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
+  # The previous test leaves the cluster without a primary, with the first two Pods unschedulable.
+  # The readiness probe of patroni only succeeds when the replication state is streaming, so the
+  # remaining replica stays not ready, and is therefore kept out of the endpoints of the replicas
+  # service, until a primary is elected again.
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
     --set cluster.replication.mode=sync \
     --set cluster.replication.role=ha-read \
     --set cluster.replication.syncInstances=2 \
     --set cluster.replication.groups[0].instances=1 \
     --set cluster.replication.groups[0].role=readonly \
-    --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
+    --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=null"
+  # This is not a typo, helm does not support removing a property so we need to repeat the change in order to make it work :facepalm:
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
+    --set cluster.replication.mode=sync \
+    --set cluster.replication.role=ha-read \
+    --set cluster.replication.syncInstances=2 \
+    --set cluster.replication.groups[0].instances=1 \
+    --set cluster.replication.groups[0].role=readonly \
+    --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=null"
+  wait_pods_running "$CLUSTER_NAMESPACE" "3"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   local RESULT EXIT_CODE
   try_function wait_until eval 'check_pod_ip_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" "$CLUSTER_NAME-replicas"'
   if "$RESULT"

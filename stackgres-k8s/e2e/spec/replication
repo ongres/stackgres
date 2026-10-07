@@ -290,11 +290,23 @@ check_replication_is_working_from_newly_created_backup() {
     sleep "$(( 120 - NOW + BACKUP_END_TIMESTAMP ))"
     NOW="$(date +%s)"
   fi
+  # A new backup is only created, and the StatefulSet only held back from creating the replica
+  # again, while the operator observes less Pods than instances. Deleting the Pod does not produce
+  # that state reliably, since the Pod is only removed from the API after its termination grace
+  # period and the StatefulSet re-creates it right away, so the cluster is scaled down and up.
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+    --set-string cluster.replication.initialization.mode=FromNewlyCreatedBackup \
+    --set-string cluster.replication.initialization.backupNewerThan="PT$(( NOW - BACKUP_END_TIMESTAMP ))S"
+  wait_pods_running "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME-[0-9]"
+
+  kubectl delete --ignore-not-found -n "$CLUSTER_NAMESPACE" pvc/"$CLUSTER_NAME-data-$CLUSTER_NAME-1"
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set-string cluster.replication.initialization.mode=FromNewlyCreatedBackup \
     --set-string cluster.replication.initialization.backupNewerThan="PT$(( NOW - BACKUP_END_TIMESTAMP ))S"
-
-  kubectl delete --ignore-not-found -n "$CLUSTER_NAMESPACE" pvc/"$CLUSTER_NAME-data-$CLUSTER_NAME-1" pod/"$CLUSTER_NAME-1" --wait=false
+  wait_until kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" -o json \
+    | jq '.data.REPLICATION_INITIALIZATION_BACKUP' -r \
+    | grep -q .
   wait_pods_running "$CLUSTER_NAMESPACE" "2" "$CLUSTER_NAME-[0-9]"
 
   PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
