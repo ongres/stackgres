@@ -23,6 +23,7 @@ import io.stackgres.matriarch.quarkus.resources.Slonys;
 import io.stackgres.proto.api.v1.ClusterOperationProgress;
 import io.stackgres.proto.api.v1.Environment;
 import io.stackgres.proto.api.v1.GetClusterCredentialsResponse;
+import io.stackgres.proto.api.v1.LogLine;
 import io.stackgres.proto.control.v1.*;
 import io.stackgres.proto.types.v1.Id;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -32,7 +33,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -109,6 +112,9 @@ public class CloudUplinkClient {
     private StreamObserver<MatriarchMessage> up;
     private long seq;
     private boolean snapshotAnchored;
+
+    /** In-flight log tails routed from the cloud, keyed by ControlRequest.request_id; value = cancel handle. */
+    private final Map<String, Runnable> tails = new ConcurrentHashMap<>();
     private long backoffMs = 1_000;
     private String environmentId;
 
@@ -367,6 +373,18 @@ public class CloudUplinkClient {
                 case DELETE_NODE -> api.deleteNode(req.getDeleteNode(), completionRelay(requestId));
                 case ADD_NODE_TAGS -> api.addNodeTags(req.getAddNodeTags(), completionRelay(requestId));
                 case REMOVE_NODE_TAGS -> api.removeNodeTags(req.getRemoveNodeTags(), completionRelay(requestId));
+                case TAIL_LOGS -> {
+                    Runnable cancel = api.startTailLogs(req.getTailLogs(), logRelay(requestId));
+                    if (cancel != null) {
+                        tails.put(requestId, cancel);
+                    }
+                }
+                case ABORT_LOGS -> {
+                    Runnable cancel = tails.remove(requestId);
+                    if (cancel != null) {
+                        cancel.run();
+                    }
+                }
                 case OPERATION_NOT_SET ->
                         sendErrorUp(requestId, Status.INVALID_ARGUMENT.withDescription("empty control request").asRuntimeException());
             }
@@ -443,6 +461,42 @@ public class CloudUplinkClient {
         };
     }
 
+    /** Relays a log tail's LogLine frames up as ControlResponse.log_line; terminal -> completed/error. */
+    private StreamObserver<LogLine> logRelay(String requestId) {
+        return new StreamObserver<>() {
+            @Override
+            public void onNext(LogLine line) {
+                runOnActor(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                        ControlResponse.newBuilder().setRequestId(requestId).setLogLine(line)).build()));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                tails.remove(requestId);
+                sendErrorUp(requestId, t);
+            }
+
+            @Override
+            public void onCompleted() {
+                tails.remove(requestId);
+                runOnActor(() -> sendUp(MatriarchMessage.newBuilder().setControlResponse(
+                        ControlResponse.newBuilder().setRequestId(requestId).setCompleted(Completion.getDefaultInstance())).build()));
+            }
+        };
+    }
+
+    /** Abort every in-flight log tail (on disconnect) so the slon agents stop tailing with no consumer. */
+    private void abortAllTails() {
+        for (Runnable cancel : tails.values()) {
+            try {
+                cancel.run();
+            } catch (RuntimeException e) {
+                LOG.debugf("tail abort failed: %s", e.getMessage());
+            }
+        }
+        tails.clear();
+    }
+
     private void sendErrorUp(String requestId, Throwable t) {
         com.google.rpc.Status status = t instanceof StatusRuntimeException sre
                 ? com.google.rpc.Status.newBuilder().setCode(sre.getStatus().getCode().value())
@@ -467,6 +521,7 @@ public class CloudUplinkClient {
 
     private void scheduleReconnect() {
         up = null;
+        abortAllTails();   // the cloud can no longer consume; stop the slon tails so they don't leak
         long delay = backoffMs;
         backoffMs = Math.min(backoffMs * 2, MAX_BACKOFF_MS);
         if (stopping || actor == null || actor.isShutdown()) {

@@ -150,6 +150,9 @@ message ControlRequest {
     stackgres.api.v1.DeleteNodeRequest delete_node = 8;
     stackgres.api.v1.AddNodeTagsRequest add_node_tags = 9;
     stackgres.api.v1.RemoveNodeTagsRequest remove_node_tags = 10;
+    stackgres.api.v1.TailLogsRequest tail_logs = 11;
+    // 12 reserved for tail_node_logs (node log tail, increment 2)
+    AbortLogs abort_logs = 13;   // stop an in-flight tail, by this request_id
   }
 }
 
@@ -163,8 +166,13 @@ message ControlResponse {
     google.rpc.Status                         error     = 3;  // terminal error -> onError
     Completion                                completed = 4;   // terminal success -> onCompleted
     stackgres.api.v1.GetClusterCredentialsResponse credentials = 5; // unary read result (live secret)
+    stackgres.api.v1.LogLine log_line = 6;                          // one streamed log line (TailLogs)
   }
 }
 
 message Completion {
+}
+
+// Stop an in-flight log tail — identified by the ControlRequest.request_id that started it.
+message AbortLogs {
 }

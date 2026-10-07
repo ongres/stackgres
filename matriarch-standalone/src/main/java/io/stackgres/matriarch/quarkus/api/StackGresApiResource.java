@@ -96,18 +96,33 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
     // over the agent link); historical/analytic QueryLogs stays cloud-only and is not implemented here.
     @Override
     public void tailLogs(TailLogsRequest request, StreamObserver<LogLine> responseObserver) {
+        Runnable cancel = startTailLogs(request, responseObserver);
+        // A follow ends when the client goes away: stop the slon tails and forget the session.
+        if (cancel != null && responseObserver instanceof ServerCallStreamObserver<LogLine> cancellable) {
+            cancellable.setOnCancelHandler(cancel);
+        }
+    }
+
+    /**
+     * Start a cluster log tail, emitting {@link LogLine} frames to {@code out}; returns a cancel handle
+     * that stops the slon tails and forgets the session (or {@code null} if the call already ended with an
+     * error). The handle lets BOTH the direct gRPC {@code onCancelHandler} and the cloud uplink's
+     * {@code AbortLogs} stop a follow — the uplink passes a plain {@link StreamObserver}, so it can't rely
+     * on {@link ServerCallStreamObserver} cancellation.
+     */
+    public Runnable startTailLogs(TailLogsRequest request, StreamObserver<LogLine> out) {
         Cluster cluster = matriarch.getCluster(new ClusterId(request.getClusterId().getValue()));
         if (cluster == null) {
-            responseObserver.onError(Status.NOT_FOUND.withDescription("no such cluster").asRuntimeException());
-            return;
+            out.onError(Status.NOT_FOUND.withDescription("no such cluster").asRuntimeException());
+            return null;
         }
         List<InstanceSpec> instances = cluster.spec().instances();
         if (request.hasInstanceId()) {
             String wanted = request.getInstanceId().getValue();
             instances = instances.stream().filter(i -> i.id().value().equals(wanted)).toList();
             if (instances.isEmpty()) {
-                responseObserver.onError(Status.NOT_FOUND.withDescription("no such instance in cluster").asRuntimeException());
-                return;
+                out.onError(Status.NOT_FOUND.withDescription("no such instance in cluster").asRuntimeException());
+                return null;
             }
         }
         // Empty component list = all; the agent answers "not available" for components a given mode lacks
@@ -117,7 +132,7 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
                 : request.getComponentList();
         boolean follow = request.getFollow();
 
-        ClusterLogRelay.Session session = clusterLogRelay.newSession(responseObserver, follow);
+        ClusterLogRelay.Session session = clusterLogRelay.newSession(out, follow);
         List<Map.Entry<UUID, UUID>> subs = new ArrayList<>();   // (instanceId, logId) — for abort on cancel
         for (InstanceSpec instance : instances) {
             UUID instanceId = UUID.fromString(instance.id().value());
@@ -136,18 +151,15 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
         }
         if (subs.isEmpty()) {
             clusterLogRelay.error(session, "no connected instance for this cluster");
-            return;
-        }
-        // A follow ends when the client goes away: stop the slon tails and forget the session.
-        if (responseObserver instanceof ServerCallStreamObserver<LogLine> cancellable) {
-            cancellable.setOnCancelHandler(() -> {
-                for (Map.Entry<UUID, UUID> sub : subs) {
-                    slons.abortLogs(sub.getKey(), sub.getValue());
-                }
-                clusterLogRelay.drop(session);
-            });
+            return null;
         }
         clusterLogRelay.arm(session);   // setup done — a snapshot may now complete
+        return () -> {
+            for (Map.Entry<UUID, UUID> sub : subs) {
+                slons.abortLogs(sub.getKey(), sub.getValue());
+            }
+            clusterLogRelay.drop(session);
+        };
     }
 
     @Override

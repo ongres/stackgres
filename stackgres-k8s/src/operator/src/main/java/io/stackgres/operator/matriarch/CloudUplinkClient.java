@@ -303,6 +303,12 @@ public class CloudUplinkClient {
       case START -> writeExecutor.execute(() -> writeService.start(req.getStart(), progressRelay(requestId)));
       case STOP -> writeExecutor.execute(() -> writeService.stop(req.getStop(), progressRelay(requestId)));
       case DELETE_NODE, ADD_NODE_TAGS, REMOVE_NODE_TAGS -> rejectNoNodes(requestId);
+      case TAIL_LOGS -> sendControlResponse(ControlResponse.newBuilder()
+          .setRequestId(requestId)
+          .setError(com.google.rpc.Status.newBuilder()
+              .setCode(io.grpc.Status.Code.UNIMPLEMENTED.value())
+              .setMessage("log tail is not supported on k8s environments yet"))
+          .build());
       case OPERATION_NOT_SET -> rejectControl(requestId, "empty control request");
       default -> rejectControl(requestId, "unsupported control operation");
     }
