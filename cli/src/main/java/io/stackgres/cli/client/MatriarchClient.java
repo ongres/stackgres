@@ -981,16 +981,17 @@ public class MatriarchClient {
         }
     }
 
-    public List<Event> getNodeEvents(UUID slonyId) {
-        GetNodeEventsRequest request = GetNodeEventsRequest.newBuilder().setSlonyId(mapUUID(slonyId)).build();
+    public List<io.stackgres.proto.types.v1.Event> getNodeEvents(UUID nodeId) {
+        io.stackgres.proto.api.v1.GetNodeEventsRequest request = io.stackgres.proto.api.v1.GetNodeEventsRequest.newBuilder()
+                .setEnvironmentId(configuredEnvironment())
+                .setId(Id.newBuilder().setValue(nodeId.toString()))
+                .build();
         try {
-            GetNodeEventsResponse response = resourceClient().getNodeEvents(request);
+            io.stackgres.proto.api.v1.GetNodeEventsResponse response = stackGresClient().getNodeEvents(request);
             logDebug("Received response: ", response);
-            if (response.hasStatus())
-                throw new RuntimeException(response.getStatus().getMessage());
-            return response.getEvents().getEventList();
-        } catch (StatusException e) {
-            throw handleStatusException(e);
+            return response.getEventList();
+        } catch (StatusRuntimeException e) {
+            throw statusError(e);
         }
     }
 

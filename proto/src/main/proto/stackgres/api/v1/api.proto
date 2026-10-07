@@ -61,6 +61,9 @@ service StackGresApi {
   rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse);
   rpc AddNodeTags(AddNodeTagsRequest) returns (AddNodeTagsResponse);
   rpc RemoveNodeTags(RemoveNodeTagsRequest) returns (RemoveNodeTagsResponse);
+  // Node events — the slony agent's event pushes, served from cache (per-env
+  // SourceInfo) like GetClusterEvents; uplinked so the cloud serves them too.
+  rpc GetNodeEvents(GetNodeEventsRequest) returns (GetNodeEventsResponse);
 
   // --- Credentials: secret values are NOT on Cluster; fetched here, separately
   // authorized (§3.7, P4). ---
@@ -456,6 +459,14 @@ message RemoveNodeTagsRequest {
 }
 message RemoveNodeTagsResponse {
   map<string, string> tags = 1;
+}
+message GetNodeEventsRequest {
+  string environment_id = 1;
+  types.v1.Id id = 2;
+}
+message GetNodeEventsResponse {
+  repeated types.v1.Event event = 1;
+  map<string, types.v1.SourceInfo> source_info = 2;
 }
 
 // ===========================================================================

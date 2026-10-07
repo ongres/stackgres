@@ -9,6 +9,7 @@ import io.stackgres.matriarch.model.spec.ClusterCreate;
 import io.stackgres.matriarch.model.spec.DatabaseEngine;
 import io.stackgres.matriarch.model.spec.Extension;
 import io.stackgres.matriarch.quarkus.event.ClusterEventStore;
+import io.stackgres.matriarch.quarkus.event.NodeEventStore;
 import io.stackgres.matriarch.spi.ExtensionCatalog;
 import io.stackgres.matriarch.spi.VersionCatalog;
 import io.stackgres.proto.api.v1.*;
@@ -54,6 +55,9 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
 
     @Inject
     ClusterEventStore clusterEvents;
+
+    @Inject
+    NodeEventStore nodeEventStore;
 
     @Inject
     io.stackgres.matriarch.quarkus.identity.EnvironmentIdentity identity;
@@ -404,6 +408,19 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
         GetClusterEventsResponse.Builder resp = io.stackgres.proto.api.v1.GetClusterEventsResponse.newBuilder();
         for (ClusterEvent event : clusterEvents.events(id)) {   // chronological snapshot; WatchEvents stays UNIMPLEMENTED
             resp.addEvent(ProtoMapper.toProtoEvent(event));
+        }
+        resp.putSourceInfo(identity.id(), ProtoMapper.liveSourceInfo());
+        responseObserver.onNext(resp.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getNodeEvents(io.stackgres.proto.api.v1.GetNodeEventsRequest request, StreamObserver<io.stackgres.proto.api.v1.GetNodeEventsResponse> responseObserver) {
+        Node node = slonys.currentNode(identity.id());
+        String nodeId = node != null ? node.getId().getValue() : "";
+        io.stackgres.proto.api.v1.GetNodeEventsResponse.Builder resp = io.stackgres.proto.api.v1.GetNodeEventsResponse.newBuilder();
+        for (NodeEventStore.Stored stored : nodeEventStore.events()) {
+            resp.addEvent(ProtoMapper.toNodeEvent(stored.event(), nodeId, stored.timestampMillis()));
         }
         resp.putSourceInfo(identity.id(), ProtoMapper.liveSourceInfo());
         responseObserver.onNext(resp.build());

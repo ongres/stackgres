@@ -26,11 +26,13 @@ public class NodeEventStore {
 
     private final Deque<Stored> events = new ArrayDeque<>();
 
-    public synchronized void record(Event event) {
-        events.addLast(new Stored(System.currentTimeMillis(), event));
+    public synchronized Stored record(Event event) {
+        Stored stored = new Stored(System.currentTimeMillis(), event);
+        events.addLast(stored);
         while (events.size() > MAX) {
             events.removeFirst();
         }
+        return stored;
     }
 
     /**

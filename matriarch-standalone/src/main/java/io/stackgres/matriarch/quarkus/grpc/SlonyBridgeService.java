@@ -1,4 +1,5 @@
 package io.stackgres.matriarch.quarkus.grpc;
+import io.stackgres.matriarch.quarkus.event.NodeEventRecorded;
 import io.stackgres.matriarch.quarkus.event.NodeEventStore;
 import io.stackgres.matriarch.quarkus.resources.*;
 
@@ -6,6 +7,7 @@ import io.stackgres.matriarch.Matriarch;
 import io.stackgres.proto.slony.*;
 import io.grpc.stub.StreamObserver;
 import io.quarkus.grpc.GrpcService;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
@@ -32,6 +34,9 @@ public class SlonyBridgeService extends SlonyServiceGrpc.SlonyServiceImplBase {
 
     @Inject
     NodeEventStore nodeEventStore;
+
+    @Inject
+    Event<NodeEventRecorded> nodeEvents;
 
     @Inject
     NodeLogRelay nodeLogRelay;
@@ -81,7 +86,7 @@ public class SlonyBridgeService extends SlonyServiceGrpc.SlonyServiceImplBase {
                             matriarch.reconcile();
                         }
                     }
-                    case EVENT -> nodeEventStore.record(msg.getEvent());
+                    case EVENT -> nodeEvents.fire(new NodeEventRecorded(nodeEventStore.record(msg.getEvent())));
                     case LOG -> nodeLogRelay.onLog(msg.getLog());
                     default -> { /* log: ignored in cut #1 */ }
                 }

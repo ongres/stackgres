@@ -170,6 +170,23 @@ public final class ProtoMapper {
         return b.build();
     }
 
+    /**
+     * Map a slony agent event to an api.v1 node event (scope {@code "node"}), stamped with the receive
+     * time and the node id. Shared by GetNodeEvents (direct) and the cloud uplink's node-event forward so
+     * both return the same shape.
+     */
+    public static io.stackgres.proto.types.v1.Event toNodeEvent(io.stackgres.proto.slony.Event e, String nodeId, long timestampMillis) {
+        Event.Builder b = io.stackgres.proto.types.v1.Event.newBuilder()
+                .setScope("node")
+                .setType(e.getType())
+                .putAllData(e.getDataMap())
+                .setTimestamp(toTimestamp(java.time.Instant.ofEpochMilli(timestampMillis)));
+        if (nodeId != null && !nodeId.isEmpty()) {
+            b.setScopeId(id(nodeId));
+        }
+        return b.build();
+    }
+
     private static com.google.protobuf.Timestamp toTimestamp(java.time.Instant t) {
         return com.google.protobuf.Timestamp.newBuilder()
                 .setSeconds(t.getEpochSecond())

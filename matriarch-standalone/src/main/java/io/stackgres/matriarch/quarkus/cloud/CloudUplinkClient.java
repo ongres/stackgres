@@ -16,6 +16,8 @@ import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.quarkus.api.ProtoMapper;
 import io.stackgres.matriarch.quarkus.api.StackGresApiResource;
+import io.stackgres.matriarch.quarkus.event.NodeEventRecorded;
+import io.stackgres.matriarch.quarkus.event.NodeEventStore;
 import io.stackgres.matriarch.quarkus.resources.NodeInventoryChanged;
 import io.stackgres.matriarch.quarkus.resources.Slonys;
 import io.stackgres.proto.api.v1.ClusterOperationProgress;
@@ -254,6 +256,32 @@ public class CloudUplinkClient {
                 sendSnapshot();
             }
         });
+    }
+
+    // A slony agent event was recorded — forward it up as a seq-event so the cloud serves GetNodeEvents.
+    void onNodeEvent(@Observes NodeEventRecorded event) {
+        ScheduledExecutorService a = actor;
+        if (!enabled || a == null) {
+            return;
+        }
+        a.execute(() -> forwardNodeEvent(event.stored()));
+    }
+
+    private void forwardNodeEvent(NodeEventStore.Stored stored) {
+        if (up == null || !snapshotAnchored) {
+            return;   // not connected/anchored yet; node events before the first snapshot are dropped
+        }
+        io.stackgres.proto.api.v1.Node node = slonys.currentNode(environmentId);
+        String nodeId = node != null ? node.getId().getValue() : "";
+        long s = ++seq;
+        SeqEvent.Builder ev = SeqEvent.newBuilder()
+                .setSeq(s)
+                .setEvent(ProtoMapper.toNodeEvent(stored.event(), nodeId, stored.timestampMillis()));
+        try {
+            up.onNext(MatriarchMessage.newBuilder().setEvent(ev).build());
+        } catch (RuntimeException e) {
+            LOG.debugf("node event send failed: %s", e.getMessage());
+        }
     }
 
     private void forward(ClusterEvent event) {
