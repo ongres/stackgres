@@ -16,6 +16,9 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 4
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  # The Pods are created with the Parallel management policy, so the primary is whichever Pod wins
+  # the bootstrap, while the backups are asserted to be taken from the first one
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   # Avoid backups before waiting for pods (since backup pods could biase the wait)
   enable_cluster_cron_schedule
