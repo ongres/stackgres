@@ -107,5 +107,8 @@ e2e_test_uninstall() {
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
-  kubectl delete storageclasses "$EXPANDABLE_STORAGE_CLASSNAME"  
+  if [ "$EXPANDABLE_STORAGE_CLASS_CREATED" = true ]
+  then
+    kubectl delete storageclasses "$EXPANDABLE_STORAGE_CLASSNAME"
+  fi
 }

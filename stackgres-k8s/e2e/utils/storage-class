@@ -2,13 +2,23 @@
 
 DEFAULT_EXPANDABLE_STORAGE_CLASSNAME="expandable-sc"
 
+# Whether the expandable storage class was created by init_expandable_storage_class. A test that
+# removes the expandable storage class when it is done must only do so when this is `true`: the
+# storage class already configured in the environment may be the default storage class of the
+# cluster, and deleting that one leaves every PersistentVolumeClaim created afterwards without a
+# storage class, and therefore unbound forever, since the default is only resolved when the claim is
+# created.
+EXPANDABLE_STORAGE_CLASS_CREATED=false
+
 init_expandable_storage_class(){
   EXPANDABLE_STORAGE_CLASSNAME="$(get_expandable_storage_class_configured)"
 
   if [ -n "$EXPANDABLE_STORAGE_CLASSNAME" ]
   then
+    EXPANDABLE_STORAGE_CLASS_CREATED=false
     echo "Expandable storage class already configured, skipping initialization."
   else
+    EXPANDABLE_STORAGE_CLASS_CREATED=true
     echo "No expandandable storage class detected, creating one."
     if ! command -v create_expandable_storage_class_k8s >/dev/null 2>&1
     then
