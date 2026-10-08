@@ -677,16 +677,11 @@ cli_set_parameter_boolean_negation() {
   fi
 }
 
+# A boolean parameter is always a single argument, in any of the forms `--<name>`, `--<name>-` or
+# `--<name>=<true|false>` (see cli_set_parameter_boolean), so it never consumes the argument that
+# follows it.
 cli_get_parameter_shifts_for_boolean() {
-  if [ "${1%%=*}" = "$1" ]
-  then
-    printf 1
-  elif [ "${1%-}" != "$1" ]
-  then
-    printf 1
-  else
-    printf 2
-  fi
+  printf 1
 }
 
 cli_get_parameter_shifts() {
