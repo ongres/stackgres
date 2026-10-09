@@ -43,6 +43,7 @@ import io.fabric8.kubernetes.api.model.PodStatusBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetStatusBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
@@ -82,6 +83,12 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(
       ClusterStatefulSetWithPrimaryReconciliationHandlerTest.class);
+
+  private static final String CONTROLLER_REVISION_HASH_LABEL = "controller-revision-hash";
+
+  private static final String UPDATE_REVISION = "update-revision";
+
+  private static final String PREVIOUS_REVISION = "previous-revision";
 
   // Seeded so that a failing replica count is reproducible across runs.
   private final Random random = new Random(0);
@@ -938,8 +945,76 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
     verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
   }
 
+  @Test
+  @DisplayName("A replica Pod that is not ready and pending restart since created from a previous"
+      + " revision of the Pod template should be re-created")
+  void replicaNotReadyAndPendingRestart_shouldRecreateReplicaPod() {
+    setUpRollout(null, null);
+    setUpPodRevisions(UPDATE_REVISION, PREVIOUS_REVISION);
+    setPodPending(1);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler).delete(any(), eq(podList.get(1)));
+    verify(defaultHandler, never()).delete(any(), eq(podList.get(0)));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A replica Pod that is not ready and not pending restart should be waited for"
+      + " instead of being re-created")
+  void replicaNotReadyAndNotPendingRestart_shouldWaitForTheReplicaPod() {
+    setUpRollout("max_connections: 80->81", null);
+    setPodPending(1);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
   private String podName(int podIndex) {
     return requiredStatefulSet.getMetadata().getName() + "-" + podIndex;
+  }
+
+  /**
+   * Set the update revision of the StatefulSet and the revision each Pod has been created with. A
+   * Pod created with a revision other than the update revision of the StatefulSet is pending
+   * restart since its Pod template is outdated (see
+   * ClusterRolloutUtil.isStatefulSetPodPendingRestart).
+   */
+  private void setUpPodRevisions(String... revisionByPodIndex) {
+    requiredStatefulSet.setStatus(new StatefulSetStatusBuilder()
+        .withUpdateRevision(UPDATE_REVISION)
+        .build());
+    for (int podIndex = 0; podIndex < revisionByPodIndex.length; podIndex++) {
+      final Pod pod = podList.get(podIndex);
+      final Map<String, String> labels = new HashMap<>(pod.getMetadata().getLabels());
+      labels.put(CONTROLLER_REVISION_HASH_LABEL, revisionByPodIndex[podIndex]);
+      pod.getMetadata().setLabels(labels);
+    }
+  }
+
+  /**
+   * A Pod that has been created but can not be scheduled stays in the Pending phase with the Ready
+   * condition set to false, so it is neither ready nor in the Failed phase.
+   */
+  private void setPodPending(int podIndex) {
+    podList.get(podIndex).setStatus(new PodStatusBuilder()
+        .withPhase("Pending")
+        .withConditions(
+            new PodConditionBuilder()
+            .withType("Ready")
+            .withStatus("False")
+            .build(),
+            new PodConditionBuilder()
+            .withType("PodScheduled")
+            .withStatus("False")
+            .withReason("Unschedulable")
+            .build())
+        .build());
   }
 
   @SuppressWarnings("unchecked")
