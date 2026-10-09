@@ -9,7 +9,7 @@
   pglambda_nodejs_image: registry.access.redhat.com/ubi8/nodejs-18:1-140
 .pinned_images:
   ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci@sha256:1d9b332cdc075a00841bf6ee7a7c53ce27ee0f46f14937eba87c3fa85037624c
-  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder@sha256:96426bfca75455e78c7db674b04fd3c52c4f575a91bd6e74dc714240e2b96712
+  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder@sha256:66317c9f5d7b7a25269695998bac4300d6a62f6386c6e47d126e076d91fdbf0a
   jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21@sha256:645710be17ff582b0f2eb5d52f572556a2b73f4367290548bbc89431213e3ece
   ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8/ubi-micro@sha256:b2df364e16af80aa65b010decd2c0fbf96923242eabc1ae6c327753c3dc72f0c
   ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9/ubi-minimal@sha256:8ebe2ad8fdf3cab3e5a53c1edc69194c98209cfadab24b884f4ad9ebcf7bbbfc
