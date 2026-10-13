@@ -164,7 +164,10 @@ check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
   # The previous test leaves the cluster without a primary, with the first two Pods unschedulable.
   # The readiness probe of patroni only succeeds when the replication state is streaming, so the
   # remaining replica stays not ready, and is therefore kept out of the endpoints of the replicas
-  # service, until a primary is elected again.
+  # service, until a primary is elected again. Removing the node selector only changes the template
+  # of the StatefulSet: the two Pods are already pending and are not re-created by the operator,
+  # that only performs a rollout when the update strategy allows it, so they have to be deleted in
+  # order to be created again from the new template and be scheduled.
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
     --set cluster.replication.mode=sync \
     --set cluster.replication.role=ha-read \
@@ -180,6 +183,8 @@ check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
     --set cluster.replication.groups[0].instances=1 \
     --set cluster.replication.groups[0].role=readonly \
     --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=null"
+  wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
+  wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
   wait_pods_running "$CLUSTER_NAMESPACE" "3"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   local RESULT EXIT_CODE
