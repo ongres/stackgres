@@ -66,6 +66,6 @@ For more details about DDP sharding technology have a look at the [DDP sharding 
 A sharded cluster creates the following Services:
 
 - **Main Service** (same name as SGShardedCluster): Points to the primary Pod of the coordinator for read/write queries and for command queries
-- **`-any` Service**: Points to all Pods of the coordinator
-- **`-primaries` Service**: Points to all primary Pods of the workers (for Citus this can be also used for read/write queries)
-- **Query router Services** (Citus only): One Service per query router SGCluster, named after the SGCluster (for example `<cluster-name>-router0`). Each one points to the single Pod of the corresponding query router. See [Query Routers]({{% relref "04-administration-guide/14-sharded-cluster/01-citus-sharding-technology#query-routers" %}}).
+- **`-reads` Service**: Points to all Pods of the coordinator
+- **`-workers` Service** (also available as `-shards`): Points to all primary Pods of the workers (for Citus this can be also used for read/write queries)
+- **`-routers` Service** (Citus only): Points to the Pods of all the query routers, balancing read/write connections among them. It has no Pods to point to unless `spec.coordinator.queryRouterClusters` is set. See [Query Routers]({{% relref "04-administration-guide/14-sharded-cluster/01-citus-sharding-technology#query-routers" %}}).
