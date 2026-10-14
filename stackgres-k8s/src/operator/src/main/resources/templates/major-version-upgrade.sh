@@ -106,6 +106,16 @@ then
     touch "$PG_UPGRADE_PATH/$TARGET_VERSION/.copy-missing-lib64.done"
   fi
   chmod -R 700 "$PG_DATA_PATH"
+  # When the data folder holds a postmaster.pid, left behind by a postgres that was killed instead
+  # of being shut down, pg_upgrade finds out whether it is stale by starting the old server once.
+  # That probe runs before pg_upgrade applies its own --socketdir, so the server only gets the
+  # socket directory that is compiled into postgres, /var/run/postgresql, which is a volume mounted
+  # in the containers that run a server and does not exist in this one. The probe then fails with
+  # "could not create lock file", pg_upgrade concludes that a postmaster is servicing the old
+  # cluster and aborts, leaving a data folder that only a rollback can recover. The socket
+  # directory is passed in the options of the old server too, which the probe does read, so that
+  # it starts in the same directory --socketdir gives to every other start.
+  PG_UPGRADE_SOCKET_OPTION="-c 'unix_socket_directories=$PG_UPGRADE_PATH/$TARGET_VERSION'"
   if [ "$CHECK" = true ]
   then
     echo "Checking major version upgrade"
@@ -115,7 +125,7 @@ then
       -d "$PG_DATA_PATH" \
       -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
       -s "$PG_UPGRADE_PATH/$TARGET_VERSION" \
-      -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH'" \
+      -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH' $PG_UPGRADE_SOCKET_OPTION" \
       -O "-c 'dynamic_library_path=$TARGET_PG_LIB_PATH:$TARGET_PG_EXTRA_LIB_PATH'" \
       $("$LINK" && printf %s "-k" || true) \
       $("$CLONE" && printf %s "--clone" || true)
@@ -144,7 +154,7 @@ then
     -d "$PG_DATA_PATH" \
     -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
     -s "$PG_UPGRADE_PATH/$TARGET_VERSION" \
-    -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH'" \
+    -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH' $PG_UPGRADE_SOCKET_OPTION" \
     -O "-c 'dynamic_library_path=$TARGET_PG_LIB_PATH:$TARGET_PG_EXTRA_LIB_PATH'" \
     $("$LINK" && printf %s "-k" || true) \
     $("$CLONE" && printf %s "--clone" || true)
