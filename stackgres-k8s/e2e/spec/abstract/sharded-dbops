@@ -1,8 +1,12 @@
 #!/bin/sh
 
+# The SGDbOps of a member always completes before the SGShardedDbOps that created it, so it is
+# waited for with the same extended timeout. A major version upgrade of a member keeps it down while
+# the image of the target version and the one that performs the upgrade are pulled, which on its own
+# takes longer than E2E_TIMEOUT.
 wait_dbops_is_completed() {
   local DBOPS_NAME="$1"
-  if wait_until kubectl wait --timeout 0s sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+  if wait_until -t "$((E2E_TIMEOUT * 4))" kubectl wait --timeout 0s sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
     --for=condition=Completed > /dev/null
   then
     success "The dbops has completed"
