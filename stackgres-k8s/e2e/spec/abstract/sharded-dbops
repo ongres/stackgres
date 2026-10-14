@@ -33,3 +33,25 @@ trigger_sharded_cluster_require_restart() {
   kubectl wait sts --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-coord" \
     --for jsonpath='{.spec.template.spec.containers[?(@.name == "patroni")].env[?(@.name == "REQUIRE_RESTART")].value}'="$DATE"
 }
+
+# The postgres version a member runs can not be read from the images of its Pod: the images
+# released with the operator put the postgres version in the tag of a single repository while the
+# StackGres images repository builds a repository per component and version, so a version only
+# appears in some of them and never with the same separators. The version reported by the server is
+# checked instead, as the numeric server_version_num, since server_version is suffixed with the
+# t-shirt size of the image by the StackGres images repository (`17.11full`).
+check_sharded_members_postgres_version() {
+  local VERSION="$1"
+  local VERSION_NUM SUFFIX
+  VERSION_NUM="$(( ${VERSION%%.*} * 10000 + ${VERSION#*.} ))"
+  for SUFFIX in coord worker0 worker1
+  do
+    if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$SUFFIX-0" -c "postgres-util" -- \
+      psql -q -t -A -d citus -c "SHOW server_version_num")" = "$VERSION_NUM" ]
+    then
+      success "Member $CLUSTER_NAME-$SUFFIX is running postgres $VERSION"
+    else
+      fail "Member $CLUSTER_NAME-$SUFFIX is not running postgres $VERSION"
+    fi
+  done
+}
