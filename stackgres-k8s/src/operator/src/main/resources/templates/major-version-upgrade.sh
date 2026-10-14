@@ -2,6 +2,15 @@
 
 set -e
 
+# pg_upgrade writes the output of the old and of the new server, and the reason why it failed, under
+# the data folder of the new cluster, in a folder named after the time it was started. The whole
+# folder is therefore looked up recursively: a glob per depth would also have to be written with a
+# brace expansion to match both extensions, and the POSIX shell that runs this script does not
+# implement it, silently reporting nothing at all.
+print_pg_upgrade_logs() {
+  find . -type f \( -name '*.txt' -o -name '*.log' \) -exec grep -H . {} + 2>/dev/null | cat >&2
+}
+
 if [ "$ROLLBACK" = true ]
 then
   if [ -f "$PG_UPGRADE_PATH/$SOURCE_VERSION/data/PG_VERSION" ]
@@ -112,7 +121,7 @@ then
     fi
     
     echo
-    grep . *.{txt,log} */*.{txt,log} */*/*.{txt,log} */*/*/*.{txt,log} */*/*/*/*.{txt,log} 2>/dev/null | cat >&2
+    print_pg_upgrade_logs
     echo
     
     echo "Major version upgrade check performed"
@@ -138,12 +147,12 @@ then
     $("$CLONE" && printf %s "--clone" || true)
   then
     echo
-    grep . *.{txt,log} */*.{txt,log} */*/*.{txt,log} */*/*/*.{txt,log} */*/*/*/*.{txt,log} 2>/dev/null | cat >&2
+    print_pg_upgrade_logs
     echo
     exit 1
   fi
   echo
-  grep . *.{txt,log} */*.{txt,log} */*/*.{txt,log} */*/*/*.{txt,log} */*/*/*/*.{txt,log} 2>/dev/null | cat >&2
+  print_pg_upgrade_logs
   echo
   echo 'Copying pg_hba.conf from the original data folder to the upgraded data folder:'
   cp -v "$PG_DATA_PATH/pg_hba.conf" "$PG_UPGRADE_PATH/$TARGET_VERSION/data/pg_hba.conf"
