@@ -1452,21 +1452,20 @@ export const mixin = {
       },
       
       getDateString() {
+        // Built from numeric date components only: the result is used in
+        // resource names, which must be valid RFC 1123 subdomains regardless
+        // of the browser locale
         let fullDate = new Date();
-        let timeString = '';
-        let dayString = '';
-        let localeMonth = fullDate.getMonth()+1;
-        
+        let pad = (n) => n.toString().padStart(2, '0');
+
         if (store.state.timezone == 'local') {
-          timeString = fullDate.toLocaleTimeString([], { hour12: false });
-          dayString = fullDate.getFullYear() + '-' + localeMonth.toString().padStart(2, '0') + '-' + fullDate.getDate().toString().padStart(2, '0');
+          return fullDate.getFullYear() + '-' + pad(fullDate.getMonth() + 1) + '-' + pad(fullDate.getDate()) +
+            '-' + pad(fullDate.getHours()) + '-' + pad(fullDate.getMinutes()) + '-' + pad(fullDate.getSeconds());
         } else {
-          timeString = fullDate.getUTCHours() + ':' + fullDate.getUTCMinutes() + ':' + fullDate.getUTCSeconds()
-          dayString = fullDate.toISOString().slice(0, fullDate.toISOString().indexOf('T'));
+          return fullDate.getUTCFullYear() + '-' + pad(fullDate.getUTCMonth() + 1) + '-' + pad(fullDate.getUTCDate()) +
+            '-' + pad(fullDate.getUTCHours()) + '-' + pad(fullDate.getUTCMinutes()) + '-' + pad(fullDate.getUTCSeconds());
         }
-          
-        return dayString + '-' + timeString.replace(/:/g,'-').replaceAll('.','-');
-      }, 
+      },
             
       checkValidSteps(data, source) {
         if( (source == 'submit') || ( (source == 'steps') && (data.errorStep.length)) ) {
