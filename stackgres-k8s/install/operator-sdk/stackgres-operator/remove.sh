@@ -102,6 +102,7 @@ fi
 assert_single_channel_head
 render_catalogs
 
+git -C "$FORK_GIT_PATH" add "operators/$PROJECT_NAME/ci.yaml"
 git -C "$FORK_GIT_PATH" add "operators/$PROJECT_NAME/catalog-templates"
 git -C "$FORK_GIT_PATH" add "$PWD/$FORK_GIT_PATH/catalogs"/*/"$PROJECT_NAME"
 git -C "$FORK_GIT_PATH" status

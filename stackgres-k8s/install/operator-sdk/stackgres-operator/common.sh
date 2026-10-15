@@ -84,6 +84,31 @@ setup_fork_repositories() {
     >&2 echo "Git repository $FORK_GIT_URL seems not a fork of $UPSTREAM_GIT_URL"
     exit 1
   fi
+
+  restore_fbc_ci_yaml
+}
+
+# A bundle PR made with a deploy.sh that predates FBC support (e.g. from an older
+# release branch) overwrites ci.yaml with the template, dropping the fbc
+# catalog_mapping that onboarding and Red Hat's catalog promotions maintain.
+# Without it 'make catalogs' renders nothing and fails, so put back the fbc
+# section from the latest upstream revision of ci.yaml that still had it.
+restore_fbc_ci_yaml() {
+  CI_YAML_PATH="operators/$PROJECT_NAME/ci.yaml"
+  [ -f "$FORK_GIT_PATH/$CI_YAML_PATH" ] || return 0
+  ! yq -e '.fbc' "$FORK_GIT_PATH/$CI_YAML_PATH" > /dev/null || return 0
+  for CI_YAML_COMMIT in $(git -C "$FORK_GIT_PATH" log --format=%H HEAD -- "$CI_YAML_PATH")
+  do
+    git -C "$FORK_GIT_PATH" show "$CI_YAML_COMMIT:$CI_YAML_PATH" > target/ci-with-fbc.yaml 2>/dev/null || continue
+    yq -e '.fbc' target/ci-with-fbc.yaml > /dev/null || continue
+    {
+      echo ---
+      yq -y -s '.[0] + {fbc: .[1].fbc}' "$FORK_GIT_PATH/$CI_YAML_PATH" target/ci-with-fbc.yaml
+    } > "$FORK_GIT_PATH/$CI_YAML_PATH.new"
+    mv "$FORK_GIT_PATH/$CI_YAML_PATH.new" "$FORK_GIT_PATH/$CI_YAML_PATH"
+    echo "Restored the fbc section of $CI_YAML_PATH from commit $CI_YAML_COMMIT"
+    return 0
+  done
 }
 
 show_push_and_pr_instructions() {
