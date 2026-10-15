@@ -37,6 +37,7 @@ install_vertical_pod_autoscaler() {
     --create-namespace \
     --namespace "$(vertical_pod_autoscaler_namespace)" \
     --set-string auth.rbac.rootPassword=test \
+    --set-string crds.image.repository=bitnamilegacy/kubectl \
     "$@"
 
   wait_pods_running "$(vertical_pod_autoscaler_namespace)" 3
