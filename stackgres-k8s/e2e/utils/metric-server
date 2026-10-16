@@ -33,6 +33,6 @@ install_metric_server() {
 }
 
 uninstall_metric_server() {
-  helm_cleanup_chart metric-server "$(metric_server_namespace)"
+  helm_cleanup_chart metrics-server "$(metric_server_namespace)"
   k8s_async_cleanup_namespace "$(metric_server_namespace)"
 }

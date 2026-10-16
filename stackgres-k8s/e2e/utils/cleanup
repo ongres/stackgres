@@ -164,6 +164,7 @@ traceable_k8s_unnamespaced_cleanup() {
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  traceable_k8s_orphaned_helm_rbac_cleanup
   echo "Cleanup of k8s clusterrolebindings"
   kubectl get clusterrolebinding -o name \
     | grep -v "^[^/]\+/\(system:.*\|kubeadm:.*\|cluster-admin\|cluster-admin-fast\|kindnet\)$" \
@@ -204,6 +205,31 @@ traceable_k8s_orphaned_apiservice_cleanup() {
         [ "x$APISERVICE" = x ] \
           || kubectl get service -n "$NAMESPACE" "$NAME" >/dev/null 2>&1 \
           || kubectl delete apiservices.apiregistration.k8s.io --ignore-not-found "$APISERVICE"
+      done
+}
+
+k8s_orphaned_helm_rbac_cleanup() {
+  notrace_function traceable_k8s_orphaned_helm_rbac_cleanup "$@"
+}
+
+# Remove the ClusterRoles and the ClusterRoleBindings of a helm release whose namespace does not
+# exist anymore, as those that a chart uninstalled by deleting its namespace leaves behind. The
+# cleanup of the ClusterRoles and of the ClusterRoleBindings leaves out those whose name starts
+# with `system:`, as the ones of the metrics server do, so those survive and helm then refuses to
+# install the chart again, since it will not adopt a resource that belongs to another release. A
+# resource of a release whose namespace still exists is left untouched.
+traceable_k8s_orphaned_helm_rbac_cleanup() {
+  echo "Cleanup of k8s orphaned helm clusterroles and clusterrolebindings"
+  kubectl get clusterrole,clusterrolebinding -l app.kubernetes.io/managed-by=Helm -o json \
+    | jq -r '.items[]
+      | select(.metadata.annotations["meta.helm.sh/release-namespace"] != null)
+      | (.kind | ascii_downcase) + "/" + .metadata.name
+        + " " + .metadata.annotations["meta.helm.sh/release-namespace"]' \
+    | while read RESOURCE NAMESPACE
+      do
+        [ "x$RESOURCE" = x ] \
+          || kubectl get namespace "$NAMESPACE" >/dev/null 2>&1 \
+          || kubectl delete --ignore-not-found "$RESOURCE"
       done
 }
 
