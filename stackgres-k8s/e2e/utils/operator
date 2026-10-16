@@ -1558,6 +1558,30 @@ get_cluster_helm_url() {
   echo "https://stackgres.io/downloads/stackgres-k8s/stackgres/$VERSION/helm/stackgres-cluster-demo.tgz"
 }
 
+# The minor versions of StackGres this version supports an upgrade from, from the oldest to the
+# newest and including this version. They are the minor versions the common module ships a
+# versions-<minor version>.properties for, that is one per entry of the StackGresVersion enum.
+get_supported_minor_versions() {
+  ls "$STACKGRES_PATH"/src/common/src/main/resources/versions-*.properties \
+    | sed 's#^.*/versions-\(.*\)\.properties$#\1#' \
+    | sort -V
+}
+
+# The minor version that precedes this version by $1 positions in the list of the supported minor
+# versions, 1 being the immediately older one. The minor versions are not consecutive numbers when
+# the major version changes, so they can not be calculated by subtracting from the current one.
+get_older_minor_version() {
+  [ -n "$1" ]
+  local INDEX
+  INDEX="$(get_supported_minor_versions | grep -nxF "${STACKGRES_VERSION%.*}" | cut -d : -f 1)"
+  if [ -z "$INDEX" ] || [ "$((INDEX - $1))" -lt 1 ]
+  then
+    echo "There is no minor version $1 positions older than ${STACKGRES_VERSION%.*}" >&2
+    return 1
+  fi
+  get_supported_minor_versions | sed -n "$((INDEX - $1))p"
+}
+
 get_version_as_number() {
   notrace_function traceable_get_version_as_number "$1"
 }
