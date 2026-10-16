@@ -149,6 +149,8 @@ k8s_unnamespaced_cleanup() {
 }
 
 traceable_k8s_unnamespaced_cleanup() {
+  traceable_k8s_orphaned_apiservice_cleanup
+  traceable_k8s_stackgres_operator_scale_down
   traceable_k8s_webhook_cleanup
   traceable_k8s_stackgres_finalizers_cleanup
   echo "Cleanup of k8s crds"
@@ -180,6 +182,61 @@ traceable_k8s_unnamespaced_cleanup() {
       | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | xargs -r -I % kubectl delete --ignore-not-found %
+}
+
+k8s_orphaned_apiservice_cleanup() {
+  notrace_function traceable_k8s_orphaned_apiservice_cleanup "$@"
+}
+
+# Remove the aggregated APIServices whose Service does not exist anymore, as those that a chart
+# uninstalled by deleting its namespace leaves behind. The kube-apiserver can not complete the
+# discovery of the API groups while one of them is registered and unreachable, and the termination
+# of a namespace requires a complete discovery, so a single orphaned APIService blocks the
+# termination of every namespace of the cluster, forever. An APIService that is served by an
+# existing Service is left untouched, so the ones of the environment are never removed.
+traceable_k8s_orphaned_apiservice_cleanup() {
+  echo "Cleanup of k8s orphaned apiservices"
+  kubectl get apiservices.apiregistration.k8s.io -o json \
+    | jq -r '.items[] | select(.spec.service != null)
+      | .metadata.name + " " + .spec.service.namespace + " " + .spec.service.name' \
+    | while read APISERVICE NAMESPACE NAME
+      do
+        [ "x$APISERVICE" = x ] \
+          || kubectl get service -n "$NAMESPACE" "$NAME" >/dev/null 2>&1 \
+          || kubectl delete apiservices.apiregistration.k8s.io --ignore-not-found "$APISERVICE"
+      done
+}
+
+k8s_stackgres_operator_scale_down() {
+  notrace_function traceable_k8s_stackgres_operator_scale_down "$@"
+}
+
+# Scale down every StackGres operator so that nothing reconciles the stackgres.io custom resources
+# anymore. The operator recreates the SGClusters of a SGShardedCluster or of a SGDistributedLogs as
+# soon as they are removed and sets again the finalizers that only it removes, so while it runs the
+# cleanup of the finalizers is undone and the deletion of the sgclusters CustomResourceDefinition,
+# that waits for every SGCluster to be removed, never completes.
+traceable_k8s_stackgres_operator_scale_down() {
+  echo "Scale down of stackgres operators"
+  kubectl get deployment --all-namespaces -l group=stackgres.io -o json \
+    | jq -r '.items[] | .metadata.namespace + " " + .metadata.name' \
+    | while read NAMESPACE NAME
+      do
+        [ "x$NAME" = x ] \
+          || kubectl scale deployment -n "$NAMESPACE" "$NAME" --replicas 0 >/dev/null 2>&1 \
+          || true
+      done
+  local END="$(($(date +%s) + 1 + E2E_TIMEOUT / 10))"
+  while [ -n "$(kubectl get deployment --all-namespaces -l group=stackgres.io \
+    -o 'jsonpath={.items[*].status.replicas}' 2>/dev/null | tr -d ' ')" ]
+  do
+    if [ "$(date +%s)" -ge "$END" ]
+    then
+      echo "Timeout while waiting for the stackgres operators to be scaled down"
+      break
+    fi
+    sleep 1
+  done
 }
 
 k8s_webhook_cleanup() {
@@ -291,6 +348,7 @@ k8s_unnamespaced_cleanup_but_operator() {
 }
 
 traceable_k8s_unnamespaced_cleanup_but_operator() {
+  traceable_k8s_orphaned_apiservice_cleanup
   traceable_k8s_webhook_cleanup_but_operator
   echo "Cleanup of k8s crds excluding operator"
   kubectl get crd -o name \
