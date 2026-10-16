@@ -38,9 +38,10 @@ def version_key:
 # Read from stdin the channels of a repository as a list of
 # {catalog, name, entries: [{name, replaces, skips}]} (one item per channel of
 # every catalog, catalog being "" when there is only one) and print the
-# markdown section of each channel with its mermaid graph.
+# markdown section of each channel with its mermaid graph and, when $1 is true,
+# the versions offered by the OpenShift Web Console to install from each catalog.
 render_channels() {
-  jq -r "$JQ_DEFS"'
+  jq -r --argjson console "${1:-false}" "$JQ_DEFS"'
     def node_id: "v" + (version | gsub("[^0-9A-Za-z]"; "_"));
     def catalog_key: ltrimstr("v") | split(".") | map(tonumber? // 0);
     # Compact a list of catalogs in ranges of consecutive ones, e.g. v4.12-v4.16, v4.18
@@ -95,7 +96,23 @@ render_channels() {
       "  classDef head stroke-width:3px",
       "  classDef removed stroke-dasharray:4 4,color:#888",
       "```",
-      ""
+      "",
+      if $console | not then empty else
+        # The console lists every entry of the channel in the PackageManifest of
+        # the catalog of the cluster OCP version, defaulting to the channel head
+        "Versions offered to install by the OpenShift Web Console, newest first (the default one in bold):",
+        "",
+        "| OCP catalogs | Versions |",
+        "| --- | --- |",
+        ([$channels[] | {catalog, versions: (.entries | map(.name) | sort_by(version_key) | reverse)}]
+          | group_by(.versions)
+          | map({catalogs: (map(.catalog) | catalog_ranges($all)), versions: .[0].versions})
+          | sort_by(.catalogs | split(",")[0] | split("-")[0] | catalog_key)[]
+          | "| " + .catalogs + " | "
+            + (.versions | map(if IN($heads[]) then "**" + version + "**" else version end) | join(", "))
+            + " |"),
+        ""
+      end
     '
 }
 
@@ -170,7 +187,9 @@ echo "Generating $VERSIONS_FILE"
   if [ "$IS_FBC" = true ]
   then
     echo "A version or an arrow that is not in every OCP catalog is labeled with the catalogs it is in."
+    echo "Versions no longer in the catalog can not be installed, but clusters running them are still"
+    echo "upgraded through the skips of the version that replaced them."
   fi
   echo
-  printf '%s\n' "$CHANNELS" | render_channels
+  printf '%s\n' "$CHANNELS" | render_channels "$IS_FBC"
 } > "$VERSIONS_FILE"
