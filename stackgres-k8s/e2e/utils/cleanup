@@ -212,24 +212,35 @@ k8s_orphaned_helm_rbac_cleanup() {
   notrace_function traceable_k8s_orphaned_helm_rbac_cleanup "$@"
 }
 
-# Remove the ClusterRoles and the ClusterRoleBindings of a helm release whose namespace does not
-# exist anymore, as those that a chart uninstalled by deleting its namespace leaves behind. The
-# cleanup of the ClusterRoles and of the ClusterRoleBindings leaves out those whose name starts
-# with `system:`, as the ones of the metrics server do, so those survive and helm then refuses to
-# install the chart again, since it will not adopt a resource that belongs to another release. A
-# resource of a release whose namespace still exists is left untouched.
+# Remove the Roles and the RoleBindings of a helm release whose namespace does not exist anymore,
+# as those that a chart uninstalled by deleting its namespace leaves behind. The cleanup of the
+# ClusterRoles and of the ClusterRoleBindings leaves out those whose name starts with `system:`,
+# as the ones of the metrics server do, and the cleanup of the namespaces never removes those a
+# chart creates outside of its own namespace, as the `*-auth-reader` RoleBindings of the metrics
+# server and of keda in `kube-system` are, so those survive and helm then refuses to install the
+# chart again, since it will not adopt a resource that belongs to another release. A resource of
+# a release whose namespace still exists is left untouched.
 traceable_k8s_orphaned_helm_rbac_cleanup() {
-  echo "Cleanup of k8s orphaned helm clusterroles and clusterrolebindings"
-  kubectl get clusterrole,clusterrolebinding -l app.kubernetes.io/managed-by=Helm -o json \
+  echo "Cleanup of k8s orphaned helm roles and rolebindings"
+  kubectl get clusterrole,clusterrolebinding,role,rolebinding --all-namespaces \
+    -l app.kubernetes.io/managed-by=Helm -o json \
     | jq -r '.items[]
       | select(.metadata.annotations["meta.helm.sh/release-namespace"] != null)
       | (.kind | ascii_downcase) + "/" + .metadata.name
+        + " " + (.metadata.namespace // "-")
         + " " + .metadata.annotations["meta.helm.sh/release-namespace"]' \
-    | while read RESOURCE NAMESPACE
+    | while read RESOURCE NAMESPACE RELEASE_NAMESPACE
       do
-        [ "x$RESOURCE" = x ] \
-          || kubectl get namespace "$NAMESPACE" >/dev/null 2>&1 \
-          || kubectl delete --ignore-not-found "$RESOURCE"
+        if [ "x$RESOURCE" = x ] || kubectl get namespace "$RELEASE_NAMESPACE" >/dev/null 2>&1
+        then
+          continue
+        fi
+        if [ "$NAMESPACE" = - ]
+        then
+          kubectl delete --ignore-not-found "$RESOURCE"
+        else
+          kubectl delete -n "$NAMESPACE" --ignore-not-found "$RESOURCE"
+        fi
       done
 }
 
