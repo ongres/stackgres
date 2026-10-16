@@ -475,7 +475,13 @@ e2e_load_images() {
 
   # The operator-registry check the bundle image from the remote repository
   BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_IMAGE_NAME##*/}"
-  docker pull "$BUNDLE_IMAGE_NAME"
+  # A local build does not push the images it builds (see the option --local-build of the cli), so
+  # the bundle image of this build is not in the registry. It is in the local docker though, under
+  # the name of the build image, so it is tagged from there when it can not be pulled.
+  docker inspect "$BUNDLE_IMAGE_NAME" >/dev/null 2>&1 \
+    || docker pull "$BUNDLE_IMAGE_NAME" \
+    || docker tag "$(sh "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" \
+      image_name operator-bundle-image)" "$BUNDLE_IMAGE_NAME"
   mkdir -p "$LOG_PATH/operator-bundle"
   cat << EOF > "$LOG_PATH/operator-bundle.Dockerfile"
 FROM "$BUNDLE_IMAGE_NAME" AS bundle
