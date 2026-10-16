@@ -57,9 +57,12 @@ e2e_test_uninstall() {
   fi
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
-  k8s_async_cleanup_namespace "$(metric_server_namespace)"
-  k8s_async_cleanup_namespace "$(keda_namespace)"
-  k8s_async_cleanup_namespace "$(vertical_pod_autoscaler_namespace)"
+  uninstall_metric_server
+  uninstall_keda
+  if [ "$E2E_DISABLE_VPA" != true ]
+  then
+    uninstall_vertical_pod_autoscaler
+  fi
 }
 
 e2e_test() {
