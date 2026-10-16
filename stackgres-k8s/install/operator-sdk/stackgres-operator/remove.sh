@@ -11,6 +11,9 @@
 # is added to the skips of its successor, so a cluster running a removed version
 # is still offered an upgrade. Skips pointing at bundles that are no longer in
 # the catalog are valid and used upstream as well.
+#
+# Like insert.sh, it leaves only the latest version of each minor in every
+# channel (see prune_channel in common.sh).
 
 set -e
 
@@ -99,6 +102,7 @@ then
   exit 1
 fi
 
+prune_catalog_templates
 assert_single_channel_head
 render_catalogs
 

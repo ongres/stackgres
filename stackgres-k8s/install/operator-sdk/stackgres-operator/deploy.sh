@@ -88,18 +88,6 @@ then
     >&2 echo "Can not detect previous version. Set environment variable PREVIOUS_VERSION to set the previous version, or set it to "none" if no previous version is available"
     exit 1
   fi
-  PREVIOUS_STABLE_VERSION="$(
-    ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | grep -v '.-\(rc\|beta\|alpha\).' | sort_versions | tail -n 1)"
-  echo "Previous stable version detected from repository: $PREVIOUS_STABLE_VERSION"
-  PREVIOUS_CANDIDATE_VERSION="$(
-    ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | grep -v '.-\(beta\|alpha\).' | sort_versions | tail -n 1)"
-  echo "Previous candidate version detected from repository: $PREVIOUS_CANDIDATE_VERSION"
-  PREVIOUS_FAST_VERSION="$(
-    ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
-      | cut -d / -f 5 | sort_versions | tail -n 1)"
-  echo "Previous fast version detected from repository: $PREVIOUS_FAST_VERSION"
 fi
 
 echo "Copying new files to path operators/$PROJECT_NAME/$STACKGRES_VERSION from quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG"
@@ -199,7 +187,8 @@ then
   # the version into the catalog afterwards with insert-to-*.sh, which places it
   # in semver order and re-points its successor.
   # The CSV replaces the same version insert.sh will make it replace: the
-  # greatest one below it in the first channel of the first catalog template.
+  # latest version of an older minor in the first channel of the first catalog
+  # template.
   if [ "x$PREVIOUS_VERSION" != xnone ]
   then
     for CATALOG_NAME in $(catalog_names)
@@ -227,7 +216,6 @@ then
   # image it just published (registry.connect.redhat.com), which is the only
   # image with the correct package name.
   CHANNELS="$(version_channels "$STACKGRES_VERSION")"
-  BUNDLE_NAME_PREFIX="$(bundle_name_prefix)"
   RELEASE_CONFIG="$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION/release-config.yaml"
   {
     echo '---'
@@ -244,24 +232,23 @@ then
         echo "  - template_name: $CATALOG_NAME.yaml"
         echo "    channels:"
         echo "      - $CHANNEL"
-        # Determine what this bundle replaces in THIS channel: the channel's own
-        # head in the template (unless the caller opted out with PREVIOUS_VERSION=none).
+        # Only the latest version of each minor is kept in a channel (see
+        # prune_channel in common.sh): the bundle replaces the latest version of
+        # an older minor in THIS channel (unless the caller opted out with
+        # PREVIOUS_VERSION=none) and skips the lower versions of its own minor.
         if [ "x$PREVIOUS_VERSION" = xnone ]
         then
           REPLACES=
         else
-          if [ "$USE_CHANNEL_HEAD" = true ]
-          then
-            REPLACES="$(channel_head "$CHANNEL" "$TEMPLATE_FILE")"
-          else
-            CHANNEL_UPPERCASE="$(printf %s "$CHANNEL" | tr 'a-z' 'A-Z')"
-            REPLACES="$BUNDLE_NAME_PREFIX.v$(eval "printf %s \"\$PREVIOUS_${CHANNEL_UPPERCASE}_VERSION\"")"
-          fi
+          REPLACES="$(channel_predecessor "$CHANNEL" "$TEMPLATE_FILE" "$STACKGRES_VERSION")"
+          REPLACES="${REPLACES:+$(bundle_name "$REPLACES")}"
         fi
-        # The bundle must replace the channel head, and every earlier bundle of the
-        # channel must already be in the template: release-config.yaml is applied
-        # only once the PR is merged, so replacing anything else, or a version that
-        # is still waiting to be added, leaves the channel with two heads.
+        SKIPS="$(channel_skips "$CHANNEL" "$TEMPLATE_FILE" "$STACKGRES_VERSION")"
+        # The bundle must replace or skip the channel head, and every earlier
+        # bundle of the channel must already be in the template:
+        # release-config.yaml is applied only once the PR is merged, so anything
+        # else, or a version that is still waiting to be added, leaves the channel
+        # with two heads.
         CHANNEL_HEAD="$(channel_head "$CHANNEL" "$TEMPLATE_FILE")"
         PENDING_VERSIONS="$(pending_versions "$CHANNEL" "$TEMPLATE_FILE" "$STACKGRES_VERSION")"
         if [ -n "$PENDING_VERSIONS" ]
@@ -269,13 +256,22 @@ then
           >&2 echo "Versions $(echo $PENDING_VERSIONS) of channel $CHANNEL are not yet present in $TEMPLATE_FILE."
           >&2 echo "This may mean that the catalog has not yet been updated by Red Hat. You will have to wait before creating the PR :("
           exit 1
-        elif [ -n "$REPLACES" ] && [ "$REPLACES" = "$CHANNEL_HEAD" ]
+        elif [ -n "$CHANNEL_HEAD" ] \
+          && { [ "$CHANNEL_HEAD" = "$REPLACES" ] || printf '%s\n' "$SKIPS" | grep -qxF "$CHANNEL_HEAD"; }
         then
-          echo "    replaces: $REPLACES"
+          if [ -n "$REPLACES" ]
+          then
+            echo "    replaces: $REPLACES"
+          fi
+          if [ -n "$SKIPS" ]
+          then
+            echo "    skips:"
+            printf '      - %s\n' $SKIPS
+          fi
           # The CSV can only hold one replaces: use the one of the first channel.
           [ -n "$CSV_REPLACES" ] || CSV_REPLACES="$REPLACES"
         else
-          >&2 echo "Version $REPLACES is not the head of channel $CHANNEL in $TEMPLATE_FILE (head is ${CHANNEL_HEAD:-missing})."
+          >&2 echo "The head of channel $CHANNEL in $TEMPLATE_FILE (${CHANNEL_HEAD:-missing}) is neither replaced (${REPLACES:-nothing}) nor skipped by $STACKGRES_VERSION."
           >&2 echo "This may mean that the catalog has not yet been updated by Red Hat. You will have to wait before creating the PR :("
           exit 1
         fi
@@ -284,6 +280,14 @@ then
   } > "$RELEASE_CONFIG"
   echo "Generated release-config.yaml:"
   cat "$RELEASE_CONFIG"
+  # The auto-release only appends the bundle to the catalog templates, so the
+  # lower versions of its minor that it skips are left there. They are no longer
+  # channel heads, but are still offered to install until pruned.
+  echo "Once the PR is merged and Red Hat's auto-release PR that adds it to the catalog is merged too,"
+  echo "remove from the catalog the lower versions of its minor with:"
+  echo
+  echo "  sh skip-up-to-latest-minor-in-$UPSTREAM_SUFFIX.sh"
+  echo
 fi
 
 if command -v set_previous_version_override > /dev/null 2>&1

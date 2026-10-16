@@ -85,10 +85,26 @@ The three Red Hat repositories serve the operator through a [file-based catalog
 `operators/<operator>/catalog-templates/v4.*.yaml` holds the update graph of
 every channel, and `catalogs/v4.*/<operator>/catalog.yaml` is rendered from it.
 
+Every channel keeps only the latest version of each minor: every other patch,
+rc, beta or alpha of that minor is removed from the catalog and is in the
+`skips` of the kept version, and the kept versions are chained by `replaces` in
+semver order. For example:
+
+```
+1.18.10  replaces 1.17.4   skips 1.18.0 … 1.18.9
+1.19.3   replaces 1.18.10  skips 1.19.0 … 1.19.2
+```
+
+A cluster running a version that is no longer in the catalog is still upgraded
+through those `skips`, while the catalogs stay small (see below).
+
 Normally `deploy.sh` generates a `release-config.yaml` next to the bundle and
 Red Hat's auto-release opens a follow-up PR that adds the version to the
-catalogs. That pipeline can only *append* an entry to a channel, so it only
-works for a version that becomes the new channel head.
+catalogs, replacing the latest version of the previous minor and skipping the
+lower versions of its own. That pipeline can only *append* an entry to a
+channel, so it only works for a version that becomes the new channel head, and
+it leaves the versions the new one skips in the catalog: once its PR is merged
+remove them with `skip-up-to-latest-minor-in-*.sh` (see below).
 
 ## Insert a version
 
@@ -104,9 +120,10 @@ STACKGRES_VERSION="<version>" FORK_GIT_URL="<URL of fork>" sh insert-to-red-hat-
 
 The same script exists for the other two catalogs
 (`insert-to-red-hat-marketplace.sh`, `insert-to-red-hat-community.sh`). It
-places the version in semver order in every channel it belongs to, re-points
-the entry that used to replace its predecessor, renders and validates the
-catalogs, and commits the result.
+places the version in semver order in every channel it belongs to, replacing
+the lower versions of its minor (which it skips), re-points the entry of the
+next minor to it, renders and validates the catalogs, and commits the result.
+It refuses a version lower than one of its minor already in the catalog.
 
 Run it only after the bundle PR has been merged and Red Hat has published the
 bundle image: the catalog references bundles by digest, and the digest does not
@@ -127,6 +144,23 @@ The upgrade graph is kept intact: whatever replaced the removed version now
 replaces its predecessor, and the removed version is added to the `skips` of its
 successor, so a cluster still running it is offered an upgrade. Only fresh
 installs of that exact version become impossible.
+
+## Skip up to the latest minor
+
+To leave only the latest version of each minor in every channel, after Red
+Hat's auto-release added a new version or for a catalog that predates this
+policy:
+
+```
+FORK_GIT_URL="<URL of fork>" sh skip-up-to-latest-minor-in-red-hat-certified.sh
+```
+
+The same script exists for the other two catalogs
+(`skip-up-to-latest-minor-in-red-hat-marketplace.sh`,
+`skip-up-to-latest-minor-in-red-hat-community.sh`). It renders and validates
+the catalogs and commits the result, or does nothing when the catalog already
+has that shape. `insert-to-*.sh` and `remove-from-*.sh` do the same on every
+run.
 
 # Show the published versions
 

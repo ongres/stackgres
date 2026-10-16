@@ -1,6 +1,9 @@
 #!/bin/sh
 # Insert an already published bundle into the file-based catalog of a Red Hat
-# catalog repository, in semver position in every channel it belongs to.
+# catalog repository, in semver position in every channel it belongs to. Only
+# the latest version of each minor is kept, so the bundle replaces the latest
+# version of the previous minor and takes the place of (skipping) the lower
+# versions of its own minor, which are removed from the catalog.
 #
 # Needed when a version can not be auto-released by Red Hat's FBC pipeline,
 # which only ever appends an entry to a channel: a version on a minor older than
@@ -76,30 +79,28 @@ do
     yq -e --arg ch "$CHANNEL" 'any(.entries[]; .schema == "olm.channel" and .name == $ch)' \
       "$TEMPLATE_FILE" > /dev/null || continue
 
-    # The entry the new bundle replaces is the greatest version below it in this
-    # channel, and the entry that used to replace that one becomes its successor.
-    # Placing it in semver order, rather than appending, is what keeps the channel
-    # to a single head.
-    REPLACES_VERSION="$(channel_predecessor "$CHANNEL" "$TEMPLATE_FILE" "$STACKGRES_VERSION")"
-
-    if [ -n "$REPLACES_VERSION" ]
+    # Only the latest version of each minor is kept in a channel, so the bundle
+    # must be the latest of its minor: anything lower is skipped by it once the
+    # templates are pruned below.
+    NEWER_VERSION="$(yq -r --arg ch "$CHANNEL" --arg version "$STACKGRES_VERSION" "$JQ_DEFS"'
+      [.entries[] | select(.schema == "olm.channel" and .name == $ch) | .entries[].name
+        | select(minor == ($version | minor) and version_key > ($version | version_key))]
+      | sort_by(version_key) | last // empty | version
+      ' "$TEMPLATE_FILE")"
+    if [ -n "$NEWER_VERSION" ]
     then
-      REPLACES="$(bundle_name "$REPLACES_VERSION")"
-    else
-      REPLACES=
+      >&2 echo "$CATALOG_NAME/$CHANNEL: $NEWER_VERSION is already in the channel, so $STACKGRES_VERSION would be skipped by it"
+      exit 1
     fi
 
-    yq -y --arg ch "$CHANNEL" --arg name "$BUNDLE_NAME" --arg replaces "$REPLACES" '
-      (.entries[] | select(.schema == "olm.channel" and .name == $ch) | .entries) |=
-        (
-          ([{name: $name} + (if $replaces == "" then {} else {replaces: $replaces} end)]) as $new
-          # Whatever replaced our predecessor now replaces us instead.
-          | map(if .replaces == $replaces and $replaces != "" then .replaces = $name else . end)
-          | . + $new
-        )
+    # Append the bundle: pruning the templates below places it in semver order,
+    # makes it skip the lower versions of its minor and re-points its successor,
+    # which is what keeps the channel to a single head.
+    yq -y --arg ch "$CHANNEL" --arg name "$BUNDLE_NAME" '
+      (.entries[] | select(.schema == "olm.channel" and .name == $ch) | .entries) += [{name: $name}]
       ' "$TEMPLATE_FILE" > "$TEMPLATE_FILE.new"
     mv "$TEMPLATE_FILE.new" "$TEMPLATE_FILE"
-    echo "$CATALOG_NAME/$CHANNEL: added $BUNDLE_NAME${REPLACES:+ replacing $REPLACES}"
+    echo "$CATALOG_NAME/$CHANNEL: added $BUNDLE_NAME"
   done
 
   yq -y --arg image "$BUNDLE_IMAGE_PINNED" '
@@ -116,6 +117,7 @@ then
   exit 1
 fi
 
+prune_catalog_templates
 assert_single_channel_head
 render_catalogs
 

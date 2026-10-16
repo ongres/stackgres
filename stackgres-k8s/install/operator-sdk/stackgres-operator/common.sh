@@ -4,6 +4,41 @@
 # entrypoint (deploy-to-*.sh, insert-to-*.sh, remove-from-*.sh) that sets
 # UPSTREAM_NAME, UPSTREAM_GIT_URL, FORK_GIT_URL, PROJECT_NAME and friends.
 
+# jq definitions shared by the filters on catalog templates. Each one applies to
+# a bundle name, e.g. stackgres-community.v1.19.0-rc1, or to a bare version.
+#
+# Every channel of a file-based catalog keeps only the latest version of each
+# minor (prune_channel): every other patch, rc, beta or alpha of that minor is
+# in the skips of the kept entry, and the kept entries are chained by replaces
+# in semver order. A cluster running a version that is no longer in the catalog
+# is still upgraded through those skips, and the catalogs stay small, which
+# matters for the ones below OCP v4.17 that store each bundle inline.
+JQ_DEFS='
+def version: sub("^[^.]*\\.v"; "");
+def version_key:
+  version
+  | capture("^(?<major>[0-9]+)\\.(?<minor>[0-9]+)\\.(?<patch>[0-9]+)(-(?<pre>[a-z]+)(?<pre_number>[0-9.]*))?")
+  | [(.major | tonumber), (.minor | tonumber), (.patch | tonumber),
+    (if .pre == null then 1 else 0 end), (.pre // ""),
+    ((.pre_number // "") | split(".") | map(select(. != "") | tonumber))];
+def minor: version | split(".")[0:2] | join(".");
+def prune_channel:
+  [group_by(.name | minor)[]
+    | sort_by(.name | version_key)
+    | map(.name) as $names
+    | .[-1] as $kept
+    # The replaces of the group that leaves the minor, kept by the first entry
+    # of the chain, which has no previous minor to replace
+    | ([.[].replaces // empty | select(IN($names[]) | not)] | sort_by(version_key) | last) as $outside
+    | ([.[:-1][] | .name, (.skips // [])[]] + ($kept.skips // []) | unique - [$kept.name]) as $skips
+    | $kept | del(.replaces, .skips)
+    | if $outside == null then . else .replaces = $outside end
+    | if $skips == [] then . else .skips = ($skips | sort_by(version_key)) end]
+  | sort_by(.name | version_key)
+  | . as $kept
+  | [range(length) as $i | $kept[$i] | if $i > 0 then .replaces = $kept[$i - 1].name else . end];
+'
+
 # Fail unless every given env var (by default the ones the scripts that push to
 # a fork need) is set.
 require_env() {
@@ -200,14 +235,52 @@ channel_head() {
 }
 
 # Print the version a bundle of version $3 replaces in channel $1 of a catalog
-# template $2: the greatest version below it in that channel. Empty when there is
-# none.
+# template $2: the greatest version of an older minor in that channel, since the
+# lower versions of its own minor are skipped instead. Empty when there is none.
 channel_predecessor() {
-  CHANNEL_VERSIONS="$(yq -r --arg ch "$1" \
-    '.entries[] | select(.schema == "olm.channel" and .name == $ch) | .entries[] | .name' \
-    "$2" | sed 's/^.*\.v//')"
-  { printf '%s\n%s\n' "$CHANNEL_VERSIONS" "$3"; } 2>/dev/null \
-    | grep -v '^$' | sort_versions | grep -B 1 -xF "$3" | grep -vxF "$3" || true
+  yq -r --arg ch "$1" --arg version "$3" "$JQ_DEFS"'
+    [.entries[] | select(.schema == "olm.channel" and .name == $ch) | .entries[].name
+      | select(minor != ($version | minor) and version_key < ($version | version_key))]
+    | sort_by(version_key) | last // empty | version
+    ' "$2"
+}
+
+# Print the bundles a bundle of version $3 skips in channel $1 of a catalog
+# template $2: the lower versions of its own minor in that channel, and whatever
+# they skip. Empty when there is none.
+channel_skips() {
+  yq -r --arg ch "$1" --arg version "$3" "$JQ_DEFS"'
+    [.entries[] | select(.schema == "olm.channel" and .name == $ch) | .entries[]
+      | select((.name | minor) == ($version | minor) and (.name | version_key) < ($version | version_key))
+      | .name, (.skips // [])[]]
+    | unique | sort_by(version_key)[]
+    ' "$2"
+}
+
+# Keep only the latest version of each minor in every channel of every catalog
+# template (see prune_channel), and drop the bundle images that are then in no
+# channel. Templates list bundles by image only, so the name of each image is
+# taken from the catalog rendered from the template: a bundle that was just
+# added, and is not rendered yet, is never dropped.
+prune_catalog_templates() {
+  for TEMPLATE_FILE in "$FORK_GIT_PATH/operators/$PROJECT_NAME"/catalog-templates/*.yaml
+  do
+    [ -f "$TEMPLATE_FILE" ] || continue
+    RENDERED_BUNDLES="$(yq -c 'select(.schema == "olm.bundle") | {name, image}'       "$FORK_GIT_PATH/catalogs/$(basename "$TEMPLATE_FILE" .yaml)/$PROJECT_NAME/catalog.yaml" 2>/dev/null       | jq -s .)"
+    yq -y --argjson rendered "${RENDERED_BUNDLES:-[]}" "$JQ_DEFS"'
+      (.entries[] | select(.schema == "olm.channel") | .entries) |= prune_channel
+      | ([.entries[] | select(.schema == "olm.channel") | .entries[].name] | unique) as $names
+      | ($rendered | map(select(.name | IN($names[]) | not) | .image)) as $dropped
+      | .entries |= map(select(.schema != "olm.bundle" or (.image | IN($dropped[]) | not)))
+      ' "$TEMPLATE_FILE" > "$TEMPLATE_FILE.new"
+    # Rewriting the template reformats it, so leave it alone when nothing changed
+    if [ "$(yq -S -c . "$TEMPLATE_FILE.new")" = "$(yq -S -c . "$TEMPLATE_FILE")" ]
+    then
+      rm "$TEMPLATE_FILE.new"
+    else
+      mv "$TEMPLATE_FILE.new" "$TEMPLATE_FILE"
+    fi
+  done
 }
 
 # Print the bundle versions of channel $1 that are in the fork repository but not

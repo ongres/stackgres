@@ -24,17 +24,6 @@ cd "$(dirname "$0")"
 
 require_env UPSTREAM_NAME UPSTREAM_GIT_URL PROJECT_NAME
 
-# Version of a bundle name, e.g. 1.19.0-rc1 for stackgres-community.v1.19.0-rc1
-JQ_DEFS='
-def version: sub("^[^.]*\\.v"; "");
-def version_key:
-  version
-  | capture("^(?<major>[0-9]+)\\.(?<minor>[0-9]+)\\.(?<patch>[0-9]+)(-(?<pre>[a-z]+)(?<pre_number>[0-9.]*))?")
-  | [(.major | tonumber), (.minor | tonumber), (.patch | tonumber),
-    (if .pre == null then 1 else 0 end), (.pre // ""),
-    ((.pre_number // "") | split(".") | map(select(. != "") | tonumber))];
-'
-
 # Read from stdin the channels of a repository as a list of
 # {catalog, name, entries: [{name, replaces, skips}]} (one item per channel of
 # every catalog, catalog being "" when there is only one) and print the
