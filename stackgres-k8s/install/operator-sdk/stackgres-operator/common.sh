@@ -127,7 +127,9 @@ setup_fork_repositories() {
 # release branch) overwrites ci.yaml with the template, dropping the fbc
 # catalog_mapping that onboarding and Red Hat's catalog promotions maintain.
 # Without it 'make catalogs' renders nothing and fails, so put back the fbc
-# section from the latest upstream revision of ci.yaml that still had it.
+# section from the latest upstream revision of ci.yaml that still had it. The
+# template may also set updateGraph, which the pipeline rejects when FBC is
+# enabled ("FBC is enabled, updateGraph cannot be defined."), so drop it.
 restore_fbc_ci_yaml() {
   CI_YAML_PATH="operators/$PROJECT_NAME/ci.yaml"
   [ -f "$FORK_GIT_PATH/$CI_YAML_PATH" ] || return 0
@@ -138,7 +140,7 @@ restore_fbc_ci_yaml() {
     yq -e '.fbc' target/ci-with-fbc.yaml > /dev/null || continue
     {
       echo ---
-      yq -y -s '.[0] + {fbc: .[1].fbc}' "$FORK_GIT_PATH/$CI_YAML_PATH" target/ci-with-fbc.yaml
+      yq -y -s '.[0] + {fbc: .[1].fbc} | del(.updateGraph)' "$FORK_GIT_PATH/$CI_YAML_PATH" target/ci-with-fbc.yaml
     } > "$FORK_GIT_PATH/$CI_YAML_PATH.new"
     mv "$FORK_GIT_PATH/$CI_YAML_PATH.new" "$FORK_GIT_PATH/$CI_YAML_PATH"
     echo "Restored the fbc section of $CI_YAML_PATH from commit $CI_YAML_COMMIT"
