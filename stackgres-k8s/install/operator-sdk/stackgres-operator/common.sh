@@ -274,8 +274,33 @@ is_patch_of_older_minor() {
 
 # Render the catalogs from the templates and validate them, using the Makefile
 # that FBC onboarding installed in the operator directory.
+# Upstream render_catalogs.sh exits with the status of its last
+# '[[ ${#catalogs_with_migrate[@]} -gt 0 ]] && ...', so it fails after rendering
+# everything when the last catalog_mapping of ci.yaml has no catalog >= v4.17
+# (e.g. v4.16 appended last by Red Hat's catalog promotions). So when it fails,
+# whether it really did is told by its error output and the rendered catalogs.
 render_catalogs() {
-  make -C "$FORK_GIT_PATH/operators/$PROJECT_NAME" catalogs
+  RENDER_CATALOGS_EXIT_CODE=0
+  make -C "$FORK_GIT_PATH/operators/$PROJECT_NAME" catalogs > target/render-catalogs.log 2>&1 \
+    || RENDER_CATALOGS_EXIT_CODE="$?"
+  cat target/render-catalogs.log
+  if [ "$RENDER_CATALOGS_EXIT_CODE" != 0 ]
+  then
+    if grep -q '❌\|Unknown type' target/render-catalogs.log
+    then
+      >&2 echo "Catalog rendering failed"
+      exit 1
+    fi
+    for CATALOG_NAME in $(yq -r '.fbc.catalog_mapping[].catalog_names[]' \
+      "$FORK_GIT_PATH/operators/$PROJECT_NAME/ci.yaml")
+    do
+      if ! [ -s "$FORK_GIT_PATH/catalogs/$CATALOG_NAME/$PROJECT_NAME/catalog.yaml" ]
+      then
+        >&2 echo "Catalog $CATALOG_NAME was not rendered"
+        exit 1
+      fi
+    done
+  fi
   make -C "$FORK_GIT_PATH/operators/$PROJECT_NAME" validate-catalogs 2>&1 | tee target/validate-catalogs.log
   if grep -q '❌' target/validate-catalogs.log
   then
