@@ -188,3 +188,21 @@ The same script exists for the other repositories (`versions-of-operatorhub.sh`,
 pulls the latest upstream repository first and does not need a fork. For the
 file-based catalogs the graphs of all the OCP catalogs are merged, labeling any
 version or edge that is not in every one of them with the catalogs it is in.
+
+## Preview the versions to publish
+
+To generate `PREVIEW-<repository>.md`, with the same graphs for what will be
+published once the PR from the fork is merged:
+
+```
+sh preview-versions-of-red-hat-certified.sh
+```
+
+The same script exists for the other repositories
+(`preview-versions-of-operatorhub.sh`,
+`preview-versions-of-red-hat-marketplace.sh`,
+`preview-versions-of-red-hat-community.sh`). It reads the clone of the fork in
+`target/fork-<repository>` as left by the deploy, publish, remove or
+skip-up-to-latest-minor scripts, including any uncommitted change, without
+updating it, and lists the commits of the fork that are not yet in upstream.
+`PREVIEW-*.md` files are not tracked by git.

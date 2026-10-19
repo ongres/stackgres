@@ -13,3 +13,4 @@ config/webhook/manifests.yaml
 config/rbac/role.yaml
 config/rbac/clusterrole.yaml
 .vagrant
+PREVIEW-*.md

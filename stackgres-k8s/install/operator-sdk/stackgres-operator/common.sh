@@ -66,13 +66,19 @@ require_version() {
   fi
 }
 
+# Set the paths of the clones of the upstream catalog repository and of our fork
+# of it.
+set_repository_paths() {
+  UPSTREAM_SUFFIX="$(printf %s "$UPSTREAM_NAME" | tr '[A-Z] ' '[a-z]-' | tr -dc '[a-z0-9]-')"
+  UPSTREAM_GIT_PATH=target/"upstream-$UPSTREAM_SUFFIX"
+  FORK_GIT_PATH=target/"fork-$UPSTREAM_SUFFIX"
+}
+
 # Clone (or reset) the upstream catalog repository, leaving it at origin/main,
 # and export the paths the callers work with.
 setup_upstream_repository() {
   mkdir -p target
-  UPSTREAM_SUFFIX="$(printf %s "$UPSTREAM_NAME" | tr '[A-Z] ' '[a-z]-' | tr -dc '[a-z0-9]-')"
-  UPSTREAM_GIT_PATH=target/"upstream-$UPSTREAM_SUFFIX"
-  FORK_GIT_PATH=target/"fork-$UPSTREAM_SUFFIX"
+  set_repository_paths
 
   if ! [ -d "$UPSTREAM_GIT_PATH" ] || ! git -C "$UPSTREAM_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qF "origin $UPSTREAM_GIT_URL "
   then
