@@ -144,6 +144,33 @@ traceable_k8s_stackgres_finalizers_cleanup() {
   done
 }
 
+k8s_terminating_crd_wait() {
+  notrace_function traceable_k8s_terminating_crd_wait "$@"
+}
+
+# Wait for the CustomResourceDefinitions that are being deleted to be removed. The deletion of a
+# CustomResourceDefinition only completes once every custom resource of it is removed, so it is
+# requested without waiting and awaited here with a timeout: `kubectl delete` would instead wait
+# forever, and block the whole test run, on a single custom resource whose finalizer nothing
+# removes anymore.
+traceable_k8s_terminating_crd_wait() {
+  echo "Wait for the terminating k8s crds to be removed"
+  local END="$(($(date +%s) + 1 + E2E_TIMEOUT / 10))"
+  while [ -n "$(kubectl get crd \
+    -o 'jsonpath={.items[?(@.metadata.deletionTimestamp)].metadata.name}' 2>/dev/null | tr -d ' ')" ]
+  do
+    if [ "$(date +%s)" -ge "$END" ]
+    then
+      echo "Timeout while waiting for the following terminating crds to be removed:"
+      kubectl get crd \
+        -o 'jsonpath={range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}' \
+        2>/dev/null || true
+      break
+    fi
+    sleep 1
+  done
+}
+
 k8s_unnamespaced_cleanup() {
   notrace_function traceable_k8s_unnamespaced_cleanup "$@"
 }
@@ -158,12 +185,18 @@ traceable_k8s_unnamespaced_cleanup() {
     | grep -v "\.operators\.coreos\.com$" \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found --wait=false %
   kubectl get crd -o name \
     | grep "\.operators\.coreos\.com$" \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found --wait=false %
+  # The deletion of the CustomResourceDefinitions marks for deletion the custom resources that are
+  # left and the operator sets the finalizers again on those it is reconciling while it is scaled
+  # down, so the finalizers are removed once more. A finalizer can not be set on a resource that is
+  # already marked for deletion, so this time the removal is final.
+  traceable_k8s_stackgres_finalizers_cleanup
+  traceable_k8s_terminating_crd_wait
   traceable_k8s_orphaned_helm_rbac_cleanup
   echo "Cleanup of k8s clusterrolebindings"
   kubectl get clusterrolebinding -o name \
@@ -255,6 +288,7 @@ k8s_stackgres_operator_scale_down() {
 # that waits for every SGCluster to be removed, never completes.
 traceable_k8s_stackgres_operator_scale_down() {
   echo "Scale down of stackgres operators"
+  traceable_k8s_stackgres_operator_olm_cleanup
   kubectl get deployment --all-namespaces -l group=stackgres.io -o json \
     | jq -r '.items[] | .metadata.namespace + " " + .metadata.name' \
     | while read NAMESPACE NAME
@@ -274,6 +308,45 @@ traceable_k8s_stackgres_operator_scale_down() {
     fi
     sleep 1
   done
+}
+
+k8s_stackgres_operator_olm_cleanup() {
+  notrace_function traceable_k8s_stackgres_operator_olm_cleanup "$@"
+}
+
+# Remove the Subscriptions and the ClusterServiceVersions of the StackGres operators that OLM
+# installed, so that the scale down of their Deployments is not undone. OLM owns the Deployment a
+# ClusterServiceVersion declares and restores its replicas within seconds, and the Subscription
+# installs the ClusterServiceVersion again, so both are removed and OLM then removes the Deployment
+# itself. An operator that OLM did not install has no `olm.owner` label and is left to the scale
+# down.
+traceable_k8s_stackgres_operator_olm_cleanup() {
+  kubectl api-resources --api-group=operators.coreos.com -o name 2>/dev/null \
+    | grep -q '^clusterserviceversions\.' \
+    || return 0
+  kubectl get deployment --all-namespaces -l group=stackgres.io -o json \
+    | jq -r '.items[] | select(.metadata.labels["olm.owner"] != null)
+      | (.metadata.labels["olm.owner.namespace"] // .metadata.namespace)
+        + " " + .metadata.labels["olm.owner"]' \
+    | sort -u \
+    | while read NAMESPACE CSV
+      do
+        if [ "x$CSV" = x ]
+        then
+          continue
+        fi
+        echo "Cleanup of olm subscriptions and clusterserviceversion $CSV in namespace $NAMESPACE"
+        kubectl get subscriptions.operators.coreos.com -n "$NAMESPACE" -o json 2>/dev/null \
+          | jq -r --arg csv "$CSV" '.items[]
+            | select(.status.installedCSV == $csv or .status.currentCSV == $csv)
+            | .metadata.name' \
+          | xargs -r -I % kubectl delete subscriptions.operators.coreos.com -n "$NAMESPACE" \
+            --ignore-not-found % \
+          || true
+        kubectl delete clusterserviceversions.operators.coreos.com -n "$NAMESPACE" \
+          --ignore-not-found "$CSV" \
+          || true
+      done
 }
 
 k8s_webhook_cleanup() {
@@ -393,13 +466,14 @@ traceable_k8s_unnamespaced_cleanup_but_operator() {
     | grep -v '\.stackgres\.io$' \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found --wait=false %
   kubectl get crd -o name \
     | grep "\.operators\.coreos\.com$" \
     | grep -v '\.stackgres\.io$' \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found --wait=false %
+  traceable_k8s_terminating_crd_wait
   echo "Cleanup of k8s clusterrolebindings excluding operator"
   kubectl get clusterrolebinding -o name \
     | grep -v 'stackgres' \
