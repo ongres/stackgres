@@ -125,7 +125,8 @@ the lower versions of its minor (which it skips), re-points the entry of the
 next minor to it, renders and validates the catalogs, and commits the result.
 
 `STACKGRES_VERSION` can also be a range `<from>..<to>` of the versions
-published in the repository. For each minor of the range only the latest
+published in the repository, or a comma separated list of versions and ranges
+(e.g. `1.17.0..1.17.4,1.18.0`). For each minor of the range only the latest
 version is added to a channel, and the others of that minor (patch, rc, beta or
 alpha releases belonging to the channel) are added to its `skips`, so that a
 cluster running any of them is first upgraded to the latest patch of its minor

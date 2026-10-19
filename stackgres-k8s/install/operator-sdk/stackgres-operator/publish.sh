@@ -5,12 +5,13 @@
 # version of the previous minor and takes the place of (skipping) the lower
 # versions of its own minor, which are removed from the catalog.
 #
-# STACKGRES_VERSION is either a version or a range <from>..<to> of the versions
-# published in the repository. For each minor of the range only the latest
-# version is added, skipping the others: e.g. 1.17.0..1.17.4 adds 1.17.4,
-# skipping 1.17.0 to 1.17.3, so that a cluster on any of them is first upgraded
-# to 1.17.4 and then to the next minor. A version lower than one of its minor
-# already in the catalog is only added to its skips.
+# STACKGRES_VERSION is a comma separated list of versions or ranges
+# <from>..<to> of the versions published in the repository, e.g.
+# 1.17.0..1.17.4,1.18.0. For each minor only the latest version is added,
+# skipping the others: e.g. 1.17.0..1.17.4 adds 1.17.4, skipping 1.17.0 to
+# 1.17.3, so that a cluster on any of them is first upgraded to 1.17.4 and then
+# to the next minor. A version lower than one of its minor already in the
+# catalog is only added to its skips.
 #
 # Needed when a version can not be auto-released by Red Hat's FBC pipeline,
 # which only ever appends an entry to a channel: a version on a minor older than
@@ -67,17 +68,27 @@ bundle_image_pinned() {
   printf '%s@%s' "$BUNDLE_IMAGE_REPOSITORY" "$BUNDLE_IMAGE_DIGEST"
 }
 
-FROM_VERSION="${STACKGRES_VERSION%%..*}"
-TO_VERSION="${STACKGRES_VERSION##*..}"
-if [ "$(printf '%s\n%s\n' "$FROM_VERSION" "$TO_VERSION" | sort_versions | head -n 1)" != "$FROM_VERSION" ]
+RANGE_VERSIONS=
+for VERSION_RANGE in $(printf %s "$STACKGRES_VERSION" | tr ',' ' ')
+do
+  FROM_VERSION="${VERSION_RANGE%%..*}"
+  TO_VERSION="${VERSION_RANGE##*..}"
+  if [ "$(printf '%s\n%s\n' "$FROM_VERSION" "$TO_VERSION" | sort_versions | head -n 1)" != "$FROM_VERSION" ]
+  then
+    >&2 echo "Version $FROM_VERSION is greater than version $TO_VERSION"
+    exit 1
+  fi
+  VERSIONS="$(range_versions "$FROM_VERSION" "$TO_VERSION")"
+  if ! printf '%s\n' "$VERSIONS" | grep -qxF "$TO_VERSION"
+  then
+    >&2 echo "Version $TO_VERSION is not a bundle of operators/$PROJECT_NAME in $UPSTREAM_NAME"
+    exit 1
+  fi
+  RANGE_VERSIONS="$(printf '%s\n%s\n' "$RANGE_VERSIONS" "$VERSIONS" | grep -v '^$' | sort_versions | uniq)"
+done
+if [ -z "$RANGE_VERSIONS" ]
 then
-  >&2 echo "Version $FROM_VERSION is greater than version $TO_VERSION"
-  exit 1
-fi
-RANGE_VERSIONS="$(range_versions "$FROM_VERSION" "$TO_VERSION")"
-if ! printf '%s\n' "$RANGE_VERSIONS" | grep -qxF "$TO_VERSION"
-then
-  >&2 echo "Version $TO_VERSION is not a bundle of operators/$PROJECT_NAME in $UPSTREAM_NAME"
+  >&2 echo "No version to publish in STACKGRES_VERSION=$STACKGRES_VERSION"
   exit 1
 fi
 echo "Publishing versions: $(echo $RANGE_VERSIONS)"
