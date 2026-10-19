@@ -1,7 +1,7 @@
 #!/bin/sh
 # Shared helpers for the operator bundle scripts. Sourced by deploy.sh,
-# insert.sh and remove.sh, each of which is in turn sourced by a per-catalog
-# entrypoint (deploy-to-*.sh, insert-to-*.sh, remove-from-*.sh) that sets
+# publish.sh and remove.sh, each of which is in turn sourced by a per-catalog
+# entrypoint (deploy-to-*.sh, publish-to-*.sh, remove-from-*.sh) that sets
 # UPSTREAM_NAME, UPSTREAM_GIT_URL, FORK_GIT_URL, PROJECT_NAME and friends.
 
 # jq definitions shared by the filters on catalog templates. Each one applies to
@@ -174,6 +174,22 @@ catalog_names() {
     openshift-operator-bundle/metadata/annotations.yaml
 }
 
+# Whether the bundle of version $1 in the fork repository supports the OCP
+# catalog $2 (e.g. v4.16), by the OCP versions its annotations declare: a range
+# "v4.9-v4.13", an exact "=v4.13" or a minimum "v4.13". A bundle declaring none
+# supports every catalog.
+bundle_supports_catalog() {
+  yq -e --arg catalog "$2" '
+    def ocp: ltrimstr("=") | ltrimstr("v") | split(".") | map(tonumber);
+    (.annotations["com.redhat.openshift.versions"] // "") as $versions
+    | ($catalog | ocp) as $c
+    | if $versions == "" then true
+      elif ($versions | test("-")) then ($versions | split("-") | map(ocp)) as $r | $c >= $r[0] and $c <= $r[1]
+      elif ($versions | startswith("=")) then $c == ($versions | ocp)
+      else $c >= ($versions | ocp) end
+    ' "$FORK_GIT_PATH/operators/$PROJECT_NAME/$1/metadata/annotations.yaml" > /dev/null
+}
+
 # Path of the catalog template for an OCP catalog name, empty when onboarding
 # did not produce one for that OCP version.
 catalog_template() {
@@ -303,6 +319,17 @@ pending_versions() {
           printf '%s\n' "$PENDING_VERSION"
         fi
       done
+}
+
+# Print the bundle versions in the fork repository from version $1 to version $2,
+# both included, in ascending semver order.
+range_versions() {
+  PUBLISHED_VERSIONS="$(ls -1d "$FORK_GIT_PATH/operators/$PROJECT_NAME"/*/manifests \
+    | sed 's#^.*/\([^/]*\)/manifests$#\1#')"
+  { printf '%s\n%s\n%s\n' "$PUBLISHED_VERSIONS" "$1" "$2"; } \
+    | sort_versions | uniq \
+    | sed -n "/^$(printf %s "$1" | sed 's/\./\\./g')\$/,/^$(printf %s "$2" | sed 's/\./\\./g')\$/p" \
+    | grep -xF "$PUBLISHED_VERSIONS" || true
 }
 
 # Sort versions read from stdin in ascending semver order. GNU sort -V orders

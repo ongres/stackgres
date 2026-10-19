@@ -5,4 +5,4 @@ UPSTREAM_GIT_URL="https://github.com/redhat-openshift-ecosystem/certified-operat
 FORK_GIT_URL="${FORK_GIT_URL:-$1}"
 PROJECT_NAME="stackgres-certified"
 
-. "$(dirname "$0")/insert.sh"
+. "$(dirname "$0")/publish.sh"

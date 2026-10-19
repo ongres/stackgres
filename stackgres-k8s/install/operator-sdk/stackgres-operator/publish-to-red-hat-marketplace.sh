@@ -5,4 +5,4 @@ UPSTREAM_GIT_URL="https://github.com/redhat-openshift-ecosystem/redhat-marketpla
 FORK_GIT_URL="${FORK_GIT_URL:-$1}"
 PROJECT_NAME="stackgres"
 
-. "$(dirname "$0")/insert.sh"
+. "$(dirname "$0")/publish.sh"

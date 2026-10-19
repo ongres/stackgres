@@ -183,10 +183,10 @@ then
   # released when 1.19 is out) does not become a channel head: it belongs in the
   # middle of the update graph. Red Hat's FBC auto-release can only append an
   # entry, never rewire the existing ones, so it would leave every channel with
-  # two heads and fail catalog validation. Skip release-config.yaml and insert
-  # the version into the catalog afterwards with insert-to-*.sh, which places it
+  # two heads and fail catalog validation. Skip release-config.yaml and publish
+  # the version in the catalog afterwards with publish-to-*.sh, which places it
   # in semver order and re-points its successor.
-  # The CSV replaces the same version insert.sh will make it replace: the
+  # The CSV replaces the same version publish.sh will make it replace: the
   # latest version of an older minor in the first channel of the first catalog
   # template.
   if [ "x$PREVIOUS_VERSION" != xnone ]
@@ -204,7 +204,7 @@ then
   echo "Not generating release-config.yaml: the FBC auto-release can not insert a version in the middle of the update graph."
   echo "Once the PR is merged and the bundle image is published, add it to the catalog with:"
   echo
-  echo "  STACKGRES_VERSION=$STACKGRES_VERSION sh insert-to-$UPSTREAM_SUFFIX.sh"
+  echo "  STACKGRES_VERSION=$STACKGRES_VERSION sh publish-to-$UPSTREAM_SUFFIX.sh"
   echo
 elif [ "$DO_ADD_FBC" = true ]
 then

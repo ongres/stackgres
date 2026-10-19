@@ -6,4 +6,4 @@ FORK_GIT_URL="${FORK_GIT_URL:-$1}"
 PROJECT_NAME="stackgres-community"
 RENAME_CSV=true
 
-. "$(dirname "$0")/insert.sh"
+. "$(dirname "$0")/publish.sh"

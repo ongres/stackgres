@@ -5,7 +5,7 @@
 # kept one, and the kept versions are chained by replaces in semver order (see
 # prune_channel in common.sh).
 #
-# insert.sh and remove.sh already leave the catalog that way, but Red Hat's FBC
+# publish.sh and remove.sh already leave the catalog that way, but Red Hat's FBC
 # auto-release, that adds a version deployed with deploy.sh, can only append an
 # entry: run this once its PR is merged to remove the versions the new one
 # skips. It also brings to that shape a catalog that predates the policy.

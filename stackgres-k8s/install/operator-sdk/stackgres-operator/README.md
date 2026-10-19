@@ -106,24 +106,36 @@ channel, so it only works for a version that becomes the new channel head, and
 it leaves the versions the new one skips in the catalog: once its PR is merged
 remove them with `skip-up-to-latest-minor-in-*.sh` (see below).
 
-## Insert a version
+## Publish a version
 
 A version on a minor older than the latest one in the catalog (for example
 1.18.9 released when 1.19 is already out) belongs in the *middle* of the update
 graph. Appending it would leave the channel with two heads and fail catalog
 validation, so `deploy.sh` skips `release-config.yaml` for such a version and
-it has to be inserted explicitly:
+it has to be published explicitly:
 
 ```
-STACKGRES_VERSION="<version>" FORK_GIT_URL="<URL of fork>" sh insert-to-red-hat-certified.sh
+STACKGRES_VERSION="<version>" FORK_GIT_URL="<URL of fork>" sh publish-to-red-hat-certified.sh
 ```
 
 The same script exists for the other two catalogs
-(`insert-to-red-hat-marketplace.sh`, `insert-to-red-hat-community.sh`). It
+(`publish-to-red-hat-marketplace.sh`, `publish-to-red-hat-community.sh`). It
 places the version in semver order in every channel it belongs to, replacing
 the lower versions of its minor (which it skips), re-points the entry of the
 next minor to it, renders and validates the catalogs, and commits the result.
-It refuses a version lower than one of its minor already in the catalog.
+
+`STACKGRES_VERSION` can also be a range `<from>..<to>` of the versions
+published in the repository. For each minor of the range only the latest
+version is added to a channel, and the others of that minor (patch, rc, beta or
+alpha releases belonging to the channel) are added to its `skips`, so that a
+cluster running any of them is first upgraded to the latest patch of its minor
+and then to the next minor. A version lower than one of its minor already in
+the catalog is only added to its `skips`. For example, to give an upgrade path
+to clusters on 1.17.x and 1.18.0, that are neither in the catalog nor skipped:
+
+```
+STACKGRES_VERSION="1.17.0..1.18.10" FORK_GIT_URL="<URL of fork>" sh publish-to-red-hat-certified.sh
+```
 
 Run it only after the bundle PR has been merged and Red Hat has published the
 bundle image: the catalog references bundles by digest, and the digest does not
@@ -159,7 +171,7 @@ The same script exists for the other two catalogs
 (`skip-up-to-latest-minor-in-red-hat-marketplace.sh`,
 `skip-up-to-latest-minor-in-red-hat-community.sh`). It renders and validates
 the catalogs and commits the result, or does nothing when the catalog already
-has that shape. `insert-to-*.sh` and `remove-from-*.sh` do the same on every
+has that shape. `publish-to-*.sh` and `remove-from-*.sh` do the same on every
 run.
 
 # Show the published versions

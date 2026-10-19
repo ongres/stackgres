@@ -193,13 +193,13 @@ $(
   then
     cat << EOF
 1. [ ] Add ${VERSION} to the Red Hat file-based catalogs (only when `deploy.sh` reported that it did not generate `release-config.yaml`, that is when ${MINOR_VERSION} is not the latest minor version in the catalog):
-    > Red Hat's FBC auto-release can only append a version to a channel, so a version that belongs in the middle of the update graph has to be inserted explicitly. Wait until each PR above has been merged and Red Hat has published the bundle image, since the catalog references the bundle by digest and that digest does not exist before then.
+    > Red Hat's FBC auto-release can only append a version to a channel, so a version that belongs in the middle of the update graph has to be published explicitly. Wait until each PR above has been merged and Red Hat has published the bundle image, since the catalog references the bundle by digest and that digest does not exist before then.
 
     ```
     cd stackgres-k8s/install/operator-sdk/stackgres-operator/
-    . ~/.stackgres/operator-bundle-red-hat-certified-config && STACKGRES_VERSION="${VERSION}" sh insert-to-red-hat-certified.sh
-    . ~/.stackgres/operator-bundle-red-hat-marketplace-config && STACKGRES_VERSION="${VERSION}" sh insert-to-red-hat-marketplace.sh
-    . ~/.stackgres/operator-bundle-red-hat-community-config && STACKGRES_VERSION="${VERSION}" sh insert-to-red-hat-community.sh
+    . ~/.stackgres/operator-bundle-red-hat-certified-config && STACKGRES_VERSION="${VERSION}" sh publish-to-red-hat-certified.sh
+    . ~/.stackgres/operator-bundle-red-hat-marketplace-config && STACKGRES_VERSION="${VERSION}" sh publish-to-red-hat-marketplace.sh
+    . ~/.stackgres/operator-bundle-red-hat-community-config && STACKGRES_VERSION="${VERSION}" sh publish-to-red-hat-community.sh
     ```
 
     > Create a PR for each catalog repository using the command printed by each script.
