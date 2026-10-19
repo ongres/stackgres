@@ -158,14 +158,22 @@ check_vertical_autoscaling() {
   # that only burns CPU, sent through connections that are kept open, loads postgres instead.
   kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
     -- bash -c "echo 'SELECT sum(i) FROM generate_series(1, 1000000) AS i' > /tmp/pgcpu.sql"
+  # The VerticalPodAutoscaler applies a recommendation by evicting the Pod, which ends the
+  # connections of pgbench and makes it abort, and the recommendation falls back to the minimum
+  # allowed some minutes after the load stops, so pgbench is started again until the check is done.
   kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -n -c 4 -j 4 -f /tmp/pgcpu.sql -h $CLUSTER_NAME" > "$LOG_PATH/vertical-bench" 2>&1 &
+    -- bash -c "export PGPASSWORD=$PGPASSWORD; END=\$((\$(date +%s) + $((E2E_TIMEOUT * 2)))); while [ \$(date +%s) -lt \$END ]; do pgbench -T 30 -n -c 4 -j 4 -f /tmp/pgcpu.sql -h $CLUSTER_NAME || sleep 2; done" > "$LOG_PATH/vertical-bench" 2>&1 &
   BENCH_PID="$!"
   trap_kill "$BENCH_PID"
   cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
   echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) > 0.5))|.metadata.name' \
     >> "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
-  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+  # The VerticalPodAutoscaler applies a recommendation by evicting a Pod, that is then recreated
+  # with the recommended resources, and its updater evicts one Pod of the cluster per cycle. The
+  # eviction of the primary Pod also makes patroni failover to a replica that was not resized yet,
+  # so the primary only holds the recommended resources after both Pods were evicted, a few
+  # minutes after the load started, and the test waits for as long as the load lasts.
+  if wait_until -t "$((E2E_TIMEOUT * 2))" eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=primary" -o json \
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
     | wc -l | grep -qxF 1'
@@ -176,19 +184,19 @@ check_vertical_autoscaling() {
     kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
     kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+      -- bash -c 'ps -ef | grep "[p]gcpu" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi
   kill "$BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    -- bash -c 'ps -ef | grep "[p]gcpu" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
     -- bash -c "PGPASSWORD=$PGPASSWORD psql -q -h autoscaling-replicas -c 'SELECT 1'"
   kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -n -c 4 -j 4 -f /tmp/pgcpu.sql -h $CLUSTER_NAME-replicas" >> "$LOG_PATH/vertical-bench-2" 2>&1 &
+    -- bash -c "export PGPASSWORD=$PGPASSWORD; END=\$((\$(date +%s) + $((E2E_TIMEOUT * 2)))); while [ \$(date +%s) -lt \$END ]; do pgbench -T 30 -n -c 4 -j 4 -f /tmp/pgcpu.sql -h $CLUSTER_NAME-replicas || sleep 2; done" >> "$LOG_PATH/vertical-bench-2" 2>&1 &
   BENCH_PID="$!"
   trap_kill "$BENCH_PID"
-  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+  if wait_until -t "$((E2E_TIMEOUT * 2))" eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o json \
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
     | wc -l | grep -qxF 1'
@@ -199,12 +207,12 @@ check_vertical_autoscaling() {
     kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
     kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+      -- bash -c 'ps -ef | grep "[p]gcpu" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi
   kill "$BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    -- bash -c 'ps -ef | grep "[p]gcpu" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string instanceProfiles[0].name=size-s \
     --set-string instanceProfiles[0].cpu=500m \
