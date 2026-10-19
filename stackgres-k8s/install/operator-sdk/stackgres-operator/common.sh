@@ -334,7 +334,7 @@ range_versions() {
     | sed 's#^.*/\([^/]*\)/manifests$#\1#')"
   { printf '%s\n%s\n%s\n' "$PUBLISHED_VERSIONS" "$1" "$2"; } \
     | sort_versions | uniq \
-    | sed -n "/^$(printf %s "$1" | sed 's/\./\\./g')\$/,/^$(printf %s "$2" | sed 's/\./\\./g')\$/p" \
+    | awk -v from="$1" -v to="$2" '$0 == from { found = 1 } found { print } $0 == to { exit }' \
     | grep -xF "$PUBLISHED_VERSIONS" || true
 }
 
