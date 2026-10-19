@@ -149,8 +149,17 @@ check_vertical_autoscaling() {
     --set-string 'cluster.autoscaling.minAllowed.patroni.cpu=500m' \
     --set-string 'cluster.autoscaling.maxAllowed.patroni.cpu=2'
 
+  # The VerticalPodAutoscaler only recommends more CPU than the minimum allowed when the patroni
+  # container uses almost all the CPU it is limited to, so the load has to be bound by the CPU of
+  # postgres. A pgbench that opens a connection for each transaction (-C) is instead bound by
+  # pgbouncer, that is single threaded and, since envoy is disabled by default, terminates the TLS
+  # connection of the client itself: the handshakes saturate a CPU of pgbouncer while postgres
+  # stays well below its limit and the recommendation never leaves the minimum allowed. A query
+  # that only burns CPU, sent through connections that are kept open, loads postgres instead.
   kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h $CLUSTER_NAME" > "$LOG_PATH/vertical-bench" 2>&1 &
+    -- bash -c "echo 'SELECT sum(i) FROM generate_series(1, 1000000) AS i' > /tmp/pgcpu.sql"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -n -c 4 -j 4 -f /tmp/pgcpu.sql -h $CLUSTER_NAME" > "$LOG_PATH/vertical-bench" 2>&1 &
   BENCH_PID="$!"
   trap_kill "$BENCH_PID"
   cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
@@ -176,7 +185,7 @@ check_vertical_autoscaling() {
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
     -- bash -c "PGPASSWORD=$PGPASSWORD psql -q -h autoscaling-replicas -c 'SELECT 1'"
   kubectl exec -n "$CLUSTER_NAMESPACE" psql -q\
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h $CLUSTER_NAME-replicas -S" >> "$LOG_PATH/vertical-bench-2" 2>&1 &
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -n -c 4 -j 4 -f /tmp/pgcpu.sql -h $CLUSTER_NAME-replicas" >> "$LOG_PATH/vertical-bench-2" 2>&1 &
   BENCH_PID="$!"
   trap_kill "$BENCH_PID"
   if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
