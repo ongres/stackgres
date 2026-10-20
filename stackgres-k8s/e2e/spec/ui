@@ -56,6 +56,17 @@ e2e_test_install() {
       command: [ "sh", "-c", "while true; do sleep 300; done" ]
       imagePullPolicy: IfNotPresent
       env:
+      # The Electron of cypress logs errors about the GPU and about the OOM score of its renderers
+      # that have nothing to do with the tests: it probes the DRI3 extension of the X server that
+      # has no GPU ("dri3 extension not supported"), libva then fails to find a driver and, since
+      # the oom_score_adj the kubelet sets for the Pod can only be raised without CAP_SYS_RESOURCE,
+      # its zygote can not lower the one of a renderer ("Failed to adjust OOM score of renderer").
+      # Disabling the GPU and the zygote avoids the first and the last, and libva is silenced with
+      # its own level of messages, that is not a flag of Electron.
+      - name: ELECTRON_EXTRA_LAUNCH_ARGS
+        value: "--disable-gpu --no-zygote"
+      - name: LIBVA_MESSAGING_LEVEL
+        value: "0"
       - name: CYPRESS_BASE_URL
         value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin"
       - name: CYPRESS_VIDEO
