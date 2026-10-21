@@ -519,6 +519,8 @@ e2e_install_olm() {
     operator-sdk olm install \
       --timeout "${E2E_TIMEOUT}s" \
       --version "$E2E_OLM_VERSION"
+
+    olm_wait_catalog_source_ready olm operatorhubio-catalog
   fi
 
   CATALOG_IMAGE_NAME="${E2E_CATALOG_IMAGE_REGISTRY:-$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}}/stackgres/${OPERATOR_BUNDLE_CATALOG_IMAGE_NAME##*/}"
@@ -587,6 +589,8 @@ spec:
       interval: 10m
 EOF
   kubectl create -f "$LOG_PATH/operator-catalog-source.yaml"
+
+  olm_wait_catalog_source_ready "$OPERATOR_NAMESPACE" operator-catalog
 }
 
 e2e_load_operator_images_from() {

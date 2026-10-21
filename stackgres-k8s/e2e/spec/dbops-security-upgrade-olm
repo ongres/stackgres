@@ -83,6 +83,8 @@ e2e_install_previous_operator() {
     operator-sdk olm install \
       --timeout "${E2E_TIMEOUT}s" \
       --version "$E2E_OLM_VERSION"
+
+    olm_wait_catalog_source_ready olm operatorhubio-catalog
   fi
 
   if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
@@ -172,6 +174,8 @@ spec:
       interval: 10m
 EOF
   kubectl create -f "$LOG_PATH/operator-catalog-source.yaml"
+
+  olm_wait_catalog_source_ready "$OPERATOR_NAMESPACE" operator-catalog
 
   echo "Installing previous version of operator bundle ($STACKGRES_PREVIOUS_VERSION)"
   cat << EOF > "$LOG_PATH/stackgres-operator-group.yaml"
