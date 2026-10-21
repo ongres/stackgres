@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# The permissions of the admin user are cluster wide and shared with any other spec that calls
+# the REST API, that authenticates as the same user: while they are reduced to check the REST API
+# denies the request this spec has to be the only one running.
+e2e_exclusive_lock() {
+  true
+}
+
 e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -42,7 +49,8 @@ check_rbac_failure() {
   HTTP_STATUS="$(get_rbac_status "create")"
 
   kubectl delete clusterrolebinding stackgres-restapi-admin
-  kubectl create clusterrolebinding stackgres-restapi-admin --clusterrole=cluster-admin --user=admin
+  kubectl create clusterrolebinding stackgres-restapi-admin \
+    --clusterrole=stackgres-restapi-admin --user=admin
 
   if [ "$HTTP_STATUS" = "403" ]
   then
