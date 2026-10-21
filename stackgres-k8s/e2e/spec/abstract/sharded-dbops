@@ -9,6 +9,18 @@
 # operation did not complete in time instead of that it failed and why.
 wait_dbops_is_completed() {
   local DBOPS_NAME="$1"
+
+  # The SGDbOps of a member is created by the job of the sharded operation, that is still being
+  # scheduled when the sharded operation is created, and the assertions of utils/dbops report an
+  # SGDbOps that does not exist as a failure instead of waiting for it to be created, so its
+  # creation is awaited before awaiting its completion.
+  if ! wait_until kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o name > /dev/null
+  then
+    kubectl get sgshardeddbops -n "$CLUSTER_NAMESPACE" -o yaml || true
+    fail "The dbops $DBOPS_NAME was not created"
+    return 1
+  fi
+
   if assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 4))"
   then
     success "The dbops has completed"
