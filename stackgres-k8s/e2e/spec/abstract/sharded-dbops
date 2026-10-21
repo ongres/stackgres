@@ -3,25 +3,32 @@
 # The SGDbOps of a member always completes before the SGShardedDbOps that created it, so it is
 # waited for with the same extended timeout. A major version upgrade of a member keeps it down while
 # the image of the target version and the one that performs the upgrade are pulled, which on its own
-# takes longer than E2E_TIMEOUT.
+# takes longer than E2E_TIMEOUT. Both are awaited through the assertions of utils/dbops, that poll
+# the Failed condition too and print the logs of the job: an operation that fails leaves Completed
+# to false, so waiting only for Completed burned the whole timeout and then reported that the
+# operation did not complete in time instead of that it failed and why.
 wait_dbops_is_completed() {
   local DBOPS_NAME="$1"
-  if wait_until -t "$((E2E_TIMEOUT * 4))" kubectl wait --timeout 0s sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
-    --for=condition=Completed > /dev/null
+  if assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 4))"
   then
     success "The dbops has completed"
   else
+    kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o yaml || true
     fail "The dbops has failed or did not completed"
   fi
 }
 
 wait_sharded_dbops_is_completed() {
   local SHARDED_DBOPS_NAME="$1"
-  if wait_until -t "$((E2E_TIMEOUT * 4))" kubectl wait --timeout 0s sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
-    --for=condition=Completed > /dev/null
+  if assert_sharded_dbops_completion "$SHARDED_DBOPS_NAME" "$CLUSTER_NAMESPACE" \
+    "$((E2E_TIMEOUT * 4))"
   then
     success "The sharded dbops has completed"
   else
+    # The status of the sharded dbops carries the step that failed, and the sharded dbops and the
+    # dbops it created are removed along with the namespace when the spec ends
+    kubectl get sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" -o yaml || true
+    kubectl get sgdbops -n "$CLUSTER_NAMESPACE" -o yaml || true
     fail "The sharded dbops has failed or did not completed"
   fi
 }
