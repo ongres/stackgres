@@ -76,6 +76,24 @@ create_or_replace_cluster_only() {
   fi
 }
 
+# Awaits the condition $3 of the cluster $1 of the namespace $2 and, when it is not met, prints
+# the state of the cluster: the spec aborts right after and its namespace is removed with it, so
+# a state that is not printed here can not be looked at anymore once the spec has finished.
+wait_cluster_condition() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local CONDITION="$3"
+  if ! wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" \
+    --for="condition=$CONDITION" --timeout=0s
+  then
+    kubectl get sgcluster -n "$NAMESPACE" "$RELEASE" -o jsonpath='{.status}{"\n"}' || true
+    kubectl get pod -n "$NAMESPACE" \
+      -l "app=StackGresCluster,stackgres.io/cluster-name=$RELEASE" -o wide || true
+    kubectl get event -n "$NAMESPACE" --field-selector "involvedObject.name=$RELEASE" || true
+    return 1
+  fi
+}
+
 wait_cluster() {
   local RELEASE="$1"
   local NAMESPACE="$2"
@@ -94,9 +112,9 @@ wait_cluster() {
         | grep -q "^authenticator|"'
   elif [ "$WAIT_CLUSTER_BOOTSTRAP_ONLY" = true ]
   then
-    wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" --for=condition=Bootstrapped --timeout=0s
+    wait_cluster_condition "$RELEASE" "$NAMESPACE" Bootstrapped
   else
-    wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" --for=condition=InitialScriptsApplied --timeout=0s
+    wait_cluster_condition "$RELEASE" "$NAMESPACE" InitialScriptsApplied
   fi
 }
 
@@ -414,9 +432,9 @@ wait_sharded_cluster() {
           | grep -q "^authenticator|"'
     elif [ "$WAIT_CLUSTER_BOOTSTRAP_ONLY" = true ]
     then
-      wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" --for=condition=Bootstrapped --timeout=0s
+      wait_cluster_condition "$RELEASE" "$NAMESPACE" Bootstrapped
     else
-      wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" --for=condition=InitialScriptsApplied --timeout=0s
+      wait_cluster_condition "$RELEASE" "$NAMESPACE" InitialScriptsApplied
     fi
 
     INDEX="$((INDEX + 1))"
