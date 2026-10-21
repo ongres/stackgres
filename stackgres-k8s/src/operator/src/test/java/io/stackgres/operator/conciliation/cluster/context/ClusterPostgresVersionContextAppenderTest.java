@@ -128,6 +128,22 @@ class ClusterPostgresVersionContextAppenderTest {
   }
 
   @Test
+  void clusterRolledOutByADbOps_shouldStillSetTheTargetPostgresVersion() {
+    cluster.getStatus().setPostgresVersion(FIRST_PG_MINOR_VERSION);
+    cluster.getSpec().getPostgres().setVersion(SECOND_PG_MINOR_VERSION);
+    cluster.getMetadata().setAnnotations(Map.of(
+        StackGresContext.ROLLOUT_KEY, StackGresContext.ROLLOUT_ALWAYS_VALUE,
+        StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY, "major-version-upgrade"));
+
+    contextAppender.appendContext(cluster, contextBuilder);
+
+    // An operation that rolls out the pods by itself, like the major version upgrade, changes the
+    // version of the cluster and waits for the operator to apply it to the StatefulSet: the
+    // version it set has to be pinned although the operator is not the one rolling the pods out.
+    assertEquals(SECOND_PG_MINOR_VERSION, cluster.getStatus().getPostgresVersion());
+  }
+
+  @Test
   void clusterWithFinalPostgresVersion_shouldSetIt() {
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
 
