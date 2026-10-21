@@ -129,4 +129,21 @@ class BackupClusterBackupNamespacesContextAppenderTest {
     verify(contextBuilder).clusterBackupNamespaces(Set.of("copied", "other-copied"));
   }
 
+  @Test
+  void givenClusterWithBackupsOfAnotherClusterInOtherNamespaces_shouldPass() {
+    when(backupScanner.getResources()).thenReturn(
+        List.of(
+            new StackGresBackupBuilder()
+            .withNewMetadata()
+            .withNamespace("copied")
+            .withName("copied")
+            .endMetadata()
+            .withNewSpec()
+            .withSgCluster("another-namespace.another-cluster")
+            .endSpec()
+            .build()));
+    contextAppender.appendContext(backup, contextBuilder);
+    verify(contextBuilder).clusterBackupNamespaces(Set.of());
+  }
+
 }
