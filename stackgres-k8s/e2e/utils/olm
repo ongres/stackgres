@@ -156,6 +156,25 @@ olm_catalog_source_namespace() {
   fi
 }
 
+# Waits for the registry of the CatalogSource $2 of the namespace $1 to answer. OLM fills the
+# cache of its resolver from every CatalogSource a Subscription can see, so a CatalogSource whose
+# registry is still loading makes the resolution of an unrelated Subscription fail with
+# ErrorPreventedResolution while OLM still reports all the catalog sources as healthy, and no
+# install plan is then created until OLM resyncs, that takes longer than the wait for it.
+olm_wait_catalog_source_ready() {
+  local NAMESPACE="$1"
+  local NAME="$2"
+  if ! wait_until -t "$((E2E_TIMEOUT * 2))" eval 'kubectl get catalogsource -n "$NAMESPACE" "$NAME" \
+    --template "{{ .status.connectionState.lastObservedState }}" 2>/dev/null | grep -qxF READY'
+  then
+    kubectl get catalogsource -n "$NAMESPACE" "$NAME" -o yaml || true
+    kubectl get pod -n "$NAMESPACE" -l "olm.catalogSource=$NAME" || true
+    # Not a failure by itself: what is subscribed to the catalog source is awaited afterwards and
+    # fails with its own message, this is only the state the resolution started from.
+    fail_no_return "The catalog source $NAME of namespace $NAMESPACE is not ready"
+  fi
+}
+
 olm_package() {
   case "$E2E_USE_OPENSHIFT_CATALOG" in
     (certified) echo stackgres-certified ;;
@@ -340,6 +359,8 @@ olm_install_olm() {
   operator-sdk olm install \
     --timeout "${E2E_TIMEOUT}s" \
     --version "$E2E_OLM_VERSION"
+
+  olm_wait_catalog_source_ready olm operatorhubio-catalog
 }
 
 # The bundle image of a released version, as the catalog that ships it names it.
@@ -496,6 +517,8 @@ spec:
       interval: 10m
 EOF
   kubectl create -f "$LOG_PATH/operator-catalog-source.yaml"
+
+  olm_wait_catalog_source_ready "$OPERATOR_NAMESPACE" operator-catalog
 }
 
 olm_create_operator_namespace() {
