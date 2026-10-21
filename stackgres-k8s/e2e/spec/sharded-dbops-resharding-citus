@@ -15,13 +15,40 @@ e2e_test_install() {
   create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2" "1" \
     --set-string "configurations.postgresconfig.postgresql\.conf.citus\.desired_percent_disk_available_after_move=0"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 6
+  # 2 instances of the coordinator, 2 workers of 2 instances and 1 query router
+  wait_pods_running "$CLUSTER_NAMESPACE" 7
   wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   switch_sharded_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
   run_test "Checking that resharding sharded dbops is working" check_sharded_dbops_resharding_is_working
+}
+
+# Patroni registers on its own the group of a worker that is removed from pg_dist_node, and
+# citus_add_node() without a group id takes one from pg_dist_groupid_seq, that Patroni never
+# advances and that therefore collides with the group of another worker: the node is added back
+# into the group it was removed from, and only while nothing has registered that group again.
+add_removed_node_back() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -d citus -v ON_ERROR_STOP=1 \
+    -c "SELECT CASE WHEN EXISTS (SELECT FROM pg_dist_node WHERE groupid = $NODE_GROUP)
+      THEN 0 ELSE citus_add_node('$NODE_NAME', ${POSTGRES_REPLICATION_PORT},
+        groupid => $NODE_GROUP) END"
+}
+
+removed_node_is_registered() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -t -A -d citus \
+    -c "SELECT COUNT(*) FROM pg_dist_node
+      WHERE groupid = $NODE_GROUP AND noderole = 'primary' AND isactive" \
+    | grep -qxF 1
+}
+
+print_dist_nodes() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -d citus -c "SELECT nodeid, groupid, nodename, nodeport, noderole, isactive,
+      hasmetadata, shouldhaveshards FROM pg_dist_node ORDER BY groupid" || true
 }
 
 check_sharded_dbops_resharding_is_working() {
@@ -34,15 +61,40 @@ check_sharded_dbops_resharding_is_working() {
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -q -d citus -v ON_ERROR_STOP=1 \
     -c "SELECT create_distributed_table('distributed', 'i')"
+  # The node to drain has to be the active primary of its group and to really hold shards of the
+  # distributed table: the coordinator and the query routers hold no shards, a query router is
+  # registered with shouldhaveshards set to true until the coordinator corrects it, and a node
+  # that is not the primary of its group is in recovery and rejects the metadata citus syncs to it
+  # with "cannot execute UPDATE in a read-only transaction".
   NODE_NAME="$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
-    psql -q -t -A -d citus -c "SELECT nodename from pg_dist_node WHERE shouldhaveshards LIMIT 1")"
+    psql -q -t -A -d citus -c "SELECT nodename FROM pg_dist_node
+      WHERE noderole = 'primary' AND isactive AND shouldhaveshards
+      AND groupid IN (SELECT groupid FROM pg_dist_placement
+        JOIN pg_dist_shard USING (shardid) JOIN pg_dist_partition USING (logicalrelid)
+        WHERE partmethod <> 'n')
+      ORDER BY groupid LIMIT 1")"
+  NODE_GROUP="$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -t -A -d citus -c "SELECT groupid FROM pg_dist_node
+      WHERE nodename = '$NODE_NAME' AND nodeport = ${POSTGRES_REPLICATION_PORT}")"
+  if [ -n "$NODE_NAME" ] && [ -n "$NODE_GROUP" ]
+  then
+    success "Worker of group $NODE_GROUP holds shards and can be drained"
+  else
+    print_dist_nodes
+    fail "No worker holding shards was found to drain"
+  fi
   kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -q -d citus -v ON_ERROR_STOP=1 \
     -c "SELECT citus_drain_node('$NODE_NAME', ${POSTGRES_REPLICATION_PORT})" \
     -c "SELECT citus_remove_node('$NODE_NAME', ${POSTGRES_REPLICATION_PORT})"
-  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
-      psql -q -d citus -v ON_ERROR_STOP=1 \
-      -c "SELECT citus_add_node('$NODE_NAME', ${POSTGRES_REPLICATION_PORT})"
+  wait_until add_removed_node_back
+  if wait_until removed_node_is_registered
+  then
+    success "Worker of group $NODE_GROUP is registered in pg_dist_node again"
+  else
+    print_dist_nodes
+    fail "Worker of group $NODE_GROUP was not registered in pg_dist_node again"
+  fi
   if ! kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -q -t -A -d citus -c "SELECT COUNT(*) FROM get_rebalance_table_shards_plan()" | grep -qxF 0
   then
