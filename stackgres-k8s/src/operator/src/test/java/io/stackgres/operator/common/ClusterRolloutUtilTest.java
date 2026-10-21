@@ -9,9 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.patroni.PatroniMember;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +75,40 @@ class ClusterRolloutUtilTest {
     member.setPendingRestartReason("max_connections: 80->79");
     assertFalse(ClusterRolloutUtil.requiresPostgresRestartWithoutSwitchover(
         POD, List.of(member)));
+  }
+
+  @Test
+  void givenAClusterOfADbOpsThatRollsOutByItself_shouldNotAllowRollout() {
+    assertFalse(ClusterRolloutUtil.isRolloutAllowed(cluster(Map.of(
+        StackGresContext.ROLLOUT_DBOPS_KEY, "major-version-upgrade",
+        StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY, "major-version-upgrade"))));
+  }
+
+  @Test
+  void givenAClusterOfADbOpsThatRollsOutByItselfAndRolloutAlways_shouldNotAllowRollout() {
+    assertFalse(ClusterRolloutUtil.isRolloutAllowed(cluster(Map.of(
+        StackGresContext.ROLLOUT_KEY, StackGresContext.ROLLOUT_ALWAYS_VALUE,
+        StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY, "major-version-upgrade"))));
+  }
+
+  @Test
+  void givenAClusterOfADbOpsThatIsRolledOutByTheOperator_shouldAllowRollout() {
+    assertTrue(ClusterRolloutUtil.isRolloutAllowed(cluster(Map.of(
+        StackGresContext.ROLLOUT_DBOPS_KEY, "restart"))));
+  }
+
+  @Test
+  void givenAClusterWithoutAnnotations_shouldNotAllowRollout() {
+    assertFalse(ClusterRolloutUtil.isRolloutAllowed(cluster(Map.of())));
+  }
+
+  private StackGresCluster cluster(Map<String, String> annotations) {
+    return new StackGresClusterBuilder()
+        .withNewMetadata()
+        .withName("test")
+        .withAnnotations(annotations)
+        .endMetadata()
+        .build();
   }
 
   private List<PatroniMember> members(String pendingRestartReason) {
