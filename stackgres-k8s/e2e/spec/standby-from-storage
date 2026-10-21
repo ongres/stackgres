@@ -33,6 +33,13 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" "3"
 
+  # The cluster is awaited and not only its pods: the authenticator role that the connection
+  # pooling authenticates with is created by the initial scripts of the cluster, and a backup
+  # taken before they have been applied produces a standby that can not be connected to through
+  # the connection pooling, since a standby is read only and can only receive that role from the
+  # WAL of the primary, that is archived long after the backup has completed.
+  wait_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
   BACKUP_NAME="$(get_sgbackup_name "$CLUSTER_NAME")"
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
