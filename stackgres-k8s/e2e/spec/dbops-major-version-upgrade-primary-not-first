@@ -14,8 +14,17 @@ e2e_test() {
 check_major_version_upgrade_with_primary_not_first_is_working() {
   reset_cluster
 
-  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
-    patronictl switchover "$CLUSTER_NAME" --primary "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force
+  # patronictl exits with success when it prints "Switchover failed", and the former primary is
+  # left restarting after a successful one, so the switchover is retried until it is performed and
+  # the cluster is awaited to converge: the operation has to start on a healthy cluster whose
+  # primary is the last instance, which is what this test is about.
+  wait_until eval '! kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+    patronictl switchover "$CLUSTER_NAME" --primary "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force \
+    | grep -q "^Switchover failed"'
+  wait_until eval '[ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" \
+    --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
+  wait_until eval 'kubectl get endpoints --namespace "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template="{{ .metadata.annotations.leader }}" | grep -qxF "$CLUSTER_NAME-1"'
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
