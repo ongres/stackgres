@@ -768,6 +768,11 @@ remove_sharded_cluster() {
   wait_until eval 'helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -'
   helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
+  # The pods of the clusters are removed asynchronously after the SGShardedCluster is, and a wait
+  # for a number of running pods counts any pod of the namespace that is running: without waiting
+  # for them here, the pods that are being removed are counted as the pods of the sharded cluster
+  # that is created next, and what that wait should have covered is left to the waits after it.
+  wait_pods_terminated "$NAMESPACE" 0 "$RELEASE-\(coord\|worker[0-9]\+\|router[0-9]\+\)-[0-9]\+"
 }
 
 remove_sharded_cluster_if_exists() {
