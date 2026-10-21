@@ -69,6 +69,11 @@ check_sharded_backup_is_working() {
 
   create_sharded_backup "$SHARDED_BACKUP_NAME_0" true
 
+  # The sharded backup only completes after all the backups it is composed of have completed, so
+  # it is awaited first: each backup is then already completed and is only asserted to be, and the
+  # time given to the sharded backup is not divided between the backups by awaiting them first.
+  wait_sharded_backup_is_completed "$SHARDED_BACKUP_NAME_0"
+
   local BACKUP_NAME
   local SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
   local CLUSTER_NAME
@@ -80,8 +85,6 @@ check_sharded_backup_is_working() {
     BACKUP_NAME="$SHARDED_BACKUP_NAME_0-$SUFFIX"
     wait_backup_is_completed "$BACKUP_NAME" "$NODE"
   done
-
-  wait_sharded_backup_is_completed "$SHARDED_BACKUP_NAME_0"
 
   if kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME_0" \
     --template='{{ range .status.sgBackups }}{{ . }} {{ end }}' \
