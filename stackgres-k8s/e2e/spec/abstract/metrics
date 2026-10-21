@@ -49,13 +49,17 @@ check_metrics() {
   fi
 }
 
+# The pod is looked up on each attempt and not once before awaiting: the deployment is rolled out
+# again while the test runs (by OLM, or by the operator itself when the grafana integration fills
+# the status of the SGConfig), so a pod name looked up once is the name of a pod that is already
+# terminating and every attempt after that fails with "not found" until the timeout is reached.
 check_operator_metrics() {
   local NAMESPACE="${1:-$OPERATOR_NAMESPACE}"
-  local OPERATOR_POD
-  OPERATOR_POD="$(kubectl get pod -n "$NAMESPACE" -l app=stackgres-operator \
-    --template '{{ range .items }}{{ .metadata.name }}{{ "\n" }}{{ end }}' | head -n 1)"
 
-  if wait_until eval 'kubectl exec -n "$NAMESPACE" "$OPERATOR_POD" \
+  if wait_until eval 'OPERATOR_POD="$(kubectl get pod -n "$NAMESPACE" -l app=stackgres-operator \
+      --field-selector status.phase=Running -o name | head -n 1)" \
+      && [ -n "$OPERATOR_POD" ] \
+      && kubectl exec -n "$NAMESPACE" "$OPERATOR_POD" \
       -- curl -s http://localhost:8080/q/metrics \
       | grep -q "^sg_operator_reconciliation_total_performed{resource=\"sgconfig\"}"'
   then
@@ -65,13 +69,14 @@ check_operator_metrics() {
   fi
 }
 
+# The pod is looked up on each attempt for the same reason as in check_operator_metrics.
 check_restapi_metrics() {
   local NAMESPACE="${1:-$OPERATOR_NAMESPACE}"
-  local RESTAPI_POD
-  RESTAPI_POD="$(kubectl get pod -n "$NAMESPACE" -l stackgres.io/restapi=true \
-    --template '{{ range .items }}{{ .metadata.name }}{{ "\n" }}{{ end }}' | head -n 1)"
 
-  if wait_until eval 'kubectl exec -n "$NAMESPACE" "$RESTAPI_POD" -c stackgres-restapi \
+  if wait_until eval 'RESTAPI_POD="$(kubectl get pod -n "$NAMESPACE" -l stackgres.io/restapi=true \
+      --field-selector status.phase=Running -o name | head -n 1)" \
+      && [ -n "$RESTAPI_POD" ] \
+      && kubectl exec -n "$NAMESPACE" "$RESTAPI_POD" -c stackgres-restapi \
       -- curl -s -k https://localhost:8443/stackgres/auth/type > /dev/null \
       && kubectl exec -n "$NAMESPACE" "$RESTAPI_POD" -c stackgres-restapi \
       -- curl -s -k https://localhost:8443/q/metrics \
