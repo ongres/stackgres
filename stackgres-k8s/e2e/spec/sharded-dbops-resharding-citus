@@ -28,11 +28,14 @@ e2e_test() {
 # Patroni registers on its own the group of a worker that is removed from pg_dist_node, and
 # citus_add_node() without a group id takes one from pg_dist_groupid_seq, that Patroni never
 # advances and that therefore collides with the group of another worker: the node is added back
-# into the group it was removed from, and only while nothing has registered that group again.
+# into the group it was removed from, and only while no primary has registered that group again.
+# The replicas of the group stay registered as secondary nodes when the primary is removed, so only
+# a primary makes the group registered again.
 add_removed_node_back() {
   kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -q -d citus -v ON_ERROR_STOP=1 \
-    -c "SELECT CASE WHEN EXISTS (SELECT FROM pg_dist_node WHERE groupid = $NODE_GROUP)
+    -c "SELECT CASE WHEN EXISTS (SELECT FROM pg_dist_node
+      WHERE groupid = $NODE_GROUP AND noderole = 'primary')
       THEN 0 ELSE citus_add_node('$NODE_NAME', ${POSTGRES_REPLICATION_PORT},
         groupid => $NODE_GROUP) END"
 }
