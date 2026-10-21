@@ -512,6 +512,21 @@ switch_sharded_cluster_to_first() {
 
     INDEX="$((INDEX + 1))"
   done
+
+  if [ "$SHARDING_TYPE" = citus ]
+  then
+    local DATABASE
+    DATABASE="$(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.database }}')"
+    # The citus_update_node that patroni performs on the coordinator after a switchover unsets
+    # metadatasynced of every metadata node until the maintenance daemon synchronizes them again,
+    # and citus rejects any statement it has to propagate, like create_distributed_table, with
+    # "<node> is a metadata node, but is out of sync" until then. The nodes that are out of sync
+    # are not only the ones of the group that switched over.
+    wait_until eval '[ "$(run_query -n "$NAMESPACE" -c "$SHARDED_RELEASE" -d "$DATABASE" \
+      -x "$(kubectl get endpoints --namespace "$NAMESPACE" "$SHARDED_RELEASE-0" \
+        --template "{{ .metadata.annotations.leader }}")" \
+      -p 5432 -q "SELECT count(*) FROM pg_dist_node WHERE hasmetadata AND NOT metadatasynced")" = 0 ]'
+  fi
 }
 
 create_or_replace_sharded_cluster_for_version() {
