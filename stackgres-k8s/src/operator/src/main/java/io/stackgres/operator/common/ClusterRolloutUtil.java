@@ -71,6 +71,13 @@ public class ClusterRolloutUtil {
     final Map<String, String> annotations = Optional
         .ofNullable(cluster.getMetadata().getAnnotations())
         .orElse(Map.of());
+    // An operation that performs the rollout by itself, like the major version upgrade, restarts
+    // the Pods of the cluster on its own: while it does, the operator must not delete a Pod,
+    // restart a Postgres instance or switch the primary over, or the two compete for the same Pods
+    // and the operation fails when the operator deletes the Pod it is about to delete itself.
+    if (annotations.containsKey(StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY)) {
+      return false;
+    }
     final StackGresClusterUpdateStrategyType updateStrategyType = Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPods)

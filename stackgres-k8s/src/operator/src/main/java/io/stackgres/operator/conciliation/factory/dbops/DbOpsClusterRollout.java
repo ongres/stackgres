@@ -38,6 +38,7 @@ public class DbOpsClusterRollout implements ResourceGenerator<StackGresDbOpsCont
 
   public static final Set<String> ROLLOUT_DBOPS_KEYS = Set.of(
       StackGresContext.ROLLOUT_DBOPS_KEY,
+      StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY,
       StackGresContext.ROLLOUT_DBOPS_METHOD_KEY);
 
   @Override
