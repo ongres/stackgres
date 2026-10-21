@@ -7,6 +7,23 @@ e2e_test_extra_hash() {
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/dbops-major-version-upgrade")"
 }
 
+wait_backup_completed() {
+  local BACKUP_NAME="$1"
+
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template "{{ .status.process.status }}")" = Completed ]'
+  then
+    success "The backup has completed"
+  else
+    # The job of a backup that does not complete is the only place that says why it did not, and
+    # it is removed along with the namespace when the spec ends
+    kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml || true
+    kubectl logs -n "$CLUSTER_NAMESPACE" "job/$BACKUP_NAME-backup" \
+      --all-containers --prefix --tail -1 || true
+    fail "The backup has failed"
+  fi
+}
+
 e2e_test() {
   run_test "Checking that major version upgrade is working" check_major_version_upgrade_is_working
 
@@ -69,13 +86,7 @@ spec:
   managedLifecycle: false
 EOF
 
-  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME_POST" \
-    --template "{{ .status.process.status }}")" = Completed ]'
-  then
-    success "The backup has completed"
-  else
-    fail "The backup has failed"
-  fi
+  wait_backup_completed "$BACKUP_NAME_POST"
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -130,13 +141,7 @@ spec:
   managedLifecycle: false
 EOF
 
-  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME_PRE" \
-    --template "{{ .status.process.status }}")" = Completed ]'
-  then
-    success "The backup has completed"
-  else
-    fail "The backup has failed"
-  fi
+  wait_backup_completed "$BACKUP_NAME_PRE"
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
   uninstall_minio

@@ -71,6 +71,12 @@ check_automatic_backup() {
   then
     success "The automatic backup CR has completed"
   else
+    # The job of a backup that does not complete is the only place that says why it did not, and
+    # it is removed along with the namespace when the spec ends
+    kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o yaml || true
+    kubectl get job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" -o wide || true
+    kubectl logs -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" \
+      --all-containers --prefix --tail -1 || true
     fail "The automatic backup CR has failed"
   fi
 }
