@@ -78,17 +78,21 @@ class ClusterRolloutUtilTest {
   }
 
   @Test
-  void givenAClusterOfADbOpsThatRollsOutByItself_shouldNotAllowRollout() {
-    assertFalse(ClusterRolloutUtil.isRolloutAllowed(cluster(Map.of(
+  void givenAClusterOfADbOpsThatRollsOutByItself_shouldBeManagedByTheDbOps() {
+    var cluster = cluster(Map.of(
         StackGresContext.ROLLOUT_DBOPS_KEY, "major-version-upgrade",
-        StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY, "major-version-upgrade"))));
+        StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY, "major-version-upgrade"));
+    assertTrue(ClusterRolloutUtil.isRolloutManagedByDbOps(cluster));
+    // The rollout is still allowed: the operation changes the spec of the cluster, the version of
+    // postgres among the rest, and waits for the operator to apply it to the StatefulSet. Only the
+    // rollout of the pods is left to the operation.
+    assertTrue(ClusterRolloutUtil.isRolloutAllowed(cluster));
   }
 
   @Test
-  void givenAClusterOfADbOpsThatRollsOutByItselfAndRolloutAlways_shouldNotAllowRollout() {
-    assertFalse(ClusterRolloutUtil.isRolloutAllowed(cluster(Map.of(
-        StackGresContext.ROLLOUT_KEY, StackGresContext.ROLLOUT_ALWAYS_VALUE,
-        StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY, "major-version-upgrade"))));
+  void givenAClusterOfADbOpsThatIsRolledOutByTheOperator_shouldNotBeManagedByTheDbOps() {
+    assertFalse(ClusterRolloutUtil.isRolloutManagedByDbOps(cluster(Map.of(
+        StackGresContext.ROLLOUT_DBOPS_KEY, "restart"))));
   }
 
   @Test

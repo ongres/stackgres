@@ -229,6 +229,7 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
     final var patroniCtl = this.patroniCtl.instanceFor(context);
     final List<PatroniMember> patroniMembers = patroniCtl.list();
     final boolean isRolloutAllowed = ClusterRolloutUtil.isRolloutAllowed(context);
+    final boolean isRolloutManagedByDbOps = ClusterRolloutUtil.isRolloutManagedByDbOps(context);
     final boolean isReducedImpact = ClusterRolloutUtil.isRolloutReducedImpact(context);
     final boolean requiresRestart = ClusterRolloutUtil
         .getPodsRestartReasons(context, currentSts, currentPods)
@@ -286,7 +287,10 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
 
     fixPvcs(context, requiredSts, updatedSts, appLabel);
 
-    if (isRolloutAllowed) {
+    // The rollout is not performed while an operation performs it by itself: the StatefulSet is
+    // still updated above, since the operation changes the spec of the cluster and waits for it to
+    // be applied, only the Pods are left to the operation.
+    if (isRolloutAllowed && !isRolloutManagedByDbOps) {
       performRollout(context, requiredSts, updatedSts, appLabel,
           latestPrimaryFromPatroni, patroniCtl, writer);
     }
