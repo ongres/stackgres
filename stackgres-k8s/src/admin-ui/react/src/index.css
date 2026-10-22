@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens (colors, typography, dark theme) arrive with the
+   design-system sub-issue; the scaffold stays unstyled on purpose. */
