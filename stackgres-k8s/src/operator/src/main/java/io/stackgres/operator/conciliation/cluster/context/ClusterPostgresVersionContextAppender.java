@@ -219,7 +219,15 @@ public class ClusterPostgresVersionContextAppender
             cluster);
         version = null;
       }
-      if (majorVersionIndex > previousMajorVersionIndex) {
+      // A major version upgrade that rolls back moves the cluster back to the major version it had
+      // before, so the change to a previous major version is accepted while the operation is in
+      // progress, exactly as the change to a newer major version is: the operation owns the
+      // cluster and waits for the StatefulSet to be updated with what it has set, and rejecting
+      // the change leaves the cluster unreconciled and the operation waiting forever.
+      if (majorVersionIndex > previousMajorVersionIndex
+          && (
+              cluster.getStatus().getDbOps() == null
+              || cluster.getStatus().getDbOps().getMajorVersionUpgrade() == null)) {
         throw new IllegalArgumentException("Can not change the major version " + majorVersion
             + " of Postgres to the previous major version " + previousMajorVersion);
       }
