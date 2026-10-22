@@ -269,11 +269,18 @@ check_major_version_upgrade_rollback() {
     fail "cluster postgres version has not been rolled back."
   fi
 
-  # Only the data of the primary is checked: the operation downscales the cluster to its primary
-  # and only the path that completes the upgrade scales it back up again (the only call to
-  # upscale_cluster_instances is the one of the upscale phase), so a cluster that was rolled back
-  # is left with its primary alone and there is no replica to replicate to.
+  # The operation downscales the cluster to its primary to perform the upgrade and scales it back
+  # up when it rolls back, so the replica is expected to be there and to be replicating again.
   check_mock_data_samehost "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" \
+    --template '{{ .spec.instances }}')" = 2 ]
+  then
+    success "cluster instances have been restored."
+  else
+    fail "cluster instances have not been restored."
+  fi
 }
 
 check_major_version_upgrade_check() {
