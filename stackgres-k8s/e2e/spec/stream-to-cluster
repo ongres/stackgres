@@ -75,6 +75,23 @@ e2e_test() {
   run_test "Checking that stream with incremental snapshots is working" check_stream_incremental_snapshots_is_working
 }
 
+check_streaming_events() {
+  local EXPECTED_CREATE_EVENTS="$1"
+  local EXPECTED_UPDATE_EVENTS="$2"
+  local EXPECTED_DELETE_EVENTS="$3"
+  wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json \
+    | jq -r "[.status.streaming.totalNumberOfCreateEventsSeen, .status.streaming.totalNumberOfUpdateEventsSeen, .status.streaming.totalNumberOfDeleteEventsSeen] | map(tostring) | join(\" \")" \
+    | grep -qxF "$EXPECTED_CREATE_EVENTS $EXPECTED_UPDATE_EVENTS $EXPECTED_DELETE_EVENTS"'
+}
+
+check_sent_events() {
+  local EXPECTED_EVENTS_SEEN="$1"
+  local EXPECTED_EVENTS_SENT="$2"
+  wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json \
+    | jq -r "[.status.streaming.totalNumberOfEventsSeen, .status.events.totalNumberOfEventsSent] | map(tostring) | join(\" \")" \
+    | grep -qxF "$EXPECTED_EVENTS_SEEN $EXPECTED_EVENTS_SENT"'
+}
+
 check_stream_is_working_skippig_ddl_import() {
   check_stream_is_working true
 }
@@ -383,17 +400,14 @@ EOF
     fail "streaming insert transaction failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF 0 \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF 0
+  if check_streaming_events "$(( (TYPE_COUNT + 1) * 3 ))" "0" "0"
   then
     success "streaming insert events successful"
   else
     fail "streaming insert events failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
-    && wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 6 ))"'
+  if check_sent_events "$(( (TYPE_COUNT + 1) * 3 ))" "$(( (TYPE_COUNT + 1) * 6 ))"
   then
     success "sent insert events successful"
   else
@@ -421,17 +435,14 @@ EOF
     fail "streaming delete transaction failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF 0 \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))"
+  if check_streaming_events "$(( (TYPE_COUNT + 1) * 3 ))" "0" "$(( (TYPE_COUNT + 1) ))"
   then
     success "streaming delete events successful"
   else
     fail "streaming delete events failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 4 ))" \
-    && wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( (TYPE_COUNT + 1) * 8 ))"'
+  if check_sent_events "$(( (TYPE_COUNT + 1) * 4 ))" "$(( (TYPE_COUNT + 1) * 8 ))"
   then
     success "sent delete events successful"
   else
@@ -579,17 +590,14 @@ EOF
     fail "streaming update transaction failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))"
+  if check_streaming_events "$(( (TYPE_COUNT + 1) * 3 ))" "$(( TYPE_COUNT + (TYPE_COUNT + 1) ))" "$(( (TYPE_COUNT + 1) ))"
   then
     success "streaming update events successful"
   else
     fail "streaming update events failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 5 ))" \
-    && wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 ))"'
+  if check_sent_events "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 5 ))" "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 ))"
   then
     success "sent update events successful"
   else
@@ -615,17 +623,14 @@ EOF
     fail "streaming alter transaction failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfCreateEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) * 3 + 6 ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfUpdateEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) ))" \
-    && kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfDeleteEventsSeen | grep -qxF "$(( (TYPE_COUNT + 1) ))"
+  if check_streaming_events "$(( (TYPE_COUNT + 1) * 3 + 6 ))" "$(( TYPE_COUNT + (TYPE_COUNT + 1) ))" "$(( (TYPE_COUNT + 1) ))"
   then
     success "streaming alter events successful"
   else
     fail "streaming alter events failed"
   fi
 
-  if kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.streaming.totalNumberOfEventsSeen | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 5 + 6 ))" \
-    && wait_until eval 'kubectl get sgstream -n "$CLUSTER_NAMESPACE" "$STREAM_NAME" -o json | jq .status.events.totalNumberOfEventsSent | grep -qxF "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 + 6 ))"'
+  if check_sent_events "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 5 + 6 ))" "$(( TYPE_COUNT + (TYPE_COUNT + 1) * 9 + 6 ))"
   then
     success "sent alter events successful"
   else
