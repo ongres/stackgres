@@ -269,8 +269,11 @@ check_major_version_upgrade_rollback() {
     fail "cluster postgres version has not been rolled back."
   fi
 
+  # Only the data of the primary is checked: the operation downscales the cluster to its primary
+  # and only the path that completes the upgrade scales it back up again (the only call to
+  # upscale_cluster_instances is the one of the upscale phase), so a cluster that was rolled back
+  # is left with its primary alone and there is no replica to replicate to.
   check_mock_data_samehost "$CLUSTER_NAME"
-  wait_until check_mock_data_replication "$CLUSTER_NAME"
 }
 
 check_major_version_upgrade_check() {
