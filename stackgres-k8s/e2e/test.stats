@@ -8,10 +8,12 @@ cluster-api-info:28
 connectivity:246
 custom-annotations:146
 custom-labels:107
-dbops-major-version-upgrade:635
+dbops-major-version-upgrade:420
+dbops-major-version-upgrade-check:300
 dbops-major-version-upgrade-link-an-clone:559
 dbops-major-version-upgrade-link-and-clone:489
 dbops-major-version-upgrade-primary-not-first:319
+dbops-major-version-upgrade-rollback:290
 dbops-major-version-upgrade-timeout-and-repeat:494
 dbops-minor-version-upgrade:629
 dbops-pgbench:469
