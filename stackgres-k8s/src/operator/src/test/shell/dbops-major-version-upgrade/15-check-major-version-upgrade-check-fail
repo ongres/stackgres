@@ -9,6 +9,24 @@ CLONE=false
 shell_unit_test() {
   ! (shell_unit_test_dbops_major_version_upgrade)
   check_dbops_result
+  check_cluster_upscaled_after_rollback
+}
+
+# The rollback restores the cluster as it was, so the instances that were downscaled to perform the
+# upgrade are scaled back up before the operation ends, also when it ends failed as it does here:
+# the mock of the patch of the instances records the pods the cluster is left with.
+check_cluster_upscaled_after_rollback() {
+  if ! grep -q '^PHASE=upscale$' "$SHARED_PATH/$KEBAB_OP_NAME.out"
+  then
+    echo "DbOps rollback did not upscale the cluster"
+    return 1
+  fi
+  if [ "$(grep -c . "$TEST_TARGET_PATH/cluster_pods")" != 2 ]
+  then
+    echo "DbOps rollback left the cluster with" \
+      "$(grep -c . "$TEST_TARGET_PATH/cluster_pods") instance(s)"
+    return 1
+  fi
 }
 
 mock kubectl kubectl_mock_overwrite

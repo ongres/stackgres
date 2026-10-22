@@ -719,6 +719,16 @@ rollback_major_version_upgrade() {
   echo "done"
   echo
 
+  # The cluster was downscaled to its primary to perform the upgrade, so it is scaled back up here
+  # as it is when the upgrade completes: a rollback restores the cluster as it was, and leaving it
+  # with its primary alone would silently remove the replicas of a cluster whose upgrade was only
+  # rolled back.
+  PHASE="upscale"
+  echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+  update_status
+
+  upscale_cluster_instances
+
   PHASE="cleanup"
   echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
 
