@@ -228,6 +228,51 @@ check_major_version_upgrade() {
   wait_until check_mock_data_replication "$CLUSTER_NAME"
 }
 
+# The rollback of a major version upgrade that was performed and not only checked: with
+# manualRollback the operation upgrades the cluster and then pauses until the rollback decision is
+# set on the SGDbOps, so the rollback of a real upgrade is exercised without having to make one
+# fail. An operation that is rolled back ends as failed, which is what the operation reports when
+# it restores the cluster it was upgrading.
+check_major_version_upgrade_rollback() {
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
+
+  if wait_until -t "$((E2E_TIMEOUT * 2))" eval '[ "$(kubectl get sgdbops \
+    -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template "{{ if .status.majorVersionUpgrade }}{{ .status.majorVersionUpgrade.phase }}{{ end }}" \
+    2>/dev/null)" = wait-post-upgrade-decision ]'
+  then
+    success "major version upgrade is waiting for the rollback decision"
+  else
+    fail "major version upgrade did not wait for the rollback decision"
+  fi
+
+  kubectl patch sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type merge \
+    -p '{"status":{"majorVersionUpgrade":{"rollback":true}}}'
+
+  if wait_until -t "$((E2E_TIMEOUT * 2))" kubectl wait --timeout 0s sgdbops \
+    -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --for condition=Failed
+  then
+    success "major version upgrade failed after the rollback"
+  else
+    print_dbops_cluster_state "$DBOPS_NAME"
+    kubectl logs -n "$CLUSTER_NAMESPACE" \
+      -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
+      --all-containers --ignore-errors --tail=-1 || true
+    fail "major version upgrade did not fail after the rollback"
+  fi
+
+  if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" \
+    --template '{{ .spec.postgres.version }}')" = "$E2E_MAJOR_SOURCE_POSTGRES_VERSION" ]
+  then
+    success "cluster postgres version has been rolled back."
+  else
+    fail "cluster postgres version has not been rolled back."
+  fi
+
+  check_mock_data_samehost "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
+}
+
 check_major_version_upgrade_check() {
   assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 
