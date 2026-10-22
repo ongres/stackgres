@@ -76,6 +76,29 @@ traceable_assert_dbops_running() {
   done
 }
 
+# The cluster of an operation that does not complete says why more often than the operation does:
+# the operation only waits, while the conditions and the events of the cluster carry the error the
+# reconciliation failed with. Both are removed along with the namespace when the spec ends.
+print_dbops_cluster_state() {
+  local DBOPS_NAME="$1"
+  local CLUSTER
+  CLUSTER="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template '{{ .spec.sgCluster }}' 2>/dev/null || true)"
+  if [ -z "$CLUSTER" ]
+  then
+    return
+  fi
+  echo
+  echo "Cluster $CLUSTER_NAMESPACE.$CLUSTER:"
+  echo
+  kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER" \
+    -o jsonpath='{"postgres version "}{.spec.postgres.version}{" of spec, "}{.status.postgresVersion}{" of status"}{"\n"}{.status.conditions}{"\n"}' \
+    || true
+  kubectl get event -n "$CLUSTER_NAMESPACE" \
+    --field-selector "involvedObject.name=$CLUSTER" 2>/dev/null | tail -n 20 || true
+  echo
+}
+
 assert_dbops_completion() {
   notrace_function traceable_assert_dbops_completion "$@"
 }
@@ -137,7 +160,7 @@ traceable_assert_dbops_completion() {
       then
         echo
         echo "FAILED. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME failed after $(($(date +%s) - START)) seconds"
-        echo
+        print_dbops_cluster_state "$DBOPS_NAME"
         echo "Job logs:"
         echo
         kubectl logs -n "$CLUSTER_NAMESPACE" \
@@ -151,7 +174,7 @@ traceable_assert_dbops_completion() {
     then
       echo
       echo "FAILED. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME did not complete after $E2E_TIMEOUT seconds"
-      echo
+      print_dbops_cluster_state "$DBOPS_NAME"
       echo "Job logs:"
       echo
       kubectl logs -n "$CLUSTER_NAMESPACE" \
