@@ -31,8 +31,12 @@ check_sampling_is_working() {
     -- psql -q -c 'CREATE DATABASE sampling'
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \
     -- pgbench -s 10 -i -I dtgv
+  # The sampling only sees the statements that run while it collects them, and it is collected
+  # twice here, since the operation is re-created after the first run. The workload has to outlast
+  # the time both Jobs take to be started plus the two collect durations, so it is run for much
+  # longer than that and stopped as soon as the sampling has been checked
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \
-    -- pgbench -s 10 -T 30 &
+    -- pgbench -s 10 -T 300 &
   PGBENCH_PID="$!"
   trap_kill "$PGBENCH_PID"
 
