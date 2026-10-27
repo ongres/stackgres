@@ -132,6 +132,28 @@ function createApp() {
 
   const namespaces = load('namespaces', ['default']);
 
+  // ----- Grafana (served by nginx at the console origin in production) -----
+  // /grafana-list returns [{name, url}] with same-origin dashboard URLs; the
+  // /d/:uid/:slug placeholder stands in for an embedded Grafana dashboard so
+  // the monitoring iframe shows something in mock mode.
+  const GRAFANA_DASHBOARDS = [
+    'archiving', 'connection-pooling', 'current-activity', 'db-info',
+    'db-objects', 'db-os', 'queries', 'replication',
+  ];
+  app.get('/grafana-list', (req, res) => {
+    res.json(GRAFANA_DASHBOARDS.map((name) => ({ name, url: `/d/mock-${name}/${name}` })));
+  });
+  app.get('/d/:uid/:slug', (req, res) => {
+    res.type('html').send(
+      `<body style="font-family: sans-serif; background: ${
+        req.query.theme === 'dark' ? '#111' : '#eee'
+      }; color: ${req.query.theme === 'dark' ? '#eee' : '#111'};">` +
+        `<h1>Grafana dashboard: ${req.params.slug}</h1>` +
+        `<p>instance=${req.query['var-instance'] || ''} pod=${req.query['var-pod'] || ''}</p>` +
+        `<p>from=${req.query.from || ''} to=${req.query.to || ''}</p></body>`
+    );
+  });
+
   // ----- Auth -----
   app.get('/auth/type', (req, res) => res.json(load('auth-type', { type: 'JWT' })));
   app.post('/auth/login', (req, res) => res.json({ access_token: 'mock-jwt-token' }));

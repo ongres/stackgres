@@ -11,6 +11,7 @@ import ClusterEvents from './components/views/ClusterEvents'
 import ClusterLogs from './components/views/ClusterLogs'
 import ClusterStatus from './components/views/ClusterStatus'
 import GlobalDashboard from './components/views/GlobalDashboard'
+import ClusterMonitoring from './components/views/ClusterMonitoring'
 import NamespaceOverview from './components/views/NamespaceOverview'
 import PendingView from './components/views/PendingView'
 import ResourceDetail from './components/views/ResourceDetail'
@@ -42,7 +43,10 @@ export default function App() {
                     <Route path="logs" element={<ClusterLogs />} />
                     <Route path="events" element={<ClusterEvents />} />
                     <Route path="event/:uid" element={<ClusterEvents />} />
-                    <Route path="monitor/*" element={<PendingView title="Monitoring" />} />
+                    <Route path="monitor" element={<ClusterMonitoring />} />
+                    <Route path="monitor/:pod" element={<ClusterMonitoring />} />
+                    <Route path="monitor/:pod/:dashboard" element={<ClusterMonitoring />} />
+                    <Route path="monitor/:pod/:dashboard/:range" element={<ClusterMonitoring />} />
                   </Route>
 
                   {SIMPLE_KINDS.map((plural) => (

@@ -20,6 +20,8 @@ const ui = spawn('npx', ['vite'], {
   stdio: 'inherit',
   env: Object.assign({}, process.env, {
     VITE_API_PROXY_URL: `http://localhost:${MOCK_PORT}`,
+    VITE_GRAFANA_PROXY_URL: `http://localhost:${MOCK_PORT}`,
+    VITE_GRAFANA_DASHBOARD_PROXY_URL: `http://localhost:${MOCK_PORT}`,
   }),
 })
 

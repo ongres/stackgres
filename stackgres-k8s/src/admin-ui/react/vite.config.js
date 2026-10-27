@@ -39,6 +39,22 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/stackgres/, ''),
       },
+      // Grafana endpoints live at the console origin in production (nginx):
+      // the dashboards list and the /d/<uid>/<slug> dashboard pages embedded
+      // by the monitoring views. (The Vue dev config meant to proxy these too
+      // but its '^/d/^' pattern never matched.)
+      '/grafana-list': {
+        target: process.env.VITE_GRAFANA_PROXY_URL || 'http://localhost:8090',
+        changeOrigin: true,
+      },
+      '^/d/': {
+        target: process.env.VITE_GRAFANA_DASHBOARD_PROXY_URL || 'http://localhost:8090',
+        changeOrigin: true,
+      },
+      '^/grafana(/|$)': {
+        target: process.env.VITE_GRAFANA_PROXY_URL || 'http://localhost:8090',
+        changeOrigin: true,
+      },
     },
   },
   test: {

@@ -2,204 +2,672 @@
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGCluster",
-    "metadata": { "name": "uptodate", "namespace": "default", "uid": "11111111-0001-0000-0000-000000000001", "creationTimestamp": "2026-01-10T08:00:00Z" },
+    "metadata": {
+      "name": "uptodate",
+      "namespace": "default",
+      "uid": "11111111-0001-0000-0000-000000000001",
+      "creationTimestamp": "2026-01-10T08:00:00Z"
+    },
     "spec": {
       "instances": 3,
-      "postgres": { "version": "16.3", "flavor": "vanilla" },
+      "postgres": {
+        "version": "16.3",
+        "flavor": "vanilla"
+      },
       "sgInstanceProfile": "size-small",
-      "pods": { "persistentVolume": { "size": "10Gi" } },
-      "configurations": { "sgPostgresConfig": "pgconfig-default", "sgPoolingConfig": "poolconfig-default" },
-      "replication": { "role": "ha-read", "mode": "async" },
-      "postgresServices": { "primary": { "enabled": true, "type": "ClusterIP" }, "replicas": { "enabled": true, "type": "ClusterIP" } }
+      "pods": {
+        "persistentVolume": {
+          "size": "10Gi"
+        }
+      },
+      "configurations": {
+        "sgPostgresConfig": "pgconfig-default",
+        "sgPoolingConfig": "poolconfig-default"
+      },
+      "replication": {
+        "role": "ha-read",
+        "mode": "async"
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
     },
     "status": {
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "True", "reason": "UpToDate", "message": "All components are up to date.", "lastTransitionTime": "2026-05-30T10:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "True",
+          "reason": "UpToDate",
+          "message": "All components are up to date.",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "uptodate.default", "replicasDns": "uptodate-replicas.default", "superuserUsername": "postgres", "superuserSecretName": "uptodate", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "uptodate.default",
+      "replicasDns": "uptodate-replicas.default",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "uptodate",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "uptodate-0", "role": "primary" },
-      { "name": "uptodate-1", "role": "replica" },
-      { "name": "uptodate-2", "role": "replica" }
+      {
+        "name": "uptodate-0",
+        "role": "primary",
+        "ip": "10.244.0.10",
+        "status": "Active",
+        "connections": 5,
+        "containers": 7,
+        "containersReady": 7
+      },
+      {
+        "name": "uptodate-1",
+        "role": "replica",
+        "ip": "10.244.0.11",
+        "status": "Active",
+        "connections": 6,
+        "containers": 7,
+        "containersReady": 7
+      },
+      {
+        "name": "uptodate-2",
+        "role": "replica",
+        "ip": "10.244.0.12",
+        "status": "Active",
+        "connections": 7,
+        "containers": 7,
+        "containersReady": 7
+      }
     ],
-    "podsReady": 3
+    "podsReady": 3,
+    "grafanaEmbedded": true
   },
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGCluster",
-    "metadata": { "name": "minor-outdated", "namespace": "default", "uid": "11111111-0001-0000-0000-000000000002", "creationTimestamp": "2026-02-01T08:00:00Z" },
+    "metadata": {
+      "name": "minor-outdated",
+      "namespace": "default",
+      "uid": "11111111-0001-0000-0000-000000000002",
+      "creationTimestamp": "2026-02-01T08:00:00Z"
+    },
     "spec": {
       "instances": 2,
-      "postgres": { "version": "16.2", "flavor": "vanilla" },
+      "postgres": {
+        "version": "16.2",
+        "flavor": "vanilla"
+      },
       "sgInstanceProfile": "size-small",
-      "pods": { "persistentVolume": { "size": "10Gi" } },
-      "configurations": { "sgPostgresConfig": "pgconfig-default", "sgPoolingConfig": "poolconfig-default" },
-      "replication": { "role": "ha-read", "mode": "async" },
-      "postgresServices": { "primary": { "enabled": true, "type": "ClusterIP" }, "replicas": { "enabled": true, "type": "ClusterIP" } }
+      "pods": {
+        "persistentVolume": {
+          "size": "10Gi"
+        }
+      },
+      "configurations": {
+        "sgPostgresConfig": "pgconfig-default",
+        "sgPoolingConfig": "poolconfig-default"
+      },
+      "replication": {
+        "role": "ha-read",
+        "mode": "async"
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
     },
     "status": {
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "False", "reason": "OutdatedMinorVersion", "message": "A newer minor PostgreSQL version 16.3 is available (current 16.2).", "lastTransitionTime": "2026-05-30T10:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "False",
+          "reason": "OutdatedMinorVersion",
+          "message": "A newer minor PostgreSQL version 16.3 is available (current 16.2).",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "minor-outdated.default", "replicasDns": "minor-outdated-replicas.default", "superuserUsername": "postgres", "superuserSecretName": "minor-outdated", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "minor-outdated.default",
+      "replicasDns": "minor-outdated-replicas.default",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "minor-outdated",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "minor-outdated-0", "role": "primary" },
-      { "name": "minor-outdated-1", "role": "replica" }
+      {
+        "name": "minor-outdated-0",
+        "role": "primary",
+        "ip": "10.244.1.10",
+        "status": "Active",
+        "connections": 5,
+        "containers": 7,
+        "containersReady": 7
+      },
+      {
+        "name": "minor-outdated-1",
+        "role": "replica",
+        "ip": "10.244.1.11",
+        "status": "Active",
+        "connections": 6,
+        "containers": 7,
+        "containersReady": 7
+      }
     ],
-    "podsReady": 2
+    "podsReady": 2,
+    "grafanaEmbedded": true
   },
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGCluster",
-    "metadata": { "name": "minor-and-ext", "namespace": "default", "uid": "11111111-0001-0000-0000-000000000003", "creationTimestamp": "2026-02-05T08:00:00Z" },
+    "metadata": {
+      "name": "minor-and-ext",
+      "namespace": "default",
+      "uid": "11111111-0001-0000-0000-000000000003",
+      "creationTimestamp": "2026-02-05T08:00:00Z"
+    },
     "spec": {
       "instances": 1,
-      "postgres": { "version": "15.6", "flavor": "vanilla" },
+      "postgres": {
+        "version": "15.6",
+        "flavor": "vanilla"
+      },
       "sgInstanceProfile": "size-small",
-      "pods": { "persistentVolume": { "size": "10Gi" } },
-      "configurations": { "sgPostgresConfig": "pgconfig-default", "sgPoolingConfig": "poolconfig-default" },
-      "replication": { "role": "ha-read", "mode": "async" },
-      "postgresServices": { "primary": { "enabled": true, "type": "ClusterIP" }, "replicas": { "enabled": true, "type": "ClusterIP" } }
+      "pods": {
+        "persistentVolume": {
+          "size": "10Gi"
+        }
+      },
+      "configurations": {
+        "sgPostgresConfig": "pgconfig-default",
+        "sgPoolingConfig": "poolconfig-default"
+      },
+      "replication": {
+        "role": "ha-read",
+        "mode": "async"
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
     },
     "status": {
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "False", "reason": "OutdatedMinorVersionAndAvailableExtensionsUpgrades", "message": "A newer minor PostgreSQL version 15.7 is available (current 15.6), and extension upgrades are available: postgis 3.4.2.", "lastTransitionTime": "2026-05-30T10:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "False",
+          "reason": "OutdatedMinorVersionAndAvailableExtensionsUpgrades",
+          "message": "A newer minor PostgreSQL version 15.7 is available (current 15.6), and extension upgrades are available: postgis 3.4.2.",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "minor-and-ext.default", "replicasDns": "minor-and-ext-replicas.default", "superuserUsername": "postgres", "superuserSecretName": "minor-and-ext", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "minor-and-ext.default",
+      "replicasDns": "minor-and-ext-replicas.default",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "minor-and-ext",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "minor-and-ext-0", "role": "primary" }
+      {
+        "name": "minor-and-ext-0",
+        "role": "primary",
+        "ip": "10.244.2.10",
+        "status": "Active",
+        "connections": 5,
+        "containers": 7,
+        "containersReady": 7
+      }
     ],
-    "podsReady": 1
+    "podsReady": 1,
+    "grafanaEmbedded": true
   },
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGCluster",
-    "metadata": { "name": "major-available", "namespace": "demo", "uid": "11111111-0002-0000-0000-000000000004", "creationTimestamp": "2026-03-01T08:00:00Z" },
+    "metadata": {
+      "name": "major-available",
+      "namespace": "demo",
+      "uid": "11111111-0002-0000-0000-000000000004",
+      "creationTimestamp": "2026-03-01T08:00:00Z"
+    },
     "spec": {
       "instances": 3,
-      "postgres": { "version": "16.3", "flavor": "vanilla" },
+      "postgres": {
+        "version": "16.3",
+        "flavor": "vanilla"
+      },
       "sgInstanceProfile": "size-medium",
-      "pods": { "persistentVolume": { "size": "20Gi" } },
-      "configurations": { "sgPostgresConfig": "pgconfig-default", "sgPoolingConfig": "poolconfig-default" },
-      "replication": { "role": "ha-read", "mode": "async" },
-      "postgresServices": { "primary": { "enabled": true, "type": "ClusterIP" }, "replicas": { "enabled": true, "type": "ClusterIP" } }
+      "pods": {
+        "persistentVolume": {
+          "size": "20Gi"
+        }
+      },
+      "configurations": {
+        "sgPostgresConfig": "pgconfig-default",
+        "sgPoolingConfig": "poolconfig-default"
+      },
+      "replication": {
+        "role": "ha-read",
+        "mode": "async"
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
     },
     "status": {
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "True", "reason": "AvailableMajorVersion", "message": "A newer major PostgreSQL version 17 is available (current 16).", "lastTransitionTime": "2026-05-30T10:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "True",
+          "reason": "AvailableMajorVersion",
+          "message": "A newer major PostgreSQL version 17 is available (current 16).",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "major-available.demo", "replicasDns": "major-available-replicas.demo", "superuserUsername": "postgres", "superuserSecretName": "major-available", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "major-available.demo",
+      "replicasDns": "major-available-replicas.demo",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "major-available",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "major-available-0", "role": "primary" },
-      { "name": "major-available-1", "role": "replica" },
-      { "name": "major-available-2", "role": "replica" }
+      {
+        "name": "major-available-0",
+        "role": "primary",
+        "ip": "10.244.3.10",
+        "status": "Active",
+        "connections": 5,
+        "containers": 7,
+        "containersReady": 7
+      },
+      {
+        "name": "major-available-1",
+        "role": "replica",
+        "ip": "10.244.3.11",
+        "status": "Active",
+        "connections": 6,
+        "containers": 7,
+        "containersReady": 7
+      },
+      {
+        "name": "major-available-2",
+        "role": "replica",
+        "ip": "10.244.3.12",
+        "status": "Active",
+        "connections": 7,
+        "containers": 7,
+        "containersReady": 7
+      }
     ],
-    "podsReady": 3
+    "podsReady": 3,
+    "grafanaEmbedded": true
   },
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGCluster",
-    "metadata": { "name": "ext-available", "namespace": "demo", "uid": "11111111-0002-0000-0000-000000000005", "creationTimestamp": "2026-03-10T08:00:00Z" },
+    "metadata": {
+      "name": "ext-available",
+      "namespace": "demo",
+      "uid": "11111111-0002-0000-0000-000000000005",
+      "creationTimestamp": "2026-03-10T08:00:00Z"
+    },
     "spec": {
       "instances": 2,
-      "postgres": { "version": "16.3", "flavor": "vanilla" },
+      "postgres": {
+        "version": "16.3",
+        "flavor": "vanilla"
+      },
       "sgInstanceProfile": "size-medium",
-      "pods": { "persistentVolume": { "size": "20Gi" } },
-      "configurations": { "sgPostgresConfig": "pgconfig-default", "sgPoolingConfig": "poolconfig-default" },
-      "replication": { "role": "ha-read", "mode": "async" },
-      "postgresServices": { "primary": { "enabled": true, "type": "ClusterIP" }, "replicas": { "enabled": true, "type": "ClusterIP" } }
+      "pods": {
+        "persistentVolume": {
+          "size": "20Gi"
+        }
+      },
+      "configurations": {
+        "sgPostgresConfig": "pgconfig-default",
+        "sgPoolingConfig": "poolconfig-default"
+      },
+      "replication": {
+        "role": "ha-read",
+        "mode": "async"
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
     },
     "status": {
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "True", "reason": "AvailableExtensionsUpgrades", "message": "Extension upgrades are available: postgis 3.4.2, pg_cron 1.6.2.", "lastTransitionTime": "2026-05-30T10:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "True",
+          "reason": "AvailableExtensionsUpgrades",
+          "message": "Extension upgrades are available: postgis 3.4.2, pg_cron 1.6.2.",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "ext-available.demo", "replicasDns": "ext-available-replicas.demo", "superuserUsername": "postgres", "superuserSecretName": "ext-available", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "ext-available.demo",
+      "replicasDns": "ext-available-replicas.demo",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "ext-available",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "ext-available-0", "role": "primary" },
-      { "name": "ext-available-1", "role": "replica" }
+      {
+        "name": "ext-available-0",
+        "role": "primary",
+        "ip": "10.244.4.10",
+        "status": "Active",
+        "connections": 5,
+        "containers": 7,
+        "containersReady": 7
+      },
+      {
+        "name": "ext-available-1",
+        "role": "replica",
+        "ip": "10.244.4.11",
+        "status": "Active",
+        "connections": 6,
+        "containers": 7,
+        "containersReady": 7
+      }
     ],
-    "podsReady": 2
+    "podsReady": 2,
+    "grafanaEmbedded": true
   },
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGCluster",
-    "metadata": { "name": "major-and-ext", "namespace": "demo", "uid": "11111111-0002-0000-0000-000000000006", "creationTimestamp": "2026-03-15T08:00:00Z" },
+    "metadata": {
+      "name": "major-and-ext",
+      "namespace": "demo",
+      "uid": "11111111-0002-0000-0000-000000000006",
+      "creationTimestamp": "2026-03-15T08:00:00Z"
+    },
     "spec": {
       "instances": 1,
-      "postgres": { "version": "16.3", "flavor": "vanilla" },
+      "postgres": {
+        "version": "16.3",
+        "flavor": "vanilla"
+      },
       "sgInstanceProfile": "size-medium",
-      "pods": { "persistentVolume": { "size": "20Gi" } },
-      "configurations": { "sgPostgresConfig": "pgconfig-default", "sgPoolingConfig": "poolconfig-default" },
-      "replication": { "role": "ha-read", "mode": "async" },
-      "postgresServices": { "primary": { "enabled": true, "type": "ClusterIP" }, "replicas": { "enabled": true, "type": "ClusterIP" } }
+      "pods": {
+        "persistentVolume": {
+          "size": "20Gi"
+        }
+      },
+      "configurations": {
+        "sgPostgresConfig": "pgconfig-default",
+        "sgPoolingConfig": "poolconfig-default"
+      },
+      "replication": {
+        "role": "ha-read",
+        "mode": "async"
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
     },
     "status": {
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "True", "reason": "AvailableMajorVersionAndExtensionsUpgrades", "message": "A newer major PostgreSQL version 17 is available, and extension upgrades are available: postgis 3.4.2.", "lastTransitionTime": "2026-05-30T10:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "True",
+          "reason": "AvailableMajorVersionAndExtensionsUpgrades",
+          "message": "A newer major PostgreSQL version 17 is available, and extension upgrades are available: postgis 3.4.2.",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "major-and-ext.demo", "replicasDns": "major-and-ext-replicas.demo", "superuserUsername": "postgres", "superuserSecretName": "major-and-ext", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "major-and-ext.demo",
+      "replicasDns": "major-and-ext-replicas.demo",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "major-and-ext",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "major-and-ext-0", "role": "primary" }
+      {
+        "name": "major-and-ext-0",
+        "role": "primary",
+        "ip": "10.244.5.10",
+        "status": "Active",
+        "connections": 5,
+        "containers": 7,
+        "containersReady": 7
+      }
     ],
-    "podsReady": 1
+    "podsReady": 1,
+    "grafanaEmbedded": true
   },
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGCluster",
-    "metadata": { "name": "minor-and-major", "namespace": "production", "uid": "11111111-0003-0000-0000-000000000007", "creationTimestamp": "2026-04-01T08:00:00Z" },
+    "metadata": {
+      "name": "minor-and-major",
+      "namespace": "production",
+      "uid": "11111111-0003-0000-0000-000000000007",
+      "creationTimestamp": "2026-04-01T08:00:00Z"
+    },
     "spec": {
       "instances": 3,
-      "postgres": { "version": "16.1", "flavor": "vanilla" },
+      "postgres": {
+        "version": "16.1",
+        "flavor": "vanilla"
+      },
       "sgInstanceProfile": "size-large",
-      "pods": { "persistentVolume": { "size": "50Gi" } },
-      "configurations": { "sgPostgresConfig": "pgconfig-default", "sgPoolingConfig": "poolconfig-default" },
-      "replication": { "role": "ha-read", "mode": "async" },
-      "postgresServices": { "primary": { "enabled": true, "type": "ClusterIP" }, "replicas": { "enabled": true, "type": "ClusterIP" } }
+      "pods": {
+        "persistentVolume": {
+          "size": "50Gi"
+        }
+      },
+      "configurations": {
+        "sgPostgresConfig": "pgconfig-default",
+        "sgPoolingConfig": "poolconfig-default"
+      },
+      "replication": {
+        "role": "ha-read",
+        "mode": "async"
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
     },
     "status": {
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "False", "reason": "OutdatedMinorVersionAndAvailableMajorVersion", "message": "A newer minor PostgreSQL version 16.3 is available (current 16.1), and a newer major version 17 is available.", "lastTransitionTime": "2026-05-30T10:00:00Z" },
-        { "type": "PendingRestart", "status": "True", "reason": "PendingRestart", "message": "A restart operation is pending for this cluster.", "lastTransitionTime": "2026-05-31T12:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "False",
+          "reason": "OutdatedMinorVersionAndAvailableMajorVersion",
+          "message": "A newer minor PostgreSQL version 16.3 is available (current 16.1), and a newer major version 17 is available.",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        },
+        {
+          "type": "PendingRestart",
+          "status": "True",
+          "reason": "PendingRestart",
+          "message": "A restart operation is pending for this cluster.",
+          "lastTransitionTime": "2026-05-31T12:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "minor-and-major.production", "replicasDns": "minor-and-major-replicas.production", "superuserUsername": "postgres", "superuserSecretName": "minor-and-major", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "minor-and-major.production",
+      "replicasDns": "minor-and-major-replicas.production",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "minor-and-major",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "minor-and-major-0", "role": "primary" },
-      { "name": "minor-and-major-1", "role": "replica" },
-      { "name": "minor-and-major-2", "role": "replica" }
+      {
+        "name": "minor-and-major-0",
+        "role": "primary",
+        "ip": "10.244.6.10",
+        "status": "Active",
+        "connections": 5,
+        "containers": 7,
+        "containersReady": 7
+      },
+      {
+        "name": "minor-and-major-1",
+        "role": "replica",
+        "ip": "10.244.6.11",
+        "status": "Active",
+        "connections": 6,
+        "containers": 7,
+        "containersReady": 7
+      },
+      {
+        "name": "minor-and-major-2",
+        "role": "replica",
+        "ip": "10.244.6.12",
+        "status": "Active",
+        "connections": 7,
+        "containers": 7,
+        "containersReady": 7
+      }
     ],
-    "podsReady": 3
+    "podsReady": 3,
+    "grafanaEmbedded": true
   },
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGCluster",
-    "metadata": { "name": "all-upgrades", "namespace": "production", "uid": "11111111-0003-0000-0000-000000000008", "creationTimestamp": "2026-04-10T08:00:00Z" },
+    "metadata": {
+      "name": "all-upgrades",
+      "namespace": "production",
+      "uid": "11111111-0003-0000-0000-000000000008",
+      "creationTimestamp": "2026-04-10T08:00:00Z"
+    },
     "spec": {
       "instances": 2,
-      "postgres": { "version": "15.4", "flavor": "vanilla" },
+      "postgres": {
+        "version": "15.4",
+        "flavor": "vanilla"
+      },
       "sgInstanceProfile": "size-large",
-      "pods": { "persistentVolume": { "size": "50Gi" } },
-      "configurations": { "sgPostgresConfig": "pgconfig-default", "sgPoolingConfig": "poolconfig-default" },
-      "replication": { "role": "ha-read", "mode": "async" },
-      "postgresServices": { "primary": { "enabled": true, "type": "ClusterIP" }, "replicas": { "enabled": true, "type": "ClusterIP" } }
+      "pods": {
+        "persistentVolume": {
+          "size": "50Gi"
+        }
+      },
+      "configurations": {
+        "sgPostgresConfig": "pgconfig-default",
+        "sgPoolingConfig": "poolconfig-default"
+      },
+      "replication": {
+        "role": "ha-read",
+        "mode": "async"
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
     },
     "status": {
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "False", "reason": "OutdatedMinorVersionAndAvailableMajorVersionAndExtensionsUpgrades", "message": "A newer minor PostgreSQL version 15.7 is available (current 15.4), a newer major version 17 is available, and extension upgrades are available: postgis 3.4.2.", "lastTransitionTime": "2026-05-30T10:00:00Z" },
-        { "type": "PendingRestart", "status": "True", "reason": "PendingRestart", "message": "A restart operation is pending for this cluster.", "lastTransitionTime": "2026-05-31T12:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "False",
+          "reason": "OutdatedMinorVersionAndAvailableMajorVersionAndExtensionsUpgrades",
+          "message": "A newer minor PostgreSQL version 15.7 is available (current 15.4), a newer major version 17 is available, and extension upgrades are available: postgis 3.4.2.",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        },
+        {
+          "type": "PendingRestart",
+          "status": "True",
+          "reason": "PendingRestart",
+          "message": "A restart operation is pending for this cluster.",
+          "lastTransitionTime": "2026-05-31T12:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "all-upgrades.production", "replicasDns": "all-upgrades-replicas.production", "superuserUsername": "postgres", "superuserSecretName": "all-upgrades", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "all-upgrades.production",
+      "replicasDns": "all-upgrades-replicas.production",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "all-upgrades",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "all-upgrades-0", "role": "primary" },
-      { "name": "all-upgrades-1", "role": "replica" }
+      {
+        "name": "all-upgrades-0",
+        "role": "primary",
+        "ip": "10.244.7.10",
+        "status": "Active",
+        "connections": 5,
+        "containers": 7,
+        "containersReady": 7
+      },
+      {
+        "name": "all-upgrades-1",
+        "role": "replica",
+        "ip": "10.244.7.11",
+        "status": "Active",
+        "connections": 6,
+        "containers": 7,
+        "containersReady": 7
+      }
     ],
-    "podsReady": 2
+    "podsReady": 2,
+    "grafanaEmbedded": true
   }
 ]

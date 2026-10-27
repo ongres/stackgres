@@ -2,7 +2,9 @@ import { Link, useParams } from 'react-router-dom'
 import { useKindList, useResource } from '../../contexts/DataContext'
 import { KINDS, listPath } from '../../lib/kinds'
 import SpecTree from '../SpecTree'
+import BenchmarkResults from './BenchmarkResults'
 import DbOpsEvents from './DbOpsEvents'
+import MinorVersionUpgradeOverview from './MinorVersionUpgradeOverview'
 
 const HEADINGS = {
   sginstanceprofiles: 'Profile Details',
@@ -74,7 +76,13 @@ export default function ResourceDetail({ plural }) {
               <SpecTree value={resource.status} />
             </section>
           )}
-          {plural === 'sgdbops' && <DbOpsEvents />}
+          {plural === 'sgdbops' && (
+            <>
+              <BenchmarkResults dbop={resource} />
+              <MinorVersionUpgradeOverview dbop={resource} />
+              <DbOpsEvents />
+            </>
+          )}
         </div>
       </div>
     </section>
