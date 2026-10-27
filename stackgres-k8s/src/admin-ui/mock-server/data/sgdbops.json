@@ -2,25 +2,184 @@
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGDbOps",
-    "metadata": { "name": "uptodate-minor-upgrade", "namespace": "default", "uid": "77770000-0000-0000-0000-000000000001", "creationTimestamp": "2026-05-29T09:00:00Z" },
-    "spec": { "sgCluster": "uptodate", "op": "minorVersionUpgrade", "minorVersionUpgrade": { "postgresVersion": "16.3" } },
+    "metadata": {
+      "name": "uptodate-minor-upgrade",
+      "namespace": "default",
+      "uid": "77770000-0000-0000-0000-000000000001",
+      "creationTimestamp": "2026-05-29T09:00:00Z"
+    },
+    "spec": {
+      "sgCluster": "uptodate",
+      "op": "minorVersionUpgrade",
+      "minorVersionUpgrade": {
+        "postgresVersion": "16.3"
+      }
+    },
     "status": {
       "conditions": [
-        { "type": "Completed", "status": "True", "reason": "OperationCompleted", "lastTransitionTime": "2026-05-29T09:05:00Z" }
+        {
+          "type": "Completed",
+          "status": "True",
+          "reason": "OperationCompleted",
+          "lastTransitionTime": "2026-05-29T09:05:00Z"
+        }
       ],
-      "opStarted": "2026-05-29T09:00:00Z"
+      "opStarted": "2026-05-29T09:00:00Z",
+      "minorVersionUpgrade": {
+        "initialInstances": [
+          "uptodate-0",
+          "uptodate-1"
+        ],
+        "primaryInstance": "uptodate-0",
+        "switchoverInitiated": "2026-10-26T09:10:00Z",
+        "switchoverFinalized": "2026-10-26T09:10:45Z",
+        "sourcePostgresVersion": "16.4",
+        "targetPostgresVersion": "16.6"
+      }
     }
   },
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGDbOps",
-    "metadata": { "name": "minor-and-major-restart", "namespace": "production", "uid": "77770000-0000-0000-0000-000000000002", "creationTimestamp": "2026-05-31T11:55:00Z" },
-    "spec": { "sgCluster": "minor-and-major", "op": "restart", "restart": { "method": "InPlace", "onlyPendingRestart": true } },
+    "metadata": {
+      "name": "minor-and-major-restart",
+      "namespace": "production",
+      "uid": "77770000-0000-0000-0000-000000000002",
+      "creationTimestamp": "2026-05-31T11:55:00Z"
+    },
+    "spec": {
+      "sgCluster": "minor-and-major",
+      "op": "restart",
+      "restart": {
+        "method": "InPlace",
+        "onlyPendingRestart": true
+      }
+    },
     "status": {
       "conditions": [
-        { "type": "Running", "status": "True", "reason": "OperationRunning", "lastTransitionTime": "2026-05-31T12:00:00Z" }
+        {
+          "type": "Running",
+          "status": "True",
+          "reason": "OperationRunning",
+          "lastTransitionTime": "2026-05-31T12:00:00Z"
+        }
       ],
       "opStarted": "2026-05-31T12:00:00Z"
+    }
+  },
+  {
+    "apiVersion": "stackgres.io/v1",
+    "kind": "SGDbOps",
+    "metadata": {
+      "name": "pgbench-sample",
+      "namespace": "default",
+      "uid": "bench-0001"
+    },
+    "spec": {
+      "op": "benchmark",
+      "sgCluster": "uptodate",
+      "maxRetries": 1,
+      "benchmark": {
+        "type": "pgbench",
+        "pgbench": {
+          "databaseSize": "64Mi",
+          "duration": "PT60S"
+        }
+      }
+    },
+    "status": {
+      "opStarted": "2026-10-26T10:00:00Z",
+      "conditions": [
+        {
+          "type": "Completed",
+          "status": "True",
+          "reason": "OperationCompleted",
+          "lastTransitionTime": "2026-10-26T10:01:05Z"
+        }
+      ],
+      "benchmark": {
+        "pgbench": {
+          "scaleFactor": 5,
+          "transactionsProcessed": 48000,
+          "latency": {
+            "average": {
+              "value": 2.4,
+              "unit": "ms"
+            },
+            "standardDeviation": {
+              "value": 0.7,
+              "unit": "ms"
+            }
+          },
+          "transactionsPerSecond": {
+            "excludingConnectionsEstablishing": {
+              "value": 801.2,
+              "unit": "tps"
+            },
+            "includingConnectionsEstablishing": {
+              "value": 795.9,
+              "unit": "tps"
+            },
+            "overTime": {
+              "values": [
+                780,
+                12,
+                -5,
+                9,
+                -3,
+                6,
+                -8,
+                11,
+                2,
+                -4,
+                7,
+                -2
+              ],
+              "valuesUnit": "tps",
+              "intervalDuration": 5000,
+              "intervalDurationUnit": "ms"
+            }
+          },
+          "statements": [
+            {
+              "script": 0,
+              "command": "BEGIN;",
+              "latency": 0.08,
+              "unit": "ms"
+            },
+            {
+              "script": 0,
+              "command": "UPDATE pgbench_accounts",
+              "latency": 1.2,
+              "unit": "ms"
+            },
+            {
+              "script": 0,
+              "command": "SELECT abalance",
+              "latency": 0.35,
+              "unit": "ms"
+            },
+            {
+              "script": 0,
+              "command": "UPDATE pgbench_tellers",
+              "latency": 0.6,
+              "unit": "ms"
+            },
+            {
+              "script": 0,
+              "command": "INSERT INTO pgbench_history",
+              "latency": 0.22,
+              "unit": "ms"
+            },
+            {
+              "script": 0,
+              "command": "END;",
+              "latency": 0.4,
+              "unit": "ms"
+            }
+          ]
+        }
+      }
     }
   }
 ]

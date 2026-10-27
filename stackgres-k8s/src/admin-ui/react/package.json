@@ -20,9 +20,12 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "apexcharts": "^3.45.2",
     "clsx": "^2.1.1",
+    "hdr-histogram-widget": "^1.0.1",
     "lucide-react": "^0.563.0",
     "react": "^18.2.0",
+    "react-apexcharts": "^1.7.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.14.1",
     "sonner": "^1.7.4",
