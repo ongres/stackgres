@@ -174,7 +174,12 @@ function createApp() {
       return res.json(buildStats(item));
     }
     const explicit = load(path.join('details', resource, detail), null);
-    if (explicit !== null) return res.json(explicit);
+    if (explicit !== null) {
+      if (detail === 'logs' && Array.isArray(explicit)) {
+        return res.json(filterLogs(explicit, req.query));
+      }
+      return res.json(explicit);
+    }
     return res.json([]); // logs, events, etc. — empty by default
   });
 
@@ -190,6 +195,36 @@ function createApp() {
   });
 
   return app;
+}
+
+// Minimal semantics of the real logs endpoint: 'from' is a 'logTime,logTimeIndex'
+// cursor (entries strictly after it), 'text' a substring match, 'records' the
+// page size, 'sort' asc|desc by logTime.
+function filterLogs(entries, query) {
+  let logs = entries.slice();
+  if (query.text) {
+    const needle = String(query.text).toLowerCase();
+    logs = logs.filter((l) => JSON.stringify(l).toLowerCase().includes(needle));
+  }
+  if (query.logType) {
+    const types = [].concat(query.logType);
+    logs = logs.filter((l) => types.includes(l.logType));
+  }
+  if (query.errorLevel) {
+    const levels = [].concat(query.errorLevel);
+    logs = logs.filter((l) => levels.includes(l.errorLevel));
+  }
+  if (query.from) {
+    const [time, index] = String(query.from).split(',');
+    logs = logs.filter(
+      (l) => l.logTime > time || (l.logTime === time && Number(l.logTimeIndex) > Number(index || 0))
+    );
+  }
+  logs.sort((a, b) =>
+    a.logTime === b.logTime ? a.logTimeIndex - b.logTimeIndex : a.logTime < b.logTime ? -1 : 1
+  );
+  if (query.sort === 'desc') logs.reverse();
+  return logs.slice(0, Number(query.records) || logs.length);
 }
 
 function notFound(res, kind, name) {

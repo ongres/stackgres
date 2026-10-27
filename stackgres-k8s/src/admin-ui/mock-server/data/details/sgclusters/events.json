@@ -1,0 +1,98 @@
+[
+  {
+    "metadata": {
+      "uid": "ev-0",
+      "name": "event-0"
+    },
+    "firstTimestamp": "2026-10-23T09:10:00Z",
+    "lastTimestamp": "2026-10-23T09:15:30Z",
+    "type": "Warning",
+    "reason": "ClusterCreated",
+    "count": 1,
+    "involvedObject": {
+      "kind": "Pod",
+      "name": "uptodate-0"
+    },
+    "message": "Cluster created successfully"
+  },
+  {
+    "metadata": {
+      "uid": "ev-1",
+      "name": "event-1"
+    },
+    "firstTimestamp": "2026-10-23T09:11:00Z",
+    "lastTimestamp": "2026-10-23T09:16:30Z",
+    "type": "Normal",
+    "reason": "PodCreated",
+    "count": 2,
+    "involvedObject": {
+      "kind": "SGCluster",
+      "name": "uptodate-1"
+    },
+    "message": "Pod uptodate-0 started"
+  },
+  {
+    "metadata": {
+      "uid": "ev-2",
+      "name": "event-2"
+    },
+    "firstTimestamp": "2026-10-23T09:12:00Z",
+    "lastTimestamp": "2026-10-23T09:17:30Z",
+    "type": "Normal",
+    "reason": "BackupCompleted",
+    "count": 3,
+    "involvedObject": {
+      "kind": "Pod",
+      "name": "uptodate-0"
+    },
+    "message": "Backup completed for cluster uptodate"
+  },
+  {
+    "metadata": {
+      "uid": "ev-3",
+      "name": "event-3"
+    },
+    "firstTimestamp": "2026-10-23T09:13:00Z",
+    "lastTimestamp": "2026-10-23T09:18:30Z",
+    "type": "Warning",
+    "reason": "ClusterCreated",
+    "count": 4,
+    "involvedObject": {
+      "kind": "SGCluster",
+      "name": "uptodate-1"
+    },
+    "message": "Cluster created successfully"
+  },
+  {
+    "metadata": {
+      "uid": "ev-4",
+      "name": "event-4"
+    },
+    "firstTimestamp": "2026-10-23T09:14:00Z",
+    "lastTimestamp": "2026-10-23T09:19:30Z",
+    "type": "Normal",
+    "reason": "PodCreated",
+    "count": 5,
+    "involvedObject": {
+      "kind": "Pod",
+      "name": "uptodate-0"
+    },
+    "message": "Pod uptodate-0 started"
+  },
+  {
+    "metadata": {
+      "uid": "ev-5",
+      "name": "event-5"
+    },
+    "firstTimestamp": "2026-10-23T09:15:00Z",
+    "lastTimestamp": "2026-10-23T09:20:30Z",
+    "type": "Normal",
+    "reason": "BackupCompleted",
+    "count": 6,
+    "involvedObject": {
+      "kind": "SGCluster",
+      "name": "uptodate-1"
+    },
+    "message": "Backup completed for cluster uptodate"
+  }
+]

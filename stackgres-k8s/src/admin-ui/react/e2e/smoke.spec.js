@@ -22,7 +22,7 @@ test('login, namespace navigation and RBAC-gated sidebar against the mock API', 
 
   await sidebar.getByRole('link', { name: 'StackGres Clusters', exact: true }).click()
   await expect(page).toHaveURL(/\/admin\/default\/sgclusters$/)
-  await expect(page.getByRole('heading', { name: 'sgclusters' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'StackGres Clusters', exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'Logout' }).click()
   await expect(page.getByRole('button', { name: 'Login' })).toBeVisible()
