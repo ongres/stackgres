@@ -112,7 +112,7 @@ check_restart() {
     # replaces, so the primary is the instance that was added and the instance 0 is not part of
     # the cluster any more when it had a single instance: the data is read from whichever
     # instance is the primary, that is looked up on every attempt since it can still change
-    wait_until eval 'check_mock_data_samehost "$CLUSTER_NAME" "$(get_primary_index)"'
+    wait_until eval 'check_mock_data_samehost "$CLUSTER_NAME" "$(get_primary_index_or_first)"'
     if [ "$INITIAL_INSTANCES" -ge 2 ]
     then
       wait_until check_mock_data_replication "$CLUSTER_NAME"
