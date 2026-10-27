@@ -274,7 +274,7 @@ rotate_wal_file_sharded_cluster() {
 
 check_init_data_after_restore() {
   local RESULT
-  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
+  RESULT="$(run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
     -q "SELECT num FROM fibonacci ORDER BY num;")"
   if printf '%s' "$RESULT" \
     | tr -d '\n' \
@@ -288,7 +288,7 @@ check_init_data_after_restore() {
 
 check_init_data_after_pitr() {
   local RESULT
-  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
+  RESULT="$(run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
     -q "SELECT num FROM fibonacci ORDER BY num;")"
   if printf '%s' "$RESULT" \
     | tr -d '\n' \
