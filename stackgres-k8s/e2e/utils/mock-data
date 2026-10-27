@@ -100,7 +100,13 @@ get_replica_index() {
 }
 
 get_primary_index() {
-  PATRONI_MAJOR_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+  local POD
+  # Any Pod of the cluster can be asked for the version: the instance 0 may not be one of them,
+  # since a reduced impact restart leaves the primary in the instance that it adds for it
+  POD="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
+    -o name | head -n 1 | cut -d / -f 2)"
+  PATRONI_MAJOR_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$POD" -c patroni -- \
     patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
   if [ "$PATRONI_MAJOR_VERSION" -lt 4 ]
   then

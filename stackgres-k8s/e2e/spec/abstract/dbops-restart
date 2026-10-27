@@ -106,15 +106,13 @@ check_restart() {
     fi
   done
 
-  # A reduced impact restart of a cluster of a single instance adds an instance, switches over to
-  # it and removes the original one, that the StatefulSet creates again after the operation has
-  # been completed: the data is read from the instance 0, so wait for it to be running again
-  # instead of racing its creation from inside the loop that reads the data
-  wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-0"
-
   if [ "$SKIP_CHECK_DATA" != true ]
   then
-    wait_until check_mock_data_samehost "$CLUSTER_NAME"
+    # A reduced impact restart adds an instance, switches over to it and removes the instance it
+    # replaces, so the primary is the instance that was added and the instance 0 is not part of
+    # the cluster any more when it had a single instance: the data is read from whichever
+    # instance is the primary, that is looked up on every attempt since it can still change
+    wait_until eval 'check_mock_data_samehost "$CLUSTER_NAME" "$(get_primary_index)"'
     if [ "$INITIAL_INSTANCES" -ge 2 ]
     then
       wait_until check_mock_data_replication "$CLUSTER_NAME"
