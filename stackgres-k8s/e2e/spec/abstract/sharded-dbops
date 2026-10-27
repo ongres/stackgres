@@ -7,6 +7,31 @@
 # the Failed condition too and print the logs of the job: an operation that fails leaves Completed
 # to false, so waiting only for Completed burned the whole timeout and then reported that the
 # operation did not complete in time instead of that it failed and why.
+# The members of a sharded operation reach a decision point and are given a single coordinated
+# decision: all of them are rolled back as soon as one of them fails, so the member that reports
+# the sharded operation as failed is usually not the member that failed. Record what every member
+# ended with, since the SGDbOps of the members are removed along with the namespace when the spec
+# ends and the log of the spec only carries the Job of the member that was awaited.
+print_sharded_dbops_members() {
+  echo "Members of the sharded operation of namespace $CLUSTER_NAMESPACE:"
+  kubectl get sgdbops -n "$CLUSTER_NAMESPACE" -o json 2>/dev/null \
+    | jq -r '
+      .items[]
+      | (.status // {}) as $status
+      | ($status.majorVersionUpgrade // $status.restart // $status.minorVersionUpgrade
+          // $status.securityUpgrade // {}) as $op
+      | ([$status.conditions[]? | select(.status == "True") | .type] | join(",")) as $conditions
+      | ([$status.conditions[]? | select(.type == "Failed" and .status == "True") | .message]
+          | first) as $failedMessage
+      | "  " + .metadata.name
+        + " op=" + (.spec.op // "-")
+        + " conditions=" + (if $conditions == "" then "-" else $conditions end)
+        + " phase=" + (($op.phase // "-") | tostring)
+        + " rollback=" + (($op.rollback // "-") | tostring)
+        + " failure=" + (($op.failure // $failedMessage // "-") | tostring)' \
+    || kubectl get sgdbops -n "$CLUSTER_NAMESPACE" -o yaml || true
+}
+
 wait_dbops_is_completed() {
   local DBOPS_NAME="$1"
 
@@ -25,6 +50,7 @@ wait_dbops_is_completed() {
   then
     success "The dbops has completed"
   else
+    print_sharded_dbops_members
     kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o yaml || true
     fail "The dbops has failed or did not completed"
   fi
@@ -39,6 +65,7 @@ wait_sharded_dbops_is_completed() {
   else
     # The status of the sharded dbops carries the step that failed, and the sharded dbops and the
     # dbops it created are removed along with the namespace when the spec ends
+    print_sharded_dbops_members
     kubectl get sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" -o yaml || true
     kubectl get sgdbops -n "$CLUSTER_NAMESPACE" -o yaml || true
     fail "The sharded dbops has failed or did not completed"
