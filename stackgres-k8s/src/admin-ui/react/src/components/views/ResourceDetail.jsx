@@ -1,6 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
 import { useKindList, useResource } from '../../contexts/DataContext'
+import { useCanI } from '../../contexts/PermissionsContext'
 import { KINDS, listPath } from '../../lib/kinds'
+import DeleteResourceDialog from '../DeleteResourceDialog'
 import SpecTree from '../SpecTree'
 import BenchmarkResults from './BenchmarkResults'
 import DbOpsEvents from './DbOpsEvents'
@@ -19,9 +21,11 @@ const HEADINGS = {
 }
 
 export default function ResourceDetail({ plural }) {
-  const { namespace, name } = useParams()
+  const { namespace, name, backupname } = useParams()
+  const resourceName = plural === 'sgbackups' ? (backupname ?? name) : name
+  const canI = useCanI()
   const items = useKindList(plural, namespace)
-  const resource = useResource(plural, namespace, name)
+  const resource = useResource(plural, namespace, resourceName)
 
   if (items === null) {
     return <p className="p-8 text-sm">Loading data…</p>
@@ -30,7 +34,7 @@ export default function ResourceDetail({ plural }) {
     return (
       <section className="p-8 text-sm">
         <p>
-          {KINDS[plural].crd} <strong>{name}</strong> was not found in namespace{' '}
+          {KINDS[plural].crd} <strong>{resourceName}</strong> was not found in namespace{' '}
           <strong>{namespace}</strong>.
         </p>
         <Link to={listPath(plural, namespace)} className="underline">
@@ -42,7 +46,24 @@ export default function ResourceDetail({ plural }) {
 
   return (
     <section className="flex flex-col gap-4 p-8">
-      <h1 className="text-2xl font-semibold">{HEADINGS[plural] || `${KINDS[plural].crd} Details`}</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold">{HEADINGS[plural] || `${KINDS[plural].crd} Details`}</h1>
+        <div className="flex gap-3 text-sm">
+          {plural !== 'sgdbops' && canI('patch', plural, namespace) && (
+            <Link to={`/${namespace}/${KINDS[plural].singular}/${resourceName}/edit`} className="underline">
+              Edit
+            </Link>
+          )}
+          {canI('delete', plural, namespace) && (
+            <DeleteResourceDialog
+              kind={plural}
+              namespace={namespace}
+              name={resourceName}
+              redirect={listPath(plural, namespace)}
+            />
+          )}
+        </div>
+      </div>
       <div className="grid grid-cols-1 gap-6 text-sm lg:grid-cols-2">
         <div className="flex flex-col gap-4">
           <section>

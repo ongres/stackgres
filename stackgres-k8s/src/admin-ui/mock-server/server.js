@@ -184,7 +184,8 @@ function createApp() {
   // wins if present; no detail returns the single CRD; unknown details return [].
   app.get('/namespaces/:ns/:resource/:name/:detail?', (req, res) => {
     const { ns, resource, name, detail } = req.params;
-    const list = load(resource, []);
+    // reads the mutable store so created/updated resources resolve too
+    const list = NAMESPACED_RESOURCES.includes(resource) ? items(resource) : load(resource, []);
     const item = Array.isArray(list)
       ? list.find((r) => r.metadata && r.metadata.name === name && r.metadata.namespace === ns)
       : null;
@@ -206,8 +207,78 @@ function createApp() {
   });
 
   // ----- Generic CRD list endpoints -----
+  // Fixture lists are copied into an in-memory store so the write endpoints
+  // below can mutate them; a restart reloads the fixtures.
+  const store = {};
+  const items = (resource) => {
+    if (!store[resource]) {
+      store[resource] = load(resource, []);
+    }
+    return store[resource];
+  };
   NAMESPACED_RESOURCES.forEach((resource) => {
-    app.get('/' + resource, (req, res) => res.json(load(resource, [])));
+    app.get('/' + resource, (req, res) => res.json(items(resource)));
+  });
+
+  // ----- Generic CRD write endpoints -----
+  // POST/PUT/DELETE mirror the REST API shape the console uses: the body is
+  // the full resource, ?dryRun=true validates without persisting, and every
+  // request is appended to /requests-log so tests can assert exact payloads.
+  const requestsLog = [];
+  app.get('/requests-log', (req, res) => res.json(requestsLog));
+  const RFC1123 = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/;
+  const findIndexOf = (resource, body) =>
+    items(resource).findIndex(
+      (r) =>
+        r.metadata.name === body.metadata.name &&
+        r.metadata.namespace === body.metadata.namespace
+    );
+  NAMESPACED_RESOURCES.forEach((resource) => {
+    app.post('/' + resource, (req, res) => {
+      const body = req.body;
+      requestsLog.push({ method: 'POST', resource, dryRun: req.query.dryRun === 'true', body });
+      if (!body.metadata || !RFC1123.test(body.metadata.name || '')) {
+        return res.status(422).json({
+          message: 'Invalid name',
+          detail:
+            'a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters',
+        });
+      }
+      if (findIndexOf(resource, body) >= 0) {
+        return res.status(409).json({
+          message: `${resource} "${body.metadata.name}" already exists`,
+          detail: 'AlreadyExists',
+        });
+      }
+      if (req.query.dryRun !== 'true') {
+        items(resource).push(body);
+      }
+      res.json(body);
+    });
+    app.put('/' + resource, (req, res) => {
+      const body = req.body;
+      requestsLog.push({ method: 'PUT', resource, dryRun: req.query.dryRun === 'true', body });
+      const index = findIndexOf(resource, body);
+      if (index < 0) {
+        return notFound(res, resource, body.metadata && body.metadata.name);
+      }
+      if (req.query.dryRun !== 'true') {
+        items(resource)[index] = body;
+      }
+      res.json(body);
+    });
+    app.delete('/' + resource, (req, res) => {
+      const body = req.body;
+      requestsLog.push({ method: 'DELETE', resource, dryRun: req.query.dryRun === 'true', body });
+      const index = findIndexOf(resource, body);
+      if (index < 0) {
+        return notFound(res, resource, body.metadata && body.metadata.name);
+      }
+      if (req.query.dryRun !== 'true') {
+        items(resource).splice(index, 1);
+      }
+      res.sendStatus(204);
+    });
   });
 
   // ----- Fallback -----

@@ -1,6 +1,8 @@
 import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
 import { useKindList, useResource } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
+import DeleteResourceDialog from '../DeleteResourceDialog'
+import RestartClusterDialog from '../RestartClusterDialog'
 
 // Tab chrome for /:namespace/sgcluster/:name/* — the Vue HeaderSection tabs.
 export default function ClusterDetail() {
@@ -39,7 +41,7 @@ export default function ClusterDetail() {
 
   return (
     <div>
-      <nav aria-label="Cluster sections" className="flex gap-4 border-b px-8 pt-2 text-sm">
+      <nav aria-label="Cluster sections" className="flex items-center gap-4 border-b px-8 pt-2 text-sm">
         {tabs.map((tab) => (
           <NavLink
             key={tab.label}
@@ -50,6 +52,19 @@ export default function ClusterDetail() {
             {tab.label}
           </NavLink>
         ))}
+        <div className="ml-auto flex gap-3 pb-2">
+          {canI('create', 'sgdbops', namespace) && (
+            <RestartClusterDialog namespace={namespace} cluster={name} />
+          )}
+          {canI('delete', 'sgclusters', namespace) && (
+            <DeleteResourceDialog
+              kind="sgclusters"
+              namespace={namespace}
+              name={name}
+              redirect={`/${namespace}/sgclusters`}
+            />
+          )}
+        </div>
       </nav>
       <Outlet context={{ cluster }} />
     </div>
