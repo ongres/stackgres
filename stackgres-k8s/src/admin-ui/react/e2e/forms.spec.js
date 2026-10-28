@@ -144,3 +144,65 @@ test('restart dialog creates the restart dbops and delete removes a resource', a
   await deleteDialog.getByRole('button', { name: 'Delete Item' }).click()
   await expect(page).toHaveURL(/\/admin\/default\/sginstanceprofiles$/)
 })
+
+test('creates a distributed logs server with the exact payload', async ({ page }) => {
+  await login(page)
+  await page.goto('/admin/default/sgdistributedlogs/new')
+
+  await page.getByLabel(/Server Name/).fill('logs-e2e')
+  await page.getByRole('button', { name: 'Create' }).click()
+
+  await expect(page).toHaveURL(/\/admin\/default\/sgdistributedlogs$/)
+  const request = await lastRequest(page, 'POST', 'sgdistributedlogs')
+  expect(request.body).toEqual({
+    metadata: { name: 'logs-e2e', namespace: 'default' },
+    spec: {
+      profile: 'production',
+      persistentVolume: { size: '1Gi' },
+      sgInstanceProfile: null,
+      postgresServices: {
+        primary: { type: 'ClusterIP' },
+        replicas: { enabled: true, type: 'ClusterIP' },
+      },
+    },
+  })
+})
+
+test('creates a stream from SGCluster to CloudEvent with the exact payload', async ({ page }) => {
+  await login(page)
+  await page.goto('/admin/default/sgstreams/new')
+
+  await page.getByLabel(/Stream Name/).fill('stream-e2e')
+  await page.getByLabel(/Source Type/).selectOption('SGCluster')
+  await page.getByLabel(/SGCluster Name/).selectOption('uptodate')
+  await page.getByLabel(/Target Type/).selectOption('CloudEvent')
+  await page.getByRole('textbox', { name: 'URL', exact: true }).fill('https://sink.example/events')
+  await page.getByRole('button', { name: 'Create' }).click()
+
+  await expect(page).toHaveURL(/\/admin\/default\/sgstreams$/)
+  const request = await lastRequest(page, 'POST', 'sgstreams')
+  expect(request.body.spec.source).toEqual({
+    type: 'SGCluster',
+    sgCluster: { name: 'uptodate', database: null, username: null, password: null, includes: null, excludes: null },
+  })
+  expect(request.body.spec.target.cloudEvent.http.url).toBe('https://sink.example/events')
+  expect(request.body.spec.pods.persistentVolume.size).toBe('1Gi')
+})
+
+test('clones a postgres configuration into another namespace', async ({ page }) => {
+  await login(page)
+  await page.goto('/admin/default/sgpgconfigs')
+  const firstRow = page.locator('tbody tr').first()
+  const originalName = await firstRow.locator('a').first().textContent()
+  await firstRow.locator('a').first().click()
+
+  await page.getByRole('button', { name: 'Clone' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Clone resource' })
+  await dialog.getByLabel('Namespace').selectOption('demo')
+  await dialog.getByRole('button', { name: 'Clone' }).click()
+  await expect(page.getByText(/cloned successfully/)).toBeVisible()
+
+  const request = await lastRequest(page, 'POST', 'sgpgconfigs')
+  expect(request.body.metadata.name).toBe(`copy-of-${originalName.trim()}`)
+  expect(request.body.metadata.namespace).toBe('demo')
+})

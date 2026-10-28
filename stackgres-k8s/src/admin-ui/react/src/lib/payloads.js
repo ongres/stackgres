@@ -418,3 +418,215 @@ export function buildRestartDbOps({ name, namespace, sgCluster }) {
     },
   }
 }
+
+// key/value rows → object, skipping rows with an empty key or value
+// (the Vue parseProps), null when nothing qualifies unless keepEmpty.
+export function rowsToObject(rows, keyName = 'annotation') {
+  const result = {}
+  ;(rows || []).forEach((row) => {
+    const key = row[keyName]
+    if (key && String(key).length && row.value && String(row.value).length) {
+      result[key] = row.value
+    }
+  })
+  return result
+}
+
+export function objectToRows(object, keyName = 'annotation') {
+  return Object.entries(object || {}).map(([key, value]) => ({ [keyName]: key, value }))
+}
+
+const BLANK_DL_TOLERATION = JSON.stringify({
+  key: '',
+  operator: 'Equal',
+  value: null,
+  effect: null,
+  tolerationSeconds: null,
+})
+
+export function buildDistributedLogs(state, previous = {}) {
+  const has = (object, path) =>
+    path
+      .split('.')
+      .reduce(
+        (node, key) => (node && typeof node === 'object' ? node[key] : undefined),
+        object
+      ) !== undefined
+  const nodeSelector = rowsToObject(state.nodeSelector, 'label')
+  const tolerations = (state.tolerations || []).filter(
+    (toleration) => JSON.stringify(toleration) !== BLANK_DL_TOLERATION
+  )
+  const annotationsAll = rowsToObject(state.annotationsAll)
+  const annotationsPods = rowsToObject(state.annotationsPods)
+  const annotationsServices = rowsToObject(state.annotationsServices)
+
+  return {
+    metadata: {
+      ...(has(previous, 'metadata') && previous.metadata),
+      name: state.name,
+      namespace: state.namespace,
+    },
+    spec: {
+      ...(has(previous, 'spec') && previous.spec),
+      profile: state.profile,
+      persistentVolume: {
+        ...(has(previous, 'spec.persistentVolume') && previous.spec.persistentVolume),
+        size: `${state.volumeSize}${state.volumeUnit}`,
+        ...(state.storageClass && state.storageClass.length && { storageClass: state.storageClass }),
+      },
+      ...((state.resourceProfile.length && { sgInstanceProfile: state.resourceProfile }) || {
+        sgInstanceProfile: null,
+      }),
+      ...((has(previous, 'spec.configurations') || state.pgConfig.length) && {
+        configurations: {
+          ...(has(previous, 'spec.configurations') && previous.spec.configurations),
+          ...((state.pgConfig.length && { sgPostgresConfig: state.pgConfig }) || {
+            sgPostgresConfig: null,
+          }),
+        },
+      }),
+      ...((has(previous, 'spec.nonProductionOptions') ||
+        state.clusterPodAntiAffinity !== null ||
+        state.patroniResourceRequirements !== null ||
+        state.clusterResourceRequirements !== null) && {
+        nonProductionOptions: {
+          ...(has(previous, 'spec.nonProductionOptions') && previous.spec.nonProductionOptions),
+          ...((state.clusterPodAntiAffinity !== null && {
+            disableClusterPodAntiAffinity: state.clusterPodAntiAffinity,
+          }) || { disableClusterPodAntiAffinity: null }),
+          ...((state.patroniResourceRequirements !== null && {
+            disablePatroniResourceRequirements: state.patroniResourceRequirements,
+          }) || { disablePatroniResourceRequirements: null }),
+          ...((state.clusterResourceRequirements !== null && {
+            disableClusterResourceRequirements: state.clusterResourceRequirements,
+          }) || { disableClusterResourceRequirements: null }),
+        },
+      }),
+      ...((has(previous, 'spec.scheduling') ||
+        Object.keys(nodeSelector).length ||
+        tolerations.length) && {
+        scheduling: {
+          ...(has(previous, 'spec.scheduling') && previous.spec.scheduling),
+          ...((Object.keys(nodeSelector).length && { nodeSelector }) || { nodeSelector: null }),
+          ...((tolerations.length && { tolerations }) || { tolerations: null }),
+        },
+      }),
+      postgresServices: {
+        ...(has(previous, 'spec.postgresServices') && previous.spec.postgresServices),
+        primary: {
+          ...(has(previous, 'spec.postgresServices.primary') &&
+            previous.spec.postgresServices.primary),
+          type: state.postgresServicesPrimaryType,
+          ...(state.postgresServicesPrimaryLoadBalancerIP.length && {
+            loadBalancerIP: state.postgresServicesPrimaryLoadBalancerIP,
+          }),
+        },
+        replicas: {
+          ...(has(previous, 'spec.postgresServices.replicas') &&
+            previous.spec.postgresServices.replicas),
+          enabled: state.postgresServicesReplicas,
+          type: state.postgresServicesReplicasType,
+          ...(state.postgresServicesReplicasLoadBalancerIP.length && {
+            loadBalancerIP: state.postgresServicesReplicasLoadBalancerIP,
+          }),
+        },
+      },
+      ...((has(previous, 'spec.metadata') ||
+        Object.keys(annotationsAll).length ||
+        Object.keys(annotationsPods).length ||
+        Object.keys(annotationsServices).length) && {
+        metadata: {
+          ...(has(previous, 'spec.metadata') && previous.spec.metadata),
+          annotations: {
+            ...(has(previous, 'spec.metadata.annotations') && previous.spec.metadata.annotations),
+            ...(Object.keys(annotationsAll).length && { allResources: annotationsAll }),
+            ...(Object.keys(annotationsPods).length && { pods: annotationsPods }),
+            ...(Object.keys(annotationsServices).length && { services: annotationsServices }),
+          },
+        },
+      }),
+    },
+  }
+}
+
+// The SGStream payload: the form state mirrors the CRD, this transform ports
+// the Vue parseCrdSpec (size join, rows→objects, credential nulling).
+export function buildStream(crd) {
+  const parsed = JSON.parse(JSON.stringify(crd))
+  const size = parsed.spec?.pods?.persistentVolume?.size
+  if (size && typeof size === 'object') {
+    parsed.spec.pods.persistentVolume.size = `${size.size}${size.unit}`
+  }
+  ;['requests', 'limits'].forEach((prop) => {
+    const rows = parsed.spec?.pods?.resources?.[prop]
+    if (rows !== undefined) {
+      parsed.spec.pods.resources[prop] =
+        rows && rows.length ? rowsToObject(rows, 'label') : null
+    }
+  })
+  const scheduling = parsed.spec?.pods?.resources?.scheduling
+  if (scheduling && scheduling.nodeSelector !== undefined) {
+    scheduling.nodeSelector =
+      scheduling.nodeSelector && scheduling.nodeSelector.length
+        ? rowsToObject(scheduling.nodeSelector, 'label')
+        : null
+  }
+  if (parsed.spec.target.type === 'CloudEvent' && parsed.spec.target.cloudEvent?.http?.headers) {
+    parsed.spec.target.cloudEvent.http.headers = rowsToObject(
+      parsed.spec.target.cloudEvent.http.headers,
+      'label'
+    )
+  }
+  if (parsed.spec.target.type === 'PgLambda' && parsed.spec.target.pgLambda?.knative?.http?.headers) {
+    parsed.spec.target.pgLambda.knative.http.headers = rowsToObject(
+      parsed.spec.target.pgLambda.knative.http.headers,
+      'label'
+    )
+  }
+  ;[
+    ['source', ['sgCluster', 'postgres']],
+    ['target', ['sgCluster']],
+  ].forEach(([parent, types]) => {
+    types.forEach((type) => {
+      ;['username', 'password'].forEach((key) => {
+        const selector = parsed.spec?.[parent]?.[type]?.[key]
+        if (selector && selector.key === null && selector.name === null) {
+          parsed.spec[parent][type][key] = null
+        }
+      })
+    })
+  })
+  return parsed
+}
+
+// Clone payload: a deep copy of the cached resource with the new identity,
+// plus the SGCluster-specific cleanups of the Vue clone dialog. As in Vue,
+// status/uid/resourceVersion are not stripped (the API ignores them on POST).
+export function buildClonePayload(kind, item, { name, namespace }, originalName) {
+  const clone = JSON.parse(JSON.stringify(item))
+  clone.metadata.name = name
+  clone.metadata.namespace = namespace
+  if (kind === 'sgclusters') {
+    if (clone.spec.initialData?.restore) {
+      delete clone.spec.initialData.restore
+      if (!Object.keys(clone.spec.initialData).length) {
+        delete clone.spec.initialData
+      }
+    }
+    const logs = clone.spec.distributedLogs
+    if (logs?.sgDistributedLogs && !logs.sgDistributedLogs.includes('.')) {
+      logs.sgDistributedLogs = `${item.metadata.namespace}.${logs.sgDistributedLogs}`
+    }
+    ;(clone.spec.initialData?.scripts || []).forEach((script) => {
+      if (script.scriptFrom?.configMapKeyRef) {
+        delete script.scriptFrom.configMapScript
+      }
+    })
+    if (clone.spec.managedSql?.scripts) {
+      clone.spec.managedSql.scripts = clone.spec.managedSql.scripts.filter(
+        (script) => !(script.sgScript && script.sgScript === `${originalName}-default`)
+      )
+    }
+  }
+  return clone
+}

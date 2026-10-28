@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
 import { useKindList, useResource } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
+import CloneResourceDialog from '../CloneResourceDialog'
 import DeleteResourceDialog from '../DeleteResourceDialog'
 import RestartClusterDialog from '../RestartClusterDialog'
 
@@ -55,6 +56,9 @@ export default function ClusterDetail() {
         <div className="ml-auto flex gap-3 pb-2">
           {canI('create', 'sgdbops', namespace) && (
             <RestartClusterDialog namespace={namespace} cluster={name} />
+          )}
+          {canI('create', 'sgclusters', namespace) && (
+            <CloneResourceDialog kind="sgclusters" item={cluster} />
           )}
           {canI('delete', 'sgclusters', namespace) && (
             <DeleteResourceDialog

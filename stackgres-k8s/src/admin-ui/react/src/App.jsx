@@ -18,11 +18,13 @@ import ResourceDetail from './components/views/ResourceDetail'
 import ResourceList from './components/views/ResourceList'
 import BackupForm from './components/forms/BackupForm'
 import DbOpsForm from './components/forms/DbOpsForm'
+import DistributedLogsForm from './components/forms/DistributedLogsForm'
 import InstanceProfileForm from './components/forms/InstanceProfileForm'
 import ObjectStorageForm from './components/forms/ObjectStorageForm'
 import PgConfigForm from './components/forms/PgConfigForm'
 import PoolConfigForm from './components/forms/PoolConfigForm'
 import ScriptForm from './components/forms/ScriptForm'
+import StreamForm from './components/forms/StreamForm'
 import { KINDS } from './lib/kinds'
 
 // Simple CRDs: one list route (plural) and one detail route (singular),
@@ -80,6 +82,10 @@ export default function App() {
                   <Route path=":namespace/sgbackups/new" element={<BackupForm />} />
                   <Route path=":namespace/sgbackup/:backupname/edit" element={<BackupForm isEdit />} />
                   <Route path=":namespace/sgdbops/new" element={<DbOpsForm />} />
+                  <Route path=":namespace/sgdistributedlogs/new" element={<DistributedLogsForm />} />
+                  <Route path=":namespace/sgdistributedlog/:name/edit" element={<DistributedLogsForm isEdit />} />
+                  <Route path=":namespace/sgstreams/new" element={<StreamForm />} />
+                  <Route path=":namespace/sgstream/:name/edit" element={<StreamForm isEdit />} />
 
                   <Route path=":namespace/application/:name/*" element={<PendingView title="Application" />} />
                   <Route path="sgconfig/:name" element={<PendingView title="Operator Configuration" />} />

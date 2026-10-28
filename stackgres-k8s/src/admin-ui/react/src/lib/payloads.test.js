@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildBackup,
+  buildClonePayload,
+  buildDistributedLogs,
+  buildStream,
   buildDbOps,
   buildInstanceProfile,
   buildObjectStorage,
@@ -292,5 +295,160 @@ describe('buildBackup / buildDbOps / restart dialog', () => {
       metadata: { name: 'op2026', namespace: 'default' },
       spec: { sgCluster: 'pgsql', op: 'restart', restart: { method: 'InPlace', onlyPendingRestart: false } },
     })
+  })
+})
+
+describe('buildDistributedLogs', () => {
+  const base = {
+    name: 'logs1',
+    namespace: 'default',
+    profile: 'production',
+    volumeSize: '1',
+    volumeUnit: 'Gi',
+    storageClass: '',
+    resourceProfile: '',
+    pgConfig: '',
+    clusterPodAntiAffinity: null,
+    patroniResourceRequirements: null,
+    clusterResourceRequirements: null,
+    nodeSelector: [{ label: '', value: '' }],
+    tolerations: [{ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null }],
+    annotationsAll: [{ annotation: '', value: '' }],
+    annotationsPods: [{ annotation: '', value: '' }],
+    annotationsServices: [{ annotation: '', value: '' }],
+    postgresServicesPrimaryType: 'ClusterIP',
+    postgresServicesPrimaryLoadBalancerIP: '',
+    postgresServicesReplicas: true,
+    postgresServicesReplicasType: 'ClusterIP',
+    postgresServicesReplicasLoadBalancerIP: '',
+  }
+
+  it('builds the minimal payload with explicit nulls and no primary enabled key', () => {
+    expect(buildDistributedLogs(base)).toEqual({
+      metadata: { name: 'logs1', namespace: 'default' },
+      spec: {
+        profile: 'production',
+        persistentVolume: { size: '1Gi' },
+        sgInstanceProfile: null,
+        postgresServices: {
+          primary: { type: 'ClusterIP' },
+          replicas: { enabled: true, type: 'ClusterIP' },
+        },
+      },
+    })
+  })
+
+  it('emits scheduling, annotations and configurations when set', () => {
+    const payload = buildDistributedLogs({
+      ...base,
+      pgConfig: 'pg16-conf',
+      resourceProfile: 'size-m',
+      nodeSelector: [{ label: 'disk', value: 'ssd' }],
+      annotationsPods: [{ annotation: 'team', value: 'db' }],
+      clusterPodAntiAffinity: true,
+    })
+    expect(payload.spec.configurations).toEqual({ sgPostgresConfig: 'pg16-conf' })
+    expect(payload.spec.sgInstanceProfile).toBe('size-m')
+    expect(payload.spec.scheduling).toEqual({ nodeSelector: { disk: 'ssd' }, tolerations: null })
+    expect(payload.spec.metadata.annotations).toEqual({ pods: { team: 'db' } })
+    expect(payload.spec.nonProductionOptions).toEqual({
+      disableClusterPodAntiAffinity: true,
+      disablePatroniResourceRequirements: null,
+      disableClusterResourceRequirements: null,
+    })
+  })
+})
+
+describe('buildStream', () => {
+  const crd = {
+    metadata: { name: 's1', namespace: 'default' },
+    spec: {
+      maxRetries: null,
+      source: {
+        type: 'SGCluster',
+        sgCluster: {
+          name: 'uptodate',
+          database: null,
+          username: { name: null, key: null },
+          password: { name: null, key: null },
+          includes: null,
+          excludes: null,
+        },
+      },
+      target: {
+        type: 'CloudEvent',
+        cloudEvent: {
+          binding: 'http',
+          format: 'json',
+          http: {
+            url: 'https://sink.example',
+            headers: [{ label: 'x-token', value: 'abc' }],
+            connectTimeout: null,
+            readTimeout: null,
+            retryBackoffDelay: null,
+            retryLimit: null,
+            skipHostnameVerification: false,
+          },
+        },
+      },
+      pods: {
+        persistentVolume: { size: { size: 1, unit: 'Gi' }, storageClass: null },
+        resources: {
+          claims: [],
+          limits: [{ label: 'cpu', value: '2' }],
+          requests: [],
+          scheduling: {
+            nodeAffinity: {
+              requiredDuringSchedulingIgnoredDuringExecution: null,
+              preferredDuringSchedulingIgnoredDuringExecution: null,
+            },
+            nodeSelector: [{ label: 'disk', value: 'ssd' }],
+            priorityClassName: null,
+            tolerations: null,
+          },
+        },
+      },
+    },
+  }
+
+  it('joins the volume size, maps rows to objects and nulls empty credentials', () => {
+    const payload = buildStream(crd)
+    expect(payload.spec.pods.persistentVolume.size).toBe('1Gi')
+    expect(payload.spec.pods.resources.limits).toEqual({ cpu: '2' })
+    expect(payload.spec.pods.resources.requests).toBeNull()
+    expect(payload.spec.pods.resources.scheduling.nodeSelector).toEqual({ disk: 'ssd' })
+    expect(payload.spec.target.cloudEvent.http.headers).toEqual({ 'x-token': 'abc' })
+    expect(payload.spec.source.sgCluster.username).toBeNull()
+    expect(payload.spec.source.sgCluster.password).toBeNull()
+    expect(crd.spec.pods.persistentVolume.size).toEqual({ size: 1, unit: 'Gi' })
+  })
+})
+
+describe('buildClonePayload', () => {
+  it('renames and keeps everything else for simple kinds', () => {
+    const item = {
+      metadata: { name: 'orig', namespace: 'default', uid: 'u1', resourceVersion: '5' },
+      spec: { cpu: '1' },
+      status: { clusters: [] },
+    }
+    const clone = buildClonePayload('sginstanceprofiles', item, { name: 'copy-of-orig', namespace: 'demo' })
+    expect(clone.metadata).toEqual({ name: 'copy-of-orig', namespace: 'demo', uid: 'u1', resourceVersion: '5' })
+    expect(clone.status).toEqual({ clusters: [] })
+    expect(item.metadata.name).toBe('orig')
+  })
+
+  it('applies the sgcluster-specific cleanups', () => {
+    const item = {
+      metadata: { name: 'orig', namespace: 'default' },
+      spec: {
+        initialData: { restore: { fromBackup: { name: 'bk1' } } },
+        distributedLogs: { sgDistributedLogs: 'logs1' },
+        managedSql: { scripts: [{ sgScript: 'orig-default' }, { sgScript: 'custom' }] },
+      },
+    }
+    const clone = buildClonePayload('sgclusters', item, { name: 'copy-of-orig', namespace: 'default' }, 'orig')
+    expect(clone.spec.initialData).toBeUndefined()
+    expect(clone.spec.distributedLogs.sgDistributedLogs).toBe('default.logs1')
+    expect(clone.spec.managedSql.scripts).toEqual([{ sgScript: 'custom' }])
   })
 })

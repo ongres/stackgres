@@ -2,6 +2,7 @@ import { Outlet, useParams } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import CommandPalette from '../CommandPalette'
 import Login from '../Login'
 import Breadcrumbs from './Breadcrumbs'
 import Sidebar from './Sidebar'
@@ -17,6 +18,7 @@ export default function Shell() {
       <Toaster theme={theme} position="top-right" />
       {isLoggedIn ? (
         <div className="flex min-h-screen flex-col">
+          <CommandPalette />
           <TopBar />
           <div className="flex flex-1">
             {namespace && <Sidebar />}

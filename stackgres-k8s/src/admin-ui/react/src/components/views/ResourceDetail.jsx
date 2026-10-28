@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useKindList, useResource } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
 import { KINDS, listPath } from '../../lib/kinds'
+import CloneResourceDialog from '../CloneResourceDialog'
 import DeleteResourceDialog from '../DeleteResourceDialog'
 import SpecTree from '../SpecTree'
 import BenchmarkResults from './BenchmarkResults'
@@ -53,6 +54,9 @@ export default function ResourceDetail({ plural }) {
             <Link to={`/${namespace}/${KINDS[plural].singular}/${resourceName}/edit`} className="underline">
               Edit
             </Link>
+          )}
+          {!['sgbackups', 'sgdbops'].includes(plural) && canI('create', plural, namespace) && (
+            <CloneResourceDialog kind={plural} item={resource} />
           )}
           {canI('delete', plural, namespace) && (
             <DeleteResourceDialog

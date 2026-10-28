@@ -22,6 +22,7 @@
   "dependencies": {
     "apexcharts": "^3.45.2",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "hdr-histogram-widget": "^1.0.1",
     "lucide-react": "^0.563.0",
     "react": "^18.2.0",
