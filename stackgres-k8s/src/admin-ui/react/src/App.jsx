@@ -27,6 +27,7 @@ import PoolConfigForm from './components/forms/PoolConfigForm'
 import ScriptForm from './components/forms/ScriptForm'
 import SGClusterForm from './components/forms/SGClusterForm'
 import SGConfigForm from './components/forms/SGConfigForm'
+import SGShardedClusterForm from './components/forms/SGShardedClusterForm'
 import StreamForm from './components/forms/StreamForm'
 import { KINDS } from './lib/kinds'
 
@@ -74,6 +75,8 @@ export default function App() {
 
                   <Route path=":namespace/sgclusters/new" element={<SGClusterForm />} />
                   <Route path=":namespace/sgcluster/:name/edit" element={<SGClusterForm isEdit />} />
+                  <Route path=":namespace/sgshardedclusters/new" element={<SGShardedClusterForm />} />
+                  <Route path=":namespace/sgshardedcluster/:name/edit" element={<SGShardedClusterForm isEdit />} />
                   <Route path=":namespace/sginstanceprofiles/new" element={<InstanceProfileForm />} />
                   <Route path=":namespace/sginstanceprofile/:name/edit" element={<InstanceProfileForm isEdit />} />
                   <Route path=":namespace/sgpgconfigs/new" element={<PgConfigForm />} />

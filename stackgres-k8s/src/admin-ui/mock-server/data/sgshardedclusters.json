@@ -2,53 +2,158 @@
   {
     "apiVersion": "stackgres.io/v1alpha1",
     "kind": "SGShardedCluster",
-    "metadata": { "name": "shard-uptodate", "namespace": "default", "uid": "22222222-0001-0000-0000-000000000001", "creationTimestamp": "2026-01-20T08:00:00Z" },
+    "metadata": {
+      "name": "shard-uptodate",
+      "namespace": "default",
+      "uid": "22222222-0001-0000-0000-000000000001",
+      "creationTimestamp": "2026-01-20T08:00:00Z"
+    },
     "spec": {
       "type": "citus",
       "database": "myapp",
-      "postgres": { "version": "16.3", "flavor": "vanilla" },
-      "coordinator": { "instances": 1, "sgInstanceProfile": "size-small", "pods": { "persistentVolume": { "size": "10Gi" } } },
-      "shards": { "clusters": 2, "instancesPerCluster": 1, "sgInstanceProfile": "size-small", "pods": { "persistentVolume": { "size": "10Gi" } } },
-      "instances": 3
+      "postgres": {
+        "version": "16.3",
+        "flavor": "vanilla"
+      },
+      "coordinator": {
+        "instances": 1,
+        "sgInstanceProfile": "size-small",
+        "pods": {
+          "persistentVolume": {
+            "size": "10Gi"
+          }
+        }
+      },
+      "instances": 3,
+      "workers": {
+        "clusters": 2,
+        "instancesPerCluster": 1,
+        "sgInstanceProfile": "size-small",
+        "pods": {
+          "persistentVolume": {
+            "size": "10Gi"
+          }
+        }
+      }
     },
     "status": {
-      "clusters": ["shard-uptodate", "shard-uptodate-shard0", "shard-uptodate-shard1"],
+      "clusters": [
+        "shard-uptodate",
+        "shard-uptodate-shard0",
+        "shard-uptodate-shard1"
+      ],
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "True", "reason": "UpToDate", "message": "All components are up to date.", "lastTransitionTime": "2026-05-30T10:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "True",
+          "reason": "UpToDate",
+          "message": "All components are up to date.",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "shard-uptodate.default", "superuserUsername": "postgres", "superuserSecretName": "shard-uptodate", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "shard-uptodate.default",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "shard-uptodate",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "shard-uptodate-coord-0", "role": "primary" },
-      { "name": "shard-uptodate-shard0-0", "role": "primary" },
-      { "name": "shard-uptodate-shard1-0", "role": "primary" }
+      {
+        "name": "shard-uptodate-coord-0",
+        "role": "primary"
+      },
+      {
+        "name": "shard-uptodate-shard0-0",
+        "role": "primary"
+      },
+      {
+        "name": "shard-uptodate-shard1-0",
+        "role": "primary"
+      }
     ],
     "podsReady": 3
   },
   {
     "apiVersion": "stackgres.io/v1alpha1",
     "kind": "SGShardedCluster",
-    "metadata": { "name": "shard-outdated", "namespace": "demo", "uid": "22222222-0002-0000-0000-000000000002", "creationTimestamp": "2026-03-20T08:00:00Z" },
+    "metadata": {
+      "name": "shard-outdated",
+      "namespace": "demo",
+      "uid": "22222222-0002-0000-0000-000000000002",
+      "creationTimestamp": "2026-03-20T08:00:00Z"
+    },
     "spec": {
       "type": "citus",
       "database": "analytics",
-      "postgres": { "version": "16.1", "flavor": "vanilla" },
-      "coordinator": { "instances": 1, "sgInstanceProfile": "size-medium", "pods": { "persistentVolume": { "size": "20Gi" } } },
-      "shards": { "clusters": 3, "instancesPerCluster": 2, "sgInstanceProfile": "size-medium", "pods": { "persistentVolume": { "size": "20Gi" } } },
-      "instances": 7
+      "postgres": {
+        "version": "16.1",
+        "flavor": "vanilla"
+      },
+      "coordinator": {
+        "instances": 1,
+        "sgInstanceProfile": "size-medium",
+        "pods": {
+          "persistentVolume": {
+            "size": "20Gi"
+          }
+        }
+      },
+      "instances": 7,
+      "workers": {
+        "clusters": 3,
+        "instancesPerCluster": 2,
+        "sgInstanceProfile": "size-medium",
+        "pods": {
+          "persistentVolume": {
+            "size": "20Gi"
+          }
+        }
+      }
     },
     "status": {
-      "clusters": ["shard-outdated", "shard-outdated-shard0", "shard-outdated-shard1", "shard-outdated-shard2"],
+      "clusters": [
+        "shard-outdated",
+        "shard-outdated-shard0",
+        "shard-outdated-shard1",
+        "shard-outdated-shard2"
+      ],
       "conditions": [
-        { "type": "ComponentsUpdated", "status": "False", "reason": "OutdatedMinorVersionAndAvailableMajorVersion", "message": "A newer minor PostgreSQL version 16.3 is available (current 16.1), and a newer major version 17 is available.", "lastTransitionTime": "2026-05-30T10:00:00Z" },
-        { "type": "PendingRestart", "status": "True", "reason": "PendingRestart", "message": "A restart operation is pending for this cluster.", "lastTransitionTime": "2026-05-31T12:00:00Z" }
+        {
+          "type": "ComponentsUpdated",
+          "status": "False",
+          "reason": "OutdatedMinorVersionAndAvailableMajorVersion",
+          "message": "A newer minor PostgreSQL version 16.3 is available (current 16.1), and a newer major version 17 is available.",
+          "lastTransitionTime": "2026-05-30T10:00:00Z"
+        },
+        {
+          "type": "PendingRestart",
+          "status": "True",
+          "reason": "PendingRestart",
+          "message": "A restart operation is pending for this cluster.",
+          "lastTransitionTime": "2026-05-31T12:00:00Z"
+        }
       ]
     },
-    "info": { "primaryDns": "shard-outdated.demo", "superuserUsername": "postgres", "superuserSecretName": "shard-outdated", "superuserPasswordKey": "superuser-password" },
+    "info": {
+      "primaryDns": "shard-outdated.demo",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "shard-outdated",
+      "superuserPasswordKey": "superuser-password"
+    },
     "pods": [
-      { "name": "shard-outdated-coord-0", "role": "primary" },
-      { "name": "shard-outdated-shard0-0", "role": "primary" },
-      { "name": "shard-outdated-shard1-0", "role": "primary" }
+      {
+        "name": "shard-outdated-coord-0",
+        "role": "primary"
+      },
+      {
+        "name": "shard-outdated-shard0-0",
+        "role": "primary"
+      },
+      {
+        "name": "shard-outdated-shard1-0",
+        "role": "primary"
+      }
     ],
     "podsReady": 7
   }
