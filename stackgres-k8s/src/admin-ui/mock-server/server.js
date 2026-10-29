@@ -321,10 +321,16 @@ function filterLogs(entries, query) {
     logs = logs.filter((l) => levels.includes(l.errorLevel));
   }
   if (query.from) {
-    const [time, index] = String(query.from).split(',');
+    // 'from' is either a 'logTime,logTimeIndex' cursor or a plain UTC
+    // timestamp (date-range filter); logTime values carry no zone suffix.
+    const [time, index] = String(query.from).replace('Z', '').split(',');
     logs = logs.filter(
       (l) => l.logTime > time || (l.logTime === time && Number(l.logTimeIndex) > Number(index || 0))
     );
+  }
+  if (query.to) {
+    const to = String(query.to).replace('Z', '');
+    logs = logs.filter((l) => l.logTime <= to || l.logTime.startsWith(to));
   }
   logs.sort((a, b) =>
     a.logTime === b.logTime ? a.logTimeIndex - b.logTimeIndex : a.logTime < b.logTime ? -1 : 1

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useKindList } from '../../contexts/DataContext'
 import { useSettings } from '../../contexts/SettingsContext'
+import { fromDateTimeLocal, toDateTimeLocal } from '../../lib/datetime'
 import { activeCondition, detailPath, KINDS } from '../../lib/kinds'
 import DataTable from '../DataTable'
 import { listColumns } from './listColumns'
@@ -31,6 +32,10 @@ export default function ResourceList({ plural, clusterScoped = false }) {
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('')
   const [operation, setOperation] = useState('')
+  // Backups date-range filter (Vue SGBackups daterangepicker): values kept as
+  // UTC timestamps, displayed by the inputs in the console timezone.
+  const [dateStart, setDateStart] = useState('')
+  const [dateEnd, setDateEnd] = useState('')
 
   const { columns, defaultSort } = useMemo(() => {
     const config = listColumns(plural, timezone)
@@ -56,8 +61,21 @@ export default function ResourceList({ plural, clusterScoped = false }) {
     if (operation && plural === 'sgdbops') {
       result = result.filter((item) => item.spec.op === operation)
     }
+    if (dateStart && dateEnd && plural === 'sgbackups') {
+      // Vue parity: only Completed backups have a stored timestamp to compare,
+      // so the date filter hides everything else.
+      const start = new Date(dateStart).getTime()
+      const end = new Date(dateEnd).getTime()
+      result = result.filter((item) => {
+        if (item.status?.process?.status !== 'Completed') {
+          return false
+        }
+        const stored = new Date(item.status.process.timing?.stored || '').getTime()
+        return !Number.isNaN(stored) && stored >= start && stored <= end
+      })
+    }
     return result
-  }, [items, status, operation, plural])
+  }, [items, status, operation, plural, dateStart, dateEnd])
 
   if (visible === null) {
     return <p className="p-8 text-sm">Loading data…</p>
@@ -84,6 +102,29 @@ export default function ResourceList({ plural, clusterScoped = false }) {
               ))}
             </select>
           </label>
+          {plural === 'sgbackups' && (
+            <>
+              <label className="flex items-center gap-1">
+                From
+                <input type="datetime-local" step="1" className="border p-1" aria-label="Backups from"
+                  value={toDateTimeLocal(dateStart, timezone)}
+                  onChange={(event) => setDateStart(fromDateTimeLocal(event.target.value, timezone))} />
+              </label>
+              <label className="flex items-center gap-1">
+                To
+                <input type="datetime-local" step="1" className="border p-1" aria-label="Backups to"
+                  value={toDateTimeLocal(dateEnd, timezone)}
+                  min={toDateTimeLocal(dateStart, timezone) || undefined}
+                  onChange={(event) => setDateEnd(fromDateTimeLocal(event.target.value, timezone))} />
+              </label>
+              {(dateStart || dateEnd) && (
+                <button type="button" className="border p-1"
+                  onClick={() => { setDateStart(''); setDateEnd('') }}>
+                  Reset dates
+                </button>
+              )}
+            </>
+          )}
           {plural === 'sgdbops' && (
             <label className="flex items-center gap-1">
               Operation

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { useSettings } from '../../contexts/SettingsContext'
+import { fromDateTimeLocal, toDateTimeLocal } from '../../lib/datetime'
 import { formatTimestamp, tzOffset } from '../../lib/format'
 
 const ERROR_LEVELS = [
@@ -39,9 +40,16 @@ export default function ClusterLogs() {
   const [text, setText] = useState('')
   const [logType, setLogType] = useState('')
   const [errorLevel, setErrorLevel] = useState('')
+  const [dateStart, setDateStart] = useState('')
+  const [dateEnd, setDateEnd] = useState('')
   const [live, setLive] = useState(true)
   const [expanded, setExpanded] = useState(null)
   const cursorRef = useRef(null)
+
+  // Date-range filter values, kept as UTC timestamps like the Vue
+  // daterangepicker produced; the inputs display them in the console timezone.
+  const changeDateStart = (value) => setDateStart(fromDateTimeLocal(value, timezone))
+  const changeDateEnd = (value) => setDateEnd(fromDateTimeLocal(value, timezone))
 
   const buildQuery = useCallback(
     (fromCursor) => {
@@ -51,10 +59,15 @@ export default function ClusterLogs() {
       if (logType) params.set('logType', logType)
       if (errorLevel) params.set('errorLevel', errorLevel)
       if (text) params.set('text', text)
-      if (fromCursor) params.set('from', fromCursor)
+      if (fromCursor) {
+        params.set('from', fromCursor)
+      } else if (dateStart) {
+        params.set('from', dateStart)
+      }
+      if (dateEnd) params.set('to', dateEnd)
       return `?${params.toString()}`
     },
-    [logType, errorLevel, text]
+    [logType, errorLevel, text, dateStart, dateEnd]
   )
 
   const load = useCallback(
@@ -130,6 +143,26 @@ export default function ClusterLogs() {
             ))}
           </select>
         </label>
+        <label className="flex items-center gap-1">
+          From
+          <input type="datetime-local" step="1" className="border p-1" aria-label="Logs from"
+            value={toDateTimeLocal(dateStart, timezone)}
+            max={toDateTimeLocal(new Date().toISOString(), timezone)}
+            onChange={(event) => changeDateStart(event.target.value)} />
+        </label>
+        <label className="flex items-center gap-1">
+          To
+          <input type="datetime-local" step="1" className="border p-1" aria-label="Logs to"
+            value={toDateTimeLocal(dateEnd, timezone)}
+            min={toDateTimeLocal(dateStart, timezone) || undefined}
+            onChange={(event) => changeDateEnd(event.target.value)} />
+        </label>
+        {(dateStart || dateEnd) && (
+          <button type="button" className="border p-1"
+            onClick={() => { setDateStart(''); setDateEnd('') }}>
+            Reset dates
+          </button>
+        )}
         <label className="flex items-center gap-1">
           <input type="checkbox" checked={live} onChange={() => setLive(!live)} />
           Live

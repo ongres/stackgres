@@ -2,23 +2,115 @@
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGBackup",
-    "metadata": { "name": "uptodate-backup-2026-05-31", "namespace": "default", "uid": "66660000-0000-0000-0000-000000000001", "creationTimestamp": "2026-05-31T02:00:00Z" },
-    "spec": { "sgCluster": "uptodate", "managedLifecycle": true },
+    "metadata": {
+      "name": "uptodate-backup-2026-05-31",
+      "namespace": "default",
+      "uid": "66660000-0000-0000-0000-000000000001",
+      "creationTimestamp": "2026-05-31T02:00:00Z"
+    },
+    "spec": {
+      "sgCluster": "uptodate",
+      "managedLifecycle": true
+    },
     "status": {
-      "process": { "status": "Completed", "jobPod": "uptodate-backup-2026-05-31-abcde", "timing": { "start": "2026-05-31T02:00:00Z", "end": "2026-05-31T02:04:30Z", "stored": "2026-05-31T02:04:30Z" } },
-      "backupInformation": { "size": { "compressed": 524288000, "uncompressed": 1048576000 }, "postgresVersion": "160003", "hostname": "uptodate-0" },
-      "sgBackupConfig": { "storage": { "type": "s3Compatible" } }
+      "process": {
+        "status": "Completed",
+        "jobPod": "uptodate-backup-2026-05-31-abcde",
+        "timing": {
+          "start": "2026-05-31T02:00:00Z",
+          "end": "2026-05-31T02:04:30Z",
+          "stored": "2026-05-31T02:04:30Z"
+        }
+      },
+      "backupInformation": {
+        "size": {
+          "compressed": 524288000,
+          "uncompressed": 1048576000
+        },
+        "postgresVersion": "160003",
+        "hostname": "uptodate-0"
+      },
+      "sgBackupConfig": {
+        "storage": {
+          "type": "s3Compatible"
+        }
+      }
     }
   },
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGBackup",
-    "metadata": { "name": "minor-and-major-backup-2026-05-30", "namespace": "production", "uid": "66660000-0000-0000-0000-000000000002", "creationTimestamp": "2026-05-30T02:00:00Z" },
-    "spec": { "sgCluster": "minor-and-major", "managedLifecycle": true },
+    "metadata": {
+      "name": "minor-and-major-backup-2026-05-30",
+      "namespace": "production",
+      "uid": "66660000-0000-0000-0000-000000000002",
+      "creationTimestamp": "2026-05-30T02:00:00Z"
+    },
+    "spec": {
+      "sgCluster": "minor-and-major",
+      "managedLifecycle": true
+    },
     "status": {
-      "process": { "status": "Completed", "jobPod": "minor-and-major-backup-2026-05-30-fghij", "timing": { "start": "2026-05-30T02:00:00Z", "end": "2026-05-30T02:09:10Z", "stored": "2026-05-30T02:09:10Z" } },
-      "backupInformation": { "size": { "compressed": 1572864000, "uncompressed": 3145728000 }, "postgresVersion": "160001", "hostname": "minor-and-major-0" },
-      "sgBackupConfig": { "storage": { "type": "s3Compatible" } }
+      "process": {
+        "status": "Completed",
+        "jobPod": "minor-and-major-backup-2026-05-30-fghij",
+        "timing": {
+          "start": "2026-05-30T02:00:00Z",
+          "end": "2026-05-30T02:09:10Z",
+          "stored": "2026-05-30T02:09:10Z"
+        }
+      },
+      "backupInformation": {
+        "size": {
+          "compressed": 1572864000,
+          "uncompressed": 3145728000
+        },
+        "postgresVersion": "160001",
+        "hostname": "minor-and-major-0"
+      },
+      "sgBackupConfig": {
+        "storage": {
+          "type": "s3Compatible"
+        }
+      }
+    }
+  },
+  {
+    "apiVersion": "stackgres.io/v1",
+    "kind": "SGBackup",
+    "metadata": {
+      "name": "uptodate-backup-2026-06-15",
+      "namespace": "default",
+      "uid": "66660000-0000-0000-0000-000000000003",
+      "creationTimestamp": "2026-06-15T02:00:00Z"
+    },
+    "spec": {
+      "sgCluster": "uptodate",
+      "managedLifecycle": true
+    },
+    "status": {
+      "process": {
+        "status": "Completed",
+        "jobPod": "uptodate-backup-2026-06-15-fghij",
+        "timing": {
+          "start": "2026-06-15T02:00:00Z",
+          "end": "2026-06-15T02:04:30Z",
+          "stored": "2026-06-15T02:04:30Z"
+        }
+      },
+      "backupInformation": {
+        "size": {
+          "compressed": 524288000,
+          "uncompressed": 1048576000
+        },
+        "postgresVersion": "160003",
+        "hostname": "uptodate-0"
+      },
+      "sgBackupConfig": {
+        "storage": {
+          "type": "s3Compatible"
+        }
+      }
     }
   }
 ]
