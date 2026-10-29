@@ -6,19 +6,62 @@
     {
       "name": "postgis",
       "abstract": "Geographic objects support for PostgreSQL",
+      "description": "PostGIS adds support for geographic objects to the PostgreSQL database, allowing location queries to be run in SQL.",
+      "tags": ["gis", "geometry", "spatial"],
       "publisher": "com.ongres",
-      "versions": [
-        { "version": "3.4.2", "availableFor": [{ "postgresVersion": "16" }, { "postgresVersion": "15" }] },
-        { "version": "3.3.4", "availableFor": [{ "postgresVersion": "15" }] }
-      ]
+      "repository": "https://extensions.stackgres.io/postgres/repository",
+      "url": "https://postgis.net/",
+      "source": "https://github.com/postgis/postgis",
+      "license": "GPLv2",
+      "versions": ["3.4.2", "3.3.4"]
     },
     {
       "name": "pg_cron",
       "abstract": "Run periodic jobs in PostgreSQL",
+      "description": "pg_cron is a simple cron-based job scheduler for PostgreSQL that runs inside the database as an extension.",
+      "tags": ["jobs", "scheduler", "cron"],
       "publisher": "com.ongres",
-      "versions": [
-        { "version": "1.6.2", "availableFor": [{ "postgresVersion": "16" }, { "postgresVersion": "15" }] }
-      ]
+      "repository": "https://extensions.stackgres.io/postgres/repository",
+      "url": "https://github.com/citusdata/pg_cron",
+      "source": "https://github.com/citusdata/pg_cron",
+      "license": "PostgreSQL",
+      "versions": ["1.6.2"]
+    },
+    {
+      "name": "pg_stat_statements",
+      "abstract": "Track planning and execution statistics of all SQL statements executed",
+      "description": "The pg_stat_statements module provides a means for tracking planning and execution statistics of all SQL statements executed by a server.",
+      "tags": ["statistics", "monitoring"],
+      "publisher": "com.ongres",
+      "repository": "https://extensions.stackgres.io/postgres/repository",
+      "url": "https://www.postgresql.org/docs/current/pgstatstatements.html",
+      "source": "https://github.com/postgres/postgres",
+      "license": "PostgreSQL",
+      "versions": ["1.10", "1.9"]
+    },
+    {
+      "name": "timescaledb_tsl",
+      "abstract": "Enables scalable inserts and complex queries for time-series data (TSL licensed)",
+      "description": "TimescaleDB TSL edition: time-series features under the Timescale License, including continuous aggregates and compression.",
+      "tags": ["time-series"],
+      "publisher": "com.ongres",
+      "repository": "https://extensions.stackgres.io/postgres/repository",
+      "url": "https://www.timescale.com/",
+      "source": "https://github.com/timescale/timescaledb",
+      "license": "TSL",
+      "versions": ["2.14.2"]
+    },
+    {
+      "name": "vector",
+      "abstract": "Open-source vector similarity search for Postgres",
+      "description": "pgvector provides vector data types and similarity search operators for embeddings stored in PostgreSQL.",
+      "tags": ["vector", "embeddings", "search"],
+      "publisher": "com.ongres",
+      "repository": "https://extensions.stackgres.io/postgres/repository",
+      "url": "https://github.com/pgvector/pgvector",
+      "source": "https://github.com/pgvector/pgvector",
+      "license": "PostgreSQL",
+      "versions": []
     }
   ]
 }
