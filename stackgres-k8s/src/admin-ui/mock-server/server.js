@@ -131,6 +131,7 @@ function createApp() {
   });
 
   const namespaces = load('namespaces', ['default']);
+  const requestsLog = [];
 
   // ----- Grafana (served by nginx at the console origin in production) -----
   // /grafana-list returns [{name, url}] with same-origin dashboard URLs; the
@@ -174,7 +175,20 @@ function createApp() {
   app.get('/namespaces', (req, res) => res.json(namespaces));
   app.get('/storageclasses', (req, res) => res.json(load('storageclasses', ['standard'])));
   app.get('/applications', (req, res) => res.json(load('applications', { applications: [] })));
-  app.get('/sgconfigs', (req, res) => res.json(load('sgconfigs', [])));
+  let sgconfigs = null;
+  const sgconfigsItems = () => {
+    if (!sgconfigs) sgconfigs = load('sgconfigs', []);
+    return sgconfigs;
+  };
+  app.get('/sgconfigs', (req, res) => res.json(sgconfigsItems()));
+  app.put('/sgconfigs', (req, res) => {
+    const body = req.body;
+    requestsLog.push({ method: 'PUT', resource: 'sgconfigs', dryRun: req.query.dryRun === 'true', body });
+    const index = sgconfigsItems().findIndex((c) => c.metadata.name === body.metadata.name);
+    if (index < 0) return notFound(res, 'sgconfigs', body.metadata && body.metadata.name);
+    if (req.query.dryRun !== 'true') sgconfigsItems()[index] = body;
+    res.json(body);
+  });
   app.get('/users', (req, res) => res.json(load('users', [])));
   app.get('/roles', (req, res) => res.json(load('roles', [])));
   app.get('/clusterroles', (req, res) => res.json(load('clusterroles', [])));
@@ -224,7 +238,6 @@ function createApp() {
   // POST/PUT/DELETE mirror the REST API shape the console uses: the body is
   // the full resource, ?dryRun=true validates without persisting, and every
   // request is appended to /requests-log so tests can assert exact payloads.
-  const requestsLog = [];
   app.get('/requests-log', (req, res) => res.json(requestsLog));
   const RFC1123 = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/;
   const findIndexOf = (resource, body) =>

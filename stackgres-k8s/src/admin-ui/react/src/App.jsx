@@ -16,6 +16,7 @@ import NamespaceOverview from './components/views/NamespaceOverview'
 import PendingView from './components/views/PendingView'
 import ResourceDetail from './components/views/ResourceDetail'
 import ResourceList from './components/views/ResourceList'
+import SGConfigDetail from './components/views/SGConfigDetail'
 import BackupForm from './components/forms/BackupForm'
 import DbOpsForm from './components/forms/DbOpsForm'
 import DistributedLogsForm from './components/forms/DistributedLogsForm'
@@ -24,6 +25,7 @@ import ObjectStorageForm from './components/forms/ObjectStorageForm'
 import PgConfigForm from './components/forms/PgConfigForm'
 import PoolConfigForm from './components/forms/PoolConfigForm'
 import ScriptForm from './components/forms/ScriptForm'
+import SGConfigForm from './components/forms/SGConfigForm'
 import StreamForm from './components/forms/StreamForm'
 import { KINDS } from './lib/kinds'
 
@@ -88,7 +90,8 @@ export default function App() {
                   <Route path=":namespace/sgstream/:name/edit" element={<StreamForm isEdit />} />
 
                   <Route path=":namespace/application/:name/*" element={<PendingView title="Application" />} />
-                  <Route path="sgconfig/:name" element={<PendingView title="Operator Configuration" />} />
+                  <Route path="sgconfig/:name" element={<SGConfigDetail />} />
+                  <Route path="sgconfig/:name/edit" element={<SGConfigForm />} />
                   <Route path="manage/*" element={<PendingView title="User Management" />} />
                   <Route path="*" element={<PendingView title="Not Found" />} />
                 </Route>
