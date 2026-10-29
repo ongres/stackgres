@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { useData } from '../../contexts/DataContext'
 import { useCrdForm } from '../../hooks/useCrdForm'
 import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildInstanceProfile } from '../../lib/payloads'
@@ -65,47 +66,78 @@ function QuantityInput({ label, value, unit, units, onValue, onUnit, required, e
   )
 }
 
-function ContainerRows({ title, rows, setRows }) {
+function ContainerRows({ title, rows, setRows, hugePages = false }) {
   const update = (index, patch) =>
     setRows(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)))
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
       <legend className="px-1 font-semibold">{title}</legend>
       {rows.map((row, index) => (
-        <div key={index} className="flex flex-wrap items-end gap-2">
-          <Field label="Container Name">
-            <TextInput
-              value={row.name}
-              onChange={(name) => update(index, { name })}
-              required={row.RAM.length > 0 || row.CPU.length > 0}
+        <div key={index} className="flex flex-col gap-2 border p-2">
+          <h3 className="font-semibold">
+            Container #{index + 1}{row.name.length ? `: ${row.name}` : ''}
+          </h3>
+          <div className="flex flex-wrap items-end gap-2">
+            <Field label="Container Name">
+              <TextInput
+                value={row.name}
+                onChange={(name) => update(index, { name })}
+                required={row.RAM.length > 0 || row.CPU.length > 0}
+              />
+            </Field>
+            <button
+              type="button"
+              onClick={() => setRows(rows.filter((_, i) => i !== index))}
+              className="self-center text-sm underline"
+              aria-label={`Delete ${title} row ${index + 1}`}
+            >
+              Delete Container
+            </button>
+          </div>
+          <h4 className="font-semibold">Container Specs</h4>
+          <div className="flex flex-wrap items-end gap-2">
+            <QuantityInput
+              label="RAM"
+              value={row.RAM}
+              unit={row.RAMUnit}
+              units={MEMORY_UNITS}
+              onValue={(RAM) => update(index, { RAM })}
+              onUnit={(RAMUnit) => update(index, { RAMUnit })}
+              required={row.name.length > 0 || row.CPU.length > 0}
             />
-          </Field>
-          <QuantityInput
-            label="RAM"
-            value={row.RAM}
-            unit={row.RAMUnit}
-            units={MEMORY_UNITS}
-            onValue={(RAM) => update(index, { RAM })}
-            onUnit={(RAMUnit) => update(index, { RAMUnit })}
-            required={row.name.length > 0 || row.CPU.length > 0}
-          />
-          <QuantityInput
-            label="CPU"
-            value={row.CPU}
-            unit={row.CPUUnit}
-            units={CPU_UNITS}
-            onValue={(CPU) => update(index, { CPU })}
-            onUnit={(CPUUnit) => update(index, { CPUUnit })}
-            required={row.name.length > 0 || row.RAM.length > 0}
-          />
-          <button
-            type="button"
-            onClick={() => setRows(rows.filter((_, i) => i !== index))}
-            title="Delete row"
-            aria-label={`Delete ${title} row ${index + 1}`}
-          >
-            <Trash2 size={16} />
-          </button>
+            <QuantityInput
+              label="CPU"
+              value={row.CPU}
+              unit={row.CPUUnit}
+              units={CPU_UNITS}
+              onValue={(CPU) => update(index, { CPU })}
+              onUnit={(CPUUnit) => update(index, { CPUUnit })}
+              required={row.name.length > 0 || row.RAM.length > 0}
+            />
+          </div>
+          {hugePages && (
+            <>
+              <h4 className="font-semibold">Container Huge Pages Specs</h4>
+              <div className="flex flex-wrap items-end gap-2">
+                <QuantityInput
+                  label="Huge Pages 2Mi"
+                  value={row.hugePages2Mi}
+                  unit={row.hugePages2MiUnit}
+                  units={MEMORY_UNITS}
+                  onValue={(hugePages2Mi) => update(index, { hugePages2Mi })}
+                  onUnit={(hugePages2MiUnit) => update(index, { hugePages2MiUnit })}
+                />
+                <QuantityInput
+                  label="Huge Pages 1Gi"
+                  value={row.hugePages1Gi}
+                  unit={row.hugePages1GiUnit}
+                  units={MEMORY_UNITS}
+                  onValue={(hugePages1Gi) => update(index, { hugePages1Gi })}
+                  onUnit={(hugePages1GiUnit) => update(index, { hugePages1GiUnit })}
+                />
+              </div>
+            </>
+          )}
         </div>
       ))}
       <button
@@ -113,15 +145,24 @@ function ContainerRows({ title, rows, setRows }) {
         onClick={() => setRows([...rows, blankContainer()])}
         className="flex items-center gap-1 self-start text-sm underline"
       >
-        <Plus size={14} /> Add row
+        <Plus size={14} /> Add Container
       </button>
     </fieldset>
   )
 }
 
+const FORM_STEPS = [
+  ['profile', 'Profile'],
+  ['containers', 'Containers'],
+  ['initContainers', 'Init Containers'],
+  ['requests', 'Requests'],
+]
+
 export default function InstanceProfileForm({ isEdit }) {
   const { namespace, name: routeName } = useParams()
   const { previous, loaded } = useExistingResource('sginstanceprofiles', namespace, routeName, isEdit)
+  const data = useData()
+  const [currentStep, setCurrentStep] = useState('profile')
 
   const [name, setName] = useState(routeName || '')
   const [ram, setRam] = useState('')
@@ -214,36 +255,83 @@ export default function InstanceProfileForm({ isEdit }) {
     return <p className="p-8 text-sm">Loading data…</p>
   }
 
+  const nameCollision =
+    !isEdit &&
+    (data.sginstanceprofiles || []).some(
+      (profile) => profile.metadata.name === name && profile.metadata.namespace === namespace
+    )
+  const clusters = (data.sgclusters || []).filter(
+    (cluster) =>
+      cluster.metadata.namespace === namespace && cluster.spec?.sgInstanceProfile === routeName
+  )
+
   return (
     <CrdFormShell title={isEdit ? `Edit Profile: ${routeName}` : 'Create Instance Profile'} form={form}>
-      <Field label="Profile Name" required error={form.errors.name}>
-        <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
-      </Field>
-      <div className="flex flex-wrap gap-4">
-        <QuantityInput label="RAM" value={ram} unit={ramUnit} units={MEMORY_UNITS} onValue={setRam} onUnit={setRamUnit} required error={form.errors.ram} />
-        <QuantityInput label="CPU" value={cpu} unit={cpuUnit} units={CPU_UNITS} onValue={setCpu} onUnit={setCpuUnit} required error={form.errors.cpu} />
-      </div>
-      <div className="flex flex-wrap gap-4">
-        <QuantityInput label="Huge Pages 2Mi" value={hugePages2Mi} unit={hugePages2MiUnit} units={MEMORY_UNITS} onValue={setHugePages2Mi} onUnit={setHugePages2MiUnit} />
-        <QuantityInput label="Huge Pages 1Gi" value={hugePages1Gi} unit={hugePages1GiUnit} units={MEMORY_UNITS} onValue={setHugePages1Gi} onUnit={setHugePages1GiUnit} />
-      </div>
-      <ContainerRows title="Containers" rows={containers} setRows={setContainers} />
-      <ContainerRows title="Init Containers" rows={initContainers} setRows={setInitContainers} />
-      <fieldset className="flex flex-col gap-2 border p-3">
-        <legend className="px-1 font-semibold">Requests</legend>
-        <div className="flex flex-wrap gap-4">
-          <QuantityInput label="RAM" value={requests.RAM} unit={requests.RAMUnit} units={MEMORY_UNITS}
-            onValue={(RAM) => setRequests({ ...requests, RAM })}
-            onUnit={(RAMUnit) => setRequests({ ...requests, RAMUnit })} />
-          <QuantityInput label="CPU" value={requests.CPU} unit={requests.CPUUnit} units={CPU_UNITS}
-            onValue={(CPU) => setRequests({ ...requests, CPU })}
-            onUnit={(CPUUnit) => setRequests({ ...requests, CPUUnit })} />
-        </div>
-        <ContainerRows title="Containers Requests" rows={requests.containers}
-          setRows={(rows) => setRequests({ ...requests, containers: rows })} />
-        <ContainerRows title="Init Containers Requests" rows={requests.initContainers}
-          setRows={(rows) => setRequests({ ...requests, initContainers: rows })} />
-      </fieldset>
+      {isEdit && clusters.length > 0 && (
+        <p role="note" className="border p-2 text-sm">
+          Please, be aware that any changes made to this instance profile will require a{' '}
+          <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank" rel="noreferrer"
+            className="underline">
+            restart operation
+          </a>{' '}
+          on every instance on the following cluster(s):{' '}
+          {clusters.map((cluster) => cluster.metadata.name).join(', ')}
+        </p>
+      )}
+      <nav aria-label="Form steps" className="flex flex-wrap gap-3 border-b pb-2 text-sm">
+        {FORM_STEPS.map(([step, label]) => (
+          <button key={step} type="button" onClick={() => setCurrentStep(step)}
+            className={currentStep === step ? 'font-semibold underline' : ''}>
+            {label}
+          </button>
+        ))}
+      </nav>
+      {currentStep === 'profile' && (
+        <>
+          <h2 className="text-lg font-semibold">Profile Information</h2>
+          <Field label="Profile Name" required error={form.errors.name}>
+            <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
+          </Field>
+          {nameCollision && (
+            <p role="alert">
+              There&apos;s already a <strong>SGInstanceProfile</strong> with the same name on this
+              namespace. Please specify a different name or create the profile on another namespace
+            </p>
+          )}
+          <div className="flex flex-wrap gap-4">
+            <QuantityInput label="RAM" value={ram} unit={ramUnit} units={MEMORY_UNITS} onValue={setRam} onUnit={setRamUnit} required error={form.errors.ram} />
+            <QuantityInput label="CPU" value={cpu} unit={cpuUnit} units={CPU_UNITS} onValue={setCpu} onUnit={setCpuUnit} required error={form.errors.cpu} />
+          </div>
+          <h2 className="text-lg font-semibold">Huge Pages Specs</h2>
+          <div className="flex flex-wrap gap-4">
+            <QuantityInput label="Huge Pages 2Mi" value={hugePages2Mi} unit={hugePages2MiUnit} units={MEMORY_UNITS} onValue={setHugePages2Mi} onUnit={setHugePages2MiUnit} />
+            <QuantityInput label="Huge Pages 1Gi" value={hugePages1Gi} unit={hugePages1GiUnit} units={MEMORY_UNITS} onValue={setHugePages1Gi} onUnit={setHugePages1GiUnit} />
+          </div>
+        </>
+      )}
+      {currentStep === 'containers' && (
+        <ContainerRows title="Containers" rows={containers} setRows={setContainers} hugePages />
+      )}
+      {currentStep === 'initContainers' && (
+        <ContainerRows title="Init Containers" rows={initContainers} setRows={setInitContainers} hugePages />
+      )}
+      {currentStep === 'requests' && (
+        <fieldset className="flex flex-col gap-2 border p-3">
+          <legend className="px-1 font-semibold">Requests</legend>
+          <div className="flex flex-wrap gap-4">
+            <QuantityInput label="RAM" value={requests.RAM} unit={requests.RAMUnit} units={MEMORY_UNITS}
+              onValue={(RAM) => setRequests({ ...requests, RAM })}
+              onUnit={(RAMUnit) => setRequests({ ...requests, RAMUnit })} />
+            <QuantityInput label="CPU" value={requests.CPU} unit={requests.CPUUnit} units={CPU_UNITS}
+              onValue={(CPU) => setRequests({ ...requests, CPU })}
+              onUnit={(CPUUnit) => setRequests({ ...requests, CPUUnit })} />
+          </div>
+          <ContainerRows title="Containers Specs" rows={requests.containers}
+            setRows={(rows) => setRequests({ ...requests, containers: rows })} />
+          <ContainerRows title="Init Containers Specs" rows={requests.initContainers}
+            setRows={(rows) => setRequests({ ...requests, initContainers: rows })} />
+        </fieldset>
+      )}
     </CrdFormShell>
   )
 }

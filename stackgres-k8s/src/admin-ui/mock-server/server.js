@@ -246,6 +246,80 @@ function createApp() {
         r.metadata.name === body.metadata.name &&
         r.metadata.namespace === body.metadata.namespace
     );
+  // Minimal semantics of the real config endpoints: a POST/PUT response (dry
+  // run included) carries a status with the StackGres default parameters and
+  // the resolved configuration, which the console's "Default Parameters"
+  // tables read.
+  const PG_DEFAULT_PARAMETERS = {
+    autovacuum_max_workers: '3',
+    checkpoint_completion_target: '0.9',
+    checkpoint_timeout: '15min',
+    default_statistics_target: '200',
+    effective_cache_size: '512MB',
+    log_checkpoints: 'on',
+    maintenance_work_mem: '64MB',
+    max_connections: '100',
+    password_encryption: 'scram-sha-256',
+    random_page_cost: '1.5',
+    shared_buffers: '128MB',
+    wal_compression: 'lz4',
+    work_mem: '4MB',
+  };
+  const PGBOUNCER_DEFAULT_PARAMETERS = {
+    default_pool_size: '50',
+    ignore_startup_parameters: 'extra_float_digits',
+    max_client_conn: '1000',
+    max_db_connections: '0',
+    max_user_connections: '0',
+    pool_mode: 'session',
+  };
+  const parseParamsBlob = (blob) => {
+    const result = {};
+    String(typeof blob === 'string' ? blob : '').split('\n').forEach((line) => {
+      const match = line.match(/^\s*([^=#\s]+)\s*=\s*(.*?)\s*$/);
+      if (match) result[match[1]] = match[2].replace(/^'(.*)'$/, '$1');
+    });
+    return result;
+  };
+  const resolveParams = (defaults, overrides, withDocs) => {
+    const merged = Object.entries(defaults).map(([parameter, value]) => ({
+      parameter,
+      value: Object.prototype.hasOwnProperty.call(overrides, parameter)
+        ? overrides[parameter]
+        : value,
+      ...(withDocs && {
+        documentationLink: 'https://postgresqlco.nf/doc/en/param/' + parameter + '/',
+      }),
+    }));
+    Object.entries(overrides).forEach(([parameter, value]) => {
+      if (!Object.prototype.hasOwnProperty.call(defaults, parameter)) {
+        merged.push({ parameter, value });
+      }
+    });
+    return merged;
+  };
+  const attachConfigStatus = (resource, item) => {
+    if (resource === 'sgpgconfigs') {
+      const overrides = parseParamsBlob(item.spec && item.spec['postgresql.conf']);
+      item.status = {
+        ...(item.status || {}),
+        defaultParameters: PG_DEFAULT_PARAMETERS,
+        'postgresql.conf': resolveParams(PG_DEFAULT_PARAMETERS, overrides, true),
+      };
+    } else if (resource === 'sgpoolconfigs') {
+      const overrides = parseParamsBlob(
+        item.spec && item.spec.pgBouncer && item.spec.pgBouncer['pgbouncer.ini']
+      );
+      item.status = {
+        ...(item.status || {}),
+        pgBouncer: {
+          defaultParameters: PGBOUNCER_DEFAULT_PARAMETERS,
+          'pgbouncer.ini': resolveParams(PGBOUNCER_DEFAULT_PARAMETERS, overrides, false),
+        },
+      };
+    }
+  };
+
   NAMESPACED_RESOURCES.forEach((resource) => {
     app.post('/' + resource, (req, res) => {
       const body = req.body;
@@ -263,6 +337,7 @@ function createApp() {
           detail: 'AlreadyExists',
         });
       }
+      attachConfigStatus(resource, body);
       if (req.query.dryRun !== 'true') {
         items(resource).push(body);
       }
@@ -275,6 +350,7 @@ function createApp() {
       if (index < 0) {
         return notFound(res, resource, body.metadata && body.metadata.name);
       }
+      attachConfigStatus(resource, body);
       if (req.query.dryRun !== 'true') {
         items(resource)[index] = body;
       }

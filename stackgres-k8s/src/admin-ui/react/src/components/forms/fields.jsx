@@ -54,13 +54,13 @@ export function Select({ value, onChange, options, placeholder, ...rest }) {
       {...rest}
     >
       {placeholder && <option value="">{placeholder}</option>}
-      {options.map((option) =>
+      {options.map((option, index) =>
         typeof option === 'string' ? (
           <option key={option} value={option}>
             {option}
           </option>
         ) : (
-          <option key={option.value} value={option.value}>
+          <option key={`${option.value}-${index}`} value={option.value} disabled={option.disabled}>
             {option.label}
           </option>
         )
@@ -69,12 +69,56 @@ export function Select({ value, onChange, options, placeholder, ...rest }) {
   )
 }
 
-export function Toggle({ label, checked, onChange }) {
+export function Toggle({ label, checked, onChange, disabled }) {
   return (
     <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+      <input type="checkbox" checked={checked} disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)} />
       {label}
     </label>
+  )
+}
+
+// "Default Parameters" table of the config forms: the resolved configuration
+// rows still carrying their StackGres default value.
+export function DefaultParametersTable({ intro, defaults, resolved, loading }) {
+  const rows = (resolved || []).filter(
+    (parameter) =>
+      Object.hasOwn(defaults || {}, parameter.parameter) &&
+      defaults[parameter.parameter] === parameter.value
+  )
+  if (!rows.length && !loading) {
+    return null
+  }
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="text-lg font-semibold">Default Parameters</h2>
+      <p>{intro}</p>
+      {loading ? (
+        <p>Loading default parameters…</p>
+      ) : (
+        <table className="w-fit text-left">
+          <tbody>
+            {rows.map((parameter) => (
+              <tr key={parameter.parameter}>
+                <td className="pr-4 font-mono">
+                  {parameter.documentationLink ? (
+                    <a href={parameter.documentationLink} target="_blank" rel="noreferrer"
+                      className="underline"
+                      title={`Read documentation about ${parameter.parameter}`}>
+                      {parameter.parameter}
+                    </a>
+                  ) : (
+                    parameter.parameter
+                  )}
+                </td>
+                <td className="font-mono">{parameter.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
   )
 }
 

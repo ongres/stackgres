@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Plus, Trash2 } from 'lucide-react'
+import { useData } from '../../contexts/DataContext'
 import { useCrdForm } from '../../hooks/useCrdForm'
 import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildScript } from '../../lib/payloads'
@@ -10,14 +11,14 @@ import { Field, Select, TextArea, TextInput, Toggle } from './fields'
 
 const SOURCES = [
   { value: 'raw', label: 'Raw script' },
-  { value: 'secretKeyRef', label: 'Secret Key Ref' },
-  { value: 'configMapKeyRef', label: 'ConfigMap Key Ref' },
+  { value: 'secretKeyRef', label: 'From Secret' },
+  { value: 'configMapKeyRef', label: 'From ConfigMap' },
 ]
 const TRANSACTION_MODES = [
   { value: '', label: 'NONE' },
-  { value: 'read-committed', label: 'Read Committed' },
-  { value: 'repeatable-read', label: 'Repeatable Read' },
-  { value: 'serializable', label: 'Serializable' },
+  { value: 'read-committed', label: 'READ COMMITTED' },
+  { value: 'repeatable-read', label: 'REPEATABLE READ' },
+  { value: 'serializable', label: 'SERIALIZABLE' },
 ]
 
 const blankEntry = () => ({
@@ -39,6 +40,7 @@ function sourceOf(entry) {
 export default function ScriptForm({ isEdit }) {
   const { namespace, name: routeName } = useParams()
   const { previous, loaded } = useExistingResource('sgscripts', namespace, routeName, isEdit)
+  const data = useData()
 
   const [name, setName] = useState(routeName || '')
   const [continueOnError, setContinueOnError] = useState(false)
@@ -73,6 +75,17 @@ export default function ScriptForm({ isEdit }) {
     }
   }
 
+  const moveEntry = (index, direction) => {
+    const target = index + direction
+    if (target < 0 || target >= scripts.length) return
+    const nextScripts = [...scripts]
+    ;[nextScripts[index], nextScripts[target]] = [nextScripts[target], nextScripts[index]]
+    const nextSources = [...scriptSource]
+    ;[nextSources[index], nextSources[target]] = [nextSources[target], nextSources[index]]
+    setScripts(nextScripts)
+    setScriptSource(nextSources)
+  }
+
   const uploadScript = (index) => (event) => {
     const file = event.target.files && event.target.files[0]
     if (!file) return
@@ -104,11 +117,37 @@ export default function ScriptForm({ isEdit }) {
     return <p className="p-8 text-sm">Loading data…</p>
   }
 
+  const nameCollision =
+    !isEdit &&
+    (data.sgscripts || []).some(
+      (script) => script.metadata.name === name && script.metadata.namespace === namespace
+    )
+  const usedByClusters = (data.sgclusters || [])
+    .filter(
+      (cluster) =>
+        cluster.metadata.namespace === namespace &&
+        (cluster.spec?.managedSql?.scripts || []).some((entry) => entry.sgScript === routeName)
+    )
+    .map((cluster) => cluster.metadata.name)
+
   return (
     <CrdFormShell title={isEdit ? `Edit Script: ${routeName}` : 'Create Script'} form={form}>
+      {isEdit && usedByClusters.length > 0 && (
+        <p role="note" className="border p-2 text-sm">
+          Please, be aware that some changes made to this script might affect every instance on the
+          following cluster(s): {usedByClusters.join(', ')}
+        </p>
+      )}
       <Field label="Script Name" required error={form.errors.name}>
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
+      {nameCollision && (
+        <p role="alert">
+          There&apos;s already an <strong>SGScript</strong> with the same name on this namespace.
+          Please specify a different name or create the resource on another namespace
+        </p>
+      )}
+      <h3 className="font-semibold">Scripts</h3>
       <Toggle label="Continue on Error" checked={continueOnError} onChange={setContinueOnError} />
       <Toggle label="Managed Versions" checked={managedVersions} onChange={setManagedVersions} />
       {form.errors.scripts && (
@@ -122,15 +161,31 @@ export default function ScriptForm({ isEdit }) {
             Script Entry #{index + 1}
             {entry.name ? ` – ${entry.name}` : ''}
           </legend>
+          <div className="flex gap-2">
+            <button type="button" className="text-sm underline" disabled={index === 0}
+              onClick={() => moveEntry(index, -1)}>
+              Move Up
+            </button>
+            <button type="button" className="text-sm underline" disabled={index === scripts.length - 1}
+              onClick={() => moveEntry(index, 1)}>
+              Move Down
+            </button>
+          </div>
+          {isEdit && Object.hasOwn(entry, 'version') && (
+            <Field label="Version">
+              <TextInput type="number" value={entry.version}
+                onChange={(value) => updateEntry(index, { version: value === '' ? '' : Number(value) })} />
+            </Field>
+          )}
           <div className="flex flex-wrap gap-3">
             <Field label="Name">
-              <TextInput value={entry.name} onChange={(value) => updateEntry(index, { name: value })} />
+              <TextInput value={entry.name} placeholder="Type a name..." onChange={(value) => updateEntry(index, { name: value })} />
             </Field>
             <Field label="Database">
-              <TextInput value={entry.database} onChange={(value) => updateEntry(index, { database: value })} />
+              <TextInput value={entry.database} placeholder="Type a database name..." onChange={(value) => updateEntry(index, { database: value })} />
             </Field>
             <Field label="User">
-              <TextInput value={entry.user} onChange={(value) => updateEntry(index, { user: value })} />
+              <TextInput value={entry.user} placeholder="Type a user name..." onChange={(value) => updateEntry(index, { user: value })} />
             </Field>
             <Field label="Wrap in Transaction">
               <Select
@@ -141,7 +196,7 @@ export default function ScriptForm({ isEdit }) {
             </Field>
           </div>
           <div className="flex flex-wrap gap-4">
-            <Toggle label="Store Status in Database" checked={entry.storeStatusInDatabase}
+            <Toggle label="Store Status in Databases" checked={entry.storeStatusInDatabase}
               onChange={(value) => updateEntry(index, { storeStatusInDatabase: value })} />
             <Toggle label="Retry on Error" checked={entry.retryOnError}
               onChange={(value) => updateEntry(index, { retryOnError: value })} />
@@ -151,12 +206,16 @@ export default function ScriptForm({ isEdit }) {
           </Field>
           {scriptSource[index] === 'raw' ? (
             <Field label="Script" required>
-              <TextArea value={entry.script || ''} onChange={(value) => updateEntry(index, { script: value })} required rows={8} />
+              <TextArea value={entry.script || ''} placeholder="Type a script..." onChange={(value) => updateEntry(index, { script: value })} required rows={8} />
               <input type="file" onChange={uploadScript(index)} aria-label={`Upload script file for entry ${index + 1}`} />
             </Field>
           ) : (
+            <div className="flex flex-col gap-2">
+            <h3 className="font-semibold">
+              {scriptSource[index] === 'secretKeyRef' ? 'Secret Key Ref' : 'Config Map Key Ref'}
+            </h3>
             <div className="flex flex-wrap gap-3">
-              <Field label={`${scriptSource[index]} Name`} required>
+              <Field label="Name" required>
                 <TextInput
                   value={entry.scriptFrom?.[scriptSource[index]]?.name || ''}
                   onChange={(value) =>
@@ -166,10 +225,11 @@ export default function ScriptForm({ isEdit }) {
                       },
                     })
                   }
+                  placeholder="Type a name.."
                   required
                 />
               </Field>
-              <Field label={`${scriptSource[index]} Key`} required>
+              <Field label="Key" required>
                 <TextInput
                   value={entry.scriptFrom?.[scriptSource[index]]?.key || ''}
                   onChange={(value) =>
@@ -179,9 +239,20 @@ export default function ScriptForm({ isEdit }) {
                       },
                     })
                   }
+                  placeholder="Type a key.."
                   required
                 />
               </Field>
+            </div>
+            {isEdit && entry.scriptFrom?.configMapScript !== undefined && (
+              <Field label="ConfigMap Script">
+                <TextArea value={entry.scriptFrom.configMapScript || ''} rows={8}
+                  onChange={(value) =>
+                    updateEntry(index, {
+                      scriptFrom: { ...entry.scriptFrom, configMapScript: value },
+                    })} />
+              </Field>
+            )}
             </div>
           )}
           <button

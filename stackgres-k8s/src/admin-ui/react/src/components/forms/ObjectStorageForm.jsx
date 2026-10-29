@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useData } from '../../contexts/DataContext'
 import { useCrdForm } from '../../hooks/useCrdForm'
 import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildObjectStorage } from '../../lib/payloads'
@@ -10,18 +11,24 @@ import { Field, Select, TextInput, Toggle } from './fields'
 const MASK = '******'
 const TYPES = [
   { value: 's3', label: 'Amazon S3' },
-  { value: 's3Compatible', label: 'S3 Compatible' },
+  { value: 's3Compatible', label: 'Amazon S3 API Compatible' },
   { value: 'gcs', label: 'Google Cloud Storage' },
   { value: 'azureBlob', label: 'Azure Blob Storage' },
 ]
-const S3_STORAGE_CLASSES = ['STANDARD', 'STANDARD_IA', 'REDUCED_REDUNDANCY']
+const S3_STORAGE_CLASSES = [
+  { value: 'STANDARD', label: 'Standard' },
+  { value: 'STANDARD_IA', label: 'Infrequent Access' },
+  { value: 'REDUCED_REDUNDANCY', label: 'Reduced Redundancy' },
+]
 
 export default function ObjectStorageForm({ isEdit }) {
   const { namespace, name: routeName } = useParams()
   const { previous, loaded } = useExistingResource('sgobjectstorages', namespace, routeName, isEdit)
+  const data = useData()
 
   const [name, setName] = useState(routeName || '')
   const [type, setType] = useState('')
+  const [advancedMode, setAdvancedMode] = useState(false)
   const [secretKeySelectors, setSecretKeySelectors] = useState({})
   const [s3, setS3] = useState({ bucket: '', region: '', storageClass: '', accessKeyId: '', secretAccessKey: '' })
   const [s3Compatible, setS3Compatible] = useState({
@@ -95,6 +102,12 @@ export default function ObjectStorageForm({ isEdit }) {
     return <p className="p-8 text-sm">Loading data…</p>
   }
 
+  const nameCollision =
+    !isEdit &&
+    (data.sgobjectstorages || []).some(
+      (storage) => storage.metadata.name === name && storage.metadata.namespace === namespace
+    )
+
   const uploadJSON = (event) => {
     const file = event.target.files && event.target.files[0]
     if (!file) {
@@ -117,60 +130,91 @@ export default function ObjectStorageForm({ isEdit }) {
       <Field label="Configuration Name" required error={form.errors.name}>
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
-      <Field label="Storage Type" required error={form.errors.type}>
-        <Select value={type} onChange={setType} options={TYPES} placeholder="Select a type…" required />
-      </Field>
+      {nameCollision && (
+        <p role="alert">
+          There&apos;s already an <strong>SGObjectStorage</strong> with the same name on this
+          namespace. Please specify a different name or create the configuration on another namespace
+        </p>
+      )}
+      <Toggle label="Advanced options" checked={advancedMode} onChange={setAdvancedMode} />
+      <fieldset className="flex flex-col gap-2 border p-3">
+        <legend className="px-1 font-semibold">Storage Type *</legend>
+        {form.errors.type && <p role="alert">{form.errors.type}</p>}
+        <div className="flex flex-wrap gap-3">
+          {TYPES.map((candidate) => (
+            <label key={candidate.value} className="flex items-center gap-2 border p-2">
+              <input type="radio" name="storageType" value={candidate.value}
+                checked={type === candidate.value} onChange={() => setType(candidate.value)} />
+              {candidate.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       {type === 's3' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Amazon S3</legend>
+          <legend className="px-1 font-semibold">Amazon S3 Configuration</legend>
           <Field label="Bucket" required error={form.errors.bucket}>
             <TextInput value={s3.bucket} onChange={(bucket) => setS3({ ...s3, bucket })} required />
           </Field>
-          <Field label="Region">
-            <TextInput value={s3.region} onChange={(region) => setS3({ ...s3, region })} />
-          </Field>
+          {advancedMode && (
+            <Field label="Region">
+              <TextInput value={s3.region} onChange={(region) => setS3({ ...s3, region })} />
+            </Field>
+          )}
           <Field label="API Key" required>
             <TextInput value={s3.accessKeyId} onChange={(accessKeyId) => setS3({ ...s3, accessKeyId })} required />
           </Field>
           <Field label="API Secret" required>
             <TextInput type="password" value={s3.secretAccessKey} onChange={(secretAccessKey) => setS3({ ...s3, secretAccessKey })} required />
           </Field>
-          <Field label="Storage Class">
-            <Select value={s3.storageClass} onChange={(storageClass) => setS3({ ...s3, storageClass })} options={S3_STORAGE_CLASSES} placeholder="Default" />
-          </Field>
+          {advancedMode && (
+            <Field label="Storage Class">
+              <Select value={s3.storageClass} onChange={(storageClass) => setS3({ ...s3, storageClass })} options={S3_STORAGE_CLASSES} placeholder="Select Storage Class..." />
+            </Field>
+          )}
         </fieldset>
       )}
 
       {type === 's3Compatible' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">S3 Compatible</legend>
+          <legend className="px-1 font-semibold">AS3 Compatible Configuration</legend>
           <Field label="Bucket" required error={form.errors.bucket}>
             <TextInput value={s3Compatible.bucket} onChange={(bucket) => setS3Compatible({ ...s3Compatible, bucket })} required />
           </Field>
-          <Field label="Endpoint">
-            <TextInput value={s3Compatible.endpoint} onChange={(endpoint) => setS3Compatible({ ...s3Compatible, endpoint })} />
-          </Field>
-          <Field label="Region">
-            <TextInput value={s3Compatible.region} onChange={(region) => setS3Compatible({ ...s3Compatible, region })} />
-          </Field>
+          {advancedMode && (
+            <>
+              <Field label="Endpoint">
+                <TextInput value={s3Compatible.endpoint} onChange={(endpoint) => setS3Compatible({ ...s3Compatible, endpoint })} />
+              </Field>
+              <Field label="Region">
+                <TextInput value={s3Compatible.region} onChange={(region) => setS3Compatible({ ...s3Compatible, region })} />
+              </Field>
+            </>
+          )}
           <Field label="API Key" required>
             <TextInput value={s3Compatible.accessKeyId} onChange={(accessKeyId) => setS3Compatible({ ...s3Compatible, accessKeyId })} required />
           </Field>
           <Field label="API Secret" required>
             <TextInput type="password" value={s3Compatible.secretAccessKey} onChange={(secretAccessKey) => setS3Compatible({ ...s3Compatible, secretAccessKey })} required />
           </Field>
-          <Toggle label="Bucket URL Force Path Style" checked={s3Compatible.enablePathStyleAddressing}
-            onChange={(enablePathStyleAddressing) => setS3Compatible({ ...s3Compatible, enablePathStyleAddressing })} />
-          <Field label="Storage Class">
-            <Select value={s3Compatible.storageClass} onChange={(storageClass) => setS3Compatible({ ...s3Compatible, storageClass })} options={S3_STORAGE_CLASSES} placeholder="Default" />
-          </Field>
+          {advancedMode && (
+            <>
+              <Field label="Enable Path Style Addressing">
+                <Toggle label="Bucket URL Force Path Style" checked={s3Compatible.enablePathStyleAddressing}
+                  onChange={(enablePathStyleAddressing) => setS3Compatible({ ...s3Compatible, enablePathStyleAddressing })} />
+              </Field>
+              <Field label="Storage Class">
+                <Select value={s3Compatible.storageClass} onChange={(storageClass) => setS3Compatible({ ...s3Compatible, storageClass })} options={S3_STORAGE_CLASSES} placeholder="Select Storage Class..." />
+              </Field>
+            </>
+          )}
         </fieldset>
       )}
 
       {type === 'gcs' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Google Cloud Storage</legend>
+          <legend className="px-1 font-semibold">Google Cloud Storage Configuration</legend>
           <Field label="Bucket" required error={form.errors.bucket}>
             <TextInput value={gcs.bucket} onChange={(bucket) => setGcs({ ...gcs, bucket })} required />
           </Field>
@@ -185,12 +229,35 @@ export default function ObjectStorageForm({ isEdit }) {
               <input type="file" accept=".json,application/json" onChange={uploadJSON} required={!isEdit} />
             </Field>
           )}
+          {!gcs.fetchCredentials && isEdit && (
+            <>
+              <p className="text-center font-semibold">– OR –</p>
+              <div className="flex flex-wrap gap-3">
+                <Field label="Service Account JSON Name">
+                  <TextInput value={secretKeySelectors.serviceAccountJSON?.name || ''}
+                    onChange={(value) =>
+                      setSecretKeySelectors({
+                        ...secretKeySelectors,
+                        serviceAccountJSON: { ...secretKeySelectors.serviceAccountJSON, name: value },
+                      })} />
+                </Field>
+                <Field label="Service Account JSON Key">
+                  <TextInput value={secretKeySelectors.serviceAccountJSON?.key || ''}
+                    onChange={(value) =>
+                      setSecretKeySelectors({
+                        ...secretKeySelectors,
+                        serviceAccountJSON: { ...secretKeySelectors.serviceAccountJSON, key: value },
+                      })} />
+                </Field>
+              </div>
+            </>
+          )}
         </fieldset>
       )}
 
       {type === 'azureBlob' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Azure Blob Storage</legend>
+          <legend className="px-1 font-semibold">Microsoft Azure Configuration</legend>
           <Field label="Bucket" required error={form.errors.bucket}>
             <TextInput value={azureBlob.bucket} onChange={(bucket) => setAzureBlob({ ...azureBlob, bucket })} required />
           </Field>

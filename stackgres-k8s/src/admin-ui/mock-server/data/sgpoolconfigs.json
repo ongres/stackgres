@@ -2,10 +2,53 @@
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGPoolingConfig",
-    "metadata": { "name": "poolconfig-default", "namespace": "default", "uid": "55550000-0000-0000-0000-000000000001", "creationTimestamp": "2026-01-05T08:00:00Z" },
+    "metadata": {
+      "name": "poolconfig-default",
+      "namespace": "default",
+      "uid": "55550000-0000-0000-0000-000000000001",
+      "creationTimestamp": "2026-01-05T08:00:00Z"
+    },
     "spec": {
       "pgBouncer": {
-        "pgbouncer.ini": { "pgbouncer": { "pool_mode": "transaction", "max_client_conn": "1000", "default_pool_size": "20" } }
+        "pgbouncer.ini": "pool_mode=transaction\nmax_client_conn=1000\ndefault_pool_size=20"
+      }
+    },
+    "status": {
+      "pgBouncer": {
+        "defaultParameters": {
+          "default_pool_size": "50",
+          "ignore_startup_parameters": "extra_float_digits",
+          "max_client_conn": "1000",
+          "max_db_connections": "0",
+          "max_user_connections": "0",
+          "pool_mode": "session"
+        },
+        "pgbouncer.ini": [
+          {
+            "parameter": "default_pool_size",
+            "value": "20"
+          },
+          {
+            "parameter": "ignore_startup_parameters",
+            "value": "extra_float_digits"
+          },
+          {
+            "parameter": "max_client_conn",
+            "value": "1000"
+          },
+          {
+            "parameter": "max_db_connections",
+            "value": "0"
+          },
+          {
+            "parameter": "max_user_connections",
+            "value": "0"
+          },
+          {
+            "parameter": "pool_mode",
+            "value": "transaction"
+          }
+        ]
       }
     }
   }

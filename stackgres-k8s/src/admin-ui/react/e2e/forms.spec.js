@@ -91,7 +91,7 @@ test('creates a benchmark dbops with the exact payload', async ({ page }) => {
 
   await page.getByLabel(/Operation Name/).fill('bench-e2e')
   await page.getByLabel(/Target Cluster/).selectOption('uptodate')
-  await page.locator('form').getByLabel(/Database Operation/).selectOption('benchmark')
+  await page.getByRole('radio', { name: 'Benchmark' }).check()
   await page.getByLabel(/Database Size/).first().fill('2')
   await page.getByLabel('Duration minutes').selectOption('5')
   await page.getByRole('button', { name: 'Create' }).click()
@@ -173,8 +173,11 @@ test('creates a stream from SGCluster to CloudEvent with the exact payload', asy
   await page.goto('/admin/default/sgstreams/new')
 
   await page.getByLabel(/Stream Name/).fill('stream-e2e')
+  const steps = page.getByRole('navigation', { name: 'Form steps' })
+  await steps.getByRole('button', { name: 'source' }).click()
   await page.getByLabel(/Source Type/).selectOption('SGCluster')
   await page.getByLabel(/SGCluster Name/).selectOption('uptodate')
+  await steps.getByRole('button', { name: 'target' }).click()
   await page.getByLabel(/Target Type/).selectOption('CloudEvent')
   await page.getByRole('textbox', { name: 'URL', exact: true }).fill('https://sink.example/events')
   await page.getByRole('button', { name: 'Create' }).click()
@@ -205,4 +208,33 @@ test('clones a postgres configuration into another namespace', async ({ page }) 
   const request = await lastRequest(page, 'POST', 'sgpgconfigs')
   expect(request.body.metadata.name).toBe(`copy-of-${originalName.trim()}`)
   expect(request.body.metadata.namespace).toBe('demo')
+})
+
+test('postgres config form shows the default parameters for the chosen version', async ({ page }) => {
+  await login(page)
+  await page.goto('/admin/default/sgpgconfigs/new')
+
+  await page.getByLabel(/Postgres Version/).selectOption({ index: 1 })
+  await expect(page.getByRole('heading', { name: 'Default Parameters' })).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'shared_buffers' })).toBeVisible()
+  await expect(page.getByRole('cell', { name: '128MB' })).toBeVisible()
+})
+
+test('dbops form sends node tolerations in the payload', async ({ page }) => {
+  await login(page)
+  await page.goto('/admin/default/sgdbops/new')
+
+  await page.getByLabel(/Operation Name/).fill('tolerated-restart')
+  await page.getByLabel(/Target Cluster/).selectOption('uptodate')
+  await page.getByRole('radio', { name: 'Restart' }).check()
+  await page.getByRole('button', { name: 'Add Toleration' }).click()
+  await page.getByRole('textbox', { name: 'Key', exact: true }).fill('db-only')
+  await page.getByRole('combobox', { name: 'Operator', exact: true }).selectOption('Exists')
+  await page.getByRole('button', { name: 'Create' }).click()
+
+  await expect(page).toHaveURL(/\/admin\/default\/sgdbops$/)
+  const request = await lastRequest(page, 'POST', 'sgdbops')
+  expect(request.body.spec.scheduling).toEqual({
+    tolerations: [{ key: 'db-only', operator: 'Exists', effect: null, tolerationSeconds: null }],
+  })
 })

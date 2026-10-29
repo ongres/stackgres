@@ -1,14 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Plus, Trash2 } from 'lucide-react'
+import { api } from '../../lib/api'
 import { useData } from '../../contexts/DataContext'
 import { useCrdForm } from '../../hooks/useCrdForm'
 import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildStream, objectToRows } from '../../lib/payloads'
 import { nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
+import { NodeAffinityTerms, TolerationsEditor } from './clusterEditors'
 import { Field, Select, TextArea, TextInput, Toggle } from './fields'
 
+const FORM_STEPS = ['stream', 'source', 'target', 'pods']
 const SOURCE_TYPES = ['SGCluster', 'Postgres']
 const TARGET_TYPES = ['SGCluster', 'CloudEvent', 'PgLambda']
 const sourceKey = (type) => (type === 'SGCluster' ? 'sgCluster' : 'postgres')
@@ -93,20 +96,20 @@ function StringListEditor({ title, values, onChange }) {
   )
 }
 
-function HeadersEditor({ title, headers, onChange }) {
+function HeadersEditor({ title, headers, onChange, rowLabel = 'Header', addLabel = 'Add Header' }) {
   const rows = headers || []
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
       <legend className="px-1 font-semibold">{title}</legend>
       {rows.map((row, index) => (
         <div key={index} className="flex items-end gap-2">
-          <Field label="Header">
+          <Field label={rowLabel}>
             <TextInput value={row.label} onChange={(label) => onChange(rows.map((r, i) => (i === index ? { ...r, label } : r)))} />
           </Field>
           <Field label="Value">
             <TextInput value={row.value} onChange={(value) => onChange(rows.map((r, i) => (i === index ? { ...r, value } : r)))} />
           </Field>
-          <button type="button" aria-label={`Delete header ${index + 1}`}
+          <button type="button" aria-label={`Delete ${rowLabel.toLowerCase()} ${index + 1}`}
             onClick={() => onChange(rows.filter((_, i) => i !== index))}>
             <Trash2 size={16} />
           </button>
@@ -114,7 +117,7 @@ function HeadersEditor({ title, headers, onChange }) {
       ))}
       <button type="button" className="flex items-center gap-1 self-start text-sm underline"
         onClick={() => onChange([...rows, { label: '', value: '' }])}>
-        <Plus size={14} /> Add Header
+        <Plus size={14} /> {addLabel}
       </button>
     </fieldset>
   )
@@ -158,6 +161,13 @@ export default function StreamForm({ isEdit }) {
   const [crd, setCrd] = useState(() => initialCrd(namespace))
   const [scriptSource, setScriptSource] = useState(null)
   const [seeded, setSeeded] = useState(false)
+  const [storageClasses, setStorageClasses] = useState(null)
+  const [currentStep, setCurrentStep] = useState('stream')
+  const scriptFileInput = useRef(null)
+
+  useEffect(() => {
+    api.get('storageclasses').then(setStorageClasses).catch(() => setStorageClasses(null))
+  }, [])
 
   if (isEdit && loaded && previous && !seeded) {
     const clone = JSON.parse(JSON.stringify(previous))
@@ -242,6 +252,12 @@ export default function StreamForm({ isEdit }) {
   }
 
   const clusters = (data.sgclusters || []).map((cluster) => cluster.metadata.name)
+  const nameCollision =
+    !isEdit &&
+    (data.sgstreams || []).some(
+      (candidate) =>
+        candidate.metadata.name === crd.metadata.name && candidate.metadata.namespace === namespace
+    )
 
   const form = useCrdForm({
     kind: 'sgstreams',
@@ -278,14 +294,32 @@ export default function StreamForm({ isEdit }) {
 
   return (
     <CrdFormShell title={isEdit ? `Edit Stream: ${routeName}` : 'Create Stream'} form={form}>
+      <nav aria-label="Form steps" className="flex flex-wrap gap-3 border-b pb-2 text-sm">
+        {FORM_STEPS.map((step) => (
+          <button key={step} type="button" onClick={() => setCurrentStep(step)}
+            className={currentStep === step ? 'font-semibold underline' : ''}>
+            {step}
+          </button>
+        ))}
+      </nav>
+      {currentStep === 'stream' && (
+      <>
+      <h2 className="text-lg font-semibold">Stream Information</h2>
       <Field label="Stream Name" required error={form.errors.name}>
         <TextInput value={crd.metadata.name} disabled={isEdit} required error={form.errors.name}
           onChange={(name) => setCrd({ ...crd, metadata: { ...crd.metadata, name } })} />
       </Field>
+      {nameCollision && (
+        <p role="alert">
+          There&apos;s already a <strong>SGStream</strong> with the same name on this namespace.
+          Please specify a different name or create the stream on another namespace
+        </p>
+      )}
       <Field label="Maximum Retries" help="-1 retries forever">
         <TextInput type="number" min="-1" placeholder="-1" value={crd.spec.maxRetries ?? ''}
           onChange={(value) => setSpec((spec) => { spec.maxRetries = value === '' ? null : Number(value) })} />
       </Field>
+      <h3 className="font-semibold">Persistent Volume</h3>
       <Field label="Volume Size" required>
         <div className="flex gap-2">
           <TextInput type="number" min="1" required value={crd.spec.pods.persistentVolume.size.size}
@@ -295,18 +329,36 @@ export default function StreamForm({ isEdit }) {
         </div>
       </Field>
       <Field label="Storage Class">
-        <TextInput value={crd.spec.pods.persistentVolume.storageClass || ''}
-          onChange={(value) => setSpec((spec) => { spec.pods.persistentVolume.storageClass = value || null })} />
+        {storageClasses === null ? (
+          <TextInput value={crd.spec.pods.persistentVolume.storageClass || ''}
+            onChange={(value) => setSpec((spec) => { spec.pods.persistentVolume.storageClass = value || null })} />
+        ) : (
+          <Select value={crd.spec.pods.persistentVolume.storageClass || ''}
+            disabled={!storageClasses.length}
+            options={[
+              {
+                value: '',
+                label: storageClasses.length ? 'Select Storage Class' : 'No storage classes available',
+              },
+              ...storageClasses,
+            ]}
+            onChange={(value) => setSpec((spec) => { spec.pods.persistentVolume.storageClass = value || null })} />
+        )}
       </Field>
 
+      </>
+      )}
+
+      {currentStep === 'source' && (
       <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">Source</legend>
+        <legend className="px-1 font-semibold">Source Information</legend>
         <Field label="Source Type" required error={form.errors.sourceType}>
           <Select value={crd.spec.source.type || ''} onChange={setSourceType} options={SOURCE_TYPES}
-            placeholder="Select type…" disabled={isEdit} required />
+            placeholder="Select type" disabled={isEdit} required />
         </Field>
         {source && (
           <>
+            <h2 className="text-lg font-semibold">{crd.spec.source.type} Configuration</h2>
             {crd.spec.source.type === 'SGCluster' ? (
               <Field label="SGCluster Name" required error={form.errors.sourceName}>
                 <Select value={source.name || ''} options={clusters} placeholder="Select a cluster…" required
@@ -340,16 +392,20 @@ export default function StreamForm({ isEdit }) {
         )}
       </fieldset>
 
+      )}
+
+      {currentStep === 'target' && (
       <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">Target</legend>
+        <legend className="px-1 font-semibold">Target Information</legend>
         <Field label="Target Type" required error={form.errors.targetType}>
           <Select value={crd.spec.target.type || ''} onChange={setTargetType} options={TARGET_TYPES}
-            placeholder="Select type…" disabled={isEdit} required />
+            placeholder="Select type" disabled={isEdit} required />
         </Field>
+        {target && <h2 className="text-lg font-semibold">{crd.spec.target.type} Configuration</h2>}
         {target && crd.spec.target.type === 'SGCluster' && (
           <>
             <Field label="SGCluster Name" required error={form.errors.targetName}>
-              <Select value={target.name || ''} options={clusters} placeholder="Select a cluster…" required
+              <Select value={target.name || ''} options={clusters} placeholder="Select cluster" required
                 onChange={(value) => setSpec((spec) => { spec.target.sgCluster.name = value || null })} />
             </Field>
             <Field label="Database">
@@ -381,17 +437,22 @@ export default function StreamForm({ isEdit }) {
               </Field>
             </div>
             {target.binding === 'http' && (
-              <HttpFields http={target.http} urlRequired urlError={form.errors.targetUrl}
-                onChange={(http) => setSpec((spec) => { spec.target.cloudEvent.http = http })} />
+              <>
+                <h3 className="font-semibold">HTTP Configuration</h3>
+                <HttpFields http={target.http} urlRequired urlError={form.errors.targetUrl}
+                  onChange={(http) => setSpec((spec) => { spec.target.cloudEvent.http = http })} />
+              </>
             )}
           </>
         )}
         {target && crd.spec.target.type === 'PgLambda' && (
           <>
+            <h3 className="font-semibold">Script</h3>
             <Field label="Script Source" required>
-              <Select value={scriptSource || ''} required placeholder="Select script source…"
+              <Select value={scriptSource || ''} required placeholder="Select script source..."
                 options={[
                   { value: 'createNewScript', label: 'Custom script' },
+                  { value: '', label: '– OR –', disabled: true },
                   { value: 'secretKeyRef', label: 'From Secret' },
                   { value: 'configMapKeyRef', label: 'From ConfigMap' },
                 ]}
@@ -410,30 +471,58 @@ export default function StreamForm({ isEdit }) {
             </Field>
             {scriptSource && (
               <Field label="Script Type">
-                <Select value={target.scriptType || ''} options={['javascript']} placeholder="Default"
+                <Select value={target.scriptType || ''} options={['javascript']} placeholder="Select script type..."
                   onChange={(value) => setSpec((spec) => { spec.target.pgLambda.scriptType = value || null })} />
               </Field>
             )}
             {scriptSource === 'createNewScript' && (
               <Field label="Script" required error={form.errors.script}>
-                <TextArea value={target.script || ''} required rows={8}
+                <TextArea value={target.script || ''} required rows={8} placeholder="Type a script..."
                   onChange={(value) => setSpec((spec) => { spec.target.pgLambda.script = value || null })} />
+                <input ref={scriptFileInput} type="file" hidden
+                  onChange={(event) => {
+                    const file = event.target.files?.[0]
+                    if (!file) return
+                    const reader = new FileReader()
+                    reader.onload = () =>
+                      setSpec((spec) => { spec.target.pgLambda.script = reader.result })
+                    reader.readAsText(file)
+                    event.target.value = ''
+                  }} />
+                <button type="button" className="self-start text-sm underline"
+                  onClick={() => scriptFileInput.current?.click()}>
+                  …or upload a file
+                </button>
               </Field>
             )}
             {(scriptSource === 'secretKeyRef' || scriptSource === 'configMapKeyRef') && (
-              <div className="flex flex-wrap gap-3">
-                <Field label={`${scriptSource} Name`} required>
-                  <TextInput value={target.scriptFrom?.[scriptSource]?.name || ''} required
-                    onChange={(value) => setSpec((spec) => { spec.target.pgLambda.scriptFrom[scriptSource].name = value })} />
-                </Field>
-                <Field label={`${scriptSource} Key`} required>
-                  <TextInput value={target.scriptFrom?.[scriptSource]?.key || ''} required
-                    onChange={(value) => setSpec((spec) => { spec.target.pgLambda.scriptFrom[scriptSource].key = value })} />
-                </Field>
-              </div>
+              <>
+                <h3 className="font-semibold">
+                  {scriptSource === 'secretKeyRef' ? 'Secret Key Ref' : 'Config Map Key Ref'}
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  <Field label="Name" required>
+                    <TextInput value={target.scriptFrom?.[scriptSource]?.name || ''} required
+                      placeholder="Type a name.."
+                      onChange={(value) => setSpec((spec) => { spec.target.pgLambda.scriptFrom[scriptSource].name = value })} />
+                  </Field>
+                  <Field label="Key" required>
+                    <TextInput value={target.scriptFrom?.[scriptSource]?.key || ''} required
+                      placeholder="Type a key.."
+                      onChange={(value) => setSpec((spec) => { spec.target.pgLambda.scriptFrom[scriptSource].key = value })} />
+                  </Field>
+                </div>
+                {isEdit && target.scriptFrom?.configMapScript !== undefined && (
+                  <Field label="ConfigMap Script">
+                    <TextArea value={target.scriptFrom.configMapScript || ''} rows={8}
+                      onChange={(value) =>
+                        setSpec((spec) => { spec.target.pgLambda.scriptFrom.configMapScript = value })} />
+                  </Field>
+                )}
+              </>
             )}
             <fieldset className="flex flex-col gap-3 border p-3">
-              <legend className="px-1 font-semibold">Knative</legend>
+              <legend className="px-1 font-semibold">Knative Configuration</legend>
               <HttpFields http={target.knative.http} urlRequired urlError={form.errors.knativeUrl}
                 onChange={(http) => setSpec((spec) => { spec.target.pgLambda.knative.http = http })} />
             </fieldset>
@@ -441,24 +530,63 @@ export default function StreamForm({ isEdit }) {
         )}
       </fieldset>
 
+      )}
+
+      {currentStep === 'pods' && (
+      <>
       <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">Pods&apos; Resources</legend>
+        <legend className="px-1 font-semibold">Pods&apos; Resources Information</legend>
         <StringListEditor title="Claims" values={crd.spec.pods.resources.claims?.map((claim) => claim.name)}
           onChange={(values) =>
             setSpec((spec) => { spec.pods.resources.claims = (values || []).map((name) => ({ name })) })} />
-        <HeadersEditor title="Limits" headers={crd.spec.pods.resources.limits}
+        <HeadersEditor title="Limits" rowLabel="Limit" addLabel="Add Limit"
+          headers={crd.spec.pods.resources.limits}
           onChange={(rows) => setSpec((spec) => { spec.pods.resources.limits = rows })} />
-        <HeadersEditor title="Requests" headers={crd.spec.pods.resources.requests}
+        <HeadersEditor title="Requests" rowLabel="Request" addLabel="Add Request"
+          headers={crd.spec.pods.resources.requests}
           onChange={(rows) => setSpec((spec) => { spec.pods.resources.requests = rows })} />
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-3 border p-3">
+        <legend className="px-1 font-semibold">Pods&apos; Scheduling</legend>
         <Field label="Priority Class Name">
           <TextInput value={crd.spec.pods.resources.scheduling?.priorityClassName || ''}
             onChange={(value) =>
               setSpec((spec) => { spec.pods.resources.scheduling.priorityClassName = value || null })} />
         </Field>
-        <HeadersEditor title="Node Selectors" headers={crd.spec.pods.resources.scheduling?.nodeSelector || []}
+        <HeadersEditor title="Node Selectors" rowLabel="Label" addLabel="Add Node Selector"
+          headers={crd.spec.pods.resources.scheduling?.nodeSelector || []}
           onChange={(rows) =>
             setSpec((spec) => { spec.pods.resources.scheduling.nodeSelector = rows.length ? rows : null })} />
+        <TolerationsEditor tolerations={crd.spec.pods.resources.scheduling?.tolerations || []}
+          onChange={(tolerations) =>
+            setSpec((spec) => {
+              spec.pods.resources.scheduling.tolerations = tolerations.length ? tolerations : null
+            })} />
+        <NodeAffinityTerms legend="Node Affinity: Required During Scheduling Ignored During Execution"
+          terms={
+            crd.spec.pods.resources.scheduling?.nodeAffinity
+              ?.requiredDuringSchedulingIgnoredDuringExecution?.nodeSelectorTerms || []
+          }
+          onChange={(terms) =>
+            setSpec((spec) => {
+              spec.pods.resources.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution =
+                terms.length ? { nodeSelectorTerms: terms } : null
+            })} />
+        <NodeAffinityTerms legend="Node Affinity: Preferred During Scheduling Ignored During Execution"
+          preferred
+          terms={
+            crd.spec.pods.resources.scheduling?.nodeAffinity
+              ?.preferredDuringSchedulingIgnoredDuringExecution || []
+          }
+          onChange={(terms) =>
+            setSpec((spec) => {
+              spec.pods.resources.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution =
+                terms.length ? terms : null
+            })} />
       </fieldset>
+      </>
+      )}
     </CrdFormShell>
   )
 }

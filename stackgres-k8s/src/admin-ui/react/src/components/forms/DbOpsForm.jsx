@@ -5,10 +5,12 @@ import { api } from '../../lib/api'
 import { useData } from '../../contexts/DataContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useCrdForm } from '../../hooks/useCrdForm'
+import { fromDateTimeLocal } from '../../lib/datetime'
 import { buildDbOps } from '../../lib/payloads'
 import { generatedName, nameValidationMessage } from '../../lib/names'
 import { prefix } from '../../lib/format'
 import CrdFormShell from './CrdFormShell'
+import { TolerationsEditor } from './clusterEditors'
 import { Field, Select, TextInput, Toggle } from './fields'
 
 const OPS = [
@@ -20,12 +22,27 @@ const OPS = [
   'majorVersionUpgrade',
   'restart',
 ]
-const METHODS = ['InPlace', 'ReducedImpact']
-const INHERIT = [
-  { value: 'inherit', label: 'Inherit' },
-  { value: 'true', label: 'Yes' },
-  { value: 'false', label: 'No' },
+const METHODS = [
+  { value: 'InPlace', label: 'In Place' },
+  { value: 'ReducedImpact', label: 'Reduced Impact' },
 ]
+const INHERIT = [
+  { value: 'inherit', label: 'Inherit from global settings' },
+  { value: 'true', label: 'YES' },
+  { value: 'false', label: 'NO' },
+]
+const VACUUM_DB_LABELS = {
+  full: 'Full',
+  freeze: 'Freeze',
+  analyze: 'Analyze',
+  disablePageSkipping: 'Page Skipping',
+}
+const REPACK_DB_LABELS = {
+  noOrder: 'Order',
+  noKillBackend: 'Kill Backend',
+  noAnalyze: 'Analyze',
+  excludeExtension: 'Exclude Extension',
+}
 
 const opLabel = (op) => op.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())
 
@@ -62,14 +79,7 @@ function DurationSelects({ label, value, onChange }) {
 // The daterangepicker of the Vue form is replaced with a native
 // datetime-local input; the value converts to UTC ISO on build, honoring the
 // console's local/utc timezone preference as the Vue setRunAt did.
-function runAtToIso(value, timezone) {
-  if (!value) return ''
-  if (timezone === 'utc') {
-    return `${value}:00Z`.replace(/:00:00Z$/, ':00Z')
-  }
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? '' : date.toISOString().replace(/\.\d{3}Z$/, 'Z')
-}
+const runAtToIso = fromDateTimeLocal
 
 export default function DbOpsForm() {
   const { namespace } = useParams()
@@ -79,6 +89,7 @@ export default function DbOpsForm() {
   const [name, setName] = useState(generatedName('op', timezone))
   const [sgCluster, setSgCluster] = useState('')
   const [op, setOp] = useState('')
+  const [tolerations, setTolerations] = useState([])
   const [runAtLocal, setRunAtLocal] = useState('')
   const [timeout, setTimeoutValue] = useState({ d: 0, h: 0, m: 0, s: 0 })
   const [maxRetries, setMaxRetries] = useState('0')
@@ -117,6 +128,9 @@ export default function DbOpsForm() {
   }, [])
 
   const clusters = (data.sgclusters || []).filter((c) => c.metadata.namespace === namespace)
+  const nameCollision = (data.sgdbops || []).some(
+    (candidate) => candidate.metadata.name === name && candidate.metadata.namespace === namespace
+  )
   const cluster = clusters.find((c) => c.metadata.name === sgCluster)
   const currentVersion = cluster?.spec?.postgres?.version || ''
   const currentMajor = prefix(currentVersion)
@@ -142,7 +156,7 @@ export default function DbOpsForm() {
         runAt: runAtToIso(runAtLocal, timezone),
         timeout,
         maxRetries,
-        tolerations: [],
+        tolerations,
         restart,
         securityUpgrade,
         minorVersionUpgrade,
@@ -183,41 +197,68 @@ export default function DbOpsForm() {
       <Field label="Operation Name" required error={form.errors.name}>
         <TextInput value={name} onChange={setName} required error={form.errors.name} />
       </Field>
+      {nameCollision && (
+        <p role="alert">
+          There&apos;s already a <strong>SGDbOps</strong> with the same name on this namespace.
+          Please specify a different name or create the operation on another namespace.
+        </p>
+      )}
       <Field label="Target Cluster" required error={form.errors.sgCluster}>
-        <Select value={sgCluster} onChange={setSgCluster} required placeholder="Select a cluster…"
+        <Select value={sgCluster} onChange={setSgCluster} required placeholder="Choose a Cluster"
           options={clusters.map((c) => c.metadata.name)} />
       </Field>
-      <Field label="Database Operation" required error={form.errors.op}>
-        <Select value={op} onChange={setOp} required placeholder="Select an operation…"
-          options={OPS.map((o) => ({ value: o, label: opLabel(o) }))} />
-      </Field>
+      <fieldset className="flex flex-col gap-2 border p-3">
+        <legend className="px-1 font-semibold">Database Operation *</legend>
+        {form.errors.op && <p role="alert">{form.errors.op}</p>}
+        <div className="flex flex-wrap gap-3">
+          {OPS.map((candidate) => (
+            <label key={candidate} className="flex items-center gap-2 border p-2">
+              <input type="radio" name="op" value={candidate} checked={op === candidate}
+                onChange={() => setOp(candidate)} />
+              {opLabel(candidate)}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">Schedule</legend>
+        <legend className="px-1 font-semibold">General Operation Details</legend>
         <Field label={`Run At (${timezone === 'local' ? 'local time' : 'UTC'})`} help="Leave empty to run as soon as possible">
           <input type="datetime-local" step="1" value={runAtLocal}
             onChange={(event) => setRunAtLocal(event.target.value)} className="border p-2" />
         </Field>
+        {timezone === 'utc' && runAtLocal.length > 0 && (
+          <p role="note">
+            Bear in mind &quot;Run At&quot; times are expressed in UTC (Coordinated Universal Time).
+          </p>
+        )}
         <DurationSelects label="Timeout" value={timeout} onChange={setTimeoutValue} />
         <Field label="Max Retries">
           <Select value={maxRetries} onChange={setMaxRetries} options={Array.from({ length: 11 }, (_, i) => String(i))} />
         </Field>
       </fieldset>
 
+      <fieldset className="flex flex-col gap-3 border p-3">
+        <legend className="px-1 font-semibold">Node Tolerations</legend>
+        <TolerationsEditor tolerations={tolerations} onChange={setTolerations} />
+      </fieldset>
+
       {op === 'restart' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Restart</legend>
+          <legend className="px-1 font-semibold">Restart Details</legend>
           <Field label="Method">
             <Select value={restart.method} onChange={(method) => setRestart({ ...restart, method })} options={METHODS} />
           </Field>
-          <Toggle label="Pending Pods Only" checked={restart.onlyPendingRestart}
-            onChange={(onlyPendingRestart) => setRestart({ ...restart, onlyPendingRestart })} />
+          <Field label="Pods to Restart">
+            <Toggle label="Pending Pods Only" checked={restart.onlyPendingRestart}
+              onChange={(onlyPendingRestart) => setRestart({ ...restart, onlyPendingRestart })} />
+          </Field>
         </fieldset>
       )}
 
       {op === 'securityUpgrade' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Security Upgrade</legend>
+          <legend className="px-1 font-semibold">Security Upgrade Details</legend>
           <Field label="Method">
             <Select value={securityUpgrade.method} onChange={(method) => setSecurityUpgrade({ method })} options={METHODS} />
           </Field>
@@ -226,9 +267,11 @@ export default function DbOpsForm() {
 
       {op === 'minorVersionUpgrade' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Minor Version Upgrade</legend>
+          <legend className="px-1 font-semibold">Minor Version Upgrade Details</legend>
           {!sgCluster ? (
-            <p className="text-sm">You must first choose a target cluster</p>
+            <p className="text-sm">
+              You must first choose a target cluster to be able to set the upgrade details
+            </p>
           ) : minorTargets.length ? (
             <>
               <Field label="Method">
@@ -238,20 +281,26 @@ export default function DbOpsForm() {
               <Field label="Target Postgres Version" required error={form.errors.targetVersion}>
                 <Select value={minorVersionUpgrade.postgresVersion}
                   onChange={(postgresVersion) => setMinorVersionUpgrade({ ...minorVersionUpgrade, postgresVersion })}
-                  options={minorTargets} placeholder="Select a version…" required />
+                  options={minorTargets} placeholder="Choose version..." required />
               </Field>
             </>
           ) : (
-            <p className="text-sm">The cluster is already on the latest minor version</p>
+            <p className="text-sm">
+              Your cluster is already set to use Postgres {currentVersion} which is the latest minor
+              version available for Postgres {currentMajor}. If you prefer, you could perform a Major
+              Version Upgrade to Postgres {Number(currentMajor) + 1}.
+            </p>
           )}
         </fieldset>
       )}
 
       {op === 'majorVersionUpgrade' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Major Version Upgrade</legend>
+          <legend className="px-1 font-semibold">Major Version Upgrade Details</legend>
           {!sgCluster ? (
-            <p className="text-sm">You must first choose a target cluster</p>
+            <p className="text-sm">
+              You must first choose a target cluster to be able to set the upgrade details
+            </p>
           ) : majorTargets.length ? (
             <>
               <Toggle label="Hard Link Files" checked={majorVersionUpgrade.link}
@@ -269,25 +318,28 @@ export default function DbOpsForm() {
                 <Select value={majorVersionUpgrade.postgresVersion}
                   onChange={(postgresVersion) =>
                     setMajorVersionUpgrade({ ...majorVersionUpgrade, postgresVersion, sgPostgresConfig: '' })}
-                  options={majorTargets} placeholder="Select a version…" required />
+                  options={majorTargets} placeholder="Choose version..." required />
               </Field>
               {majorVersionUpgrade.postgresVersion && (
                 <Field label="Target Postgres Configuration" required error={form.errors.targetConfig}>
                   <Select value={majorVersionUpgrade.sgPostgresConfig}
                     onChange={(sgPostgresConfig) => setMajorVersionUpgrade({ ...majorVersionUpgrade, sgPostgresConfig })}
-                    options={pgConfigs.map((c) => c.metadata.name)} placeholder="Select a configuration…" required />
+                    options={pgConfigs.map((c) => c.metadata.name)} placeholder="Choose config..." required />
                 </Field>
               )}
             </>
           ) : (
-            <p className="text-sm">No higher major version is available for this cluster</p>
+            <p className="text-sm">
+              Your cluster is already set to use Postgres {currentMajor} which is the latest major
+              version available.
+            </p>
           )}
         </fieldset>
       )}
 
       {op === 'vacuum' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Vacuum</legend>
+          <legend className="px-1 font-semibold">Vacuum Details</legend>
           <Toggle label="Full Vacuum" checked={vacuum.full} onChange={(full) => setVacuum({ ...vacuum, full })} />
           <Toggle label="Freeze" checked={vacuum.freeze} onChange={(freeze) => setVacuum({ ...vacuum, freeze })} />
           <Toggle label="Analyze" checked={vacuum.analyze} onChange={(analyze) => setVacuum({ ...vacuum, analyze })} />
@@ -299,24 +351,30 @@ export default function DbOpsForm() {
               if (enabled && !vacuumDbs.length)
                 setVacuumDbs([{ name: '', full: 'inherit', freeze: 'inherit', analyze: 'inherit', disablePageSkipping: 'inherit' }])
             }} />
+          {vacuumPerDbs && <h4 className="font-semibold">Databases</h4>}
           {vacuumPerDbs &&
             vacuumDbs.map((db, index) => (
-              <div key={index} className="flex flex-wrap items-end gap-2 border p-2">
-                <Field label="Database Name" required>
-                  <TextInput value={db.name} required
-                    onChange={(value) => setVacuumDbs(vacuumDbs.map((d, i) => (i === index ? { ...d, name: value } : d)))} />
-                </Field>
-                {['full', 'freeze', 'analyze', 'disablePageSkipping'].map((key) => (
-                  <Field key={key} label={key}>
-                    {dbSelect(db[key], (value) =>
-                      setVacuumDbs(vacuumDbs.map((d, i) =>
-                        i === index ? { ...d, [key]: value === 'inherit' ? 'inherit' : value === 'true' } : d)))}
+              <div key={index} className="flex flex-col gap-2 border p-2">
+                <h5 className="font-semibold">
+                  Database #{index + 1}{db.name ? ` – ${db.name}` : ''}
+                </h5>
+                <div className="flex flex-wrap items-end gap-2">
+                  <Field label="Name" required>
+                    <TextInput value={db.name} required placeholder="Type a name..."
+                      onChange={(value) => setVacuumDbs(vacuumDbs.map((d, i) => (i === index ? { ...d, name: value } : d)))} />
                   </Field>
-                ))}
-                <button type="button" aria-label={`Delete database ${index + 1}`}
-                  onClick={() => setVacuumDbs(vacuumDbs.filter((_, i) => i !== index))}>
-                  <Trash2 size={16} />
-                </button>
+                  {['full', 'freeze', 'analyze', 'disablePageSkipping'].map((key) => (
+                    <Field key={key} label={VACUUM_DB_LABELS[key]}>
+                      {dbSelect(db[key], (value) =>
+                        setVacuumDbs(vacuumDbs.map((d, i) =>
+                          i === index ? { ...d, [key]: value === 'inherit' ? 'inherit' : value === 'true' } : d)))}
+                    </Field>
+                  ))}
+                  <button type="button" aria-label={`Delete database ${index + 1}`}
+                    onClick={() => setVacuumDbs(vacuumDbs.filter((_, i) => i !== index))}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             ))}
           {vacuumPerDbs && (
@@ -331,7 +389,7 @@ export default function DbOpsForm() {
 
       {op === 'repack' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Repack</legend>
+          <legend className="px-1 font-semibold">Repack Details</legend>
           <Toggle label="Order" checked={!repack.noOrder} onChange={(enabled) => setRepack({ ...repack, noOrder: !enabled })} />
           <Toggle label="Kill Backend" checked={!repack.noKillBackend} onChange={(enabled) => setRepack({ ...repack, noKillBackend: !enabled })} />
           <Toggle label="Analyze" checked={!repack.noAnalyze} onChange={(enabled) => setRepack({ ...repack, noAnalyze: !enabled })} />
@@ -345,39 +403,82 @@ export default function DbOpsForm() {
               if (enabled && !repackDbs.length)
                 setRepackDbs([{ name: '', noOrder: 'inherit', inheritTimeout: true, waitTimeout: { d: 0, h: 0, m: 0, s: 0 }, noKillBackend: 'inherit', noAnalyze: 'inherit', excludeExtension: 'inherit' }])
             }} />
+          {repackPerDbs && <h3 className="font-semibold">Databases</h3>}
           {repackPerDbs &&
             repackDbs.map((db, index) => (
-              <div key={index} className="flex flex-wrap items-end gap-2 border p-2">
-                <Field label="Database Name" required>
-                  <TextInput value={db.name} required
-                    onChange={(value) => setRepackDbs(repackDbs.map((d, i) => (i === index ? { ...d, name: value } : d)))} />
-                </Field>
-                {['noOrder', 'noKillBackend', 'noAnalyze', 'excludeExtension'].map((key) => (
-                  <Field key={key} label={key}>
-                    {dbSelect(db[key], (value) =>
-                      setRepackDbs(repackDbs.map((d, i) =>
-                        i === index ? { ...d, [key]: value === 'inherit' ? 'inherit' : value === 'true' } : d)))}
+              <div key={index} className="flex flex-col gap-2 border p-2">
+                <h3 className="font-semibold">
+                  Database #{index + 1}{db.name ? ` – ${db.name}` : ''}
+                </h3>
+                <div className="flex flex-wrap items-end gap-2">
+                  <Field label="Name" required>
+                    <TextInput value={db.name} required placeholder="Type a name..."
+                      onChange={(value) => setRepackDbs(repackDbs.map((d, i) => (i === index ? { ...d, name: value } : d)))} />
                   </Field>
-                ))}
-                <button type="button" aria-label={`Delete database ${index + 1}`}
-                  onClick={() => setRepackDbs(repackDbs.filter((_, i) => i !== index))}>
-                  <Trash2 size={16} />
-                </button>
+                  {['noOrder', 'noKillBackend', 'noAnalyze', 'excludeExtension'].map((key) => (
+                    <Field key={key} label={REPACK_DB_LABELS[key]}>
+                      {dbSelect(db[key], (value) =>
+                        setRepackDbs(repackDbs.map((d, i) =>
+                          i === index ? { ...d, [key]: value === 'inherit' ? 'inherit' : value === 'true' } : d)))}
+                    </Field>
+                  ))}
+                  <button type="button" aria-label={`Delete database ${index + 1}`}
+                    onClick={() => setRepackDbs(repackDbs.filter((_, i) => i !== index))}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                <Field label="Wait Timeout">
+                  <Select
+                    value={db.inheritTimeout ? 'inherit' : 'custom'}
+                    options={[
+                      { value: 'inherit', label: 'Inherit from global settings' },
+                      { value: 'custom', label: 'Set custom timeout' },
+                    ]}
+                    onChange={(value) =>
+                      setRepackDbs(repackDbs.map((d, i) =>
+                        i === index ? { ...d, inheritTimeout: value === 'inherit' } : d))} />
+                </Field>
+                {!db.inheritTimeout && (
+                  <DurationSelects label="Custom Wait Timeout" value={db.waitTimeout}
+                    onChange={(waitTimeout) =>
+                      setRepackDbs(repackDbs.map((d, i) => (i === index ? { ...d, waitTimeout } : d)))} />
+                )}
               </div>
             ))}
+          {repackPerDbs && (
+            <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+              onClick={() =>
+                setRepackDbs([
+                  ...repackDbs,
+                  {
+                    name: '',
+                    noOrder: 'inherit',
+                    inheritTimeout: true,
+                    waitTimeout: { d: 0, h: 0, m: 0, s: 0 },
+                    noKillBackend: 'inherit',
+                    noAnalyze: 'inherit',
+                    excludeExtension: 'inherit',
+                  },
+                ])}>
+              <Plus size={14} /> Add Database
+            </button>
+          )}
         </fieldset>
       )}
 
       {op === 'benchmark' && (
         <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Benchmark</legend>
+          <legend className="px-1 font-semibold">Benchmark Details</legend>
           <Field label="Type">
             <Select value={benchmark.type} onChange={() => {}} options={['pgbench']} />
           </Field>
           <Field label="Connection Type">
             <Select value={benchmark.connectionType}
               onChange={(connectionType) => setBenchmark({ ...benchmark, connectionType })}
-              options={['primary-service', 'replicas-service']} />
+              options={[
+                { value: 'primary-service', label: 'Connect to the Primary Service' },
+                { value: 'replicas-service', label: 'Connect to the Replicas Service' },
+              ]} />
           </Field>
           <Field label="Database Size" required error={form.errors.databaseSize}>
             <div className="flex gap-2">
@@ -404,6 +505,10 @@ export default function DbOpsForm() {
           </Field>
           <DurationSelects label="Duration" value={benchmark.pgbench.duration}
             onChange={(duration) => setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, duration } })} />
+          <p role="note">
+            The pgbench Benchmark Duration does not include database preparation that, depending on
+            the selected size and environment, may take from some seconds to hours.
+          </p>
         </fieldset>
       )}
     </CrdFormShell>

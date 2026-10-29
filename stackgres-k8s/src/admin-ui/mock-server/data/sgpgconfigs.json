@@ -2,11 +2,99 @@
   {
     "apiVersion": "stackgres.io/v1",
     "kind": "SGPostgresConfig",
-    "metadata": { "name": "pgconfig-default", "namespace": "default", "uid": "44440000-0000-0000-0000-000000000001", "creationTimestamp": "2026-01-05T08:00:00Z" },
+    "metadata": {
+      "name": "pgconfig-default",
+      "namespace": "default",
+      "uid": "44440000-0000-0000-0000-000000000001",
+      "creationTimestamp": "2026-01-05T08:00:00Z"
+    },
     "spec": {
       "postgresVersion": "16",
-      "postgresql.conf": { "shared_buffers": "256MB", "max_connections": "200", "work_mem": "16MB" }
+      "postgresql.conf": "shared_buffers=256MB\nmax_connections=200\nwork_mem=16MB"
     },
-    "status": { "defaultParameters": { "shared_buffers": "128MB" } }
+    "status": {
+      "defaultParameters": {
+        "autovacuum_max_workers": "3",
+        "checkpoint_completion_target": "0.9",
+        "checkpoint_timeout": "15min",
+        "default_statistics_target": "200",
+        "effective_cache_size": "512MB",
+        "log_checkpoints": "on",
+        "maintenance_work_mem": "64MB",
+        "max_connections": "100",
+        "password_encryption": "scram-sha-256",
+        "random_page_cost": "1.5",
+        "shared_buffers": "128MB",
+        "wal_compression": "lz4",
+        "work_mem": "4MB"
+      },
+      "postgresql.conf": [
+        {
+          "parameter": "autovacuum_max_workers",
+          "value": "3",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/autovacuum_max_workers/"
+        },
+        {
+          "parameter": "checkpoint_completion_target",
+          "value": "0.9",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/checkpoint_completion_target/"
+        },
+        {
+          "parameter": "checkpoint_timeout",
+          "value": "15min",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/checkpoint_timeout/"
+        },
+        {
+          "parameter": "default_statistics_target",
+          "value": "200",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/default_statistics_target/"
+        },
+        {
+          "parameter": "effective_cache_size",
+          "value": "512MB",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/effective_cache_size/"
+        },
+        {
+          "parameter": "log_checkpoints",
+          "value": "on",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/log_checkpoints/"
+        },
+        {
+          "parameter": "maintenance_work_mem",
+          "value": "64MB",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/maintenance_work_mem/"
+        },
+        {
+          "parameter": "max_connections",
+          "value": "200",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/max_connections/"
+        },
+        {
+          "parameter": "password_encryption",
+          "value": "scram-sha-256",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/password_encryption/"
+        },
+        {
+          "parameter": "random_page_cost",
+          "value": "1.5",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/random_page_cost/"
+        },
+        {
+          "parameter": "shared_buffers",
+          "value": "256MB",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/shared_buffers/"
+        },
+        {
+          "parameter": "wal_compression",
+          "value": "lz4",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/wal_compression/"
+        },
+        {
+          "parameter": "work_mem",
+          "value": "16MB",
+          "documentationLink": "https://postgresqlco.nf/doc/en/param/work_mem/"
+        }
+      ]
+    }
   }
 ]

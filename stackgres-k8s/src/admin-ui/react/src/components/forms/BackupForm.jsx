@@ -30,6 +30,12 @@ export default function BackupForm({ isEdit }) {
     .filter((cluster) => cluster.metadata.namespace === namespace)
     .map((cluster) => cluster.metadata.name)
 
+  const nameCollision =
+    !isEdit &&
+    (data.sgbackups || []).some(
+      (backup) => backup.metadata.name === name && backup.metadata.namespace === namespace
+    )
+
   const form = useCrdForm({
     kind: 'sgbackups',
     isEdit,
@@ -51,6 +57,12 @@ export default function BackupForm({ isEdit }) {
 
   return (
     <CrdFormShell title={isEdit ? `Edit Backup: ${backupname}` : 'Create Backup'} form={form}>
+      {nameCollision && (
+        <p role="alert">
+          There&apos;s already a <strong>SGBackup</strong> with the same name on this namespace.
+          Please specify a different name or create the backup on another namespace
+        </p>
+      )}
       <Field label="Backup Name" required error={form.errors.name}>
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
@@ -59,7 +71,7 @@ export default function BackupForm({ isEdit }) {
           value={sgCluster}
           onChange={setSgCluster}
           options={clusters}
-          placeholder="Select a cluster…"
+          placeholder="Choose a Cluster"
           disabled={isEdit}
           required
         />

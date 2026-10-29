@@ -7,7 +7,7 @@ import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildPgConfig } from '../../lib/payloads'
 import { nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
-import { Field, Select, TextArea, TextInput } from './fields'
+import { DefaultParametersTable, Field, Select, TextArea, TextInput } from './fields'
 
 // Edit seeds the textarea with only the non-default parameters, like the Vue
 // form's getParams.
@@ -27,21 +27,76 @@ export default function PgConfigForm({ isEdit }) {
   const [name, setName] = useState(routeName || '')
   const [postgresVersion, setPostgresVersion] = useState('')
   const [params, setParams] = useState('')
-  const [versions, setVersions] = useState([])
+  const [majorVersions, setMajorVersions] = useState([])
   const [seeded, setSeeded] = useState(false)
+  const [defaultParams, setDefaultParams] = useState({})
+  const [resolvedParams, setResolvedParams] = useState([])
+  const [loadingDefaults, setLoadingDefaults] = useState(false)
 
   useEffect(() => {
     api
       .getPostgresVersions('vanilla')
-      .then((response) => setVersions([...(response.postgresql || [])]))
+      .then((response) => {
+        const majors = []
+        ;(response.postgresql || []).forEach((version) => {
+          const major = version.substring(0, version.indexOf('.'))
+          if (!majors.includes(major)) {
+            majors.push(major)
+          }
+        })
+        setMajorVersions(majors)
+      })
       .catch(() => {})
   }, [])
 
   if (isEdit && loaded && previous && !seeded) {
     setPostgresVersion(previous.spec.postgresVersion)
     setParams(nonDefaultParams(previous.status))
+    setDefaultParams(previous.status?.defaultParameters || {})
+    setResolvedParams(previous.status?.['postgresql.conf'] || [])
     setSeeded(true)
   }
+
+  // Vue getDefaultParams: a dry-run POST whose status carries the StackGres
+  // defaults and the resolved configuration, refreshed on version change.
+  useEffect(() => {
+    if (!postgresVersion || isEdit) {
+      return
+    }
+    let cancelled = false
+    setLoadingDefaults(true)
+    api
+      .create(
+        'sgpgconfigs',
+        {
+          metadata: { name: name.length ? name : 'get-default-params', namespace },
+          spec: { postgresVersion },
+        },
+        true
+      )
+      .then((response) => {
+        if (!cancelled) {
+          setDefaultParams(response?.status?.defaultParameters || {})
+          setResolvedParams(response?.status?.['postgresql.conf'] || [])
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingDefaults(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postgresVersion])
+
+  const nameCollision =
+    !isEdit &&
+    (data.sgpgconfigs || []).some(
+      (config) => config.metadata.name === name && config.metadata.namespace === namespace
+    )
 
   const clusters = (data.sgclusters || []).filter(
     (cluster) =>
@@ -74,27 +129,44 @@ export default function PgConfigForm({ isEdit }) {
       form={form}
     >
       {isEdit && clusters.length > 0 && (
-        <p className="border p-2 text-sm">
-          This configuration is used by {clusters.map((cluster) => cluster.metadata.name).join(', ')};
-          changing parameters may require a cluster restart.
+        <p role="note" className="border p-2 text-sm">
+          Please, be aware that some changes made to this configuration might require a{' '}
+          <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank" rel="noreferrer"
+            className="underline">
+            restart operation
+          </a>{' '}
+          on every instance on the following cluster(s):{' '}
+          {clusters.map((cluster) => cluster.metadata.name).join(', ')}
         </p>
       )}
       <Field label="Configuration Name" required error={form.errors.name}>
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
+      {nameCollision && (
+        <p role="alert">
+          There&apos;s already a <strong>SGPostgresConfig</strong> with the same name on this
+          namespace. Please specify a different name or create the configuration on another namespace
+        </p>
+      )}
       <Field label="Postgres Version" required error={form.errors.postgresVersion}>
         <Select
           value={postgresVersion}
           onChange={setPostgresVersion}
-          options={versions}
-          placeholder="Select a version…"
+          options={majorVersions}
+          placeholder="Select Major Postgres Version"
           disabled={isEdit}
           required
         />
       </Field>
       <Field label="Parameters" help="One parameter per line: parameter=value">
-        <TextArea value={params} onChange={setParams} placeholder={'parameter=value'} rows={12} />
+        <TextArea value={params} onChange={setParams} placeholder={'parameter = value'} rows={12} />
       </Field>
+      <DefaultParametersTable
+        intro="StackGres sets some default parameters for your configuration. If no value is specifically set for them, they will remain with the following default values:"
+        defaults={defaultParams}
+        resolved={resolvedParams}
+        loading={loadingDefaults}
+      />
     </CrdFormShell>
   )
 }
