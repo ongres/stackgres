@@ -112,6 +112,37 @@ function buildStats(clusterItem) {
   };
 }
 
+// Sharded cluster `/stats`: a coordinator section (first member cluster) and
+// a workers section (the rest), each aggregating the member pods.
+function buildShardedStats(shardedItem, memberLookup) {
+  const clusters = (shardedItem && shardedItem.status && shardedItem.status.clusters) || [];
+  const section = (names) => {
+    const pods = [];
+    names.forEach((name) => {
+      const member = memberLookup(name);
+      if (member) pods.push(...buildStats(member).pods);
+    });
+    return {
+      cpuRequested: String(pods.length || 0),
+      cpuPsiAvg60: '0.05',
+      memoryRequested: (2 * (pods.length || 0)).toFixed(2) + 'Gi',
+      memoryPsiAvg60: '0.00',
+      diskRequested: 10 * (names.length || 0) + 'Gi',
+      diskUsed: '1.20Gi',
+      diskPsiAvg60: '0.00',
+      averageLoad1m: '0.12',
+      connections: '5',
+      podsReady: pods.length,
+      pods,
+    };
+  };
+  return {
+    metadata: shardedItem ? shardedItem.metadata : {},
+    coordinator: section(clusters.slice(0, 1)),
+    workers: section(clusters.slice(1)),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Server
 // ---------------------------------------------------------------------------
@@ -208,6 +239,13 @@ function createApp() {
       return item ? res.json(item) : notFound(res, resource, name);
     }
     if (detail === 'stats') {
+      if (resource === 'sgshardedclusters') {
+        return res.json(buildShardedStats(item, (member) =>
+          items('sgclusters').find(
+            (c) => c.metadata.name === member && c.metadata.namespace === ns
+          )
+        ));
+      }
       return res.json(buildStats(item));
     }
     const explicit = load(path.join('details', resource, detail), null);
@@ -319,6 +357,28 @@ function createApp() {
       };
     }
   };
+
+  // Namespace creation (the real endpoint takes the name in the path and no
+  // body, answering 204).
+  app.post('/namespaces/:name', (req, res) => {
+    const { name } = req.params;
+    requestsLog.push({
+      method: 'POST',
+      resource: 'namespaces',
+      dryRun: req.query.dryRun === 'true',
+      body: { name },
+    });
+    if (!RFC1123.test(name)) {
+      return res.status(422).json({
+        message: 'Invalid name',
+        detail: 'a lowercase RFC 1123 label must consist of lower case alphanumeric characters',
+      });
+    }
+    if (req.query.dryRun !== 'true' && !namespaces.includes(name)) {
+      namespaces.push(name);
+    }
+    res.sendStatus(204);
+  });
 
   NAMESPACED_RESOURCES.forEach((resource) => {
     app.post('/' + resource, (req, res) => {

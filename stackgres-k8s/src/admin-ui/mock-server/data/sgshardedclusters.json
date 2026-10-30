@@ -37,25 +37,31 @@
       }
     },
     "status": {
-      "clusters": [
-        "shard-uptodate",
-        "shard-uptodate-shard0",
-        "shard-uptodate-shard1"
-      ],
       "conditions": [
+        {
+          "type": "PendingRestart",
+          "status": "False",
+          "reason": "False"
+        },
         {
           "type": "ComponentsUpdated",
           "status": "True",
-          "reason": "UpToDate",
-          "message": "All components are up to date.",
-          "lastTransitionTime": "2026-05-30T10:00:00Z"
+          "reason": "UpToDate"
         }
+      ],
+      "postgresVersion": "16.3",
+      "clusters": [
+        "shard-uptodate-coord",
+        "shard-uptodate-shard0"
       ]
     },
     "info": {
       "primaryDns": "shard-uptodate.default",
+      "readsDns": "shard-uptodate-reads.default",
+      "primariesDns": "shard-uptodate-shards.default",
       "superuserUsername": "postgres",
       "superuserSecretName": "shard-uptodate",
+      "superuserUsernameKey": "superuser-username",
       "superuserPasswordKey": "superuser-password"
     },
     "pods": [
@@ -72,7 +78,8 @@
         "role": "primary"
       }
     ],
-    "podsReady": 3
+    "podsReady": 3,
+    "grafanaEmbedded": true
   },
   {
     "apiVersion": "stackgres.io/v1alpha1",

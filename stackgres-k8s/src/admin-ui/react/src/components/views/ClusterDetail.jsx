@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
+import { Pencil } from 'lucide-react'
 import { useKindList, useResource } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
 import CloneResourceDialog from '../CloneResourceDialog'
@@ -54,6 +55,11 @@ export default function ClusterDetail() {
           </NavLink>
         ))}
         <div className="ml-auto flex gap-3 pb-2">
+          {canI('patch', 'sgclusters', namespace) && (
+            <Link to={`${base}/edit`} className="flex items-center gap-1 underline">
+              <Pencil size={14} /> Edit
+            </Link>
+          )}
           {canI('create', 'sgdbops', namespace) && (
             <RestartClusterDialog namespace={namespace} cluster={name} />
           )}

@@ -47,8 +47,15 @@ export default function BackupForm({ isEdit }) {
       if (!sgCluster) errors.sgCluster = 'A target cluster is required'
       return errors
     },
+    // Cluster-scoped routes return to the cluster's backups tab, as in Vue.
     successPath: (payload) =>
-      isEdit ? `/${namespace}/sgbackup/${payload.metadata.name}` : `/${namespace}/sgbackups`,
+      clusterParam
+        ? isEdit
+          ? `/${namespace}/sgcluster/${clusterParam}/sgbackup/${payload.metadata.name}`
+          : `/${namespace}/sgcluster/${clusterParam}/sgbackups`
+        : isEdit
+          ? `/${namespace}/sgbackup/${payload.metadata.name}`
+          : `/${namespace}/sgbackups`,
   })
 
   if (isEdit && !loaded) {

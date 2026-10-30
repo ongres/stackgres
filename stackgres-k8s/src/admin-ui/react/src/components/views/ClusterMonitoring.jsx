@@ -10,16 +10,22 @@ import {
   TIME_RANGES,
 } from '../../lib/grafana'
 
-export default function ClusterMonitoring() {
-  const { namespace, name, pod, dashboard: dashboardParam, range = '' } = useParams()
-  const { cluster } = useOutletContext()
+// Shared Grafana monitoring panel: the host view supplies the route base and
+// the pod list (regular clusters pass their pods, sharded clusters the
+// concatenated coordinator and shard pods).
+export function MonitoringView({ base, pods }) {
+  const { pod, dashboard: rawDashboard, range: rawRange = '' } = useParams()
+  // The Vue router also accepts /monitor/:pod/:range (a time range directly
+  // after the pod): when the dashboard segment is a known range key and not a
+  // dashboard name, treat it as the range.
+  const paramIsRange = Boolean(rawDashboard && !rawRange && TIME_RANGES[rawDashboard])
+  const dashboardParam = paramIsRange ? '' : rawDashboard
+  const range = paramIsRange ? rawDashboard : rawRange
   const { theme } = useTheme()
   const navigate = useNavigate()
   const [dashboards, setDashboards] = useState(null)
   const [unavailable, setUnavailable] = useState(false)
 
-  const base = `/${namespace}/sgcluster/${name}/monitor`
-  const pods = useMemo(() => cluster.pods || [], [cluster.pods])
   const activePods = pods.filter((candidate) => candidate.status === 'Active')
   const inactivePods = pods.filter((candidate) => candidate.status !== 'Active')
   const selectedPod = pods.find((candidate) => candidate.name === pod)
@@ -164,4 +170,11 @@ export default function ClusterMonitoring() {
       )}
     </section>
   )
+}
+
+export default function ClusterMonitoring() {
+  const { namespace, name } = useParams()
+  const { cluster } = useOutletContext()
+  const pods = useMemo(() => cluster.pods || [], [cluster.pods])
+  return <MonitoringView base={`/${namespace}/sgcluster/${name}/monitor`} pods={pods} />
 }

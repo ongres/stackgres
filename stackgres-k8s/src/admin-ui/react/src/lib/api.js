@@ -157,6 +157,13 @@ export const api = {
   getPostgresVersions(flavor) {
     return request(`/version/postgresql?flavor=${flavor}`)
   },
+  // The real endpoint takes the namespace name in the path and no body.
+  createNamespace(name, dryRun = false) {
+    return request(`/namespaces/${name}${dryRun ? '?dryRun=true' : ''}`, {
+      method: 'POST',
+      kind: 'namespaces',
+    })
+  },
   getPostgresExtensions(version, flavor) {
     return request(`/extensions/${version}?flavor=${flavor}`)
   },

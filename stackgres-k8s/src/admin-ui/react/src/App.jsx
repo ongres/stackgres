@@ -17,10 +17,15 @@ import PendingView from './components/views/PendingView'
 import ResourceDetail from './components/views/ResourceDetail'
 import ResourceList from './components/views/ResourceList'
 import SGConfigDetail from './components/views/SGConfigDetail'
+import ShardedClusterConfig from './components/views/ShardedClusterConfig'
+import ShardedClusterDetail from './components/views/ShardedClusterDetail'
+import ShardedClusterMonitoring from './components/views/ShardedClusterMonitoring'
+import ShardedClusterStatus from './components/views/ShardedClusterStatus'
 import BackupForm from './components/forms/BackupForm'
 import DbOpsForm from './components/forms/DbOpsForm'
 import DistributedLogsForm from './components/forms/DistributedLogsForm'
 import InstanceProfileForm from './components/forms/InstanceProfileForm'
+import NamespaceForm from './components/forms/NamespaceForm'
 import ObjectStorageForm from './components/forms/ObjectStorageForm'
 import PgConfigForm from './components/forms/PgConfigForm'
 import PoolConfigForm from './components/forms/PoolConfigForm'
@@ -33,7 +38,9 @@ import { KINDS } from './lib/kinds'
 
 // Simple CRDs: one list route (plural) and one detail route (singular),
 // sharing the generic components. Clusters get their own tabbed detail.
-const SIMPLE_KINDS = Object.keys(KINDS).filter((plural) => plural !== 'sgclusters')
+const SIMPLE_KINDS = Object.keys(KINDS).filter(
+  (plural) => !['sgclusters', 'sgshardedclusters'].includes(plural)
+)
 
 export default function App() {
   return (
@@ -53,6 +60,9 @@ export default function App() {
                     <Route index element={<ClusterStatus />} />
                     <Route path="config" element={<ClusterConfig />} />
                     <Route path="sgbackups" element={<ResourceList plural="sgbackups" clusterScoped />} />
+                    <Route path="sgbackups/new" element={<BackupForm />} />
+                    <Route path="sgbackup/:backupname" element={<ResourceDetail plural="sgbackups" />} />
+                    <Route path="sgbackup/:backupname/edit" element={<BackupForm isEdit />} />
                     <Route path="logs" element={<ClusterLogs />} />
                     <Route path="events" element={<ClusterEvents />} />
                     <Route path="event/:uid" element={<ClusterEvents />} />
@@ -60,6 +70,16 @@ export default function App() {
                     <Route path="monitor/:pod" element={<ClusterMonitoring />} />
                     <Route path="monitor/:pod/:dashboard" element={<ClusterMonitoring />} />
                     <Route path="monitor/:pod/:dashboard/:range" element={<ClusterMonitoring />} />
+                  </Route>
+
+                  <Route path=":namespace/sgshardedclusters" element={<ResourceList plural="sgshardedclusters" />} />
+                  <Route path=":namespace/sgshardedcluster/:name" element={<ShardedClusterDetail />}>
+                    <Route index element={<ShardedClusterStatus />} />
+                    <Route path="config" element={<ShardedClusterConfig />} />
+                    <Route path="monitor" element={<ShardedClusterMonitoring />} />
+                    <Route path="monitor/:pod" element={<ShardedClusterMonitoring />} />
+                    <Route path="monitor/:pod/:dashboard" element={<ShardedClusterMonitoring />} />
+                    <Route path="monitor/:pod/:dashboard/:range" element={<ShardedClusterMonitoring />} />
                   </Route>
 
                   {SIMPLE_KINDS.map((plural) => (
@@ -95,6 +115,7 @@ export default function App() {
                   <Route path=":namespace/sgstreams/new" element={<StreamForm />} />
                   <Route path=":namespace/sgstream/:name/edit" element={<StreamForm isEdit />} />
 
+                  <Route path="namespaces/new" element={<NamespaceForm />} />
                   <Route path=":namespace/application/:name/*" element={<PendingView title="Application" />} />
                   <Route path="sgconfig/:name" element={<SGConfigDetail />} />
                   <Route path="sgconfig/:name/edit" element={<SGConfigForm />} />

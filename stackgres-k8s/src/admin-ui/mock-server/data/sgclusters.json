@@ -669,5 +669,101 @@
     ],
     "podsReady": 2,
     "grafanaEmbedded": true
+  },
+  {
+    "apiVersion": "stackgres.io/v1",
+    "kind": "SGCluster",
+    "metadata": {
+      "name": "shard-uptodate-coord",
+      "namespace": "default",
+      "uid": "11111111-0002-0000-0000-000000000001",
+      "creationTimestamp": "2026-01-20T08:00:00Z"
+    },
+    "spec": {
+      "instances": 1,
+      "postgres": {
+        "version": "16.3",
+        "flavor": "vanilla"
+      },
+      "sgInstanceProfile": "size-small",
+      "pods": {
+        "persistentVolume": {
+          "size": "10Gi"
+        }
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
+    },
+    "grafanaEmbedded": true,
+    "pods": [
+      {
+        "name": "shard-uptodate-coord-0",
+        "role": "primary",
+        "status": "Active",
+        "ip": "10.244.1.11"
+      }
+    ],
+    "info": {
+      "primaryDns": "shard-uptodate-coord.default",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "shard-uptodate-coord",
+      "superuserPasswordKey": "superuser-password"
+    }
+  },
+  {
+    "apiVersion": "stackgres.io/v1",
+    "kind": "SGCluster",
+    "metadata": {
+      "name": "shard-uptodate-shard0",
+      "namespace": "default",
+      "uid": "11111111-0002-0000-0000-000000000002",
+      "creationTimestamp": "2026-01-20T08:00:00Z"
+    },
+    "spec": {
+      "instances": 1,
+      "postgres": {
+        "version": "16.3",
+        "flavor": "vanilla"
+      },
+      "sgInstanceProfile": "size-small",
+      "pods": {
+        "persistentVolume": {
+          "size": "10Gi"
+        }
+      },
+      "postgresServices": {
+        "primary": {
+          "enabled": true,
+          "type": "ClusterIP"
+        },
+        "replicas": {
+          "enabled": true,
+          "type": "ClusterIP"
+        }
+      }
+    },
+    "grafanaEmbedded": true,
+    "pods": [
+      {
+        "name": "shard-uptodate-shard0-0",
+        "role": "primary",
+        "status": "Active",
+        "ip": "10.244.1.12"
+      }
+    ],
+    "info": {
+      "primaryDns": "shard-uptodate-shard0.default",
+      "superuserUsername": "postgres",
+      "superuserSecretName": "shard-uptodate-shard0",
+      "superuserPasswordKey": "superuser-password"
+    }
   }
 ]
