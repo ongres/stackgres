@@ -9,17 +9,6 @@ export PATRONI_RESTAPI_CONNECT_ADDRESS="$(eval "echo $PATRONI_RESTAPI_CONNECT_AD
 echo "Setting up scripts..."
 sh -e $SHELL_XTRACE "$TEMPLATES_PATH/setup-scripts.sh"
 
-
-echo "Waiting for the controller to setup things..."
-(
-  START="$(date +%s)"
-  set +x
-  until [ "$(( $(date +%s -r "$PATRONI_START_FILE_PATH" 2>/dev/null || printf 0) - START ))" -ge 0 ]
-  do
-    sleep 1
-  done
-)
-
 ## Restore
 if [ -n "$RECOVERY_FROM_BACKUP" ]
 then
@@ -377,6 +366,21 @@ EOF
 PATRONI_CONFIG_EOF
 chmod 600 "$PATRONI_CONFIG_FILE_PATH".tmp
 mv "$PATRONI_CONFIG_FILE_PATH".tmp "$PATRONI_CONFIG_FILE_PATH"
+
+# The config file is generated before the controller is waited for so that the controller finds it
+# and writes the tags of the replication role of this member, and the rest of the configuration it
+# reconciles, into it. Patroni reads the file when it starts, so waiting here is what keeps it from
+# starting with the empty tags the template carries and being, for as long as a reconciliation
+# cycle, a candidate for failover and for the replicas service it was meant to stay out of.
+echo "Waiting for the controller to setup things..."
+(
+  START="$(date +%s)"
+  set +x
+  until [ "$(( $(date +%s -r "$PATRONI_START_FILE_PATH" 2>/dev/null || printf 0) - START ))" -ge 0 ]
+  do
+    sleep 1
+  done
+)
 
 cat << EOF > "${LOCAL_BIN_PATH}/postgres"
 #!/bin/sh

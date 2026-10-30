@@ -59,6 +59,9 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SslReconciliator.class);
 
+  private static final Path PATRONI_START_FILE_PATH =
+      Path.of(ClusterPath.PATRONI_START_FILE_PATH.path());
+
   private final Supplier<Boolean> reconcilePatroni;
   private final Supplier<Boolean> reconcilePgBouncer;
   private final EventController eventController;
@@ -109,9 +112,23 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
   /**
    * If any file in /etc/ssl change or if ssl is not working will reload PostgreSQL config through
    *  patroni reload.
+   *
+   * <p>
+   * The files are copied by the single reconciliation cycle the controller runs before the start
+   * of Patroni is allowed, that does not reconcile Patroni, so that they are already in place
+   * when PostgreSQL starts. Afterwards nothing is reconciled until the start file exists: with
+   * Patroni not allowed to start there is nothing to reload and PostgreSQL can not be reached, so
+   * every cycle would attempt a reload that can not succeed and report that the SSL config was
+   * updated.
+   * </p>
    */
   private void reconcilePostgresSsl(KubernetesClient client, StackGresClusterContext context)
       throws IOException {
+    if (reconcilePatroni.get() && !Files.exists(PATRONI_START_FILE_PATH)) {
+      LOGGER.debug("Skipping postgres SSL reconciliation since the start of Patroni"
+          + " has not been allowed yet");
+      return;
+    }
     final StackGresCluster cluster = context.getCluster();
 
     if (sslChanged()

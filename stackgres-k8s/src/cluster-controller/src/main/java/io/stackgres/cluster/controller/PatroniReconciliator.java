@@ -179,19 +179,21 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
    * <p>
    * If any file in /etc/ssl change will reload PostgreSQL config through patroni
    * </p>
+   *
+   * <p>
+   * The Patroni container generates the Patroni config file and then waits for the start file to
+   * be touched before it starts Patroni. Nothing is reconciled until that config file exists, and
+   * the start file is only touched once the tags and the rest of the Patroni configuration have
+   * been written to it, so that Patroni never starts with the empty tags the template carries.
+   * </p>
    */
   private boolean reconcilePatroni(KubernetesClient client, StackGresClusterContext context)
       throws IOException {
-    if (Files.exists(PATRONI_START_FILE_PATH)) {
-      Files.setLastModifiedTime(PATRONI_START_FILE_PATH, FileTime.from(Instant.now()));
-    } else {
-      Files.createFile(PATRONI_START_FILE_PATH);
-    }
     if (!STARTUP.get()) {
       STARTUP.set(true);
     }
     if (!Files.exists(PATRONI_CONFIG_PATH)) {
-      LOGGER.warn("Can not reload patroni config since config file {} was not found, will retry later",
+      LOGGER.warn("Patroni will not be started since config file {} was not found, will retry later",
           PATRONI_CONFIG_PATH);
       return false;
     }
@@ -199,8 +201,15 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     final Optional<Tuple2<StackGresReplicationRole, Long>> podReplicationRole =
         getPodAssignedReplicationRole(cluster, podName);
     if (podReplicationRole.isEmpty()) {
-      LOGGER.warn("Can not reload patroni config since role for pod {} is unknown, will retry later",
+      // A Pod whose index is beyond the instances of the SGCluster, as the additional Pod that a
+      // rollout with the reduced impact method creates, belongs to no replication group and has
+      // therefore no tags to be written. Its Patroni is started with the empty tags of the
+      // template, as it was before the tags were written before the start: such a Pod is a
+      // temporary one that has to be a candidate for failover, and the absence of the labels
+      // keeps it out of the replicas service.
+      LOGGER.warn("Tags of pod {} will not be written since its replication role is unknown",
           podName);
+      allowPatroniToStart();
       return false;
     }
     final Map<String, String> tagsMap =
@@ -240,25 +249,54 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     if (beforeStopNeedsUpdate) {
       addOrReplacePatroniPostgresqlBeforeStop(beforeStop);
     }
+    // Patroni reads its config file when it starts, so there is nothing to reload until its start
+    // is allowed at the end of this method. A reload is not possible either while the Patroni
+    // container is restarting, since it is waiting for the start file: it is retried in a
+    // following reconciliation cycle and, the config file being already the one Patroni reads, it
+    // never keeps the start of Patroni from being allowed.
+    final boolean patroniStartAllowed = Files.exists(PATRONI_START_FILE_PATH);
     if (configChanged(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH)) {
-      try {
-        var credentials = PatroniCommandUtil.getPatorniCredentials(context, secretFinder);
-        PatroniCommandUtil.reloadPatroniConfig(webClientFactory, credentials);
-      } catch (Exception ex) {
-        LOGGER.warn("Can not reload patroni config now, will retry later: {}", ex.getMessage(), ex);
-        return false;
+      boolean patroniConfigReloaded = true;
+      if (patroniStartAllowed) {
+        try {
+          var credentials = PatroniCommandUtil.getPatorniCredentials(context, secretFinder);
+          PatroniCommandUtil.reloadPatroniConfig(webClientFactory, credentials);
+        } catch (Exception ex) {
+          LOGGER.warn("Can not reload patroni config now, will retry later: {}",
+              ex.getMessage(), ex);
+          patroniConfigReloaded = false;
+        }
       }
-      setPatroniTagsAsPodLabels(client, cluster, podName, tagsMap);
-      Files.copy(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH,
-          StandardCopyOption.REPLACE_EXISTING);
-      LOGGER.info("Patroni config updated");
-      eventController.sendEvent(ClusterPatroniConfigEventReason.CLUSTER_PATRONI_CONFIG_UPDATED,
-          "Patroni config updated", client);
+      if (patroniConfigReloaded) {
+        setPatroniTagsAsPodLabels(client, cluster, podName, tagsMap);
+        Files.copy(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH,
+            StandardCopyOption.REPLACE_EXISTING);
+        LOGGER.info("Patroni config updated");
+        eventController.sendEvent(ClusterPatroniConfigEventReason.CLUSTER_PATRONI_CONFIG_UPDATED,
+            "Patroni config updated", client);
+      }
     }
+    allowPatroniToStart();
 
     final boolean statusUpdated =
         setPodReplicatinGroupInClusterStatus(cluster, podReplicationRole.get().v2.intValue());
     return statusUpdated;
+  }
+
+  /**
+   * Allow the Patroni container, that waits for the start file to be touched after it has
+   * generated the Patroni config file, to start Patroni. It is touched on every reconciliation
+   * cycle since the Patroni container only waits for a modification that is not older than the
+   * moment it started waiting, so that a restarted container waits for the configuration to be
+   * reconciled again instead of starting with the file left behind by the previous one.
+   */
+  private void allowPatroniToStart() throws IOException {
+    if (Files.exists(PATRONI_START_FILE_PATH)) {
+      Files.setLastModifiedTime(PATRONI_START_FILE_PATH, FileTime.from(Instant.now()));
+    } else {
+      Files.createFile(PATRONI_START_FILE_PATH);
+      LOGGER.info("Patroni start allowed");
+    }
   }
 
   private boolean setPodReplicatinGroupInClusterStatus(final StackGresCluster cluster,
@@ -285,7 +323,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     return statusUpdated;
   }
 
-  private Optional<Tuple2<StackGresReplicationRole, Long>> getPodAssignedReplicationRole(
+  static Optional<Tuple2<StackGresReplicationRole, Long>> getPodAssignedReplicationRole(
       final StackGresCluster cluster, final String podName) {
     final int podIndex = getPodIndex(podName);
     return Seq.seq(cluster.getSpec().getReplicationGroups())
@@ -299,7 +337,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
         .findFirst();
   }
 
-  private int getPodIndex(String podName) {
+  private static int getPodIndex(String podName) {
     return Integer.parseInt(ResourceUtil.getIndexPattern().matcher(podName)
         .results().findFirst().orElseThrow().group(1));
   }
