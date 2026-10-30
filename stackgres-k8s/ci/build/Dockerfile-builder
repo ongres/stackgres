@@ -9,5 +9,14 @@
 
 FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21.0.7
   USER root
+  RUN microdnf -y update ca-certificates
+  RUN $JAVA_HOME/bin/keytool -delete -cacerts -storepass changeit -noprompt \
+        -alias "cn_emsign_ecc_root_ca__g3,o_emudhra_technologies_limited,ou_emsign_pki,c_in [jdk]" || true \
+        && $JAVA_HOME/bin/keytool -delete -cacerts -storepass changeit -noprompt \
+          -alias "emsigneccrootcag3 [jdk]" || true \
+        && $JAVA_HOME/bin/keytool -delete -cacerts -storepass changeit -noprompt \
+          -alias "emsignrootcag2 [jdk]" || true \
+        && $JAVA_HOME/bin/keytool -delete -cacerts -storepass changeit -noprompt \
+          -alias "comodoaaaca [jdk]" || true
   RUN microdnf --nodocs install python3-pip jq util-linux findutils && microdnf clean all
   RUN pip3 install yamllint yq
