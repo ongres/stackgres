@@ -411,6 +411,21 @@ function createApp() {
     });
   });
 
+  // Babelfish Compass run: accepts the multipart form without parsing it and
+  // answers a canned report in the real response shape.
+  app.post('/applications/:publisher/:application', (req, res) => {
+    requestsLog.push({
+      method: 'POST',
+      resource: 'applications',
+      dryRun: false,
+      body: { publisher: req.params.publisher, application: req.params.application },
+    });
+    res.json(load('babelfish-compass-report', {
+      logs: 'Compass executed successfully',
+      report: '<html><body><pre>Report created</pre></body></html>',
+    }));
+  });
+
   // Namespace creation (the real endpoint takes the name in the path and no
   // body, answering 204).
   app.post('/namespaces/:name', (req, res) => {

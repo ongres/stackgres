@@ -14,6 +14,7 @@ import GlobalDashboard from './components/views/GlobalDashboard'
 import ClusterMonitoring from './components/views/ClusterMonitoring'
 import NamespaceOverview from './components/views/NamespaceOverview'
 import PendingView from './components/views/PendingView'
+import BabelfishCompass from './components/views/BabelfishCompass'
 import ResourceDetail from './components/views/ResourceDetail'
 import ResourceList from './components/views/ResourceList'
 import SGConfigDetail from './components/views/SGConfigDetail'
@@ -121,7 +122,7 @@ export default function App() {
                   <Route path=":namespace/sgstream/:name/edit" element={<StreamForm isEdit />} />
 
                   <Route path="namespaces/new" element={<NamespaceForm />} />
-                  <Route path=":namespace/application/:name/*" element={<PendingView title="Application" />} />
+                  <Route path=":namespace/application/babelfish-compass" element={<BabelfishCompass />} />
                   <Route path="sgconfig/:name" element={<SGConfigDetail />} />
                   <Route path="sgconfig/:name/edit" element={<SGConfigForm />} />
                   <Route path="manage/users" element={<UserManagement />} />

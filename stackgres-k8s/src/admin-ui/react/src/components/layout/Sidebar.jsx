@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useParams } from 'react-router-dom'
 import { ChevronDown, Plus } from 'lucide-react'
+import { api } from '../../lib/api'
 import { useKindList } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
 import { useNamespaces } from '../../hooks/useNamespaces'
@@ -64,6 +65,38 @@ function SectionLink({ namespace, label, kind, submenu }) {
           ))}
         </ul>
       )}
+    </li>
+  )
+}
+
+// Applications section (Vue SideBar): shown when the installation lists
+// console applications for the current namespace.
+function ApplicationsSection({ namespace }) {
+  const [applications, setApplications] = useState(null)
+
+  useEffect(() => {
+    api
+      .get('applications')
+      .then((response) => setApplications(response?.applications || []))
+      .catch(() => setApplications([]))
+  }, [])
+
+  if (!applications || !applications.length) {
+    return null
+  }
+
+  return (
+    <li className="mt-2">
+      <h3 className="text-xs font-semibold uppercase">Applications</h3>
+      <ul className="flex flex-col gap-1 pl-2">
+        {applications.map((application) => (
+          <li key={application.name}>
+            <NavLink to={`/${namespace}/application/${application.name}`} className="block py-1">
+              {application.name}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
     </li>
   )
 }
@@ -137,6 +170,7 @@ export default function Sidebar() {
             <SectionLink key={section.kind} namespace={namespace} {...section} />
           )
         )}
+        <ApplicationsSection namespace={namespace} />
       </ul>
     </nav>
   )

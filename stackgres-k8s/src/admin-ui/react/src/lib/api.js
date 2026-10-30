@@ -59,14 +59,16 @@ async function request(path, { method = 'GET', body, kind } = {}) {
   if (token && token !== OIDC_TOKEN) {
     headers['Authorization'] = `Bearer ${token}`
   }
-  if (body !== undefined) {
+  // FormData bodies set their own multipart boundary; everything else is JSON.
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
+  if (body !== undefined && !isFormData) {
     headers['Content-Type'] = 'application/json'
   }
 
   const response = await fetch(`${BASE}${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
   })
 
   if (!response.ok) {
@@ -156,6 +158,14 @@ export const api = {
   },
   getPostgresVersions(flavor) {
     return request(`/version/postgresql?flavor=${flavor}`)
+  },
+  // Runs a console application (Babelfish Compass) with a multipart form.
+  runApplication(publisher, application, formData) {
+    return request(`/applications/${publisher}/${application}`, {
+      method: 'POST',
+      body: formData,
+      kind: 'applications',
+    })
   },
   // The real endpoint takes the namespace name in the path and no body.
   createNamespace(name, dryRun = false) {

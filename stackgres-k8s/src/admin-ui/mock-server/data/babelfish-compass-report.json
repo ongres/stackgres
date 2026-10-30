@@ -1,0 +1,4 @@
+{
+  "logs": "Compass executed successfully",
+  "report": "<html><body><pre>Babelfish Compass v.2023-12 : compass\nReport name : %REPORT%\nSession log : /home/babelfish/session/log.txt\nInput files : demo.sql\nBabelfish version : 4.2.0\n================================================================================\n--------------------------------------------------------------------------------\nSummary of SQL features\n\nSupported features: 118 of 120\nUnsupported features: 2 (XML indexes, FILESTREAM)\n\nCompatibility estimate: 98%\n--- Run Metrics ---\nRun time : 2 seconds\nSQL lines processed : 120\nFiles processed : 1\n================================================================================\nBabelfishFeatures.cfg file : v.4.2.0</pre></body></html>"
+}

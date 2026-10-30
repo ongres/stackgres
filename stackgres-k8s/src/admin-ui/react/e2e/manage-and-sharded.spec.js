@@ -113,3 +113,20 @@ test('creates a namespace through the path-only POST', async ({ page }) => {
   const request = await lastRequest(page, 'POST', 'namespaces')
   expect(request.body).toEqual({ name })
 })
+
+test('babelfish compass submits the SQL files and renders the parsed report', async ({ page }) => {
+  await login(page)
+  await page.goto('/admin/default/application/babelfish-compass')
+
+  await page.getByRole('textbox', { name: /Report Name/ }).fill('myreport')
+  await page.getByLabel('SQL file 1').setInputFiles({
+    name: 'demo.sql',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('SELECT 1;'),
+  })
+  await page.getByRole('button', { name: 'Send' }).click()
+
+  await expect(page.getByText('Summary of SQL features')).toBeVisible()
+  await expect(page.getByRole('row', { name: /Files Processed/ }).getByRole('cell', { name: 'demo.sql' })).toBeVisible()
+  await expect(page.getByRole('cell', { name: '2 seconds' })).toBeVisible()
+})
