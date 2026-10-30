@@ -5,7 +5,9 @@ import { api } from '../lib/api'
 import { useData } from '../contexts/DataContext'
 
 // Type-the-name delete confirmation, ported from the Vue #delete modal.
-export default function DeleteResourceDialog({ kind, namespace, name, redirect }) {
+// `onDeleted` lets hosts outside the namespaced data caches (users, roles)
+// refresh their own lists after the delete.
+export default function DeleteResourceDialog({ kind, namespace, name, redirect, onDeleted }) {
   const navigate = useNavigate()
   const { refresh } = useData()
   const [open, setOpen] = useState(false)
@@ -28,6 +30,9 @@ export default function DeleteResourceDialog({ kind, namespace, name, redirect }
       await api.remove(kind, { metadata: { name, namespace } })
       toast.success(`Resource "${name}" deleted successfully`)
       refresh()
+      if (onDeleted) {
+        onDeleted()
+      }
       close()
       if (redirect) {
         navigate(redirect)

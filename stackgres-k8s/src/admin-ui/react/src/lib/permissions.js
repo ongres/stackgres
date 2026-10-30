@@ -27,3 +27,42 @@ export function canI(allowed, action = 'any', kind, namespace = '') {
   }
   return allows(unnamespaced[kind] || [])
 }
+
+// The Vue havePermissionsTo map: user management does not check a `users`
+// kind but the raw Kubernetes resources the API manipulates. `namespace` is
+// 'any' on the /manage routes (they carry no namespace parameter).
+export function userManagementPermissions(canI, namespace = 'any') {
+  return {
+    get:
+      canI('list', 'secrets', 'any') &&
+      canI('list', 'rolebindings', 'any') &&
+      canI('list', 'clusterrolebindings'),
+    create:
+      canI('create', 'secrets', namespace) &&
+      canI('list', 'rolebindings', namespace) &&
+      canI('create', 'rolebindings', namespace) &&
+      canI('patch', 'rolebindings', namespace) &&
+      canI('list', 'clusterrolebindings') &&
+      canI('create', 'clusterrolebindings') &&
+      canI('patch', 'clusterrolebindings'),
+    patch:
+      canI('get', 'secrets', namespace) &&
+      canI('patch', 'secrets', namespace) &&
+      canI('list', 'rolebindings', namespace) &&
+      canI('create', 'rolebindings', namespace) &&
+      canI('patch', 'rolebindings', namespace) &&
+      canI('delete', 'rolebindings', namespace) &&
+      canI('list', 'clusterrolebindings') &&
+      canI('create', 'clusterrolebindings') &&
+      canI('patch', 'clusterrolebindings') &&
+      canI('delete', 'clusterrolebindings'),
+    delete:
+      canI('delete', 'secrets', namespace) &&
+      canI('list', 'rolebindings', namespace) &&
+      canI('patch', 'rolebindings', namespace) &&
+      canI('delete', 'rolebindings', namespace) &&
+      canI('list', 'clusterrolebindings') &&
+      canI('patch', 'clusterrolebindings') &&
+      canI('delete', 'clusterrolebindings'),
+  }
+}

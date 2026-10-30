@@ -1,10 +1,38 @@
 [
   {
-    "apiVersion": "v1",
-    "kind": "Secret",
-    "metadata": { "name": "admin", "namespace": "default", "uid": "ffff0000-0000-0000-0000-000000000001", "creationTimestamp": "2026-01-02T08:00:00Z" },
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "admin",
+      "uid": "77770000-0000-0000-0000-000000000001"
+    },
     "k8sUsername": "admin",
-    "roles": [ { "name": "stackgres-restapi-admin", "namespace": "default" } ],
-    "clusterRoles": [ { "name": "stackgres-restapi-cluster-admin" } ]
+    "apiUsername": "admin",
+    "roles": [
+      {
+        "namespace": "default",
+        "name": "reader"
+      }
+    ],
+    "clusterRoles": [
+      {
+        "name": "stackgres-restapi-admin"
+      }
+    ]
+  },
+  {
+    "metadata": {
+      "namespace": "stackgres",
+      "name": "viewer",
+      "uid": "77770000-0000-0000-0000-000000000002"
+    },
+    "k8sUsername": "viewer",
+    "apiUsername": null,
+    "roles": [
+      {
+        "namespace": "default",
+        "name": "reader"
+      }
+    ],
+    "clusterRoles": null
   }
 ]

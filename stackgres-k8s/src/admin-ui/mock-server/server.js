@@ -358,6 +358,59 @@ function createApp() {
     }
   };
 
+  // Flat RBAC collections (users, roles, clusterroles): same store-backed
+  // CRUD as the namespaced kinds, addressed by name (+ namespace when the
+  // body carries one).
+  ;['users', 'roles', 'clusterroles'].forEach((resource) => {
+    const matches = (candidate, body) =>
+      candidate.metadata.name === body.metadata.name &&
+      (body.metadata.namespace === undefined ||
+        candidate.metadata.namespace === body.metadata.namespace ||
+        resource === 'users');
+    app.get('/' + resource, (req, res) => res.json(items(resource)));
+    app.post('/' + resource, (req, res) => {
+      const body = req.body;
+      requestsLog.push({ method: 'POST', resource, dryRun: req.query.dryRun === 'true', body });
+      if (!body.metadata || !RFC1123.test(body.metadata.name || '')) {
+        return res.status(422).json({ message: 'Invalid name', detail: 'RFC 1123' });
+      }
+      if (items(resource).some((candidate) => matches(candidate, body))) {
+        return res.status(409).json({
+          message: `${resource} "${body.metadata.name}" already exists`,
+          detail: 'AlreadyExists',
+        });
+      }
+      if (req.query.dryRun !== 'true') {
+        items(resource).push(body);
+      }
+      res.json(body);
+    });
+    app.put('/' + resource, (req, res) => {
+      const body = req.body;
+      requestsLog.push({ method: 'PUT', resource, dryRun: req.query.dryRun === 'true', body });
+      const index = items(resource).findIndex((candidate) => matches(candidate, body));
+      if (index < 0) {
+        return notFound(res, resource, body.metadata && body.metadata.name);
+      }
+      if (req.query.dryRun !== 'true') {
+        items(resource)[index] = body;
+      }
+      res.json(body);
+    });
+    app.delete('/' + resource, (req, res) => {
+      const body = req.body;
+      requestsLog.push({ method: 'DELETE', resource, dryRun: req.query.dryRun === 'true', body });
+      const index = items(resource).findIndex((candidate) => matches(candidate, body));
+      if (index < 0) {
+        return notFound(res, resource, body.metadata && body.metadata.name);
+      }
+      if (req.query.dryRun !== 'true') {
+        items(resource).splice(index, 1);
+      }
+      res.sendStatus(204);
+    });
+  });
+
   // Namespace creation (the real endpoint takes the name in the path and no
   // body, answering 204).
   app.post('/namespaces/:name', (req, res) => {

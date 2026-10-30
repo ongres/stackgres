@@ -31,6 +31,76 @@ test('sharded cluster detail renders status, config and monitoring tabs', async 
   await expect(page.locator('iframe')).toBeVisible()
 })
 
+test('user management lists roles, cluster roles and users', async ({ page }) => {
+  await login(page)
+  await page.goto('/admin/manage/users')
+
+  await expect(page.getByRole('heading', { name: 'Roles', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'reader' }).first()).toBeVisible()
+  await expect(page.getByRole('link', { name: 'stackgres-restapi-admin' }).first()).toBeVisible()
+  await expect(page.getByRole('link', { name: 'admin', exact: true })).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'get, list, watch' })).toBeVisible()
+})
+
+test('creates a user with role bindings and asserts the exact payload', async ({ page }) => {
+  const name = `user-e2e-${Date.now().toString(36)}`
+  await login(page)
+  await page.goto('/admin/manage/users/new')
+
+  await page.getByRole('textbox', { name: /User Name/ }).fill(name)
+  await page.getByRole('textbox', { name: /K8s Username/ }).fill('jane')
+  await page.getByRole('textbox', { name: 'Password', exact: true }).fill('secret123')
+  await page.getByRole('checkbox', { name: 'Bind reader' }).check()
+  await page.getByRole('checkbox', { name: 'Bind stackgres-restapi-admin' }).check()
+  await page.getByRole('button', { name: 'Create User' }).click()
+
+  await expect(page).toHaveURL(/\/admin\/manage\/users$/)
+  const request = await lastRequest(page, 'POST', 'users')
+  expect(request.body).toEqual({
+    metadata: { namespace: '', name },
+    k8sUsername: 'jane',
+    password: 'secret123',
+    apiUsername: null,
+    apiUsernameNotBlank: false,
+    roles: [{ name: 'reader', namespace: 'default' }],
+    clusterRoles: [{ name: 'stackgres-restapi-admin' }],
+  })
+})
+
+test('creates a role with rules and asserts the exact payload', async ({ page }) => {
+  const name = `role-e2e-${Date.now().toString(36)}`
+  await login(page)
+  await page.goto('/admin/manage/roles/new')
+
+  await page.getByRole('textbox', { name: /Role Name/ }).fill(name)
+  await page.getByRole('combobox', { name: /Role Namespace/ }).selectOption('default')
+  await page.getByRole('button', { name: 'Add Rule' }).click()
+  const addEntry = (group) =>
+    page.getByRole('group', { name: group, exact: true }).getByRole('button', { name: 'Add New' }).click()
+  await addEntry('apiGroups')
+  await page.getByRole('textbox', { name: 'apiGroups 1' }).fill('stackgres.io')
+  await addEntry('resources')
+  await page.getByRole('textbox', { name: 'resources 1' }).fill('sgclusters')
+  await addEntry('verbs')
+  await page.getByRole('textbox', { name: 'verbs 1' }).fill('get')
+  await page.getByRole('button', { name: 'Create Role' }).click()
+
+  await expect(page).toHaveURL(/\/admin\/manage\/users$/)
+  const request = await lastRequest(page, 'POST', 'roles')
+  expect(request.body).toEqual({
+    metadata: { namespace: 'default', name },
+    rules: [
+      {
+        apiGroups: ['stackgres.io'],
+        nonResourceURLs: null,
+        resourceNames: null,
+        resources: ['sgclusters'],
+        verbs: ['get'],
+      },
+    ],
+  })
+})
+
 test('creates a namespace through the path-only POST', async ({ page }) => {
   const name = `ns-e2e-${Date.now().toString(36)}`
   await login(page)

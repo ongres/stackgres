@@ -1,11 +1,67 @@
 [
   {
-    "apiVersion": "rbac.authorization.k8s.io/v1",
-    "kind": "Role",
-    "metadata": { "name": "stackgres-restapi-admin", "namespace": "default", "uid": "dddd0000-0000-0000-0000-000000000001", "creationTimestamp": "2026-01-02T08:00:00Z" },
+    "metadata": {
+      "namespace": "default",
+      "name": "reader",
+      "uid": "88880000-0000-0000-0000-000000000001"
+    },
     "rules": [
-      { "apiGroups": ["stackgres.io"], "resources": ["sgclusters", "sgbackups", "sgdbops"], "verbs": ["get", "list", "create", "patch", "delete"] },
-      { "apiGroups": [""], "resources": ["pods", "secrets"], "verbs": ["get", "list"] }
+      {
+        "apiGroups": [
+          "stackgres.io"
+        ],
+        "resources": [
+          "sgclusters",
+          "sgbackups"
+        ],
+        "verbs": [
+          "get",
+          "list",
+          "watch"
+        ],
+        "resourceNames": null,
+        "nonResourceURLs": null
+      }
+    ]
+  },
+  {
+    "metadata": {
+      "namespace": "default",
+      "name": "operator",
+      "uid": "88880000-0000-0000-0000-000000000002"
+    },
+    "rules": [
+      {
+        "apiGroups": [
+          "stackgres.io"
+        ],
+        "resources": [
+          "sgclusters"
+        ],
+        "verbs": [
+          "get",
+          "list",
+          "create",
+          "patch",
+          "delete"
+        ],
+        "resourceNames": null,
+        "nonResourceURLs": null
+      },
+      {
+        "apiGroups": [
+          ""
+        ],
+        "resources": [
+          "secrets"
+        ],
+        "verbs": [
+          "get",
+          "list"
+        ],
+        "resourceNames": null,
+        "nonResourceURLs": null
+      }
     ]
   }
 ]

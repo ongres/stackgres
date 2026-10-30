@@ -1,11 +1,23 @@
 [
   {
-    "apiVersion": "rbac.authorization.k8s.io/v1",
-    "kind": "ClusterRole",
-    "metadata": { "name": "stackgres-restapi-cluster-admin", "uid": "eeee0000-0000-0000-0000-000000000001", "creationTimestamp": "2026-01-02T08:00:00Z" },
+    "metadata": {
+      "name": "stackgres-restapi-admin",
+      "uid": "99990000-0000-0000-0000-000000000001"
+    },
     "rules": [
-      { "apiGroups": ["stackgres.io"], "resources": ["sgconfigs"], "verbs": ["get", "list", "patch"] },
-      { "apiGroups": [""], "resources": ["namespaces", "storageclasses"], "verbs": ["get", "list"] }
+      {
+        "apiGroups": [
+          "*"
+        ],
+        "resources": [
+          "*"
+        ],
+        "verbs": [
+          "*"
+        ],
+        "resourceNames": null,
+        "nonResourceURLs": null
+      }
     ]
   }
 ]

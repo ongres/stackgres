@@ -21,6 +21,9 @@ import ShardedClusterConfig from './components/views/ShardedClusterConfig'
 import ShardedClusterDetail from './components/views/ShardedClusterDetail'
 import ShardedClusterMonitoring from './components/views/ShardedClusterMonitoring'
 import ShardedClusterStatus from './components/views/ShardedClusterStatus'
+import RoleDetail from './components/views/RoleDetail'
+import UserDetail from './components/views/UserDetail'
+import UserManagement from './components/views/UserManagement'
 import BackupForm from './components/forms/BackupForm'
 import DbOpsForm from './components/forms/DbOpsForm'
 import DistributedLogsForm from './components/forms/DistributedLogsForm'
@@ -29,11 +32,13 @@ import NamespaceForm from './components/forms/NamespaceForm'
 import ObjectStorageForm from './components/forms/ObjectStorageForm'
 import PgConfigForm from './components/forms/PgConfigForm'
 import PoolConfigForm from './components/forms/PoolConfigForm'
+import RoleForm from './components/forms/RoleForm'
 import ScriptForm from './components/forms/ScriptForm'
 import SGClusterForm from './components/forms/SGClusterForm'
 import SGConfigForm from './components/forms/SGConfigForm'
 import SGShardedClusterForm from './components/forms/SGShardedClusterForm'
 import StreamForm from './components/forms/StreamForm'
+import UserForm from './components/forms/UserForm'
 import { KINDS } from './lib/kinds'
 
 // Simple CRDs: one list route (plural) and one detail route (singular),
@@ -119,7 +124,16 @@ export default function App() {
                   <Route path=":namespace/application/:name/*" element={<PendingView title="Application" />} />
                   <Route path="sgconfig/:name" element={<SGConfigDetail />} />
                   <Route path="sgconfig/:name/edit" element={<SGConfigForm />} />
-                  <Route path="manage/*" element={<PendingView title="User Management" />} />
+                  <Route path="manage/users" element={<UserManagement />} />
+                  <Route path="manage/users/new" element={<UserForm />} />
+                  <Route path="manage/user/:name" element={<UserDetail />} />
+                  <Route path="manage/user/:name/edit" element={<UserForm isEdit />} />
+                  <Route path="manage/roles/new" element={<RoleForm kind="roles" />} />
+                  <Route path="manage/role/:name" element={<RoleDetail kind="roles" />} />
+                  <Route path="manage/role/:name/edit" element={<RoleForm kind="roles" isEdit />} />
+                  <Route path="manage/clusterroles/new" element={<RoleForm kind="clusterroles" />} />
+                  <Route path="manage/clusterrole/:name" element={<RoleDetail kind="clusterroles" />} />
+                  <Route path="manage/clusterrole/:name/edit" element={<RoleForm kind="clusterroles" isEdit />} />
                   <Route path="*" element={<PendingView title="Not Found" />} />
                 </Route>
               </Routes>

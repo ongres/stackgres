@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Clock, LogOut, Moon, RotateCw, Sun } from 'lucide-react'
+import { Clock, LogOut, Moon, RotateCw, Sun, User } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useData } from '../../contexts/DataContext'
+import { useCanI } from '../../contexts/PermissionsContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import { userManagementPermissions } from '../../lib/permissions'
 
 export default function TopBar() {
   const { logout } = useAuth()
+  const canI = useCanI()
   const { refresh } = useData()
   const { theme, toggleTheme } = useTheme()
   const { timezone, toggleTimezone } = useSettings()
@@ -35,6 +38,11 @@ export default function TopBar() {
         {version && <span className="text-xs font-normal">{version}</span>}
       </Link>
       <div className="flex items-center gap-3">
+        {userManagementPermissions(canI).get && (
+          <Link to="/manage/users" title="User management" aria-label="User management">
+            <User size={18} />
+          </Link>
+        )}
         <button type="button" onClick={refresh} title="Reload data" aria-label="Reload data">
           <RotateCw size={18} />
         </button>
