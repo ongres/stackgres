@@ -756,11 +756,14 @@ pg_replication_status:
   master: true
   query: |
     SELECT
-      application_name,
-      client_addr,
-      state,
+      pg_stat_replication.application_name,
+      pg_stat_replication.client_addr,
+      pg_stat_replication.state,
+      COALESCE(pg_replication_slots.slot_name::text, '') AS slot_name,
+      pg_stat_replication.pid,
       pg_wal_lsn_diff(pg_stat_replication.sent_lsn, pg_stat_replication.replay_lsn) AS lag_size
-    FROM pg_stat_replication;
+    FROM pg_stat_replication
+    LEFT JOIN pg_replication_slots ON pg_replication_slots.active_pid = pg_stat_replication.pid;
   metrics:
     - application_name:
         usage: "LABEL"
@@ -771,7 +774,13 @@ pg_replication_status:
     - state:
         usage: "LABEL"
         description: "Client replication state"
-    - lag_size_bytes:
+    - slot_name:
+        usage: "LABEL"
+        description: "Replication slot used by the walsender (empty if none)"
+    - pid:
+        usage: "LABEL"
+        description: "Walsender process id"
+    - lag_size:
         usage: "GAUGE"
         description: "Replication lag size in bytes"
 
