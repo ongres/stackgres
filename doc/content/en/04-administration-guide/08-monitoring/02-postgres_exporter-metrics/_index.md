@@ -152,7 +152,9 @@ The next tables contain details about the metrics collected by the postgres_expo
 |   |              | application_name | LABEL | Application or node name |
 |   |              | client_addr | LABEL | Client ip address |
 |   |              | state | LABEL | Client replication state |
-|   |              | lag_size_bytes | GAUGE | Replication lag size in bytes |
+|   |              | slot_name | LABEL | Replication slot used by the walsender (empty if none) |
+|   |              | pid | LABEL | Walsender process id |
+|   |              | lag_size | GAUGE | Replication lag size in bytes |
 
 
 ## Connection pooling metrics
