@@ -111,12 +111,15 @@ then
   # "could not create lock file", pg_upgrade concludes that a postmaster is servicing the old
   # cluster and aborts, leaving a data folder that only a rollback can recover. The socket
   # directory is passed in the options of the old server too, which the probe does read, so that
-  # it starts in the same directory --socketdir gives to every other start.
+  # it starts in the same directory --socketdir gives to every other start. The probe also connects
+  # to that server without the socket directory of --socketdir, so with the one of libpq, that is
+  # the same directory compiled into postgres unless PGHOST says otherwise: PGHOST is set to the
+  # socket directory for pg_upgrade only, so that the probe connects where the server listens.
   PG_UPGRADE_SOCKET_OPTION="-c 'unix_socket_directories=$PG_UPGRADE_PATH/$TARGET_VERSION'"
   if [ "$CHECK" = true ]
   then
     echo "Checking major version upgrade"
-    if ! pg_upgrade -c -r \
+    if ! PGHOST="$PG_UPGRADE_PATH/$TARGET_VERSION" pg_upgrade -c -r \
       -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
       -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
       -d "$PG_DATA_PATH" \
@@ -145,7 +148,7 @@ then
     exit 0
   fi
   echo "Performing major version upgrade"
-  if ! pg_upgrade -r \
+  if ! PGHOST="$PG_UPGRADE_PATH/$TARGET_VERSION" pg_upgrade -r \
     -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
     -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
     -d "$PG_DATA_PATH" \
