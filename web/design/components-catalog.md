@@ -82,7 +82,7 @@ Single version means no duplicate-content concerns. Kept simple:
 
 ## ondb-docir API — contract in use
 
-Base URL (demo): `https://42.pga.sh:1443/api/ondb/v1`
+Base URL (demo): `https://sgcr.dev/api/stackgres/v1`
 
 | Endpoint | Used for |
 |---|---|

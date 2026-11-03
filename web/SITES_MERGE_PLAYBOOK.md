@@ -156,7 +156,7 @@ through the site baseof and get the main nav/header/footer. Supporting changes:
 ### 12. Catalog sourced from the ondb-docir API
 
 The mock JSON (`data/catalog/2026-0*.json`, `versions.json`) was replaced by a
-build-time fetch from the live API (`https://42.pga.sh:1443/api/ondb/v1`):
+build-time fetch from the live API (`https://sgcr.dev/api/stackgres/v1`):
 
 - `scripts/fetch-catalog.py` — pulls `/flavors`, `/base-images`, `/addons`,
   `/platforms`, and `/extensions?flavor&major&minor` for every published flavor

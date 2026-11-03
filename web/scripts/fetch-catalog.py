@@ -3,7 +3,7 @@
 and regenerate the catalog content stubs.
 
 Usage:
-    python3 scripts/fetch-catalog.py [--base-url https://42.pga.sh:1443/api/ondb/v1]
+    python3 scripts/fetch-catalog.py [--base-url https://sgcr.dev/api/stackgres/v1]
 
 Writes:
     data/catalog/api.json           — normalized catalog payload (single file)
@@ -21,7 +21,7 @@ import sys
 import urllib.request
 from datetime import datetime, timezone
 
-DEFAULT_BASE_URL = "https://42.pga.sh:1443/api/ondb/v1"
+DEFAULT_BASE_URL = "https://sgcr.dev/api/stackgres/v1"
 
 # Valid tshirt-size values are not documented in the OpenAPI schema; this list
 # was confirmed against the live API (2026-07). Each size is an image variant
