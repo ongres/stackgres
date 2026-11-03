@@ -146,6 +146,11 @@ EOF
 }
 
 check_major_version_upgrade_creation_fail_on_missing_extension_version() {
+  # The oldest version of pg_repack published for the source major version has to be missing for
+  # the target one: the StackGres extensions repository publishes every version of pg_repack for
+  # postgres 12 for postgres 13 too, while the oldest one for postgres 14 is not published for 15
+  local E2E_MAJOR_SOURCE_POSTGRES_VERSION=14.10
+  local E2E_MAJOR_TARGET_POSTGRES_VERSION=15.5
   local SOURCE_POSTGIS_VERSION \
     TARGET_POSTGIS_VERSION \
     SOURCE_TIMESCALE_VERSION \
