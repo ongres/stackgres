@@ -1529,12 +1529,6 @@
     white-space: initial;
 }
 
-#containers-wrap #pga-desc.grid {
-    display: grid;
-    grid-column-gap: 20px;
-    grid-template-columns: 1fr 1fr 1fr;
-}
-
 #containers-wrap .box {
     border: 1px solid var(--lGreen);
     border-radius: 5px;
@@ -1565,35 +1559,12 @@
     margin: 20px 0 0;
 }
 
-#containers-wrap #install-pga {
-    margin-top: 50px;
-    /* background: var(--darkTeal); */
-    padding-top: 20px !important;
-    padding-bottom: 20px !important;
-}
-
-#containers-wrap #install-pga h2, #containers-wrap #know-more-pga h2, #containers-wrap #home-subscribe h2 {
+#containers-wrap #home-subscribe h2 {
     margin-top: 0;
     text-transform: initial;
     font-weight: bold;
     font-size: 2rem;
     color: var(--lGreen) !important;
-}
-
-#containers-wrap #install-pga h3 {
-    margin-top: 0;
-    text-transform: initial;
-    font-weight: bold;
-    font-size: 1.5rem;
-}
-
-#containers-wrap #install-pga img {
-    margin: 0;
-    border: 30px solid #000;
-    border-radius: 5px;
-    width: 95%;
-    display: inline-block;
-    max-width: 95%;
 }
 
 #containers-wrap .scroller {
@@ -1603,25 +1574,12 @@
     display: inline-block;
 }
 
-#containers-wrap #install-pga a {
-    width: 100%;
-    display: inline-block;
-}
-
 #containers-wrap .featherlight .featherlight-content {
     background: #000;
 }
 
 #containers-wrap .darkBg {
     background: var(--darkTeal);
-}
-
-#containers-wrap #know-more-pga {
-    margin-top: 0;
-}
-
-#containers-wrap #know-more-pga h2 {
-    color: var(--textColor) !important;
 }
 
 #containers-wrap #home-subscribe {
@@ -1923,7 +1881,7 @@
 #containers-wrap button#clearExtensions {
     top: 15px;
     border-radius: 5px !important;
-    /* --bgColor text was unreadable once the button lost its PGA background */
+    /* --bgColor text is unreadable on this button's transparent background */
     color: var(--baseColor) !important;
     height: 35px;
     position: absolute;
@@ -2267,7 +2225,7 @@
     width: 5px;
     height: 100%;
     /* masks the tail of the full-height tree line past the last item, so it
-       must match the card background (PGA used its accent color here) */
+       must match the card background */
     background: #1B142C;
     position: absolute;
     left: 0;
@@ -2650,7 +2608,7 @@
 }
 /* ── merged-site adjustments ──────────────────────────────────────────
    Neutralize the main theme's .switch component (knob + ON/OFF pseudo
-   content) inside the containers content — the PGA radios own this UI —
+   content) inside the containers content — the page's own radios own this UI —
    and fix text contrast on the main-site dark palette. */
 #containers-wrap .switch input:after,
 #containers-wrap .switch input:checked:after,
@@ -2690,12 +2648,12 @@
     content: none;
 }
 #containers-wrap {
-    /* PGA's lGreen was its primary accent — map that role to the site's cyan */
+    /* --lGreen is this page's primary accent — map that role to the site's cyan */
     --lGreen: var(--lBlue);
 }
 #containers-wrap #checkout > fieldset {
-    /* PGA used --baseColor (muted teal there) as the card bg; on the main
-       palette that's a vivid blue — use the site's panel tones instead */
+    /* --baseColor is the card background here; on the main palette that's a
+       vivid blue — use the site's panel tones instead */
     background: var(--activeBg);
     border-color: var(--borderColor);
 }
@@ -2711,7 +2669,6 @@
 }
 
 #containers-wrap pre.copyCode {
-    /* PGA framed the command in a thick accent border — match the cards */
     border: 1px solid rgba(255, 255, 255, .15);
     border-radius: 10px;
 }
@@ -2727,8 +2684,9 @@
 }
 #containers-wrap a.btn,
 #containers-wrap a.btn strong {
-    /* main-site .btn contract: dark text on the gradient pill; pga's generic
-       #containers-wrap a color rule outranks .btn via the ID, so restate it */
+    /* main-site .btn contract: dark text on the gradient pill; the page's
+       generic #containers-wrap a color rule outranks .btn via the ID, so
+       restate it */
     color: var(--darkBlue);
 }
 
