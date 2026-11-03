@@ -435,6 +435,13 @@ breadcrumbs: false
                 throw new Error('The image API returned no image details');
             }
 
+            // TEMPORARY: strip the "/t/minimal" segment from the image URLs
+            // until it is dropped from the API response
+            data.image.url = data.image.url.replace('/t/minimal', '');
+            if(data.image.urlDigest) {
+                data.image.urlDigest = data.image.urlDigest.replace('/t/minimal', '');
+            }
+
             // Change to digest url for urls longer than 255 characters
             
             if(data.image.url.length > 255) {
