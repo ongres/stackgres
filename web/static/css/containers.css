@@ -2731,3 +2731,46 @@
        #containers-wrap a color rule outranks .btn via the ID, so restate it */
     color: var(--darkBlue);
 }
+
+/* Copy-to-clipboard icon on the docker command box: hidden until the command
+   container is hovered; the copied overlay (span.copied) fills the pre */
+#containers-wrap .copyCodeWrap {
+    position: relative;
+}
+
+#containers-wrap .copyCodeWrap pre.copyCode {
+    position: relative;
+}
+
+#containers-wrap .copyCodeWrap .copyBtn {
+    position: absolute;
+    top: 15px;
+    right: 30px;
+    padding: 5px;
+    background: transparent;
+    border: 0;
+    color: rgba(255, 255, 255, .8);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .2s ease;
+}
+
+#containers-wrap .copyCodeWrap:hover .copyBtn,
+#containers-wrap .copyCodeWrap .copyBtn:focus-visible {
+    opacity: 1;
+}
+
+#containers-wrap .copyCodeWrap .copyBtn:hover {
+    color: #fff;
+}
+
+#containers-wrap .copyCodeWrap .copyBtn svg {
+    display: block;
+    pointer-events: none;
+}
+
+#containers-wrap pre.copyCode span.copied {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
