@@ -158,7 +158,14 @@ REPLICATION_INITIALIZATION_FROM_REPLICA_EOF
   chmod 700 "$PATRONI_CONFIG_PATH/replication-initialization-from-replica.sh"
 fi
 
-## Patroni configuration 
+## Patroni configuration
+# The controller reloads Patroni only when the config file differs from the last one it reloaded
+# Patroni with, that survives the restart of this container. The config file is regenerated below
+# without what the controller writes into it, and a reconciliation cycle that read the previous
+# config file may allow Patroni to start before writing it again, so that once it is written the
+# config file would be equal to the last one and Patroni would never be reloaded with it. Removing
+# the last one makes the controller reload Patroni after this container restarts.
+rm -f "$PATRONI_CONFIG_PATH/last-${PATRONI_CONFIG_FILE_PATH##*/}"
 echo "Creating patroni configuration"
 cat << 'PATRONI_CONFIG_EOF' | exec-with-env "${PATRONI_ENV}" -- sh -e $SHELL_XTRACE
 cat << EOF > "$PATRONI_CONFIG_FILE_PATH".tmp
