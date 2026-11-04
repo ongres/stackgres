@@ -1,21 +1,21 @@
 .unpinned_images:
 .images:
   ci_image: registry.gitlab.com/ongresinc/stackgres/ci:1.31
-  jdk_runtime_image: registry.access.redhat.com/ubi9/openjdk-21:1.24-3.1793323788
+  jdk_runtime_image: registry.access.redhat.com/ubi9/openjdk-21:1.24-3.1793588567
   jdk_build_image: registry.gitlab.com/ongresinc/stackgres/builder:1.12
   ubi8_micro_image: registry.access.redhat.com/ubi8/ubi-micro:1793091869
   ubi9_minimal_image: registry.access.redhat.com/ubi9/ubi-minimal:1793579023
   admin_ui_build_image: registry.access.redhat.com/ubi8/nodejs-20:1-1778648142
-  admin_ui_nginx_image: registry.access.redhat.com/ubi8/nginx-124:1793617514
+  admin_ui_nginx_image: registry.access.redhat.com/ubi8/nginx-124:1793707970
   pglambda_nodejs_image: registry.access.redhat.com/ubi8/nodejs-18:1-140
 .pinned_images:
   ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci@sha256:1d9b332cdc075a00841bf6ee7a7c53ce27ee0f46f14937eba87c3fa85037624c
-  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21@sha256:3a7b2a598bc19f5b6215aeadac5be122c88fe2f9fca701b514d7d304703af6ad
+  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21@sha256:c8fcb7571677a9f6f1f2f3325c9765103ecc2834ff13ce20eb5ee6d1088f7e12
   jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder@sha256:6c711c8af2ec9a752c19bf7d4fac40f8ea804a65cbbcc65f8c388d3692487507
   ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8/ubi-micro@sha256:f6c822d83399b727955252822dd24e23f82b27914858779d1418e983b5826148
   ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9/ubi-minimal@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c
   admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-20@sha256:7abf4acec0ad770ded216a3cfd45a533998c66056f487b5d5396a98ecbdf0512
-  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124@sha256:c4964cbf5b09a7c83169ffe1ae2dff8e4bfd023f14c7d41e4203d4f58aba4f78
+  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-124@sha256:678b32896e4d806aab5623a70a86d1bbb25fc3c2afdd2ba417fb4d44867adb09
   pglambda_nodejs_image: &pglambda_nodejs_image registry.access.redhat.com/ubi8/nodejs-18@sha256:77d47e5c63e2a45a5d6a5546b145278f04a1a20fcf01b8a3ffaeb1f49056cf11
 build_repository: registry.gitlab.com/ongresinc/stackgres/build
 platforms:
