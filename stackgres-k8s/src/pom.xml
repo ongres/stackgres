@@ -86,16 +86,16 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>3.31.2</quarkus.version>
+    <quarkus.version>3.31.4</quarkus.version>
     <hibernate.version>7.2.4.Final</hibernate.version>
-    <jool.version>0.9.15</jool.version>
-    <immutables.version>2.12.1</immutables.version>
+    <jool.version>0.9.16</jool.version>
+    <immutables.version>2.12.3</immutables.version>
     <checkstyle.version>13.2.0</checkstyle.version>
     <spotbugs.version>4.9.8</spotbugs.version>
     <pmd.version>7.21.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <fluent-process.version>1.0.1</fluent-process.version>
-    <jooq.version>3.20.11</jooq.version>
+    <jooq.version>3.20.20</jooq.version>
     <mockito.version>3.0.0</mockito.version>
     <sundrio.version>0.230.2</sundrio.version>
     <reflections.version>0.10.2</reflections.version>
@@ -120,15 +120,15 @@
     <clean-plugin.version>3.5.0</clean-plugin.version>
     <resources-plugin.version>3.1.0</resources-plugin.version>
     <dependency-plugin.version>3.5.0</dependency-plugin.version>
-    <surefire-plugin.version>3.5.4</surefire-plugin.version>
-    <failsafe-plugin.version>3.5.3</failsafe-plugin.version>
+    <surefire-plugin.version>3.5.6</surefire-plugin.version>
+    <failsafe-plugin.version>3.5.6</failsafe-plugin.version>
     <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
-    <spotbugs-plugin.version>4.9.8.2</spotbugs-plugin.version>
+    <spotbugs-plugin.version>4.9.8.5</spotbugs-plugin.version>
     <pmd-plugin.version>3.28.0</pmd-plugin.version>
-    <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
-    <docker-maven-plugin.version>0.43.0</docker-maven-plugin.version>
+    <enforcer-plugin.version>3.6.3</enforcer-plugin.version>
+    <docker-maven-plugin.version>0.43.4</docker-maven-plugin.version>
     <jandex-maven-plugin.version>3.5.3</jandex-maven-plugin.version>
-    <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
+    <build-helper-maven-plugin.version>3.6.2</build-helper-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle.xml</checkstyle.config.location>
