@@ -1,3 +1,93 @@
+# :rocket: Release 1.18.11 (2026-11-12)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.18.11 is out! :bug: :gun: :confetti_ball: :beers: 
+
+> This release fixes several issues of the major version upgrade: the operator no longer rolls out the Pods that the
+> operation restarts by itself, and a major version upgrade that is rolled back now completes and restores the replicas
+> of the cluster. It also fixes rollouts that waited forever for a Pod that is not ready, replicas that were never
+> initialized with `FromNewlyCreatedBackup` once the created SGBackup got too old, and the reconciliation of resources
+> paused while a reconciliation was queued. All the images are rebuilt without the compromised CA certificates of eMudhra.
+>
+> It also fixes the rollout of an `SGCluster` that could delete the primary Pod while the replica Pod was being
+> re-created, leaving the cluster without any available instance, and the data of the instances of a cluster with a
+> backup using volume snapshot being moved away at every start. Finally, every change of the credentials of an
+> `SGCluster` is now applied without any manual step and without restarting its Pods, including the change of the
+> username of the superuser, of the replication user and of the monitor user.
+>
+> All these fixes are backported from StackGres 1.19.4 and StackGres 1.19.5.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres!
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Updated base images and Java dependencies
+* Babelfish for PostgreSQL 18.4, 17.10 and 16.14
+* PgBouncer 1.26.1
+* Fluent-bit 5.1.5
+* Fluentd 1.20.1
+* Kubectl 1.36.6 and 1.37.2
+* Babelfish Compass 2026.09
+* OTEL Contrib Collector 0.164.0
+* The CA certificates of eMudhra have been removed from the images ([#3291](https://gitlab.com/ongresinc/stackgres/-/issues/3291))
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* An `SGCluster` with `spec.replication.initialization.mode` set to `FromNewlyCreatedBackup` was stuck at one instance once the `SGBackup` created to initialize the replicas became older than `backupNewerThan`, since the operator kept re-creating the same stale `SGBackup` instead of a fresh one ([#3260](https://gitlab.com/ongresinc/stackgres/-/issues/3260))
+* A Pod that is not ready and pending restart (like one that can not be scheduled or whose container keeps crashing) blocked the rollout of an `SGCluster` forever, instead of being re-created ([#3262](https://gitlab.com/ongresinc/stackgres/-/issues/3262))
+* The Pod of the Job of a deleted `SGDbOps` or `SGShardedDbOps` kept running and reported its result on the operation created with the same name. The deletion of the operation now waits for the Pods of its Job to terminate ([#3263](https://gitlab.com/ongresinc/stackgres/-/issues/3263), [#3259](https://gitlab.com/ongresinc/stackgres/-/issues/3259))
+* A major version upgrade let the operator roll out the Pods it restarts by itself, failing when the operator deleted the primary Pod first ([#3275](https://gitlab.com/ongresinc/stackgres/-/issues/3275))
+* A backup Job listed the `SGBackup`s of every namespace holding a cross namespace `SGBackup`, failing with `Forbidden` and stalling for 5 minutes on each of those namespaces ([#3276](https://gitlab.com/ongresinc/stackgres/-/issues/3276))
+* A custom resource paused while its reconciliation was queued was reconciled anyway ([#3277](https://gitlab.com/ongresinc/stackgres/-/issues/3277))
+* A major version upgrade that rolled back wedged the reconciliation of its cluster and never completed, and the replicas of the cluster were not restored after the rollback ([#3278](https://gitlab.com/ongresinc/stackgres/-/issues/3278))
+* The status of an `SGStream` published a torn read of the Debezium metrics ([#3289](https://gitlab.com/ongresinc/stackgres/-/issues/3289))
+* The postgres exporter failed the whole scrape when several walsenders shared the same application name (like the logical replication slots consumed by Debezium). The `pg_replication_status_lag_size` metric now has the `slot_name` and `pid` labels ([#3274](https://gitlab.com/ongresinc/stackgres/-/issues/3274))
+* An `SGDbOps` with `spec.timeout` failed with the timeout reason right after it started running
+* The tags of a Patroni member (like `nofailover` for a replication group with role `none` or `readonly`) were written only after Patroni had already started without them ([#3271](https://gitlab.com/ongresinc/stackgres/-/issues/3271))
+* A major version upgrade failed when the data folder held a stale `postmaster.pid`, and did not report the logs of `pg_upgrade` when it failed
+* The update that removes the finalizer of a custom resource being deleted was rejected when a validation read a resource already deleted, leaving the custom resource and its namespace terminating forever
+* After the patroni container restarted, Patroni could keep running without the callbacks, the tags, `pg_ctl_timeout`, `pre_promote` and `before_stop` that the cluster controller writes into its configuration, since it was never reloaded with them ([#3294](https://gitlab.com/ongresinc/stackgres/-/issues/3294))
+* The rollout of an `SGCluster` deleted the primary Pod, without performing any switchover, while the replica Pod it had just deleted was still terminating or had not been re-created yet, leaving the cluster without any available instance ([#3298](https://gitlab.com/ongresinc/stackgres/-/issues/3298))
+* Once a backup using volume snapshot was available, the patroni container of an `SGCluster` moved its data directory away at every start unless the data had been restored from a volume snapshot, so a cluster whose Pods all started together (like after a rollout) waited forever for a leader to bootstrap ([#3299](https://gitlab.com/ongresinc/stackgres/-/issues/3299))
+* The description of the credentials of the users in the `SGCluster` and `SGShardedCluster` CRDs said that changing them required to modify the database users by hand, while the operator applies the password changes, and it did not describe which changes require a restart ([#3302](https://gitlab.com/ongresinc/stackgres/-/issues/3302))
+* Patroni kept using the previous credentials of the superuser, of the replication user and of its REST API after they were changed in an `SGCluster`, until its Pods were restarted, so a former primary could not rewind, the replicas could not reconnect and the requests to the Patroni REST API were rejected ([#3301](https://gitlab.com/ongresinc/stackgres/-/issues/3301))
+* Changing the username of the superuser or of the replication user of an `SGCluster` did not create the user, and blocked the other credentials changes and all the managed SQL scripts ([#3304](https://gitlab.com/ongresinc/stackgres/-/issues/3304))
+* A monitor user with a username other than `monitor` did not get the grants on the functions used by the Postgres exporter, so some metrics were not collected ([#3305](https://gitlab.com/ongresinc/stackgres/-/issues/3305))
+* Changing the username of the monitor user of an `SGCluster` required to restart its Pods to be applied to the Postgres exporter ([#3306](https://gitlab.com/ongresinc/stackgres/-/issues/3306))
+* The changed credentials of an `SGCluster` were applied to Patroni only at the next reconciliation of the cluster controller, up to a minute later, while the requests to the Patroni REST API already used the new password ([#3307](https://gitlab.com/ongresinc/stackgres/-/issues/3307))
+* The validating webhooks installed by the operator also validated the deletion of an `SGCluster`, while the ones of the operator Helm chart did not, so a tool that applies the chart, like Argo CD, reported the `ValidatingWebhookConfiguration` as out of sync after every restart of the operator. Since no validation acts on the deletion of a custom resource, the validating webhooks no longer validate deletions, which no longer fail while the operator is not available ([#3308](https://gitlab.com/ongresinc/stackgres/-/issues/3308))
+
+## Web Console
+
+* The default name of the `SGCluster` to restore a backup to could exceed the SGCluster name length limit ([#3121](https://gitlab.com/ongresinc/stackgres/-/issues/3121))
+* The names of the `SGDbOps` and `SGBackup` generated with a locale formatted timestamp (like Korean) were invalid ([#3266](https://gitlab.com/ongresinc/stackgres/-/issues/3266))
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.18.11/helm/stackgres-operator.tgz`
+
+> IMPORTANT: `SGDbOps` and `SGShardedDbOps` now have the `stackgres.io/wait-pods-termination` finalizer, so their deletion completes only once the Pods of their Job are terminated (or their termination grace period has elapsed).
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.18.11)
+
 # :rocket: Release 1.18.10 (2026-10-08)
 
 ## :notepad_spiral: NOTES
