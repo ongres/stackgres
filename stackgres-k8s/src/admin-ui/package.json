@@ -8,9 +8,9 @@
   },
   "scripts": {
     "serve": "vue-cli-service serve --port 8081",
-    "mock": "node mock-server/server.js",
+    "mock": "node react/mock-server/server.js",
     "serve:mock": "VUE_APP_API_PROXY_URL=http://localhost:8090 VUE_APP_GRAFANA_PROXY_URL=http://localhost:8090 VUE_APP_GRAFANA_DASHBOARD_PROXY_URL=http://localhost:8090 vue-cli-service serve --port 8081",
-    "dev:mock": "node mock-server/start.js",
+    "dev:mock": "node react/mock-server/start.js",
     "build": "vue-cli-service build",
     "test:e2e": "cypress run --headless",
     "lint": "vue-cli-service lint",

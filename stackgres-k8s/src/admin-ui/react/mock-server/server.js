@@ -220,9 +220,6 @@ function createApp() {
     if (req.query.dryRun !== 'true') sgconfigsItems()[index] = body;
     res.json(body);
   });
-  app.get('/users', (req, res) => res.json(load('users', [])));
-  app.get('/roles', (req, res) => res.json(load('roles', [])));
-  app.get('/clusterroles', (req, res) => res.json(load('clusterroles', [])));
 
   // ----- Resource detail: /namespaces/:ns/:resource/:name/:detail? -----
   // `stats` is synthesized; an explicit detail fixture (data/details/<res>/<detail>.json)

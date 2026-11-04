@@ -9,7 +9,7 @@
 
 const { spawn } = require('child_process')
 const path = require('path')
-const { startServer } = require('../../mock-server/server')
+const { startServer } = require('../mock-server/server')
 
 const MOCK_PORT = process.env.MOCK_PORT || 8090
 

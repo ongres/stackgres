@@ -1,0 +1,6 @@
+{
+  "name": "stackgres-web-console-mock-server",
+  "private": true,
+  "type": "commonjs",
+  "description": "Fixture-backed StackGres REST API mock for the web console dev server and Playwright suite. Depends on express from the parent package."
+}
