@@ -1,10 +1,38 @@
 import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
 import { Pencil } from 'lucide-react'
-import { useKindList, useResource } from '../../contexts/DataContext'
+import { toast } from 'sonner'
+import { api } from '../../lib/api'
+import { useData, useKindList, useResource } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
 import CloneResourceDialog from '../CloneResourceDialog'
 import DeleteResourceDialog from '../DeleteResourceDialog'
 import RestartClusterDialog from '../RestartClusterDialog'
+
+// Promote action for standby clusters (the Vue HeaderSection promoteCluster):
+// a PUT of the cluster with spec.replicateFrom nulled; the link shows only
+// while the cluster replicates from a source.
+function PromoteClusterButton({ cluster }) {
+  const { refresh } = useData()
+
+  const promote = async () => {
+    const promoted = JSON.parse(JSON.stringify(cluster))
+    delete promoted.stats
+    promoted.spec.replicateFrom = null
+    try {
+      await api.update('sgclusters', promoted)
+      toast.success(`Cluster "${cluster.metadata.name}" promoted successfully`)
+      refresh()
+    } catch {
+      toast.error(`Cluster "${cluster.metadata.name}" could not be promoted`)
+    }
+  }
+
+  return (
+    <button type="button" onClick={promote} className="underline">
+      Promote
+    </button>
+  )
+}
 
 // Tab chrome for /:namespace/sgcluster/:name/* — the Vue HeaderSection tabs.
 export default function ClusterDetail() {
@@ -62,6 +90,9 @@ export default function ClusterDetail() {
           )}
           {canI('create', 'sgdbops', namespace) && (
             <RestartClusterDialog namespace={namespace} cluster={name} />
+          )}
+          {cluster.spec.replicateFrom && canI('patch', 'sgclusters', namespace) && (
+            <PromoteClusterButton cluster={cluster} />
           )}
           {canI('create', 'sgclusters', namespace) && (
             <CloneResourceDialog kind="sgclusters" item={cluster} />

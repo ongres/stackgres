@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
+import { getCookie } from '../lib/cookies'
 import { useAuth } from './AuthContext'
 import { usePermissions } from './PermissionsContext'
 
@@ -21,7 +22,16 @@ export const LIST_KINDS = [
   'sgdbops',
 ]
 
-const POLL_INTERVAL_MS = 30000
+// The sgReload cookie (shared with the Vue console) overrides the refresh
+// interval in seconds; '0' disables background polling.
+const DEFAULT_POLL_INTERVAL_MS = 30000
+function pollIntervalMs() {
+  const cookie = getCookie('sgReload')
+  if (!cookie.length || Number.isNaN(Number(cookie))) {
+    return DEFAULT_POLL_INTERVAL_MS
+  }
+  return Number(cookie) * 1000
+}
 
 // Kinds whose items get their /stats detail attached (as item.stats), as the
 // Vue console does for cluster CPU/memory/disk columns and pods tables.
@@ -85,10 +95,13 @@ export function DataProvider({ children }) {
       return
     }
     refresh()
-    const interval = setInterval(refresh, POLL_INTERVAL_MS)
+    const intervalMs = pollIntervalMs()
+    const interval = intervalMs > 0 ? setInterval(refresh, intervalMs) : null
     return () => {
       activeRef.current = false
-      clearInterval(interval)
+      if (interval) {
+        clearInterval(interval)
+      }
     }
   }, [isLoggedIn, permissionsLoaded, refresh])
 
