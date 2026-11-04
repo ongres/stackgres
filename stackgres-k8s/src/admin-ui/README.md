@@ -1,77 +1,69 @@
 # StackGres Web Console
 
+The web console is a React 18 + Vite application living in the [`react/`](react/)
+directory. The legacy Vue 2 application (`src/`, `vue.config.js`, …) is kept
+only until its removal lands and is no longer built or shipped.
+
 ## Installation requirements
 
-- node 14.4.0 or greater
+- node 22 (see `react/.nvmrc`)
 
 To install all node dependencies run:
 
 ```sh
+cd react
 npm install
 ```
 
-## Local deploy with API proxy
+## Running the UI against the mock API
 
-When working on development mode, and if connecting to an external API, an extra variable must be set in order to enable the proxy to bypass CORS validations:
-
-```sh
-VUE_APP_API_PROXY_URL=https://api.host.com/stackgres    # External API address
-```
-
-You can specify this variable either manually on each run, or by placing it in the `.env.development.local` file in the project's root folder. Be aware that this variable will be used only on your local development environment.
-
-## Running the UI (Compiles and hot-reloads for development)
-
-Once you have the environment variables in place, simply run:
+The console can run fully offline against a fixture-backed mock of the
+StackGres REST API (see [`react/mock-server/`](react/mock-server/)):
 
 ```sh
-npm run serve
+cd react
+npm run dev:mock
 ```
 
-Then, you access the UI at http://localhost:8081/admin/
+Then access the UI at http://localhost:8082/admin/ and log in with any
+credentials (the mock accepts everything). Created, updated and deleted
+resources persist in memory until the server restarts, and every write is
+recorded at `/stackgres/requests-log` for payload inspection.
 
-## Bulding the UI (Compiles and minifies for production)
+## Running the UI against a real API
 
 ```sh
-npm run build
+cd react
+VITE_API_PROXY_URL=https://api.host.com npm run dev
 ```
 
-This will build the UI and save into the `dist` folder
+The dev server proxies `/stackgres` to the given host, bypassing CORS.
+
+## Building the UI
+
+```sh
+cd react
+npm run build       # Vite build into react/dist
+cd ..
+sh build.sh         # packages react/dist plus info/ into target/public
+```
+
+`build.sh` expects `../restapi/target/swagger-merged.json` (the tooltips
+source), which the `restapi-java` build module produces. The CI build module
+`admin-ui` (see `stackgres-k8s/ci/build/config.yml`) runs lint, unit tests and
+this packaging; the `admin-ui-image` module copies `target/public` into the
+nginx image.
 
 ## Tests
 
-In order to do some e2e testing with UI the StackGres will rely on Cypress to do so.
-
-Cypress will need some environment varibles in order to work. A
-convinient way to pass this variables is by specifying a
-cypress.env.json
-
-```json
-{
-  "username": "<UI username>",
-  "password": "<UI password>",
-  "host": "http://localhost:8081/"
-}
+```sh
+cd react
+npm run lint        # eslint
+npm run test:run    # vitest unit tests
+npm run test:e2e    # Playwright suite against the mock API
 ```
 
-## More Information
-
-### Customizing Env Vars
-
-See [Modes and Environment Variables](https://cli.vuejs.org/guide/mode-and-env.html#modes)
-
-### Customizing configuration
-
-See [Configuration Reference](https://cli.vuejs.org/config/).
-
-## React migration (work in progress)
-
-The console is being migrated from Vue 2 to the React 18 + Vite stack shared with stackgres-cloud-console (issue #3275). During the migration both apps coexist:
-
-- The Vue app (this directory) keeps working unchanged: `npm run dev:mock` serves it at http://localhost:8081/admin/.
-- The React app lives in `react/` with its own `package.json` and toolchain, so the two dependency trees never mix. From `react/`: `npm install`, then `npm run dev:mock` serves it at http://localhost:8082/admin/.
-- Both apps proxy `/stackgres/*` to the same mock API (`mock-server/`, port 8090) or to a real backend via `VITE_API_PROXY_URL` / `VUE_APP_API_PROXY_URL`.
-- React app quality gates, from `react/`: `npm run lint`, `npm run test:run` (Vitest), `npm run test:e2e` (Playwright; run `npx playwright install chromium` once).
-- The mock server resolves its dependencies from this directory's `node_modules`, so keep the Vue `npm install` in place while the migration lasts.
-
-Node `^20.12 || ^22 || >=24` is required for the React app (`react/.nvmrc`).
+The in-cluster e2e (`stackgres-k8s/e2e/spec/ui`) runs the separate
+`react/e2e-live` Playwright suite against a deployed console; it takes the
+base URL and credentials from the environment (see
+`react/playwright-live.config.js`).

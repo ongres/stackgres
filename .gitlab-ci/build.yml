@@ -73,7 +73,7 @@ build arm64:
   cache:
     - key: node
       paths:
-      - stackgres-k8s/src/admin-ui/node_modules
+      - stackgres-k8s/src/admin-ui/react/node_modules
       when: always
 
 build ui amd64:

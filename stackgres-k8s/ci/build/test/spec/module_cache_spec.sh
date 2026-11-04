@@ -22,9 +22,9 @@ Describe "module cache volumes"
     # at every entry would give a module its cache under the name of another.
     It "emits one option per cache entry, each with its own directory"
       BUILD_CACHE_PATH=/cache
-      When call module_cache_volume_opts .m2/ stackgres-k8s/src/admin-ui/node_modules
+      When call module_cache_volume_opts .m2/ stackgres-k8s/src/admin-ui/react/node_modules
       The status should be success
-      The output should equal "--volume /cache/.m2:/project/.m2:rw --volume /cache/stackgres-k8s/src/admin-ui/node_modules:/project/stackgres-k8s/src/admin-ui/node_modules:rw"
+      The output should equal "--volume /cache/.m2:/project/.m2:rw --volume /cache/stackgres-k8s/src/admin-ui/react/node_modules:/project/stackgres-k8s/src/admin-ui/react/node_modules:rw"
     End
 
     It "emits nothing for a module that declares no cache"

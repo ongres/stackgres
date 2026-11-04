@@ -206,15 +206,19 @@ modules:
     target_image: *ubi8_micro_image
     build_image: *admin_ui_build_image
     sources:
-      - stackgres-k8s/src/admin-ui/babel.config.js
       - stackgres-k8s/src/admin-ui/build.sh
-      - stackgres-k8s/src/admin-ui/npmw
-      - stackgres-k8s/src/admin-ui/package.json
-      - stackgres-k8s/src/admin-ui/vue.config.js
-      - stackgres-k8s/src/admin-ui/public
-      - stackgres-k8s/src/admin-ui/src
+      - stackgres-k8s/src/admin-ui/react/.npmrc
+      - stackgres-k8s/src/admin-ui/react/package.json
+      - stackgres-k8s/src/admin-ui/react/package-lock.json
+      - stackgres-k8s/src/admin-ui/react/vite.config.js
+      - stackgres-k8s/src/admin-ui/react/index.html
+      - stackgres-k8s/src/admin-ui/react/postcss.config.js
+      - stackgres-k8s/src/admin-ui/react/tailwind.config.js
+      - stackgres-k8s/src/admin-ui/react/eslint.config.js
+      - stackgres-k8s/src/admin-ui/react/public
+      - stackgres-k8s/src/admin-ui/react/src
     build_commands:
-      - cd stackgres-k8s/src/admin-ui
+      - cd stackgres-k8s/src/admin-ui/react
       - export HOME=/project
       # npm resolves the git dependencies invoking git, that walks up from the current directory
       #  looking for a repository. When the project folder is a git worktree the .git file found
@@ -223,13 +227,13 @@ modules:
       #  the git repository, so stop the lookup before reaching the project folder.
       - export GIT_CEILING_DIRECTORIES=/project
       - npm install --verbose --unsafe-perm
-      - |
-        ! grep -q 'LATER_COV' node_modules/prettycron/node_modules/later/index.js \
-          || sed -i "s#^ *require\(.*LATER_COV.*\); *\$#require('./later');#" node_modules/prettycron/node_modules/later/index.js
+      - npm run lint
+      - npm run test:run
       - npm run build
+      - cd ..
       - sh $SHELL_XTRACE build.sh
     cache:
-      - stackgres-k8s/src/admin-ui/node_modules
+      - stackgres-k8s/src/admin-ui/react/node_modules
     artifacts:
       - stackgres-k8s/src/admin-ui/target
   operator-native: &native

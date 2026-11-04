@@ -2,3 +2,4 @@ node_modules/
 dist/
 test-results/
 playwright-report/
+/public/info/sg-tooltips.json

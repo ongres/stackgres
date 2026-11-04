@@ -14,15 +14,19 @@ cd "$(dirname "$0")"
 mkdir -p target
 rm -rf target/public
 
+mkdir -p target/public
+cp -a react/dist/. target/public/.
+
+# The generated info files must win over the dev placeholders Vite copied
+# from react/public.
 mkdir -p target/public/info
 cp ../restapi/target/swagger-merged.json target/public/info/sg-tooltips.json
 
-mkdir -p target/public/info
 # Export SG version to show on the UI
 sh ../../ci/build/version.sh \
   | echo "{\"version\":\"$(cat)\"}" > target/public/info/sg-info.json
 
-mkdir -p public/info
-cp -a target/public/info/. public/info/.
-
-cp -a dist/. target/public/.
+# Make the tooltips available to the Vite dev server (sg-info.json keeps its
+# committed development placeholder there).
+mkdir -p react/public/info
+cp target/public/info/sg-tooltips.json react/public/info/sg-tooltips.json
