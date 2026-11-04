@@ -1,0 +1,38 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/dbops-major-version-upgrade"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/dbops-major-version-upgrade")"
+}
+
+e2e_test() {
+  run_test "Checking that major version upgrade check is working" check_major_version_upgrade_check_is_working
+}
+
+check_major_version_upgrade_check_is_working() {
+  reset_cluster
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
+    check: true
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
+EOF
+
+  check_major_version_upgrade_check
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+}
