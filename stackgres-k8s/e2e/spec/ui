@@ -1,14 +1,18 @@
 #!/bin/sh
 
+E2E_PLAYWRIGHT_VERSION="${E2E_PLAYWRIGHT_VERSION:-1.64.1}"
+
 e2e_exclusive_lock() {
   true
 }
 
 e2e_test_extra_hash() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
-    "$(realpath --relative-to "$PROJECT_PATH" "$PROJECT_PATH/stackgres-k8s/src/admin-ui/cypress")"
+    "$(realpath --relative-to "$PROJECT_PATH" "$PROJECT_PATH/stackgres-k8s/src/admin-ui/react/e2e-live")"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$PROJECT_PATH/stackgres-k8s/src/admin-ui/react/playwright-live.config.js")"
   echo "E2E_UI_POSTGRES_VERSION=$E2E_UI_POSTGRES_VERSION"
-  echo "E2E_UI_TEST_BROWSER=${E2E_UI_TEST_BROWSER:-chrome}"
+  echo "E2E_PLAYWRIGHT_VERSION=$E2E_PLAYWRIGHT_VERSION"
 }
 
 e2e_test_install() {
@@ -34,44 +38,40 @@ e2e_test_install() {
   kubectl create clusterrolebinding stackgres-restapi-admin-full --user=admin --clusterrole=cluster-admin
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
-  install_minio
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string "cluster.postgres.version=$E2E_UI_POSTGRES_VERSION"
 
   local PASSWORD
   PASSWORD="$(kubectl get secrets -n "$OPERATOR_NAMESPACE" stackgres-restapi-admin -o jsonpath="{.data.clearPassword}" | base64 -d)"
-  CYPRESS_POD="cypress"
-  
+  PLAYWRIGHT_POD="playwright"
+
   cat << EOF | kubectl apply -f -
   apiVersion: v1
   kind: Pod
   metadata:
-    name: $CYPRESS_POD
+    name: $PLAYWRIGHT_POD
     namespace: $CLUSTER_NAMESPACE
   spec:
     containers:
-    - name: $CYPRESS_POD
-      image: cypress/included:10.11.0
+    - name: $PLAYWRIGHT_POD
+      image: mcr.microsoft.com/playwright:v$E2E_PLAYWRIGHT_VERSION-noble
       command: [ "sh", "-c", "while true; do sleep 300; done" ]
       imagePullPolicy: IfNotPresent
+      workingDir: /tests
       env:
-      - name: CYPRESS_BASE_URL
+      - name: PLAYWRIGHT_BASE_URL
         value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin"
-      - name: CYPRESS_VIDEO
-        value: "false" 
-      - name: CYPRESS_host
-        value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin"
-      - name: CYPRESS_api
-        value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/stackgres"
-      - name: CYPRESS_username
+      - name: PLAYWRIGHT_TIMEOUT
+        value: "$((E2E_TIMEOUT * 1000))"
+      - name: LIVE_USERNAME
         value: "admin"
-      - name: CYPRESS_password
+      - name: LIVE_PASSWORD
         value: "$PASSWORD"
-      - name: CYPRESS_k8s_namespace
-        value: $CLUSTER_NAMESPACE
-      - name: CYPRESS_postgres_version
-        value: "$E2E_UI_POSTGRES_VERSION"
+      - name: LIVE_NAMESPACE
+        value: "$CLUSTER_NAMESPACE"
+      - name: LIVE_CLUSTER
+        value: "$CLUSTER_NAME"
     restartPolicy: Always
     terminationGracePeriodSeconds: 0
 EOF
@@ -79,27 +79,11 @@ EOF
   wait_pods_running "$CLUSTER_NAMESPACE" 4
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
-  kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.config.js" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
-
-  BACKUP_NAME=ui-0
-
-  cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
-kind: SGBackup
-metadata:
-  namespace: "$CLUSTER_NAMESPACE"
-  name: "$BACKUP_NAME"
-spec:
-  sgCluster: "$CLUSTER_NAME"
-  managedLifecycle: false
-EOF
-
-  wait_until is_backup_phase "$CLUSTER_NAMESPACE" "$BACKUP_NAME" "Completed"
-
-  openssl req -x509 -nodes -subj "/CN=localhost" \
-    -newkey rsa:4096 -keyout "$LOG_PATH"/key.pem -out "$LOG_PATH"/cert.pem -sha256 -days 365
-  kubectl -n "$CLUSTER_NAMESPACE" create secret tls cert-cluster --cert="$LOG_PATH"/cert.pem --key="$LOG_PATH"/key.pem
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$PLAYWRIGHT_POD" -- mkdir -p /tests
+  kubectl cp "$UI_TESTS_RESOURCES_PATH/react/e2e-live" "$CLUSTER_NAMESPACE/$PLAYWRIGHT_POD":/tests/e2e-live
+  kubectl cp "$UI_TESTS_RESOURCES_PATH/react/playwright-live.config.js" "$CLUSTER_NAMESPACE/$PLAYWRIGHT_POD":/tests/playwright-live.config.js
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$PLAYWRIGHT_POD" -- \
+    sh -c "cd /tests && npm init -y > /dev/null && npm install --no-audit --no-fund @playwright/test@$E2E_PLAYWRIGHT_VERSION"
 }
 
 e2e_test_uninstall() {
@@ -110,17 +94,10 @@ e2e_test_uninstall() {
   kubectl delete clusterrolebinding stackgres-restapi-admin-full --ignore-not-found
 }
 
-is_backup_phase() {
-  local NAMESPACE="$1"
-  local NAME="$2"
-  local STATUS="$3"
-  [ "$(kubectl get sgbackup -n "$NAMESPACE" "$NAME" -o=jsonpath='{.status.process.status}')" = "$STATUS" ]
-}
-
 e2e_test_values() {
   (
-  cd "$UI_TESTS_RESOURCES_PATH/cypress/e2e"
-  find . -name '*.cy.js' | cut -d / -f 2- | sort
+  cd "$UI_TESTS_RESOURCES_PATH/react/e2e-live"
+  find . -name '*.spec.js' | cut -d / -f 2- | sort
   )
 }
 
@@ -131,36 +108,29 @@ e2e_test() {
     return
   fi
 
-  run_test "Cypress ${E2E_UI_TEST_BROWSER:-chrome} tests $SPEC_VALUE should pass" cypress_test
+  run_test "Playwright chromium tests $SPEC_VALUE should pass" playwright_test
 
   run_test "Nginx must return the index page when a resource is not found" check_index_on_not_found_resource
 
   run_test "Nginx must work correctly on HTTP port when HTTP is exposed" check_http_port
 }
 
-cypress_test(){
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
-    sed "s/defaultCommandTimeout: .*,/defaultCommandTimeout: $((E2E_TIMEOUT * 1000)),/" cypress.config.js
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
-    sed "s/requestTimeout: .*,/requestTimeout: $((E2E_TIMEOUT * 1000)),/" cypress.config.js
-  if ! kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
-    cypress run \
-      --headless \
-      --browser "${E2E_UI_TEST_BROWSER:-chrome}" \
-      -s cypress/e2e/"$SPEC_VALUE"
+playwright_test(){
+  if ! kubectl exec -i -n "$CLUSTER_NAMESPACE" "$PLAYWRIGHT_POD" -- \
+    sh -c "cd /tests && npx playwright test --config playwright-live.config.js e2e-live/$SPEC_VALUE"
   then
-    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots" || true
+    kubectl cp -n "$CLUSTER_NAMESPACE" "$PLAYWRIGHT_POD":'/tests/test-results' "$LOG_PATH/playwright-results" || true
     exit 1
   fi
 }
 
 check_index_on_not_found_resource(){
   RANDOM_RESOURCE="$(random_string_lowercase 8)"
-  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
+  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$PLAYWRIGHT_POD" -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
 
   assert_string_equal "200" "$HTTP_STATUS"
 
-  HTTP_RESPONSE="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -L 2>/dev/null)"
+  HTTP_RESPONSE="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$PLAYWRIGHT_POD" -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -L 2>/dev/null)"
 
   if echo "$HTTP_RESPONSE" | grep -E "<meta.+index" > /dev/null
   then
@@ -171,7 +141,7 @@ check_index_on_not_found_resource(){
 }
 
 check_http_port(){
-  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s "http://stackgres-restapi.$OPERATOR_NAMESPACE/admin" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
+  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$PLAYWRIGHT_POD" -- curl -s "http://stackgres-restapi.$OPERATOR_NAMESPACE/admin" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
 
   if [ "$HTTP_STATUS" = "200" ]
   then
