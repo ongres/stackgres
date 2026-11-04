@@ -7,7 +7,7 @@ import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildInstanceProfile } from '../../lib/payloads'
 import { nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
-import { Field, Select, TextInput } from './fields'
+import { Field, Select, TextInput, renderTooltip } from './fields'
 
 const MEMORY_UNITS = ['Mi', 'Gi']
 const CPU_UNITS = ['CPU', 'm']
@@ -55,9 +55,9 @@ function unparseContainers(map) {
   })
 }
 
-function QuantityInput({ label, value, unit, units, onValue, onUnit, required, error }) {
+function QuantityInput({ label, value, unit, units, onValue, onUnit, required, error, tooltip }) {
   return (
-    <Field label={label} required={required} error={error}>
+    <Field label={label} required={required} error={error} tooltip={tooltip}>
       <div className="flex gap-2">
         <TextInput type="number" min="0" value={value} onChange={onValue} required={required} />
         <Select value={unit} onChange={onUnit} options={units} />
@@ -66,12 +66,12 @@ function QuantityInput({ label, value, unit, units, onValue, onUnit, required, e
   )
 }
 
-function ContainerRows({ title, rows, setRows, hugePages = false }) {
+function ContainerRows({ title, rows, setRows, hugePages = false, tooltip, keyPrefix }) {
   const update = (index, patch) =>
     setRows(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)))
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{title}</legend>
+      <legend className="px-1 font-semibold">{title}{renderTooltip(tooltip)}</legend>
       {rows.map((row, index) => (
         <div key={index} className="flex flex-col gap-2 border p-2">
           <h3 className="font-semibold">
@@ -104,6 +104,7 @@ function ContainerRows({ title, rows, setRows, hugePages = false }) {
               onValue={(RAM) => update(index, { RAM })}
               onUnit={(RAMUnit) => update(index, { RAMUnit })}
               required={row.name.length > 0 || row.CPU.length > 0}
+              tooltip={keyPrefix && keyPrefix + '.memory'}
             />
             <QuantityInput
               label="CPU"
@@ -113,11 +114,14 @@ function ContainerRows({ title, rows, setRows, hugePages = false }) {
               onValue={(CPU) => update(index, { CPU })}
               onUnit={(CPUUnit) => update(index, { CPUUnit })}
               required={row.name.length > 0 || row.RAM.length > 0}
+              tooltip={keyPrefix && keyPrefix + '.cpu'}
             />
           </div>
           {hugePages && (
             <>
-              <h4 className="font-semibold">Container Huge Pages Specs</h4>
+              <h4 className="font-semibold">
+                Container Huge Pages Specs{renderTooltip(keyPrefix && keyPrefix + '.hugePages')}
+              </h4>
               <div className="flex flex-wrap items-end gap-2">
                 <QuantityInput
                   label="Huge Pages 2Mi"
@@ -126,6 +130,7 @@ function ContainerRows({ title, rows, setRows, hugePages = false }) {
                   units={MEMORY_UNITS}
                   onValue={(hugePages2Mi) => update(index, { hugePages2Mi })}
                   onUnit={(hugePages2MiUnit) => update(index, { hugePages2MiUnit })}
+                  tooltip={keyPrefix && keyPrefix + '.hugePages.properties.hugepages-2Mi'}
                 />
                 <QuantityInput
                   label="Huge Pages 1Gi"
@@ -134,6 +139,7 @@ function ContainerRows({ title, rows, setRows, hugePages = false }) {
                   units={MEMORY_UNITS}
                   onValue={(hugePages1Gi) => update(index, { hugePages1Gi })}
                   onUnit={(hugePages1GiUnit) => update(index, { hugePages1GiUnit })}
+                  tooltip={keyPrefix && keyPrefix + '.hugePages.properties.hugepages-1Gi'}
                 />
               </div>
             </>
@@ -289,7 +295,7 @@ export default function InstanceProfileForm({ isEdit }) {
       {currentStep === 'profile' && (
         <>
           <h2 className="text-lg font-semibold">Profile Information</h2>
-          <Field label="Profile Name" required error={form.errors.name}>
+          <Field label="Profile Name" required error={form.errors.name} tooltip="sgprofile.metadata.name">
             <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
           </Field>
           {nameCollision && (
@@ -299,37 +305,47 @@ export default function InstanceProfileForm({ isEdit }) {
             </p>
           )}
           <div className="flex flex-wrap gap-4">
-            <QuantityInput label="RAM" value={ram} unit={ramUnit} units={MEMORY_UNITS} onValue={setRam} onUnit={setRamUnit} required error={form.errors.ram} />
-            <QuantityInput label="CPU" value={cpu} unit={cpuUnit} units={CPU_UNITS} onValue={setCpu} onUnit={setCpuUnit} required error={form.errors.cpu} />
+            <QuantityInput label="RAM" value={ram} unit={ramUnit} units={MEMORY_UNITS} onValue={setRam} onUnit={setRamUnit} required error={form.errors.ram} tooltip="sgprofile.spec.memory" />
+            <QuantityInput label="CPU" value={cpu} unit={cpuUnit} units={CPU_UNITS} onValue={setCpu} onUnit={setCpuUnit} required error={form.errors.cpu} tooltip="sgprofile.spec.cpu" />
           </div>
-          <h2 className="text-lg font-semibold">Huge Pages Specs</h2>
+          <h2 className="text-lg font-semibold">Huge Pages Specs{renderTooltip('sgprofile.spec.hugePages')}</h2>
           <div className="flex flex-wrap gap-4">
-            <QuantityInput label="Huge Pages 2Mi" value={hugePages2Mi} unit={hugePages2MiUnit} units={MEMORY_UNITS} onValue={setHugePages2Mi} onUnit={setHugePages2MiUnit} />
-            <QuantityInput label="Huge Pages 1Gi" value={hugePages1Gi} unit={hugePages1GiUnit} units={MEMORY_UNITS} onValue={setHugePages1Gi} onUnit={setHugePages1GiUnit} />
+            <QuantityInput label="Huge Pages 2Mi" value={hugePages2Mi} unit={hugePages2MiUnit} units={MEMORY_UNITS} onValue={setHugePages2Mi} onUnit={setHugePages2MiUnit} tooltip="sgprofile.spec.hugePages.hugepages-2Mi" />
+            <QuantityInput label="Huge Pages 1Gi" value={hugePages1Gi} unit={hugePages1GiUnit} units={MEMORY_UNITS} onValue={setHugePages1Gi} onUnit={setHugePages1GiUnit} tooltip="sgprofile.spec.hugePages.hugepages-1Gi" />
           </div>
         </>
       )}
       {currentStep === 'containers' && (
-        <ContainerRows title="Containers" rows={containers} setRows={setContainers} hugePages />
+        <ContainerRows title="Containers" rows={containers} setRows={setContainers} hugePages
+          tooltip="sgprofile.spec.containers"
+          keyPrefix="sgprofile.spec.containers.additionalProperties.properties" />
       )}
       {currentStep === 'initContainers' && (
-        <ContainerRows title="Init Containers" rows={initContainers} setRows={setInitContainers} hugePages />
+        <ContainerRows title="Init Containers" rows={initContainers} setRows={setInitContainers} hugePages
+          tooltip="sgprofile.spec.initContainers"
+          keyPrefix="sgprofile.spec.initContainers.additionalProperties.properties" />
       )}
       {currentStep === 'requests' && (
         <fieldset className="flex flex-col gap-2 border p-3">
-          <legend className="px-1 font-semibold">Requests</legend>
+          <legend className="px-1 font-semibold">Requests{renderTooltip('sgprofile.spec.requests')}</legend>
           <div className="flex flex-wrap gap-4">
             <QuantityInput label="RAM" value={requests.RAM} unit={requests.RAMUnit} units={MEMORY_UNITS}
               onValue={(RAM) => setRequests({ ...requests, RAM })}
-              onUnit={(RAMUnit) => setRequests({ ...requests, RAMUnit })} />
+              onUnit={(RAMUnit) => setRequests({ ...requests, RAMUnit })}
+              tooltip="sgprofile.spec.requests.memory" />
             <QuantityInput label="CPU" value={requests.CPU} unit={requests.CPUUnit} units={CPU_UNITS}
               onValue={(CPU) => setRequests({ ...requests, CPU })}
-              onUnit={(CPUUnit) => setRequests({ ...requests, CPUUnit })} />
+              onUnit={(CPUUnit) => setRequests({ ...requests, CPUUnit })}
+              tooltip="sgprofile.spec.requests.cpu" />
           </div>
           <ContainerRows title="Containers Specs" rows={requests.containers}
-            setRows={(rows) => setRequests({ ...requests, containers: rows })} />
+            setRows={(rows) => setRequests({ ...requests, containers: rows })}
+            tooltip="sgprofile.spec.requests.containers"
+            keyPrefix="sgprofile.spec.requests.containers.additionalProperties.properties" />
           <ContainerRows title="Init Containers Specs" rows={requests.initContainers}
-            setRows={(rows) => setRequests({ ...requests, initContainers: rows })} />
+            setRows={(rows) => setRequests({ ...requests, initContainers: rows })}
+            tooltip="sgprofile.spec.requests.initContainers"
+            keyPrefix="sgprofile.spec.requests.initContainers.additionalProperties.properties" />
         </fieldset>
       )}
     </CrdFormShell>

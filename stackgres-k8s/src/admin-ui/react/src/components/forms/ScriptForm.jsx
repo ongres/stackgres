@@ -7,7 +7,8 @@ import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildScript } from '../../lib/payloads'
 import { nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
-import { Field, Select, TextArea, TextInput, Toggle } from './fields'
+import { HelpTooltip } from '../HelpTooltip'
+import { Field, Select, TextArea, TextInput, Toggle, renderTooltip } from './fields'
 
 const SOURCES = [
   { value: 'raw', label: 'Raw script' },
@@ -138,7 +139,7 @@ export default function ScriptForm({ isEdit }) {
           following cluster(s): {usedByClusters.join(', ')}
         </p>
       )}
-      <Field label="Script Name" required error={form.errors.name}>
+      <Field label="Script Name" required error={form.errors.name} tooltip="sgscript.metadata.name">
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
       {nameCollision && (
@@ -147,9 +148,17 @@ export default function ScriptForm({ isEdit }) {
           Please specify a different name or create the resource on another namespace
         </p>
       )}
-      <h3 className="font-semibold">Scripts</h3>
-      <Toggle label="Continue on Error" checked={continueOnError} onChange={setContinueOnError} />
-      <Toggle label="Managed Versions" checked={managedVersions} onChange={setManagedVersions} />
+      <h3 className="font-semibold">Scripts{renderTooltip('sgscript.spec.scripts')}</h3>
+      <Toggle label="Continue on Error" checked={continueOnError} onChange={setContinueOnError}
+        tooltip={
+          <HelpTooltip field="sgscript.spec.continueOnError"
+            transform={(t) => t.replace(/true/g, 'Enabled').replace('false', 'Disabled')} />
+        } />
+      <Toggle label="Managed Versions" checked={managedVersions} onChange={setManagedVersions}
+        tooltip={
+          <HelpTooltip field="sgscript.spec.managedVersions"
+            transform={(t) => t.replace(/true/g, 'Enabled')} />
+        } />
       {form.errors.scripts && (
         <p role="alert" className="text-sm" data-invalid>
           {form.errors.scripts}
@@ -172,22 +181,22 @@ export default function ScriptForm({ isEdit }) {
             </button>
           </div>
           {isEdit && Object.hasOwn(entry, 'version') && (
-            <Field label="Version">
+            <Field label="Version" tooltip="sgscript.spec.scripts.version">
               <TextInput type="number" value={entry.version}
                 onChange={(value) => updateEntry(index, { version: value === '' ? '' : Number(value) })} />
             </Field>
           )}
           <div className="flex flex-wrap gap-3">
-            <Field label="Name">
+            <Field label="Name" tooltip="sgscript.spec.scripts.name">
               <TextInput value={entry.name} placeholder="Type a name..." onChange={(value) => updateEntry(index, { name: value })} />
             </Field>
-            <Field label="Database">
+            <Field label="Database" tooltip="sgscript.spec.scripts.database">
               <TextInput value={entry.database} placeholder="Type a database name..." onChange={(value) => updateEntry(index, { database: value })} />
             </Field>
-            <Field label="User">
+            <Field label="User" tooltip="sgscript.spec.scripts.user">
               <TextInput value={entry.user} placeholder="Type a user name..." onChange={(value) => updateEntry(index, { user: value })} />
             </Field>
-            <Field label="Wrap in Transaction">
+            <Field label="Wrap in Transaction" tooltip="sgscript.spec.scripts.wrapInTransaction">
               <Select
                 value={entry.wrapInTransaction || ''}
                 onChange={(value) => updateEntry(index, { wrapInTransaction: value || null })}
@@ -197,11 +206,16 @@ export default function ScriptForm({ isEdit }) {
           </div>
           <div className="flex flex-wrap gap-4">
             <Toggle label="Store Status in Databases" checked={entry.storeStatusInDatabase}
-              onChange={(value) => updateEntry(index, { storeStatusInDatabase: value })} />
+              onChange={(value) => updateEntry(index, { storeStatusInDatabase: value })}
+              tooltip="sgscript.spec.scripts.storeStatusInDatabase" />
             <Toggle label="Retry on Error" checked={entry.retryOnError}
-              onChange={(value) => updateEntry(index, { retryOnError: value })} />
+              onChange={(value) => updateEntry(index, { retryOnError: value })}
+              tooltip="sgscript.spec.scripts.retryOnError" />
           </div>
-          <Field label="Script Source" required>
+          <Field label="Script Source" required
+            tooltip={
+              <HelpTooltip text={'Determine the source from which the script should be loaded. Possible values are: \n* Raw Script \n* From Secret \n* From ConfigMap.'} />
+            }>
             <Select value={scriptSource[index]} onChange={(value) => changeSource(index, value)} options={SOURCES} required />
           </Field>
           {scriptSource[index] === 'raw' ? (
@@ -213,9 +227,11 @@ export default function ScriptForm({ isEdit }) {
             <div className="flex flex-col gap-2">
             <h3 className="font-semibold">
               {scriptSource[index] === 'secretKeyRef' ? 'Secret Key Ref' : 'Config Map Key Ref'}
+              {renderTooltip('sgscript.spec.scripts.scriptFrom.properties.' + scriptSource[index])}
             </h3>
             <div className="flex flex-wrap gap-3">
-              <Field label="Name" required>
+              <Field label="Name" required
+                tooltip={'sgscript.spec.scripts.scriptFrom.properties.' + scriptSource[index] + '.properties.name'}>
                 <TextInput
                   value={entry.scriptFrom?.[scriptSource[index]]?.name || ''}
                   onChange={(value) =>
@@ -229,7 +245,8 @@ export default function ScriptForm({ isEdit }) {
                   required
                 />
               </Field>
-              <Field label="Key" required>
+              <Field label="Key" required
+                tooltip={'sgscript.spec.scripts.scriptFrom.properties.' + scriptSource[index] + '.properties.key'}>
                 <TextInput
                   value={entry.scriptFrom?.[scriptSource[index]]?.key || ''}
                   onChange={(value) =>

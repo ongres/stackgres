@@ -4,6 +4,8 @@ import { DataProvider } from './contexts/DataContext'
 import { PermissionsProvider } from './contexts/PermissionsContext'
 import { SettingsProvider } from './contexts/SettingsContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { TooltipsProvider } from './contexts/TooltipsContext'
+import { FloatingTooltip } from './components/FloatingTooltip'
 import Shell from './components/layout/Shell'
 import ClusterConfig from './components/views/ClusterConfig'
 import ClusterDetail from './components/views/ClusterDetail'
@@ -55,6 +57,7 @@ export default function App() {
         <AuthProvider>
           <PermissionsProvider>
             <DataProvider>
+              <TooltipsProvider>
               <Routes>
                 <Route element={<Shell />}>
                   <Route index element={<GlobalDashboard />} />
@@ -138,6 +141,8 @@ export default function App() {
                   <Route path="*" element={<PendingView title="Not Found" />} />
                 </Route>
               </Routes>
+              <FloatingTooltip />
+              </TooltipsProvider>
             </DataProvider>
           </PermissionsProvider>
         </AuthProvider>

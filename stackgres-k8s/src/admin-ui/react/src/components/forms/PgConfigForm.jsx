@@ -139,7 +139,7 @@ export default function PgConfigForm({ isEdit }) {
           {clusters.map((cluster) => cluster.metadata.name).join(', ')}
         </p>
       )}
-      <Field label="Configuration Name" required error={form.errors.name}>
+      <Field label="Configuration Name" required error={form.errors.name} tooltip="sgpostgresconfig.metadata.name">
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
       {nameCollision && (
@@ -148,7 +148,7 @@ export default function PgConfigForm({ isEdit }) {
           namespace. Please specify a different name or create the configuration on another namespace
         </p>
       )}
-      <Field label="Postgres Version" required error={form.errors.postgresVersion}>
+      <Field label="Postgres Version" required error={form.errors.postgresVersion} tooltip="sgpostgresconfig.spec.postgresVersion">
         <Select
           value={postgresVersion}
           onChange={setPostgresVersion}
@@ -158,7 +158,7 @@ export default function PgConfigForm({ isEdit }) {
           required
         />
       </Field>
-      <Field label="Parameters" help="One parameter per line: parameter=value">
+      <Field label="Parameters" help="One parameter per line: parameter=value" tooltip="sgpostgresconfig.spec.postgresql.conf">
         <TextArea value={params} onChange={setParams} placeholder={'parameter = value'} rows={12} />
       </Field>
       <DefaultParametersTable

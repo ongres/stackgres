@@ -19,6 +19,7 @@ import {
   tzCrontab,
 } from '../../lib/sgcluster'
 import SpecTree from '../SpecTree'
+import { HelpTooltip } from '../HelpTooltip'
 import {
   ContainersEditor,
   CustomPortsEditor,
@@ -29,9 +30,48 @@ import {
   NodeAffinityTerms,
   TolerationsEditor,
 } from './clusterEditors'
-import { Field, Select, TextArea, TextInput, Toggle } from './fields'
+import { Field, renderTooltip, Select, TextArea, TextInput, Toggle } from './fields'
 
 const deep = (value) => JSON.parse(JSON.stringify(value))
+
+// Literal help texts carried over verbatim from CreateSGClusters.vue.
+const TEMPLATE_PICKER_TOOLTIP = `Express templates provide predefined specs to suit most needs:
+                                \n* **Minimal:** includes basic features, ideal for development or testing purposes on minimal environments
+                                    \n  * **Cluster Profile:** Development
+                                    \n  * **Instance Profile:** Cores: 1, RAM: 2GiB
+                                    \n  * **Volume Size:** 1GiB
+                                    \n  * **Connection Pooling:** Disabled
+                                    \n  * **Postgres Extensions:** Not available
+                                \n* **Basic:** includes the most standard features and some customizable specs, ideal for testing purposes
+                                    \n  * **Cluster Profile:** Testing (customizable)
+                                    \n  * **Instance Profile:** Cores: 1, RAM: 2GiB (customizable)
+                                    \n  * **Volume Size:** 1GiB
+                                    \n  * **Distributed Logs:** Enabled
+                                    \n  * **Connection Pooling:** Enabled
+                                    \n  * **Postgres Extensions:** Available
+                                \n* **Full:** packed with fully customizable standard features, ideal for testing or production purposes
+                                    \n  * **Cluster Profile:** Production (customizable)
+                                    \n  * **Instance Profile:** Cores: 1, RAM: 2GiB (customizable)
+                                    \n  * **Volume Size:** 1Gib (customizable)
+                                    \n  * **Distributed Logs:** Enabled (customizable)
+                                    \n  * **Postgres Extensions:** Available
+                                    \n  * **Postgres Configuration:** Customizable
+                                    \n  * **Connection Pooling:** Enabled
+                                    \n  * **Connection Pooling Configuration:** Customizable
+                                \n* **Custom:** fully customizable cluster creation packed with every feature available. Includes both, basic and advanced specs, ideal for development, testing or production environments.
+                        `
+
+const MONITORING_TOOLTIP =
+  "StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."
+
+const DISTRIBUTED_LOGS_TOOLTIP =
+  'Allows sending Postgres and Patroni logs to a central SGDistributedLogs instance. Optional: if not enabled, logs are sent to the standard output.'
+
+const BABELFISH_TOOLTIP =
+  "Enables Babelfish for PostgreSQL project, from <a href='https://babelfishpg.org' target='_blank'>babelfishpg.org</a>, adding a SQL Server compatibility layer"
+
+const MANAGED_BACKUPS_TOOLTIP =
+  'If enabled, allows specifying backup configurations to automate periodical backups'
 
 const FORM_STEPS = {
   minimal: ['information'],
@@ -84,7 +124,7 @@ const CLUSTER_PROFILES = ['production', 'testing', 'development']
 const STEP_HEADINGS = {
   information: { title: 'Cluster Information' },
   cluster: { title: 'Cluster Information' },
-  extensions: { title: 'Postgres Extensions' },
+  extensions: { title: 'Postgres Extensions', tooltip: 'sgcluster.spec.postgres.extensions' },
   configurations: { title: 'Configurations' },
   backups: { title: 'Backups' },
   initialization: {
@@ -105,10 +145,10 @@ const STEP_HEADINGS = {
   'non-production': { title: 'Non Production Settings' },
 }
 
-function StepHeader({ title, intro }) {
+function StepHeader({ title, intro, tooltip }) {
   return (
     <header className="flex flex-col gap-1 border-b pb-2">
-      <h2 className="text-lg font-semibold">{title}</h2>
+      <h2 className="text-lg font-semibold">{title}{renderTooltip(tooltip)}</h2>
       {intro && <p>{intro}</p>}
     </header>
   )
@@ -674,7 +714,7 @@ export default function SGClusterForm({ isEdit = false }) {
 
   const informationFields = (full) => (
     <div className="flex flex-col gap-3">
-      <Field label="Cluster Name" required>
+      <Field label="Cluster Name" required tooltip="sgcluster.metadata.name">
         <TextInput required disabled={isEdit} value={state.name}
           onChange={(value) => patch((draft) => { draft.name = value })} />
       </Field>
@@ -682,17 +722,17 @@ export default function SGClusterForm({ isEdit = false }) {
         <p role="alert">A cluster named &quot;{state.name}&quot; already exists in this namespace</p>
       )}
       {formTemplate !== 'minimal' && (
-        <Field label="Profile">
+        <Field label="Profile" tooltip="sgcluster.spec.profile">
           <Select value={state.profile} options={CLUSTER_PROFILES}
             onChange={(value) => patch((draft) => { draft.profile = value })} />
         </Field>
       )}
-      <Field label="Number of Instances" required>
+      <Field label="Number of Instances" required tooltip="sgcluster.spec.instances">
         <TextInput type="number" min="0" required value={state.instances}
           onChange={(value) => patch((draft) => { draft.instances = value === '' ? '' : Number(value) })} />
       </Field>
       {formTemplate !== 'minimal' && (
-        <Field label="Instance Profile">
+        <Field label="Instance Profile" tooltip="sgcluster.spec.sgInstanceProfile">
           <Select value={state.resourceProfile}
             options={[{ value: '', label: 'Default (Cores: 1, RAM: 2GiB)' }, ...profileOptions]}
             onChange={(value) => patch((draft) => { draft.resourceProfile = value })} />
@@ -702,16 +742,17 @@ export default function SGClusterForm({ isEdit = false }) {
       {full && (
         <>
           {volumeFields}
-          <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={changeEnableMonitoring} />
+          <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={changeEnableMonitoring}
+            tooltip={<HelpTooltip text={MONITORING_TOOLTIP} />} />
           <Toggle label="Distributed Logs" checked={enableDistributedLogs}
-            onChange={setEnableDistributedLogs} />
+            onChange={setEnableDistributedLogs} tooltip={<HelpTooltip text={DISTRIBUTED_LOGS_TOOLTIP} />} />
         </>
       )}
     </div>
   )
 
   const postgresVersionPicker = (
-    <Field label="Postgres Version" required>
+    <Field label="Postgres Version" required tooltip="sgcluster.spec.postgres.version">
       <select required className="border p-2" value={postgresVersion} aria-label="Postgres Version"
         onChange={(event) => validatePostgresSpecs(flavor, event.target.value)}>
         <option value="latest">Latest</option>
@@ -730,7 +771,7 @@ export default function SGClusterForm({ isEdit = false }) {
 
   const volumeFields = (
     <div className="flex items-end gap-2">
-      <Field label="Volume Size" required>
+      <Field label="Volume Size" required tooltip="sgcluster.spec.pods.persistentVolume.size">
         <TextInput type="number" min="0" required value={state.volumeSize}
           onChange={(value) => patch((draft) => { draft.volumeSize = value })} />
       </Field>
@@ -758,7 +799,7 @@ export default function SGClusterForm({ isEdit = false }) {
 
   const configurationsStep = (
     <div className="flex flex-col gap-3">
-      <Field label="Postgres Configuration">
+      <Field label="Postgres Configuration" tooltip="sgcluster.spec.configurations.sgPostgresConfig">
         <Select value={state.pgConfig ?? ''}
           options={[
             { value: '', label: 'Default' },
@@ -780,7 +821,7 @@ export default function SGClusterForm({ isEdit = false }) {
             onChange={(value) => setConfigsText((previous) => ({ ...previous, sgPostgresConfig: value }))} />
         </Field>
       )}
-      <Field label="Connection Pooling Configuration">
+      <Field label="Connection Pooling Configuration" tooltip="sgcluster.spec.configurations.sgPoolingConfig">
         <Select value={state.connectionPoolingConfig ?? ''}
           options={[
             { value: '', label: 'Default' },
@@ -814,44 +855,50 @@ export default function SGClusterForm({ isEdit = false }) {
           production workloads.
         </p>
       )}
-      <Field label="Postgres Flavor">
+      <Field label="Postgres Flavor" tooltip="sgcluster.spec.postgres.flavor">
         <Select value={flavor} aria-label="Postgres Flavor"
           options={[{ value: 'vanilla', label: 'Vanilla' }, { value: 'babelfish', label: 'Babelfish' }]}
           onChange={(value) => validatePostgresSpecs(value, postgresVersion)} />
       </Field>
       {flavor === 'babelfish' && !isEdit && (
         <Toggle label="Babelfish Experimental Feature" checked={state.babelfishFeatureGates}
+          tooltip={<HelpTooltip text={BABELFISH_TOOLTIP} />}
           onChange={(value) => patch((draft) => { draft.babelfishFeatureGates = value })} />
       )}
-      <Field label="Postgres Configuration">
+      <Field label="Postgres Configuration" tooltip="sgcluster.spec.configurations.sgPostgresConfig">
         <Select value={state.pgConfig ?? ''}
           options={[{ value: '', label: 'Default' }, ...pgConfigOptions]}
           onChange={(value) => patch((draft) => { draft.pgConfig = value === '' ? null : value })} />
       </Field>
       <Toggle label="SSL Connections" checked={state.ssl.enabled}
+        tooltip="sgcluster.spec.postgres.ssl.enabled"
         onChange={(value) => patch((draft) => { draft.ssl.enabled = value })} />
       {state.ssl.enabled && (
         <div className="flex flex-wrap gap-2">
-          <Field label="Certificate Secret Name">
+          <Field label="Certificate Secret Name"
+            tooltip="sgcluster.spec.postgres.ssl.certificateSecretKeySelector.name">
             <TextInput value={state.ssl.certificateSecretKeySelector.name}
               onChange={(value) => patch((draft) => { draft.ssl.certificateSecretKeySelector.name = value })} />
           </Field>
-          <Field label="Certificate Secret Key">
+          <Field label="Certificate Secret Key"
+            tooltip="sgcluster.spec.postgres.ssl.certificateSecretKeySelector.key">
             <TextInput value={state.ssl.certificateSecretKeySelector.key}
               onChange={(value) => patch((draft) => { draft.ssl.certificateSecretKeySelector.key = value })} />
           </Field>
-          <Field label="Private Key Secret Name">
+          <Field label="Private Key Secret Name"
+            tooltip="sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.name">
             <TextInput value={state.ssl.privateKeySecretKeySelector.name}
               onChange={(value) => patch((draft) => { draft.ssl.privateKeySecretKeySelector.name = value })} />
           </Field>
-          <Field label="Private Key Secret Key">
+          <Field label="Private Key Secret Key"
+            tooltip="sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.key">
             <TextInput value={state.ssl.privateKeySecretKeySelector.key}
               onChange={(value) => patch((draft) => { draft.ssl.privateKeySecretKeySelector.key = value })} />
           </Field>
         </div>
       )}
       {volumeFields}
-      <Field label="Storage Class">
+      <Field label="Storage Class" tooltip="sgcluster.spec.pods.persistentVolume.storageClass">
         {storageClasses === null ? (
           <TextInput value={state.storageClass}
             onChange={(value) => patch((draft) => { draft.storageClass = value })} />
@@ -861,14 +908,15 @@ export default function SGClusterForm({ isEdit = false }) {
             onChange={(value) => patch((draft) => { draft.storageClass = value })} />
         )}
       </Field>
-      <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={changeEnableMonitoring} />
-      <Field label="Logs Cluster">
+      <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={changeEnableMonitoring}
+        tooltip={<HelpTooltip text={MONITORING_TOOLTIP} />} />
+      <Field label="Logs Cluster" tooltip="sgcluster.spec.distributedLogs.sgDistributedLogs">
         <Select value={state.distributedLogs}
           options={[{ value: '', label: 'Select Logs Cluster' }, ...logsClusterOptions]}
           onChange={(value) => patch((draft) => { draft.distributedLogs = value })} />
       </Field>
       {Boolean(state.distributedLogs.length) && (
-        <Field label="Retention">
+        <Field label="Retention" tooltip="sgcluster.spec.distributedLogs.retention">
           <TextInput value={state.retention}
             onChange={(value) => patch((draft) => { draft.retention = value })} />
         </Field>
@@ -879,10 +927,12 @@ export default function SGClusterForm({ isEdit = false }) {
   const backupsStep = (
     <div className="flex flex-col gap-3">
       <Toggle label="Managed Backups" checked={state.managedBackups}
+        tooltip={<HelpTooltip text={MANAGED_BACKUPS_TOOLTIP} />}
         onChange={(value) => patch((draft) => { draft.managedBackups = value })} />
       {state.managedBackups && (
         <>
-          <Field label="Object Storage" required>
+          <Field label="Object Storage" required
+            tooltip="sgcluster.spec.configurations.backups.sgObjectStorage">
             <Select required value={state.backups[0].sgObjectStorage}
               options={[{ value: '', label: 'Select Object Storage' }, ...objectStorageOptions]}
               onChange={(value) => patch((draft) => { draft.backups[0].sgObjectStorage = value })} />
@@ -907,31 +957,34 @@ export default function SGClusterForm({ isEdit = false }) {
               ? cronPreview(state.backups[0].cronSchedule, timezone)
               : 'never'}
           </p>
-          <Field label="Retention Window">
+          <Field label="Retention Window" tooltip="sgcluster.spec.configurations.backups.retention">
             <TextInput type="number" value={state.backups[0].retention}
               onChange={(value) =>
                 patch((draft) => { draft.backups[0].retention = value === '' ? '' : Number(value) })} />
           </Field>
-          <Field label="Compression Method">
+          <Field label="Compression Method" tooltip="sgcluster.spec.configurations.backups.compression">
             <Select value={state.backups[0].compression} options={['lz4', 'lzma', 'brotli']}
               onChange={(value) => patch((draft) => { draft.backups[0].compression = value })} />
           </Field>
           <div className="flex flex-wrap gap-2">
-            <Field label="Max Network Bandwidth">
+            <Field label="Max Network Bandwidth"
+              tooltip="sgcluster.spec.configurations.backups.performance.properties.maxNetworkBandwidth">
               <TextInput type="number" min="0" value={state.backups[0].performance.maxNetworkBandwidth}
                 onChange={(value) =>
                   patch((draft) => {
                     draft.backups[0].performance.maxNetworkBandwidth = value === '' ? '' : Number(value)
                   })} />
             </Field>
-            <Field label="Max Disk Bandwidth">
+            <Field label="Max Disk Bandwidth"
+              tooltip="sgcluster.spec.configurations.backups.performance.properties.maxDiskBandwidth">
               <TextInput type="number" min="0" value={state.backups[0].performance.maxDiskBandwidth}
                 onChange={(value) =>
                   patch((draft) => {
                     draft.backups[0].performance.maxDiskBandwidth = value === '' ? '' : Number(value)
                   })} />
             </Field>
-            <Field label="Upload Disk Concurrency">
+            <Field label="Upload Disk Concurrency"
+              tooltip="sgcluster.spec.configurations.backups.performance.properties.uploadDiskConcurrency">
               <TextInput type="number" value={state.backups[0].performance.uploadDiskConcurrency}
                 onChange={(value) =>
                   patch((draft) => {
@@ -940,19 +993,22 @@ export default function SGClusterForm({ isEdit = false }) {
             </Field>
           </div>
           <Toggle label="Use Volume Snapshots" checked={state.backups[0].useVolumeSnapshot}
+            tooltip="sgcluster.spec.configurations.backups.useVolumeSnapshot"
             onChange={(value) => patch((draft) => { draft.backups[0].useVolumeSnapshot = value })} />
           {state.backups[0].useVolumeSnapshot && (
             <>
-              <Field label="Volume Snapshot Class">
+              <Field label="Volume Snapshot Class"
+                tooltip="sgcluster.spec.configurations.backups.volumeSnapshotClass">
                 <TextInput value={state.backups[0].volumeSnapshotClass ?? ''}
                   onChange={(value) =>
                     patch((draft) => { draft.backups[0].volumeSnapshotClass = value || null })} />
               </Field>
               <Toggle label="Fast Volume Snapshot" checked={state.backups[0].fastVolumeSnapshot}
+                tooltip="sgcluster.spec.configurations.backups.fastVolumeSnapshot"
                 onChange={(value) => patch((draft) => { draft.backups[0].fastVolumeSnapshot = value })} />
             </>
           )}
-          <Field label="Backups Path">
+          <Field label="Backups Path" tooltip="sgcluster.spec.configurations.backups.path">
             <TextInput value={state.backups[0].path ?? ''}
               onChange={(value) => patch((draft) => { draft.backups[0].path = value || null })} />
           </Field>
@@ -1008,7 +1064,7 @@ export default function SGClusterForm({ isEdit = false }) {
           <p>No completed backups are available for this postgres version in this namespace.</p>
         )}
         {!isEdit && pitrBackups.length > 0 && (
-          <Field label="Backup Selection">
+          <Field label="Backup Selection" tooltip="sgcluster.spec.initialData.restore.fromBackup">
             <Select value={state.restoreBackup} aria-label="Backup Selection"
               options={[{ value: '', label: 'None' }, ...pitrBackups.map((backup) => backup.name)]}
               onChange={(value) =>
@@ -1020,14 +1076,16 @@ export default function SGClusterForm({ isEdit = false }) {
         )}
         {Boolean(state.restoreBackup.length) && (
           <>
-            <Field label="Restore To Timestamp">
+            <Field label="Restore To Timestamp"
+              tooltip="sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">
               <input type="datetime-local" step="1" className="border p-2" disabled={isEdit}
                 aria-label="Restore To Timestamp" value={pitrDisplayValue}
                 min={selectedPitrBackup ? toInputFrame(selectedPitrBackup.x) : undefined}
                 max={toInputFrame(nextPitrBackup ? nextPitrBackup.x : new Date().toISOString())}
                 onChange={(event) => changePitr(event.target.value)} />
             </Field>
-            <Field label="Download Disk Concurrency">
+            <Field label="Download Disk Concurrency"
+              tooltip="sgcluster.spec.initialData.restore.downloadDiskConcurrency">
               <TextInput type="number" min="1" disabled={isEdit} value={state.downloadDiskConcurrency}
                 onChange={(value) =>
                   patch((draft) => {
@@ -1041,7 +1099,7 @@ export default function SGClusterForm({ isEdit = false }) {
 
   const replicateFromStep = (
     <div className="flex flex-col gap-3">
-      <Field label="Replicate From">
+      <Field label="Replicate From" tooltip="sgcluster.spec.replicateFrom">
         <Select value={state.replicateFromSource} aria-label="Replicate From"
           options={[
             { value: '', label: 'No Replication' },
@@ -1053,7 +1111,7 @@ export default function SGClusterForm({ isEdit = false }) {
           onChange={setReplicationSource} />
       </Field>
       {state.replicateFromSource === 'cluster' && (
-        <Field label="Cluster" required>
+        <Field label="Cluster" required tooltip="sgcluster.spec.replicateFrom.instance.sgCluster">
           <Select required value={state.replicateFrom.instance?.sgCluster || ''}
             options={[{ value: '', label: 'Select Cluster' }, ...clusterOptions]}
             onChange={(value) => patch((draft) => { draft.replicateFrom.instance.sgCluster = value })} />
@@ -1061,11 +1119,11 @@ export default function SGClusterForm({ isEdit = false }) {
       )}
       {state.replicateFromSource.includes('external') && (
         <div className="flex gap-2">
-          <Field label="Host" required>
+          <Field label="Host" required tooltip="sgcluster.spec.replicateFrom.instance.external.host">
             <TextInput required value={state.replicateFrom.instance?.external?.host || ''}
               onChange={(value) => patch((draft) => { draft.replicateFrom.instance.external.host = value })} />
           </Field>
-          <Field label="Port" required>
+          <Field label="Port" required tooltip="sgcluster.spec.replicateFrom.instance.external.port">
             <TextInput type="number" min="0" required
               value={state.replicateFrom.instance?.external?.port ?? ''}
               onChange={(value) =>
@@ -1077,13 +1135,14 @@ export default function SGClusterForm({ isEdit = false }) {
       )}
       {state.replicateFromSource.includes('storage') && (
         <>
-          <Field label="Object Storage" required>
+          <Field label="Object Storage" required
+            tooltip="sgcluster.spec.replicateFrom.storage.sgObjectStorage">
             <Select required value={state.replicateFrom.storage?.sgObjectStorage || ''}
               options={[{ value: '', label: 'Select Object Storage' }, ...objectStorageOptions]}
               onChange={(value) =>
                 patch((draft) => { draft.replicateFrom.storage.sgObjectStorage = value })} />
           </Field>
-          <Field label="Path" required>
+          <Field label="Path" required tooltip="sgcluster.spec.replicateFrom.storage.path">
             <TextInput required value={state.replicateFrom.storage?.path || ''}
               onChange={(value) => patch((draft) => { draft.replicateFrom.storage.path = value })} />
           </Field>
@@ -1093,7 +1152,8 @@ export default function SGClusterForm({ isEdit = false }) {
               ['Max Disk Bandwidth', 'maxDiskBandwidth'],
               ['Max Network Bandwidth', 'maxNetworkBandwidth'],
             ].map(([label, key]) => (
-              <Field key={key} label={label}>
+              <Field key={key} label={label}
+                tooltip={`sgcluster.spec.replicateFrom.storage.performance.${key}`}>
                 <TextInput type="number" value={state.replicateFrom.storage?.performance?.[key] ?? ''}
                   onChange={(value) =>
                     patch((draft) => {
@@ -1108,11 +1168,14 @@ export default function SGClusterForm({ isEdit = false }) {
         state.replicateFrom.users &&
         ['superuser', 'replication', 'authenticator'].map((role) => (
           <fieldset key={role} className="flex flex-wrap gap-2 border p-3">
-            <legend className="px-1 font-semibold capitalize">{role}</legend>
+            <legend className="px-1 font-semibold capitalize">
+              {role}{renderTooltip(`sgcluster.spec.replicateFrom.users.${role}`)}
+            </legend>
             {['username', 'password'].map((credential) =>
               ['name', 'key'].map((part) => (
                 <Field key={`${credential}-${part}`}
                   label={`${credential === 'username' ? 'Username' : 'Password'} Secret ${part === 'name' ? 'Name' : 'Key'}`}
+                  tooltip={`sgcluster.spec.replicateFrom.users.${role}.${credential}.${part}`}
                   required>
                   <TextInput required value={state.replicateFrom.users[role][credential][part]}
                     onChange={(value) =>
@@ -1127,6 +1190,7 @@ export default function SGClusterForm({ isEdit = false }) {
 
   const scriptsStep = (
     <ManagedSqlEditor
+      tooltipPrefix="sgcluster.spec.managedSql"
       value={state.managedSql}
       sources={state.scriptSource}
       scriptOptions={scriptOptions}
@@ -1150,13 +1214,15 @@ export default function SGClusterForm({ isEdit = false }) {
         pooler configuration.
       </p>
       <Toggle label="Connection Pooling" checked={state.connPooling}
+        tooltip="sgcluster.spec.configurations.sgPoolingConfig"
         onChange={(value) =>
           patch((draft) => {
             draft.connPooling = value
             draft.connectionPoolingConfig = ''
           })} />
       {state.connPooling && (
-        <Field label="Connection Pooling Configuration">
+        <Field label="Connection Pooling Configuration"
+          tooltip="sgcluster.spec.configurations.sgPoolingConfig">
           <Select value={state.connectionPoolingConfig ?? ''}
             options={[{ value: '', label: 'Default' }, ...poolConfigOptions]}
             onChange={(value) =>
@@ -1169,6 +1235,8 @@ export default function SGClusterForm({ isEdit = false }) {
         for troubleshooting).
       </p>
       <Toggle label="Postgres Utils" checked={state.postgresUtil}
+        tooltip={<HelpTooltip field="sgcluster.spec.pods.disablePostgresUtil"
+          transform={(text) => text.replace('If set to `true`', 'If disabled')} />}
         onChange={(value) => patch((draft) => { draft.postgresUtil = value })} />
       <h3 className="font-semibold">Monitoring</h3>
       <p>
@@ -1179,8 +1247,13 @@ export default function SGClusterForm({ isEdit = false }) {
         </a>{' '}
         section for information on how to enable in StackGres Grafana dashboard integration.
       </p>
-      <Toggle label="Metrics Exporter" checked={state.metricsExporter} onChange={changeMetricsExporter} />
+      <Toggle label="Metrics Exporter" checked={state.metricsExporter} onChange={changeMetricsExporter}
+        tooltip={<HelpTooltip field="sgcluster.spec.pods.disableMetricsExporter"
+          transform={(text) =>
+            text.replace('If set to `true`', 'If disabled')
+              .replace('Recommended', 'Recommended to be disabled')} />} />
       <Toggle label="Prometheus Autobind" checked={state.prometheusAutobind}
+        tooltip="sgcluster.spec.configurations.observability.prometheusAutobind"
         onChange={changePrometheusAutobind} />
       {!state.enableMonitoring && (
         <p role="note">
@@ -1188,31 +1261,34 @@ export default function SGClusterForm({ isEdit = false }) {
         </p>
       )}
       <h2 className="text-lg font-semibold">User-Supplied Pods Sidecars</h2>
-      <CustomVolumesEditor volumes={state.pods.customVolumes} types={state.customVolumesType}
+      <CustomVolumesEditor tooltipPrefix="sgcluster.spec.pods.customVolumes"
+        volumes={state.pods.customVolumes} types={state.customVolumesType}
         onChange={(volumes, types) =>
           patch((draft) => {
             draft.pods.customVolumes = volumes
             draft.customVolumesType = types
           })} />
       <ContainersEditor legend="Custom Init Container" containers={state.pods.customInitContainers}
+        tooltipPrefix="sgcluster.spec.pods.customInitContainers"
         onChange={(containers) => patch((draft) => { draft.pods.customInitContainers = containers })} />
       <ContainersEditor legend="Custom Container" containers={state.pods.customContainers}
+        tooltipPrefix="sgcluster.spec.pods.customContainers"
         onChange={(containers) => patch((draft) => { draft.pods.customContainers = containers })} />
     </div>
   )
 
   const podsReplicationStep = (
     <div className="flex flex-col gap-3">
-      <Field label="Role" required>
+      <Field label="Role" required tooltip="sgcluster.spec.replication.role">
         <Select required value={state.replication.role} options={['ha-read', 'ha']}
           onChange={(value) => patch((draft) => { draft.replication.role = value })} />
       </Field>
-      <Field label="Mode" required>
+      <Field label="Mode" required tooltip="sgcluster.spec.replication.mode">
         <Select required value={state.replication.mode} options={['async', 'sync', 'strict-sync']}
           onChange={(value) => patch((draft) => { draft.replication.mode = value })} />
       </Field>
       {['sync', 'strict-sync'].includes(state.replication.mode) && (
-        <Field label="Sync Instances">
+        <Field label="Sync Instances" tooltip="sgcluster.spec.replication.syncInstances">
           <TextInput type="number" min="1" max={Math.max(Number(state.instances) - 1, 1)}
             value={state.replication.syncInstances}
             onChange={(value) =>
@@ -1222,21 +1298,25 @@ export default function SGClusterForm({ isEdit = false }) {
         </Field>
       )}
       <fieldset className="flex flex-col gap-2 border p-3">
-        <legend className="px-1 font-semibold">Replication Groups</legend>
+        <legend className="px-1 font-semibold">
+          Replication Groups{renderTooltip('sgcluster.spec.replication.groups')}
+        </legend>
         {(state.replication.groups || []).map((group, index) => (
           <div key={index} className="flex items-end gap-2">
-            <Field label="Group Name">
+            <Field label="Group Name" tooltip="sgcluster.spec.replication.groups.name">
               <TextInput value={group.name}
                 onChange={(value) =>
                   patch((draft) => { draft.replication.groups[index].name = value })} />
             </Field>
-            <Field label="Group Role" required={group.name.length > 0}>
+            <Field label="Group Role" required={group.name.length > 0}
+              tooltip="sgcluster.spec.replication.groups.role">
               <Select required={group.name.length > 0} value={group.role}
                 options={['ha-read', 'ha', 'readonly', 'none']}
                 onChange={(value) =>
                   patch((draft) => { draft.replication.groups[index].role = value })} />
             </Field>
             <Field label="Group Instances"
+              tooltip="sgcluster.spec.replication.groups.instances"
               required={group.name.length > 0 || group.role !== 'ha-read'}>
               <TextInput type="number" min="1" value={group.instances}
                 required={group.name.length > 0 || group.role !== 'ha-read'}
@@ -1270,24 +1350,29 @@ export default function SGClusterForm({ isEdit = false }) {
     <div className="flex flex-col gap-4">
       {['primary', 'replicas'].map((service) => (
         <fieldset key={service} className="flex flex-col gap-2 border p-3">
-          <legend className="px-1 font-semibold capitalize">{service} Service</legend>
+          <legend className="px-1 font-semibold capitalize">
+            {service} Service{renderTooltip(`sgcluster.spec.postgresServices.${service}`)}
+          </legend>
           <Toggle label="Enabled" checked={state.postgresServices[service].enabled}
+            tooltip={`sgcluster.spec.postgresServices.${service}.enabled`}
             onChange={(value) =>
               patch((draft) => { draft.postgresServices[service].enabled = value })} />
-          <Field label="Type" required>
+          <Field label="Type" required tooltip={`sgcluster.spec.postgresServices.${service}.type`}>
             <Select required value={state.postgresServices[service].type}
               aria-label={`${service} service type`}
               options={['ClusterIP', 'LoadBalancer', 'NodePort']}
               onChange={(value) =>
                 patch((draft) => { draft.postgresServices[service].type = value })} />
           </Field>
-          <Field label="Load Balancer IP">
+          <Field label="Load Balancer IP"
+            tooltip={`sgcluster.spec.postgresServices.${service}.loadBalancerIP`}>
             <TextInput value={state.postgresServices[service].loadBalancerIP || ''}
               aria-label={`${service} load balancer IP`}
               onChange={(value) =>
                 patch((draft) => { draft.postgresServices[service].loadBalancerIP = value })} />
           </Field>
           <CustomPortsEditor legend={`${service === 'primary' ? 'Primary' : 'Replicas'} Custom Ports`}
+            tooltipPrefix={`sgcluster.spec.postgresServices.${service}.customPorts`}
             ports={state.postgresServices[service].customPorts || []}
             onChange={(ports) =>
               patch((draft) => { draft.postgresServices[service].customPorts = ports })} />
@@ -1299,18 +1384,24 @@ export default function SGClusterForm({ isEdit = false }) {
   const metadataStep = (
     <div className="flex flex-col gap-3">
       <KeyValueRows legend="Cluster Pods Labels" keyName="label" rows={state.podsMetadata}
+        tooltip="sgcluster.spec.metadata.labels.clusterPods"
         onChange={(rows) => patch((draft) => { draft.podsMetadata = rows })} />
       <KeyValueRows legend="All Resources Annotations" keyName="annotation" rows={state.annotationsAll}
+        tooltip="sgcluster.spec.metadata.annotations.allResources"
         onChange={(rows) => patch((draft) => { draft.annotationsAll = rows })} />
       <KeyValueRows legend="Cluster Pods Annotations" keyName="annotation" rows={state.annotationsPods}
+        tooltip="sgcluster.spec.metadata.annotations.clusterPods"
         onChange={(rows) => patch((draft) => { draft.annotationsPods = rows })} />
       <KeyValueRows legend="Services Annotations" keyName="annotation" rows={state.annotationsServices}
+        tooltip="sgcluster.spec.metadata.annotations.services"
         onChange={(rows) => patch((draft) => { draft.annotationsServices = rows })} />
       <KeyValueRows legend="Primary Service Annotations" keyName="annotation"
+        tooltip="sgcluster.spec.metadata.annotations.primaryService"
         rows={state.postgresServicesPrimaryAnnotations}
         onChange={(rows) =>
           patch((draft) => { draft.postgresServicesPrimaryAnnotations = rows })} />
       <KeyValueRows legend="Replicas Service Annotations" keyName="annotation"
+        tooltip="sgcluster.spec.metadata.annotations.replicasService"
         rows={state.postgresServicesReplicasAnnotations}
         onChange={(rows) =>
           patch((draft) => { draft.postgresServicesReplicasAnnotations = rows })} />
@@ -1323,12 +1414,16 @@ export default function SGClusterForm({ isEdit = false }) {
         <p role="note">Changing scheduling settings on a running cluster may trigger pod restarts.</p>
       )}
       <KeyValueRows legend="Node Selectors" keyName="label" rows={state.nodeSelector}
+        tooltip="sgcluster.spec.pods.scheduling.nodeSelector"
         onChange={(rows) => patch((draft) => { draft.nodeSelector = rows })} />
-      <TolerationsEditor tolerations={state.tolerations}
+      <TolerationsEditor tooltipPrefix="sgcluster.spec.pods.scheduling.tolerations"
+        tolerations={state.tolerations}
         onChange={(tolerations) => patch((draft) => { draft.tolerations = tolerations })} />
       <NodeAffinityTerms legend="Node Affinity Required" terms={state.requiredAffinity}
+        tooltipPrefix="sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution"
         onChange={(terms) => patch((draft) => { draft.requiredAffinity = terms })} />
       <NodeAffinityTerms legend="Node Affinity Preferred" preferred terms={state.preferredAffinity}
+        tooltipPrefix="sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution"
         onChange={(terms) => patch((draft) => { draft.preferredAffinity = terms })} />
     </div>
   )
@@ -1338,11 +1433,13 @@ export default function SGClusterForm({ isEdit = false }) {
   const nonProductionStep = (
     <div className="flex flex-col gap-3">
       {[
-        ['Cluster Pod Anti Affinity', 'clusterPodAntiAffinity'],
-        ['Patroni Resource Requirements', 'patroniResourceRequirements'],
-        ['Cluster Resource Requirements', 'clusterResourceRequirements'],
-      ].map(([label, key]) => (
-        <Field key={key} label={label}>
+        ['Cluster Pod Anti Affinity', 'clusterPodAntiAffinity', 'disableClusterPodAntiAffinity'],
+        ['Patroni Resource Requirements', 'patroniResourceRequirements', 'disablePatroniResourceRequirements'],
+        ['Cluster Resource Requirements', 'clusterResourceRequirements', 'disableClusterResourceRequirements'],
+      ].map(([label, key, tooltipKey]) => (
+        <Field key={key} label={label}
+          tooltip={<HelpTooltip field={`sgcluster.spec.nonProductionOptions.${tooltipKey}`}
+            transform={(text) => text.replace('Set this property to true', 'Disable this property')} />}>
           <Select value={nonProductionValue(state[key])}
             options={[
               { value: '', label: 'Default' },
@@ -1378,7 +1475,7 @@ export default function SGClusterForm({ isEdit = false }) {
     return (
       <section className="flex max-w-4xl flex-col gap-4 p-8 text-sm">
         <h1 className="text-2xl font-semibold">Create Cluster</h1>
-        <p>Choose a template to start from:</p>
+        <p>Choose a template to start from:<HelpTooltip text={TEMPLATE_PICKER_TOOLTIP} /></p>
         <div className="flex flex-wrap gap-3">
           {TEMPLATES.map((template) => (
             <button key={template.id} type="button" className="flex flex-col border p-4 text-left"

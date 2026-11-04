@@ -9,7 +9,8 @@ import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildDistributedLogs, objectToRows } from '../../lib/payloads'
 import { nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
-import { Field, Select, TextInput, Toggle } from './fields'
+import { HelpTooltip } from '../HelpTooltip'
+import { Field, Select, TextInput, Toggle, renderTooltip } from './fields'
 
 const SERVICE_TYPES = ['ClusterIP', 'LoadBalancer', 'NodePort']
 const TRISTATE = [
@@ -24,10 +25,10 @@ const EFFECTS = [
   { value: 'NoExecute', label: 'NoExecute' },
 ]
 
-function KeyValueRows({ title, rows, setRows, keyLabel = 'Annotation' }) {
+function KeyValueRows({ title, rows, setRows, keyLabel = 'Annotation', tooltip }) {
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{title}</legend>
+      <legend className="px-1 font-semibold">{title}{renderTooltip(tooltip)}</legend>
       {rows.map((row, index) => (
         <div key={index} className="flex items-end gap-2">
           <Field label={keyLabel}>
@@ -182,7 +183,7 @@ export default function DistributedLogsForm({ isEdit }) {
   return (
     <CrdFormShell title={isEdit ? `Edit Logs Server: ${routeName}` : 'Create Logs Server'} form={form}>
       <h2 className="text-lg font-semibold">Cluster Information</h2>
-      <Field label="Server Name" required error={form.errors.name}>
+      <Field label="Server Name" required error={form.errors.name} tooltip="sgdistributedlogs.metadata.name">
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
       {nameCollision && (
@@ -191,7 +192,7 @@ export default function DistributedLogsForm({ isEdit }) {
           namespace. Please specify a different name or create the server on another namespace.
         </p>
       )}
-      <Field label="Profile">
+      <Field label="Profile" tooltip="sgdistributedlogs.spec.profile">
         <Select value={profile} onChange={setProfile} options={['production', 'testing', 'development']} />
       </Field>
       {profile !== 'production' && (
@@ -208,14 +209,14 @@ export default function DistributedLogsForm({ isEdit }) {
           </ul>
         </div>
       )}
-      <h3 className="font-semibold">Persistent Volume</h3>
-      <Field label="Volume Size" required error={form.errors.volumeSize}>
+      <h3 className="font-semibold">Persistent Volume{renderTooltip('sgdistributedlogs.spec.persistentVolume')}</h3>
+      <Field label="Volume Size" required error={form.errors.volumeSize} tooltip="sgdistributedlogs.spec.persistentVolume.size">
         <div className="flex gap-2">
           <TextInput type="number" min="1" value={volumeSize} onChange={setVolumeSize} disabled={isEdit} required />
           <Select value={volumeUnit} onChange={setVolumeUnit} options={['Mi', 'Gi', 'Ti']} disabled={isEdit} />
         </div>
       </Field>
-      <Field label="Storage Class">
+      <Field label="Storage Class" tooltip="sgdistributedlogs.spec.persistentVolume.storageClass">
         {storageClasses === null ? (
           <TextInput value={storageClass} onChange={setStorageClass} />
         ) : (
@@ -225,7 +226,7 @@ export default function DistributedLogsForm({ isEdit }) {
         )}
       </Field>
       <h3 className="font-semibold">Pods Resources</h3>
-      <Field label="Instance Profile">
+      <Field label="Instance Profile" tooltip="sgdistributedlogs.spec.sgInstanceProfile">
         <Select value={resourceProfile}
           onChange={(value) => {
             if (value === 'createNewResource') {
@@ -248,7 +249,7 @@ export default function DistributedLogsForm({ isEdit }) {
           ]}
           placeholder="Default (Cores: 1, RAM: 2GiB)" />
       </Field>
-      <Field label="Postgres Configuration">
+      <Field label="Postgres Configuration" tooltip="sgdistributedlogs.spec.configurations.sgPostgresConfig">
         <Select value={pgConfig}
           onChange={(value) => {
             if (value === 'createNewResource') {
@@ -274,41 +275,48 @@ export default function DistributedLogsForm({ isEdit }) {
         <>
           <fieldset className="flex flex-col gap-3 border p-3">
             <legend className="px-1 font-semibold">Customize generated Kubernetes service</legend>
-            <h3 className="font-semibold">Primary Service</h3>
-            <Toggle label="Service" checked disabled onChange={() => {}} />
-            <Field label="Type">
+            <h3 className="font-semibold">Primary Service{renderTooltip('sgdistributedlogs.spec.postgresServices.primary')}</h3>
+            {/* The Vue template points this toggle at the replicas key; kept verbatim. */}
+            <Toggle label="Service" checked disabled onChange={() => {}}
+              tooltip="sgdistributedlogs.spec.postgresServices.replicas.enabled" />
+            <Field label="Type" tooltip="sgdistributedlogs.spec.postgresServices.primary.type">
               <Select value={primaryType} onChange={setPrimaryType} options={SERVICE_TYPES} />
             </Field>
-            <Field label="Load Balancer IP">
+            <Field label="Load Balancer IP" tooltip="sgdistributedlogs.spec.postgresServices.primary.loadBalancerIP">
               <TextInput value={primaryLoadBalancerIP} onChange={setPrimaryLoadBalancerIP} />
             </Field>
-            <h3 className="font-semibold">Replicas Service</h3>
-            <Toggle label="Service" checked={replicasEnabled} onChange={setReplicasEnabled} />
-            <Field label="Type">
+            <h3 className="font-semibold">Replicas Service{renderTooltip('sgdistributedlogs.spec.postgresServices.replicas')}</h3>
+            <Toggle label="Service" checked={replicasEnabled} onChange={setReplicasEnabled}
+              tooltip="sgdistributedlogs.spec.postgresServices.replicas.enabled" />
+            <Field label="Type" tooltip="sgdistributedlogs.spec.postgresServices.replicas.type">
               <Select value={replicasType} onChange={setReplicasType} options={SERVICE_TYPES} />
             </Field>
-            <Field label="Load Balancer IP">
+            <Field label="Load Balancer IP" tooltip="sgdistributedlogs.spec.postgresServices.replicas.loadBalancerIP">
               <TextInput value={replicasLoadBalancerIP} onChange={setReplicasLoadBalancerIP} />
             </Field>
           </fieldset>
           <h2 className="text-lg font-semibold">Metadata</h2>
-          <h3 className="font-semibold">Resources Metadata</h3>
-          <KeyValueRows title="All Resources" rows={annotationsAll} setRows={setAnnotationsAll} />
-          <KeyValueRows title="Cluster Pods" rows={annotationsPods} setRows={setAnnotationsPods} />
-          <KeyValueRows title="Services" rows={annotationsServices} setRows={setAnnotationsServices} />
+          <h3 className="font-semibold">Resources Metadata{renderTooltip('sgdistributedlogs.spec.metadata.annotations')}</h3>
+          <KeyValueRows title="All Resources" rows={annotationsAll} setRows={setAnnotationsAll}
+            tooltip="sgdistributedlogs.spec.metadata.annotations.allResources" />
+          <KeyValueRows title="Cluster Pods" rows={annotationsPods} setRows={setAnnotationsPods}
+            tooltip="sgdistributedlogs.spec.metadata.annotations.pods" />
+          <KeyValueRows title="Services" rows={annotationsServices} setRows={setAnnotationsServices}
+            tooltip="sgdistributedlogs.spec.metadata.annotations.services" />
           <h2 className="text-lg font-semibold">Scheduling</h2>
-          <KeyValueRows title="Node Selectors" rows={nodeSelector} setRows={setNodeSelector} keyLabel="Label" />
+          <KeyValueRows title="Node Selectors" rows={nodeSelector} setRows={setNodeSelector} keyLabel="Label"
+            tooltip="sgdistributedlogs.spec.scheduling.nodeSelector" />
           <fieldset className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">Node Tolerations</legend>
+            <legend className="px-1 font-semibold">Node Tolerations{renderTooltip('sgdistributedlogs.spec.scheduling.tolerations')}</legend>
             {tolerations.map((toleration, index) => (
               <div key={index} className="flex flex-col gap-2">
                 <h4 className="font-semibold">Toleration #{index + 1}</h4>
                 <div className="flex flex-wrap items-end gap-2">
-                <Field label="Key">
+                <Field label="Key" tooltip="sgdistributedlogs.spec.scheduling.tolerations.key">
                   <TextInput value={toleration.key}
                     onChange={(key) => setTolerations(tolerations.map((t, i) => (i === index ? { ...t, key } : t)))} />
                 </Field>
-                <Field label="Operator">
+                <Field label="Operator" tooltip="sgdistributedlogs.spec.scheduling.tolerations.operator">
                   <Select value={toleration.operator}
                     onChange={(operator) =>
                       setTolerations(tolerations.map((t, i) =>
@@ -316,19 +324,19 @@ export default function DistributedLogsForm({ isEdit }) {
                     options={['Equal', 'Exists']} />
                 </Field>
                 {toleration.operator === 'Equal' && (
-                  <Field label="Value">
+                  <Field label="Value" tooltip="sgdistributedlogs.spec.scheduling.tolerations.value">
                     <TextInput value={toleration.value || ''}
                       onChange={(value) => setTolerations(tolerations.map((t, i) => (i === index ? { ...t, value } : t)))} />
                   </Field>
                 )}
-                <Field label="Effect">
+                <Field label="Effect" tooltip="sgdistributedlogs.spec.scheduling.tolerations.effect">
                   <Select value={toleration.effect || ''}
                     onChange={(effect) =>
                       setTolerations(tolerations.map((t, i) => (i === index ? { ...t, effect: effect || null } : t)))}
                     options={EFFECTS} />
                 </Field>
                 {toleration.effect === 'NoExecute' && (
-                  <Field label="Toleration Seconds">
+                  <Field label="Toleration Seconds" tooltip="sgdistributedlogs.spec.scheduling.tolerations.tolerationSeconds">
                     <TextInput type="number" min="0" value={toleration.tolerationSeconds ?? ''}
                       onChange={(seconds) =>
                         setTolerations(tolerations.map((t, i) =>
@@ -360,9 +368,21 @@ export default function DistributedLogsForm({ isEdit }) {
           )}
           <fieldset className="flex flex-col gap-3 border p-3">
             <legend className="px-1 font-semibold">Non Production Settings</legend>
-            <Field label="Cluster Pod Anti Affinity">{tristate(podAntiAffinity, setPodAntiAffinity)}</Field>
-            <Field label="Patroni Resource Requirements">{tristate(patroniRequirements, setPatroniRequirements)}</Field>
-            <Field label="Cluster Resource Requirements">{tristate(clusterRequirements, setClusterRequirements)}</Field>
+            <Field label="Cluster Pod Anti Affinity"
+              tooltip={
+                <HelpTooltip field="sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity"
+                  transform={(t) => t.replace('If set to `true` it will', 'Disable this property to')} />
+              }>{tristate(podAntiAffinity, setPodAntiAffinity)}</Field>
+            <Field label="Patroni Resource Requirements"
+              tooltip={
+                <HelpTooltip field="sgdistributedlogs.spec.nonProductionOptions.disablePatroniResourceRequirements"
+                  transform={(t) => t.replace('Set this property to true to', 'Disable this property to')} />
+              }>{tristate(patroniRequirements, setPatroniRequirements)}</Field>
+            <Field label="Cluster Resource Requirements"
+              tooltip={
+                <HelpTooltip field="sgdistributedlogs.spec.nonProductionOptions.disableClusterResourceRequirements"
+                  transform={(t) => t.replace('Set this property to true to', 'Disable this property to')} />
+              }>{tristate(clusterRequirements, setClusterRequirements)}</Field>
           </fieldset>
         </>
       )}

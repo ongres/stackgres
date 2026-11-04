@@ -8,6 +8,7 @@ import { useFlatList } from '../../hooks/useFlatList'
 import { useNamespaces } from '../../hooks/useNamespaces'
 import { nameValidationMessage } from '../../lib/names'
 import SpecTree from '../SpecTree'
+import { HelpTooltip } from '../HelpTooltip'
 import { Field, Select, TextInput } from './fields'
 
 const RULE_KEYS = ['apiGroups', 'nonResourceURLs', 'resourceNames', 'resources', 'verbs']
@@ -26,7 +27,9 @@ function RulesEditor({ rules, onChange }) {
   const updateRule = (index, rule) => onChange(list.map((r, i) => (i === index ? rule : r)))
   return (
     <fieldset className="flex flex-col gap-3 border p-3">
-      <legend className="px-1 font-semibold">Rules</legend>
+      <legend className="px-1 font-semibold">
+        Rules <HelpTooltip field="sgrole.rules" />
+      </legend>
       {list.map((rule, index) => (
         <fieldset key={index} className="flex flex-col gap-2 border p-3">
           <legend className="px-1">Rule #{index + 1}</legend>
@@ -40,7 +43,9 @@ function RulesEditor({ rules, onChange }) {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {RULE_KEYS.map((key) => (
               <fieldset key={key} className="flex flex-col gap-2 border p-2">
-                <legend className="px-1">{key}</legend>
+                <legend className="px-1">
+                  {key} <HelpTooltip field={'sgrole.rules.' + key} />
+                </legend>
                 {(rule[key] || []).map((entry, entryIndex) => (
                   <div key={entryIndex} className="flex items-center gap-2">
                     <TextInput value={entry} aria-label={`${key} ${entryIndex + 1}`}
@@ -159,7 +164,7 @@ export default function RoleForm({ kind, isEdit = false }) {
         {isEdit ? `Edit ${label}: ${routeName}` : `Create ${label}`}
       </h1>
       <form onSubmit={submit} className="flex flex-col gap-3">
-        <Field label={`${label} Name`} required>
+        <Field label={`${label} Name`} required tooltip="sgrole.metadata.name">
           <TextInput required disabled={isEdit} value={role.metadata.name}
             onChange={(value) => patch((next) => { next.metadata.name = value })} />
         </Field>
@@ -170,7 +175,7 @@ export default function RoleForm({ kind, isEdit = false }) {
           </p>
         )}
         {!clusterScoped && (
-          <Field label="Role Namespace" required>
+          <Field label="Role Namespace" required tooltip="sgrole.metadata.namespace">
             <Select required disabled={isEdit} value={role.metadata.namespace}
               options={namespaceOptions} placeholder="Select a namespace…"
               onChange={(value) => patch((next) => { next.metadata.namespace = value })} />

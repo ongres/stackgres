@@ -70,10 +70,10 @@ export default function BackupForm({ isEdit }) {
           Please specify a different name or create the backup on another namespace
         </p>
       )}
-      <Field label="Backup Name" required error={form.errors.name}>
+      <Field label="Backup Name" required error={form.errors.name} tooltip="sgbackup.metadata.name">
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
-      <Field label="Backup Cluster" required error={form.errors.sgCluster}>
+      <Field label="Backup Cluster" required error={form.errors.sgCluster} tooltip="sgbackup.spec.sgCluster">
         <Select
           value={sgCluster}
           onChange={setSgCluster}
@@ -83,7 +83,7 @@ export default function BackupForm({ isEdit }) {
           required
         />
       </Field>
-      <Toggle label="Managed Lifecycle" checked={managedLifecycle} onChange={setManagedLifecycle} />
+      <Toggle label="Managed Lifecycle" checked={managedLifecycle} onChange={setManagedLifecycle} tooltip="sgbackup.spec.managedLifecycle" />
     </CrdFormShell>
   )
 }

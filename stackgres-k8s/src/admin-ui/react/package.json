@@ -26,6 +26,7 @@
     "cronstrue": "^3.38.0",
     "hdr-histogram-widget": "^1.0.1",
     "lucide-react": "^0.563.0",
+    "markdown-it": "^14.3.3",
     "react": "^18.2.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^18.2.0",

@@ -6,7 +6,8 @@ import { api, ApiError } from '../../lib/api'
 import { useSGConfigs } from '../../hooks/useSGConfigs'
 import { buildSGConfig, normalizeSGConfigSpec } from '../../lib/sgconfig'
 import SpecTree from '../SpecTree'
-import { Field, Select, TextInput, Toggle } from './fields'
+import { HelpTooltip } from '../HelpTooltip'
+import { Field, renderTooltip, Select, TextInput, Toggle } from './fields'
 
 const STEPS = {
   adminui: 'Admin UI',
@@ -27,6 +28,30 @@ const AFFINITY_OPERATORS = [
   { value: 'Gt', label: 'Greater Than' },
   { value: 'Lt', label: 'Less Than' },
 ]
+// Literal tooltip texts copied verbatim from EditSGConfig.vue (the resource
+// request/limit fields are the only ones not resolved via sg-tooltips.json).
+const RESOURCES_TOOLTIPS = {
+  adminui: {
+    requests: {
+      memory: 'RAM request for the Web Console. The suffix Mi or Gi specifies Mebibytes or Gibibytes, respectively.',
+      cpu: 'CPU(s) (cores) request for the web console. The suffix m specifies millicpus (where 1000m is equals to 1).',
+    },
+    limits: {
+      memory: 'RAM limit for the Web Console. The suffix Mi or Gi specifies Mebibytes or Gibibytes, respectively.',
+      cpu: 'CPU(s) (cores) limit for the web console. The suffix m specifies millicpus (where 1000m is equals to 1).',
+    },
+  },
+  jobs: {
+    requests: {
+      memory: 'RAM request for the Operator installation job resources. The suffix Mi or Gi specifies Mebibytes or Gibibytes, respectively.',
+      cpu: 'CPU(s) (cores) request for the Operator installation job resources. The suffix m specifies millicpus (where 1000m is equals to 1).',
+    },
+    limits: {
+      memory: 'RAM limit for the Operator installation job resources. The suffix Mi or Gi specifies Mebibytes or Gibibytes, respectively.',
+      cpu: 'CPU(s) (cores) limit for the Operator installation job resources. The suffix m specifies millicpus (where 1000m is equals to 1).',
+    },
+  },
+}
 const blankExpression = () => ({ key: '', operator: '', values: [''] })
 const blankSelector = () => ({ matchExpressions: [blankExpression()], matchLabels: [{ label: '', value: '' }] })
 const blankPodTerm = () => ({
@@ -36,11 +61,11 @@ const blankPodTerm = () => ({
   topologyKey: '',
 })
 
-function StringRows({ title, values, onChange, addLabel = 'Add' }) {
+function StringRows({ title, values, onChange, addLabel = 'Add', tooltip }) {
   const list = values || []
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{title}</legend>
+      <legend className="px-1 font-semibold">{title}{renderTooltip(tooltip)}</legend>
       {list.map((entry, index) => (
         <div key={index} className="flex items-center gap-2">
           <TextInput value={entry} aria-label={`${title} ${index + 1}`}
@@ -59,11 +84,11 @@ function StringRows({ title, values, onChange, addLabel = 'Add' }) {
   )
 }
 
-function LabelRows({ title, rows, onChange }) {
+function LabelRows({ title, rows, onChange, tooltip }) {
   const list = rows || []
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{title}</legend>
+      <legend className="px-1 font-semibold">{title}{renderTooltip(tooltip)}</legend>
       {list.map((row, index) => (
         <div key={index} className="flex items-end gap-2">
           <Field label="Key">
@@ -88,18 +113,19 @@ function LabelRows({ title, rows, onChange }) {
   )
 }
 
-function ExpressionsEditor({ title, expressions, onChange }) {
+function ExpressionsEditor({ title, expressions, onChange, tooltipPrefix }) {
   const list = expressions || []
   const update = (index, patch) => onChange(list.map((e, i) => (i === index ? { ...e, ...patch } : e)))
+  const itemTooltip = (prop) => (tooltipPrefix ? `${tooltipPrefix}.items.properties.${prop}` : undefined)
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{title}</legend>
+      <legend className="px-1 font-semibold">{title}{renderTooltip(tooltipPrefix)}</legend>
       {list.map((expression, index) => (
         <div key={index} className="flex flex-wrap items-end gap-2">
-          <Field label="Key">
+          <Field label="Key" tooltip={itemTooltip('key')}>
             <TextInput value={expression.key} onChange={(key) => update(index, { key })} />
           </Field>
-          <Field label="Operator">
+          <Field label="Operator" tooltip={itemTooltip('operator')}>
             <Select value={expression.operator} required={expression.key.length > 0}
               options={AFFINITY_OPERATORS} placeholder="Select operator…"
               onChange={(operator) => {
@@ -115,7 +141,8 @@ function ExpressionsEditor({ title, expressions, onChange }) {
               }} />
           </Field>
           {expression.values && !['', 'Exists', 'DoesNotExists'].includes(expression.operator) && (
-            <Field label={['Gt', 'Lt'].includes(expression.operator) ? 'Value' : 'Values'}>
+            <Field label={['Gt', 'Lt'].includes(expression.operator) ? 'Value' : 'Values'}
+              tooltip={itemTooltip('values')}>
               <div className="flex flex-col gap-1">
                 {expression.values.map((value, valueIndex) => (
                   <div key={valueIndex} className="flex items-center gap-2">
@@ -156,50 +183,61 @@ function ExpressionsEditor({ title, expressions, onChange }) {
   )
 }
 
-function SelectorEditor({ title, selector, onChange }) {
+function SelectorEditor({ title, selector, onChange, tooltip, matchTooltipPrefix }) {
   const current = selector || blankSelector()
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{title}</legend>
+      <legend className="px-1 font-semibold">{title}{renderTooltip(tooltip)}</legend>
       <ExpressionsEditor title="Match Expressions" expressions={current.matchExpressions}
+        tooltipPrefix={matchTooltipPrefix && `${matchTooltipPrefix}.matchExpressions`}
         onChange={(matchExpressions) => onChange({ ...current, matchExpressions })} />
       <LabelRows title="Match Labels" rows={current.matchLabels}
+        tooltip={matchTooltipPrefix && `${matchTooltipPrefix}.matchLabels`}
         onChange={(matchLabels) => onChange({ ...current, matchLabels })} />
     </fieldset>
   )
 }
 
-function PodAffinityEditor({ title, block, onChange }) {
+function PodAffinityEditor({ title, block, onChange, tooltipPrefix, tooltipTermKey }) {
   const current = block || {}
   const preferred = current.preferredDuringSchedulingIgnoredDuringExecution || []
   const required = current.requiredDuringSchedulingIgnoredDuringExecution || []
   const patch = (key, value) => onChange({ ...current, [key]: value })
+  const prefKey = tooltipPrefix && `${tooltipPrefix}.preferredDuringSchedulingIgnoredDuringExecution`
+  const reqKey = tooltipPrefix && `${tooltipPrefix}.requiredDuringSchedulingIgnoredDuringExecution`
+  // Vue copy-paste quirk kept for parity: the pod/podAnti affinity selectors
+  // reuse the nodeAffinity-shaped matchExpressions/matchLabels tooltip keys.
+  const prefMatch = prefKey && `${prefKey}.items.properties.preference.properties`
+  const reqMatch = reqKey && `${reqKey}.items.properties.preference.properties`
   return (
     <fieldset className="flex flex-col gap-3 border p-3">
-      <legend className="px-1 font-semibold">{title}</legend>
-      <h4 className="font-semibold">Preferred</h4>
+      <legend className="px-1 font-semibold">{title}{renderTooltip(tooltipPrefix)}</legend>
+      <h4 className="font-semibold">Preferred{renderTooltip(prefKey)}</h4>
       {preferred.map((term, index) => (
         <fieldset key={index} className="flex flex-col gap-2 border p-3">
           <legend className="px-1">Term #{index + 1}</legend>
           <SelectorEditor title="Label Selector" selector={term.podAffinityTerm.labelSelector}
+            tooltip={prefKey && `${prefKey}.${tooltipTermKey}.labelSelector`} matchTooltipPrefix={prefMatch}
             onChange={(labelSelector) =>
               patch('preferredDuringSchedulingIgnoredDuringExecution',
                 preferred.map((t, i) => (i === index ? { ...t, podAffinityTerm: { ...t.podAffinityTerm, labelSelector } } : t)))} />
           <SelectorEditor title="Namespace Selector" selector={term.podAffinityTerm.namespaceSelector}
+            tooltip={prefKey && `${prefKey}.${tooltipTermKey}.namespaceSelector`} matchTooltipPrefix={prefMatch}
             onChange={(namespaceSelector) =>
               patch('preferredDuringSchedulingIgnoredDuringExecution',
                 preferred.map((t, i) => (i === index ? { ...t, podAffinityTerm: { ...t.podAffinityTerm, namespaceSelector } } : t)))} />
           <StringRows title="Namespaces" values={term.podAffinityTerm.namespaces} addLabel="Add Namespace"
+            tooltip={prefKey && `${prefKey}.${tooltipTermKey}.namespaces`}
             onChange={(namespaces) =>
               patch('preferredDuringSchedulingIgnoredDuringExecution',
                 preferred.map((t, i) => (i === index ? { ...t, podAffinityTerm: { ...t.podAffinityTerm, namespaces } } : t)))} />
-          <Field label="Topology Key">
+          <Field label="Topology Key" tooltip={prefKey && `${prefKey}.${tooltipTermKey}.topologyKey`}>
             <TextInput value={term.podAffinityTerm.topologyKey || ''}
               onChange={(topologyKey) =>
                 patch('preferredDuringSchedulingIgnoredDuringExecution',
                   preferred.map((t, i) => (i === index ? { ...t, podAffinityTerm: { ...t.podAffinityTerm, topologyKey } } : t)))} />
           </Field>
-          <Field label="Weight">
+          <Field label="Weight" tooltip={prefKey && `${prefKey}.weight`}>
             <TextInput type="number" min="1" max="100" value={term.weight}
               onChange={(weight) =>
                 patch('preferredDuringSchedulingIgnoredDuringExecution',
@@ -217,23 +255,26 @@ function PodAffinityEditor({ title, block, onChange }) {
           patch('preferredDuringSchedulingIgnoredDuringExecution', [...preferred, { podAffinityTerm: blankPodTerm(), weight: 1 }])}>
         <Plus size={14} /> Add Preferred Term
       </button>
-      <h4 className="font-semibold">Required</h4>
+      <h4 className="font-semibold">Required{renderTooltip(reqKey)}</h4>
       {required.map((term, index) => (
         <fieldset key={index} className="flex flex-col gap-2 border p-3">
           <legend className="px-1">Term #{index + 1}</legend>
           <SelectorEditor title="Label Selector" selector={term.labelSelector}
+            tooltip={reqKey && `${reqKey}.labelSelector`} matchTooltipPrefix={reqMatch}
             onChange={(labelSelector) =>
               patch('requiredDuringSchedulingIgnoredDuringExecution',
                 required.map((t, i) => (i === index ? { ...t, labelSelector } : t)))} />
           <SelectorEditor title="Namespace Selector" selector={term.namespaceSelector}
+            tooltip={reqKey && `${reqKey}.namespaceSelector`} matchTooltipPrefix={reqMatch}
             onChange={(namespaceSelector) =>
               patch('requiredDuringSchedulingIgnoredDuringExecution',
                 required.map((t, i) => (i === index ? { ...t, namespaceSelector } : t)))} />
           <StringRows title="Namespaces" values={term.namespaces} addLabel="Add Namespace"
+            tooltip={reqKey && `${reqKey}.namespaces`}
             onChange={(namespaces) =>
               patch('requiredDuringSchedulingIgnoredDuringExecution',
                 required.map((t, i) => (i === index ? { ...t, namespaces } : t)))} />
-          <Field label="Topology Key">
+          <Field label="Topology Key" tooltip={reqKey && `${reqKey}.topologyKey`}>
             <TextInput value={term.topologyKey || ''}
               onChange={(topologyKey) =>
                 patch('requiredDuringSchedulingIgnoredDuringExecution',
@@ -255,27 +296,31 @@ function PodAffinityEditor({ title, block, onChange }) {
   )
 }
 
-function NodeAffinityEditor({ block, onChange }) {
+function NodeAffinityEditor({ block, onChange, tooltipPrefix }) {
   const current = block || {}
   const preferred = current.preferredDuringSchedulingIgnoredDuringExecution || []
   const required = current.requiredDuringSchedulingIgnoredDuringExecution?.nodeSelectorTerms || []
   const patch = (key, value) => onChange({ ...current, [key]: value })
+  const prefKey = tooltipPrefix && `${tooltipPrefix}.preferredDuringSchedulingIgnoredDuringExecution`
+  const reqKey = tooltipPrefix && `${tooltipPrefix}.requiredDuringSchedulingIgnoredDuringExecution`
   return (
     <fieldset className="flex flex-col gap-3 border p-3">
-      <legend className="px-1 font-semibold">Node Affinity</legend>
-      <h4 className="font-semibold">Preferences</h4>
+      <legend className="px-1 font-semibold">Node Affinity{renderTooltip(tooltipPrefix)}</legend>
+      <h4 className="font-semibold">Preferences{renderTooltip(prefKey && `${prefKey}.items`)}</h4>
       {preferred.map((term, index) => (
         <fieldset key={index} className="flex flex-col gap-2 border p-3">
           <legend className="px-1">Preference #{index + 1}</legend>
           <ExpressionsEditor title="Match Expressions" expressions={term.preference.matchExpressions}
+            tooltipPrefix={prefKey && `${prefKey}.items.properties.preference.properties.matchExpressions`}
             onChange={(matchExpressions) =>
               patch('preferredDuringSchedulingIgnoredDuringExecution',
                 preferred.map((t, i) => (i === index ? { ...t, preference: { ...t.preference, matchExpressions } } : t)))} />
           <ExpressionsEditor title="Match Fields" expressions={term.preference.matchFields}
+            tooltipPrefix={prefKey && `${prefKey}.items.properties.preference.properties.matchFields`}
             onChange={(matchFields) =>
               patch('preferredDuringSchedulingIgnoredDuringExecution',
                 preferred.map((t, i) => (i === index ? { ...t, preference: { ...t.preference, matchFields } } : t)))} />
-          <Field label="Weight">
+          <Field label="Weight" tooltip={prefKey && `${prefKey}.weight`}>
             <TextInput type="number" min="1" max="100" value={term.weight}
               onChange={(weight) =>
                 patch('preferredDuringSchedulingIgnoredDuringExecution',
@@ -296,16 +341,18 @@ function NodeAffinityEditor({ block, onChange }) {
           ])}>
         <Plus size={14} /> Add Preference
       </button>
-      <h4 className="font-semibold">Node Selector Terms</h4>
+      <h4 className="font-semibold">Node Selector Terms{renderTooltip(reqKey && `${reqKey}.nodeSelectorTerms`)}</h4>
       {required.map((term, index) => (
         <fieldset key={index} className="flex flex-col gap-2 border p-3">
           <legend className="px-1">Term #{index + 1}</legend>
           <ExpressionsEditor title="Match Expressions" expressions={term.matchExpressions}
+            tooltipPrefix={reqKey && `${reqKey}.nodeSelectorTerms.items.properties.matchExpressions`}
             onChange={(matchExpressions) =>
               patch('requiredDuringSchedulingIgnoredDuringExecution', {
                 nodeSelectorTerms: required.map((t, i) => (i === index ? { ...t, matchExpressions } : t)),
               })} />
           <ExpressionsEditor title="Match Fields" expressions={term.matchFields}
+            tooltipPrefix={reqKey && `${reqKey}.nodeSelectorTerms.items.properties.matchFields`}
             onChange={(matchFields) =>
               patch('requiredDuringSchedulingIgnoredDuringExecution', {
                 nodeSelectorTerms: required.map((t, i) => (i === index ? { ...t, matchFields } : t)),
@@ -358,7 +405,8 @@ export default function SGConfigForm() {
       return next
     })
   const resources = (section, group, key) => (
-    <Field label={`${group === 'requests' ? 'Requests' : 'Limits'} ${key === 'memory' ? 'RAM' : 'CPU'}`}>
+    <Field label={`${group === 'requests' ? 'Requests' : 'Limits'} ${key === 'memory' ? 'RAM' : 'CPU'}`}
+      tooltip={<HelpTooltip text={RESOURCES_TOOLTIPS[section][group][key]} />}>
       <TextInput value={spec[section].resources?.[group]?.[key] || ''}
         onChange={(value) => patch((s) => { s[section].resources[group][key] = value })} />
     </Field>
@@ -405,26 +453,28 @@ export default function SGConfigForm() {
               {resources('adminui', 'limits', 'cpu')}
             </div>
             <Toggle label="Expose HTTP" checked={spec.adminui.service.exposeHTTP || false}
+              tooltip="sgconfig.spec.adminui.service.exposeHTTP"
               onChange={(value) => patch((s) => { s.adminui.service.exposeHTTP = value })} />
-            <Field label="Load Balancer IP">
+            <Field label="Load Balancer IP" tooltip="sgconfig.spec.adminui.service.loadBalancerIP">
               <TextInput value={spec.adminui.service.loadBalancerIP || ''}
                 onChange={(value) => patch((s) => { s.adminui.service.loadBalancerIP = value })} />
             </Field>
             <StringRows title="Load Balancer Source Ranges" addLabel="Add Range"
+              tooltip="sgconfig.spec.adminui.service.loadBalancerSourceRanges"
               values={spec.adminui.service.loadBalancerSourceRanges}
               onChange={(values) => patch((s) => { s.adminui.service.loadBalancerSourceRanges = values })} />
-            <Field label="Type">
+            <Field label="Type" tooltip="sgconfig.spec.adminui.service.type">
               <Select value={spec.adminui.service.type || ''} placeholder="Select a method"
                 options={[{ value: 'NodePort', label: 'Node Port' }, { value: 'LoadBalancer', label: 'Load Balancer' }]}
                 onChange={(value) => patch((s) => { s.adminui.service.type = value })} />
             </Field>
             {spec.adminui.service.type === 'NodePort' && (
               <div className="flex gap-4">
-                <Field label="HTTPS Node Port">
+                <Field label="HTTPS Node Port" tooltip="sgconfig.spec.adminui.service.nodePort">
                   <TextInput type="number" value={spec.adminui.service.nodePort ?? ''}
                     onChange={(value) => patch((s) => { s.adminui.service.nodePort = value === '' ? undefined : Number(value) })} />
                 </Field>
-                <Field label="HTTP Node Port">
+                <Field label="HTTP Node Port" tooltip="sgconfig.spec.adminui.service.nodePortHTTP">
                   <TextInput type="number" value={spec.adminui.service.nodePortHTTP ?? ''}
                     onChange={(value) => patch((s) => { s.adminui.service.nodePortHTTP = value === '' ? undefined : Number(value) })} />
                 </Field>
@@ -435,7 +485,7 @@ export default function SGConfigForm() {
 
         {currentStep === 'authentication' && (
           <>
-            <Field label="Type">
+            <Field label="Type" tooltip="sgconfig.spec.authentication.type">
               <Select value={spec.authentication.type || ''} placeholder="Select auth method"
                 options={[{ value: 'jwt', label: 'JWT' }, { value: 'oidc', label: 'OIDC' }]}
                 onChange={(value) =>
@@ -458,12 +508,13 @@ export default function SGConfigForm() {
             {spec.authentication.type === 'jwt' && (
               <>
                 <Toggle label="Create Admin Secret" checked={spec.authentication.createAdminSecret || false}
+                  tooltip="sgconfig.spec.authentication.createAdminSecret"
                   onChange={(value) => patch((s) => { s.authentication.createAdminSecret = value })} />
-                <Field label="User">
+                <Field label="User" tooltip="sgconfig.spec.authentication.user">
                   <TextInput value={spec.authentication.user || ''}
                     onChange={(value) => patch((s) => { s.authentication.user = value })} />
                 </Field>
-                <Field label="Password">
+                <Field label="Password" tooltip="sgconfig.spec.authentication.password">
                   <TextInput type="password" value={spec.authentication.password || ''}
                     onChange={(value) => patch((s) => { s.authentication.password = value })} />
                 </Field>
@@ -471,39 +522,39 @@ export default function SGConfigForm() {
             )}
             {spec.authentication.type === 'oidc' && spec.authentication.oidc && (
               <div className="flex flex-col gap-3">
-                <Field label="Authentication Server Url">
+                <Field label="Authentication Server Url" tooltip="sgconfig.spec.authentication.oidc.authServerUrl">
                   <TextInput value={spec.authentication.oidc.authServerUrl}
                     onChange={(value) => patch((s) => { s.authentication.oidc.authServerUrl = value })} />
                 </Field>
-                <Field label="TLS Verification">
+                <Field label="TLS Verification" tooltip="sgconfig.spec.authentication.oidc.tlsVerification">
                   <Select value={spec.authentication.oidc.tlsVerification || ''} placeholder="Select method"
                     options={[{ value: 'none', label: 'None' }, { value: 'required', label: 'Required' }, { value: 'certificate-validation', label: 'Certificate Validation' }]}
                     onChange={(value) => patch((s) => { s.authentication.oidc.tlsVerification = value })} />
                 </Field>
-                <Field label="Client ID">
+                <Field label="Client ID" tooltip="sgconfig.spec.authentication.oidc.clientId">
                   <TextInput value={spec.authentication.oidc.clientId}
                     onChange={(value) => patch((s) => { s.authentication.oidc.clientId = value })} />
                 </Field>
                 <div className="flex gap-4">
-                  <Field label="Client ID Secret Reference Name">
+                  <Field label="Client ID Secret Reference Name" tooltip="sgconfig.spec.authentication.oidc.clientIdSecretRef.name">
                     <TextInput value={spec.authentication.oidc.clientIdSecretRef?.name || ''}
                       onChange={(value) => patch((s) => { s.authentication.oidc.clientIdSecretRef.name = value })} />
                   </Field>
-                  <Field label="Client ID Secret Reference Key">
+                  <Field label="Client ID Secret Reference Key" tooltip="sgconfig.spec.authentication.oidc.clientIdSecretRef.key">
                     <TextInput value={spec.authentication.oidc.clientIdSecretRef?.key || ''}
                       onChange={(value) => patch((s) => { s.authentication.oidc.clientIdSecretRef.key = value })} />
                   </Field>
                 </div>
-                <Field label="Credentials Secret">
+                <Field label="Credentials Secret" tooltip="sgconfig.spec.authentication.oidc.credentialsSecret">
                   <TextInput value={spec.authentication.oidc.credentialsSecret}
                     onChange={(value) => patch((s) => { s.authentication.oidc.credentialsSecret = value })} />
                 </Field>
                 <div className="flex gap-4">
-                  <Field label="Credentials Secret Reference Name">
+                  <Field label="Credentials Secret Reference Name" tooltip="sgconfig.spec.authentication.oidc.credentialsSecretSecretRef.name">
                     <TextInput value={spec.authentication.oidc.credentialsSecretSecretRef?.name || ''}
                       onChange={(value) => patch((s) => { s.authentication.oidc.credentialsSecretSecretRef.name = value })} />
                   </Field>
-                  <Field label="Credentials Secret Reference Key">
+                  <Field label="Credentials Secret Reference Key" tooltip="sgconfig.spec.authentication.oidc.credentialsSecretSecretRef.key">
                     <TextInput value={spec.authentication.oidc.credentialsSecretSecretRef?.key || ''}
                       onChange={(value) => patch((s) => { s.authentication.oidc.credentialsSecretSecretRef.key = value })} />
                   </Field>
@@ -531,9 +582,10 @@ export default function SGConfigForm() {
             ].map(([label, key, type]) =>
               type === 'toggle' ? (
                 <Toggle key={key} label={label} checked={spec.cert[key] || false}
+                  tooltip={`sgconfig.spec.cert.${key}`}
                   onChange={(value) => patch((s) => { s.cert[key] = value })} />
               ) : (
-                <Field key={key} label={label}>
+                <Field key={key} label={label} tooltip={`sgconfig.spec.cert.${key}`}>
                   <TextInput type={type} value={spec.cert[key] ?? ''}
                     onChange={(value) =>
                       patch((s) => { s.cert[key] = type === 'number' ? (value === '' ? undefined : Number(value)) : value })} />
@@ -544,7 +596,7 @@ export default function SGConfigForm() {
         )}
 
         {currentStep === 'containerRegistry' && (
-          <Field label="Container Registry">
+          <Field label="Container Registry" tooltip="sgconfig.spec.containerRegistry">
             <TextInput value={spec.containerRegistry || ''}
               onChange={(value) => patch((s) => { s.containerRegistry = value })} />
           </Field>
@@ -552,12 +604,14 @@ export default function SGConfigForm() {
 
         {currentStep === 'extensions' && (
           <StringRows title="Repository URLs" addLabel="Add URL" values={spec.extensions.repositoryUrls}
+            tooltip="sgconfig.spec.extensions.repositoryUrls"
             onChange={(values) => patch((s) => { s.extensions.repositoryUrls = values })} />
         )}
 
         {currentStep === 'grafana' && (
           <div className="flex flex-col gap-3">
             <Toggle label="Auto Embed" checked={spec.grafana.autoEmbed || false}
+              tooltip="sgconfig.spec.grafana.autoEmbed"
               onChange={(value) => patch((s) => { s.grafana.autoEmbed = value })} />
             {[
               ['Dashboard Config Map', 'dashboardConfigMap'], ['Dashboard ID', 'dashboardId'],
@@ -566,7 +620,7 @@ export default function SGConfigForm() {
               ['Secret User Key', 'secretUserKey'], ['Secret Password Key', 'secretPasswordKey'],
               ['Token', 'token'], ['URL', 'url'], ['Web Host', 'webHost'],
             ].map(([label, key]) => (
-              <Field key={key} label={label}>
+              <Field key={key} label={label} tooltip={`sgconfig.spec.grafana.${key}`}>
                 <TextInput type={key === 'password' ? 'password' : 'text'} value={spec.grafana[key] || ''}
                   onChange={(value) => patch((s) => { s.grafana[key] = value })} />
               </Field>
@@ -575,7 +629,7 @@ export default function SGConfigForm() {
         )}
 
         {currentStep === 'imagePullPolicy' && (
-          <Field label="Image Pull Policy">
+          <Field label="Image Pull Policy" tooltip="sgconfig.spec.imagePullPolicy">
             <TextInput value={spec.imagePullPolicy || ''}
               onChange={(value) => patch((s) => { s.imagePullPolicy = value })} />
           </Field>
@@ -584,14 +638,17 @@ export default function SGConfigForm() {
         {currentStep === 'jobs' && (
           <div className="flex flex-col gap-4">
             <NodeAffinityEditor block={affinity.nodeAffinity}
+              tooltipPrefix="sgconfig.spec.jobs.affinity.nodeAffinity"
               onChange={(nodeAffinity) => patch((s) => { s.jobs.affinity = { ...(s.jobs.affinity || {}), nodeAffinity } })} />
             <PodAffinityEditor title="Pod Affinity" block={affinity.podAffinity}
+              tooltipPrefix="sgconfig.spec.jobs.affinity.podAffinity" tooltipTermKey="podAffinityTerm"
               onChange={(podAffinity) => patch((s) => { s.jobs.affinity = { ...(s.jobs.affinity || {}), podAffinity } })} />
             <PodAffinityEditor title="Pod Anti Affinity" block={affinity.podAntiAffinity}
+              tooltipPrefix="sgconfig.spec.jobs.affinity.podAntiAffinity" tooltipTermKey="podAntiAffinityTerm"
               onChange={(podAntiAffinity) => patch((s) => { s.jobs.affinity = { ...(s.jobs.affinity || {}), podAntiAffinity } })} />
-            <LabelRows title="Annotations" rows={jobs.annotations}
+            <LabelRows title="Annotations" rows={jobs.annotations} tooltip="sgconfig.spec.jobs.annotations"
               onChange={(rows) => patch((s) => { s.jobs.annotations = rows })} />
-            <LabelRows title="Node Selector" rows={jobs.nodeSelector}
+            <LabelRows title="Node Selector" rows={jobs.nodeSelector} tooltip="sgconfig.spec.jobs.nodeSelector"
               onChange={(rows) => patch((s) => { s.jobs.nodeSelector = rows })} />
             <div className="flex flex-wrap gap-4">
               {resources('jobs', 'requests', 'memory')}
@@ -600,19 +657,21 @@ export default function SGConfigForm() {
               {resources('jobs', 'limits', 'cpu')}
             </div>
             <LabelRows title="Service Account Annotations" rows={jobs.serviceAccount.annotations}
+              tooltip="sgconfig.spec.jobs.serviceAccount.annotations"
               onChange={(rows) => patch((s) => { s.jobs.serviceAccount.annotations = rows })} />
             <StringRows title="Service Account Repository Credentials" addLabel="Add URL"
+              tooltip="sgconfig.spec.jobs.serviceAccount.repoCredentials"
               values={jobs.serviceAccount.repoCredentials}
               onChange={(values) => patch((s) => { s.jobs.serviceAccount.repoCredentials = values })} />
             <fieldset className="flex flex-col gap-2 border p-3">
-              <legend className="px-1 font-semibold">Tolerations</legend>
+              <legend className="px-1 font-semibold">Tolerations{renderTooltip('sgconfig.spec.jobs.tolerations')}</legend>
               {jobs.tolerations.map((toleration, index) => (
                 <div key={index} className="flex flex-wrap items-end gap-2">
-                  <Field label="Key">
+                  <Field label="Key" tooltip="sgconfig.spec.jobs.tolerations.key">
                     <TextInput value={toleration.key || ''}
                       onChange={(key) => patch((s) => { s.jobs.tolerations[index].key = key })} />
                   </Field>
-                  <Field label="Operator">
+                  <Field label="Operator" tooltip="sgconfig.spec.jobs.tolerations.operator">
                     <Select value={toleration.operator || ''} options={['Equal', 'Exists']} placeholder="Select…"
                       onChange={(operator) =>
                         patch((s) => {
@@ -622,18 +681,18 @@ export default function SGConfigForm() {
                         })} />
                   </Field>
                   {toleration.operator === 'Equal' && (
-                    <Field label="Value">
+                    <Field label="Value" tooltip="sgconfig.spec.jobs.tolerations.value">
                       <TextInput value={toleration.value || ''}
                         onChange={(value) => patch((s) => { s.jobs.tolerations[index].value = value })} />
                     </Field>
                   )}
-                  <Field label="Effect">
+                  <Field label="Effect" tooltip="sgconfig.spec.jobs.tolerations.effect">
                     <Select value={toleration.effect || ''} placeholder="MatchAll"
                       options={['NoSchedule', 'PreferNoSchedule', 'NoExecute']}
                       onChange={(effect) => patch((s) => { s.jobs.tolerations[index].effect = effect || null })} />
                   </Field>
                   {toleration.effect === 'NoExecute' && (
-                    <Field label="Toleration Seconds">
+                    <Field label="Toleration Seconds" tooltip="sgconfig.spec.jobs.tolerations.tolerationSeconds">
                       <TextInput type="number" min="0" value={toleration.tolerationSeconds ?? ''}
                         onChange={(value) =>
                           patch((s) => { s.jobs.tolerations[index].tolerationSeconds = value === '' ? null : Number(value) })} />
@@ -659,8 +718,10 @@ export default function SGConfigForm() {
         {currentStep === 'serviceAccount' && (
           <>
             <LabelRows title="Annotations" rows={spec.serviceAccount.annotations}
+              tooltip="sgconfig.spec.serviceAccount.annotations"
               onChange={(rows) => patch((s) => { s.serviceAccount.annotations = rows })} />
             <StringRows title="Repository Credentials" addLabel="Add URL"
+              tooltip="sgconfig.spec.serviceAccount.repoCredentials"
               values={spec.serviceAccount.repoCredentials}
               onChange={(values) => patch((s) => { s.serviceAccount.repoCredentials = values })} />
           </>

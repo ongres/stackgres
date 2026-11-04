@@ -5,6 +5,7 @@ import { api, ApiError } from '../../lib/api'
 import { useData } from '../../contexts/DataContext'
 import { useNamespaces } from '../../hooks/useNamespaces'
 import { nameValidationMessage } from '../../lib/names'
+import { HelpTooltip } from '../HelpTooltip'
 import { Field, TextInput } from './fields'
 
 // Namespace creation (Vue CreateNamespaces): a single name field POSTed to
@@ -51,6 +52,9 @@ export default function NamespaceForm() {
           required
           error={error}
           help="An alphanumeric (and '-') string of up to 63 characters, not starting or ending with '-'"
+          tooltip={
+            <HelpTooltip text={'Namespace name. Following Kubernetes naming conventions, it must be an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the - character allowed anywhere except the first or last character.'} />
+          }
         >
           <TextInput value={name} onChange={setName} required autoComplete="off" error={error} />
         </Field>

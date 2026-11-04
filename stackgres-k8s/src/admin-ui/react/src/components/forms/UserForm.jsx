@@ -168,7 +168,7 @@ export default function UserForm({ isEdit = false }) {
     <section className="flex max-w-4xl flex-col gap-4 p-8 text-sm">
       <h1 className="text-2xl font-semibold">{isEdit ? `Edit User: ${routeName}` : 'Create User'}</h1>
       <form onSubmit={submit} className="flex flex-col gap-3">
-        <Field label="User Name" required>
+        <Field label="User Name" required tooltip="sgrole.metadata.name">
           <TextInput required disabled={isEdit} value={user.metadata.name}
             onChange={(value) => patch((next) => { next.metadata.name = value })} />
         </Field>
@@ -178,19 +178,20 @@ export default function UserForm({ isEdit = false }) {
             different name
           </p>
         )}
-        <Field label="K8s Username" required>
+        <Field label="K8s Username" required tooltip="sguser.k8sUsername">
           <TextInput required value={user.k8sUsername || ''}
             onChange={(value) => patch((next) => { next.k8sUsername = value || null })} />
         </Field>
         {!isEdit && (
-          <Field label="Password" required>
+          <Field label="Password" required tooltip="sguser.password">
             <TextInput type="password" required value={user.password || ''}
               onChange={(value) => patch((next) => { next.password = value || null })} />
           </Field>
         )}
-        <Toggle label="Mandatory API Username" checked={user.apiUsernameNotBlank || false}
+        <Toggle label="Mandatory API Username" tooltip="sguser.apiUsernameNotBlank"
+          checked={user.apiUsernameNotBlank || false}
           onChange={(value) => patch((next) => { next.apiUsernameNotBlank = value })} />
-        <Field label="API Username" required={user.apiUsernameNotBlank}>
+        <Field label="API Username" required={user.apiUsernameNotBlank} tooltip="sguser.apiUsername">
           <TextInput required={user.apiUsernameNotBlank} value={user.apiUsername || ''}
             onChange={(value) => patch((next) => { next.apiUsername = value || null })} />
         </Field>

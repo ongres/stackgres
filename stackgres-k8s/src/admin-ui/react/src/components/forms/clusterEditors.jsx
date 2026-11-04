@@ -8,7 +8,11 @@ import {
   blankRequiredAffinityTerm,
   blankToleration,
 } from '../../lib/sgcluster'
-import { Field, Select, TextArea, TextInput, Toggle } from './fields'
+import { HelpTooltip } from '../HelpTooltip'
+import { Field, renderTooltip, Select, TextArea, TextInput, Toggle } from './fields'
+
+// Vue chains .replace() calls on some boolean-flag descriptions.
+const enabledDisabled = (text) => text.replace(/true/g, 'Enabled').replace('false', 'Disabled')
 
 export const AFFINITY_OPERATORS = [
   { value: 'In', label: 'In' },
@@ -22,11 +26,11 @@ export const AFFINITY_OPERATORS = [
 // ---------------------------------------------------------------------------
 // Shared row editors
 
-export function KeyValueRows({ legend, rows, keyName, onChange }) {
+export function KeyValueRows({ legend, rows, keyName, onChange, tooltip }) {
   const list = rows || []
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{legend}</legend>
+      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltip)}</legend>
       {list.map((row, index) => (
         <div key={index} className="flex items-end gap-2">
           <Field label="Key">
@@ -51,11 +55,11 @@ export function KeyValueRows({ legend, rows, keyName, onChange }) {
   )
 }
 
-export function StringRows({ legend, values, onChange, addLabel = 'Add' }) {
+export function StringRows({ legend, values, onChange, addLabel = 'Add', tooltip }) {
   const list = values || []
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{legend}</legend>
+      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltip)}</legend>
       {list.map((entry, index) => (
         <div key={index} className="flex items-center gap-2">
           <TextInput value={entry ?? ''} aria-label={`${legend} ${index + 1}`}
@@ -76,18 +80,20 @@ export function StringRows({ legend, values, onChange, addLabel = 'Add' }) {
 
 // Node-affinity requirement editor shared by matchExpressions and matchFields,
 // in both required and preferred variants (preferred collapses to one value).
-export function ExpressionsEditor({ legend, expressions, onChange, preferred }) {
+export function ExpressionsEditor({ legend, expressions, onChange, preferred, tooltipPrefix }) {
   const list = expressions || []
   const update = (index, patch) => onChange(list.map((e, i) => (i === index ? { ...e, ...patch } : e)))
+  const itemTooltip = (suffix) =>
+    tooltipPrefix ? `${tooltipPrefix}.items.properties.${suffix}` : undefined
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{legend}</legend>
+      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltipPrefix)}</legend>
       {list.map((expression, index) => (
         <div key={index} className="flex flex-wrap items-end gap-2">
-          <Field label="Key">
+          <Field label="Key" tooltip={itemTooltip('key')}>
             <TextInput value={expression.key} onChange={(key) => update(index, { key })} />
           </Field>
-          <Field label="Operator">
+          <Field label="Operator" tooltip={itemTooltip('operator')}>
             <Select value={expression.operator} options={AFFINITY_OPERATORS}
               placeholder="Select an operator" required={expression.key.length > 0}
               onChange={(operator) => {
@@ -108,7 +114,8 @@ export function ExpressionsEditor({ legend, expressions, onChange, preferred }) 
             expression.values !== undefined &&
             expression.values.length > 0 &&
             !['', 'Exists', 'DoesNotExists'].includes(expression.operator) && (
-              <Field label={['Gt', 'Lt'].includes(expression.operator) ? 'Value' : 'Values'}>
+              <Field label={['Gt', 'Lt'].includes(expression.operator) ? 'Value' : 'Values'}
+                tooltip={itemTooltip('values')}>
                 <div className="flex flex-col gap-1">
                   {expression.values.map((value, valueIndex) => (
                     <div key={valueIndex} className="flex items-center gap-2">
@@ -149,12 +156,25 @@ export function ExpressionsEditor({ legend, expressions, onChange, preferred }) 
   )
 }
 
-export function NodeAffinityTerms({ legend, terms, onChange, preferred }) {
+export function NodeAffinityTerms({ legend, terms, onChange, preferred, tooltipPrefix }) {
   const list = terms || []
   const updateTerm = (index, term) => onChange(list.map((t, i) => (i === index ? term : t)))
+  // The Vue keys: required terms live under .nodeSelectorTerms.items.properties,
+  // preferred ones under .items.properties.preference.properties.
+  const termsKey = tooltipPrefix
+    ? preferred
+      ? `${tooltipPrefix}.items`
+      : `${tooltipPrefix}.nodeSelectorTerms`
+    : undefined
+  const expressionsPrefix = (suffix) =>
+    tooltipPrefix
+      ? preferred
+        ? `${tooltipPrefix}.items.properties.preference.properties.${suffix}`
+        : `${tooltipPrefix}.nodeSelectorTerms.items.properties.${suffix}`
+      : undefined
   return (
     <fieldset className="flex flex-col gap-3 border p-3">
-      <legend className="px-1 font-semibold">{legend}</legend>
+      <legend className="px-1 font-semibold">{legend}{renderTooltip(termsKey)}</legend>
       {list.map((term, index) => {
         const body = preferred ? term.preference : term
         const patchBody = (patch) =>
@@ -164,12 +184,14 @@ export function NodeAffinityTerms({ legend, terms, onChange, preferred }) {
             <legend className="px-1">Term #{index + 1}</legend>
             <ExpressionsEditor legend="Match Expressions" preferred={preferred}
               expressions={body.matchExpressions}
+              tooltipPrefix={expressionsPrefix('matchExpressions')}
               onChange={(matchExpressions) => patchBody({ matchExpressions })} />
             <ExpressionsEditor legend="Match Fields" preferred={preferred}
               expressions={body.matchFields}
+              tooltipPrefix={expressionsPrefix('matchFields')}
               onChange={(matchFields) => patchBody({ matchFields })} />
             {preferred && (
-              <Field label="Weight">
+              <Field label="Weight" tooltip={tooltipPrefix ? `${tooltipPrefix}.weight` : undefined}>
                 <TextInput type="number" min="1" max="100" value={term.weight}
                   onChange={(weight) => updateTerm(index, { ...term, weight: Number(weight) })} />
               </Field>
@@ -190,18 +212,19 @@ export function NodeAffinityTerms({ legend, terms, onChange, preferred }) {
   )
 }
 
-export function TolerationsEditor({ tolerations, onChange }) {
+export function TolerationsEditor({ tolerations, onChange, tooltipPrefix }) {
   const list = tolerations || []
   const update = (index, patch) => onChange(list.map((t, i) => (i === index ? { ...t, ...patch } : t)))
+  const tooltip = (suffix) => (tooltipPrefix ? `${tooltipPrefix}.${suffix}` : undefined)
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">Tolerations</legend>
+      <legend className="px-1 font-semibold">Tolerations{renderTooltip(tooltipPrefix)}</legend>
       {list.map((toleration, index) => (
         <div key={index} className="flex flex-wrap items-end gap-2">
-          <Field label="Key">
+          <Field label="Key" tooltip={tooltip('key')}>
             <TextInput value={toleration.key || ''} onChange={(key) => update(index, { key })} />
           </Field>
-          <Field label="Operator">
+          <Field label="Operator" tooltip={tooltip('operator')}>
             <Select value={toleration.operator || ''} options={['Equal', 'Exists']} placeholder="Select…"
               onChange={(operator) => {
                 const next = { ...list[index], operator }
@@ -214,17 +237,17 @@ export function TolerationsEditor({ tolerations, onChange }) {
               }} />
           </Field>
           {toleration.operator === 'Equal' && (
-            <Field label="Value">
+            <Field label="Value" tooltip={tooltip('value')}>
               <TextInput value={toleration.value || ''} onChange={(value) => update(index, { value })} />
             </Field>
           )}
-          <Field label="Effect">
+          <Field label="Effect" tooltip={tooltip('effect')}>
             <Select value={toleration.effect || ''} placeholder="MatchAll"
               options={['NoSchedule', 'PreferNoSchedule', 'NoExecute']}
               onChange={(effect) => update(index, { effect: effect || null })} />
           </Field>
           {toleration.effect === 'NoExecute' && (
-            <Field label="Toleration Seconds">
+            <Field label="Toleration Seconds" tooltip={tooltip('tolerationSeconds')}>
               <TextInput type="number" min="0" value={toleration.tolerationSeconds ?? ''}
                 onChange={(value) =>
                   update(index, { tolerationSeconds: value === '' ? null : Number(value) })} />
@@ -244,36 +267,37 @@ export function TolerationsEditor({ tolerations, onChange }) {
   )
 }
 
-export function CustomPortsEditor({ legend, ports, onChange }) {
+export function CustomPortsEditor({ legend, ports, onChange, tooltipPrefix }) {
   const list = ports || []
   const update = (index, patch) => onChange(list.map((p, i) => (i === index ? { ...p, ...patch } : p)))
+  const tooltip = (suffix) => (tooltipPrefix ? `${tooltipPrefix}.${suffix}` : undefined)
   const requiredPort = (port) =>
     Object.entries(port).some(([key, value]) => key !== 'port' && value !== null && value !== '')
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{legend}</legend>
+      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltipPrefix)}</legend>
       {list.map((port, index) => (
         <div key={index} className="flex flex-wrap items-end gap-2">
-          <Field label="Application Protocol">
+          <Field label="Application Protocol" tooltip={tooltip('appProtocol')}>
             <TextInput value={port.appProtocol ?? ''}
               onChange={(value) => update(index, { appProtocol: value || null })} />
           </Field>
-          <Field label="Name">
+          <Field label="Name" tooltip={tooltip('name')}>
             <TextInput value={port.name ?? ''} onChange={(value) => update(index, { name: value || null })} />
           </Field>
-          <Field label="Node Port">
+          <Field label="Node Port" tooltip={tooltip('nodePort')}>
             <TextInput type="number" value={port.nodePort ?? ''}
               onChange={(value) => update(index, { nodePort: value === '' ? null : Number(value) })} />
           </Field>
-          <Field label="Port" required={requiredPort(port)}>
+          <Field label="Port" required={requiredPort(port)} tooltip={tooltip('port')}>
             <TextInput type="number" required={requiredPort(port)} value={port.port ?? ''}
               onChange={(value) => update(index, { port: value === '' ? null : Number(value) })} />
           </Field>
-          <Field label="Protocol">
+          <Field label="Protocol" tooltip={tooltip('protocol')}>
             <Select value={port.protocol ?? ''} placeholder="Select…" options={['TCP', 'UDP', 'SCTP']}
               onChange={(value) => update(index, { protocol: value || null })} />
           </Field>
-          <Field label="Target Port">
+          <Field label="Target Port" tooltip={tooltip('targetPort')}>
             <TextInput value={port.targetPort ?? ''}
               onChange={(value) => update(index, { targetPort: value || null })} />
           </Field>
@@ -291,43 +315,44 @@ export function CustomPortsEditor({ legend, ports, onChange }) {
   )
 }
 
-export function ContainersEditor({ legend, containers, onChange }) {
+export function ContainersEditor({ legend, containers, onChange, tooltipPrefix }) {
   const list = containers || []
   const update = (index, patch) => onChange(list.map((c, i) => (i === index ? { ...c, ...patch } : c)))
+  const tooltip = (suffix) => (tooltipPrefix ? `${tooltipPrefix}.${suffix}` : undefined)
   const nameRequired = (container) =>
     Boolean(container.image || container.imagePullPolicy || container.workingDir)
   return (
     <fieldset className="flex flex-col gap-3 border p-3">
-      <legend className="px-1 font-semibold">{legend}</legend>
+      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltipPrefix)}</legend>
       {list.map((container, index) => (
         <fieldset key={index} className="flex flex-col gap-2 border p-3">
           <legend className="px-1">{legend} #{index + 1}</legend>
           <div className="flex flex-wrap gap-2">
-            <Field label="Name" required={nameRequired(container)}>
+            <Field label="Name" required={nameRequired(container)} tooltip={tooltip('name')}>
               <TextInput required={nameRequired(container)} value={container.name ?? ''}
                 onChange={(value) => update(index, { name: value || null })} />
             </Field>
-            <Field label="Image">
+            <Field label="Image" tooltip={tooltip('image')}>
               <TextInput value={container.image ?? ''}
                 onChange={(value) => update(index, { image: value || null })} />
             </Field>
-            <Field label="Image Pull Policy">
+            <Field label="Image Pull Policy" tooltip={tooltip('imagePullPolicy')}>
               <TextInput value={container.imagePullPolicy ?? ''}
                 onChange={(value) => update(index, { imagePullPolicy: value || null })} />
             </Field>
-            <Field label="Working Directory">
+            <Field label="Working Directory" tooltip={tooltip('workingDir')}>
               <TextInput value={container.workingDir ?? ''}
                 onChange={(value) => update(index, { workingDir: value || null })} />
             </Field>
           </div>
           <StringRows legend="Arguments" values={(container.args || []).map((a) => a ?? '')}
-            addLabel="Add Argument"
+            addLabel="Add Argument" tooltip={tooltip('args')}
             onChange={(values) => update(index, { args: values.map((v) => (v === '' ? null : v)) })} />
           <StringRows legend="Command" values={(container.command || []).map((c) => c ?? '')}
-            addLabel="Add Command"
+            addLabel="Add Command" tooltip={tooltip('command')}
             onChange={(values) => update(index, { command: values.map((v) => (v === '' ? null : v)) })} />
           <fieldset className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">Environment Variables</legend>
+            <legend className="px-1 font-semibold">Environment Variables{renderTooltip(tooltip('env'))}</legend>
             {(container.env || []).map((entry, envIndex) => (
               <div key={envIndex} className="flex items-end gap-2">
                 <Field label="Name" required={Boolean(entry.value)}>
@@ -356,24 +381,24 @@ export function ContainersEditor({ legend, containers, onChange }) {
             </button>
           </fieldset>
           <fieldset className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">Ports</legend>
+            <legend className="px-1 font-semibold">Ports{renderTooltip(tooltip('ports'))}</legend>
             {(container.ports || []).map((port, portIndex) => (
               <div key={portIndex} className="flex flex-wrap items-end gap-2">
-                <Field label="Name">
+                <Field label="Name" tooltip={tooltip('ports.items.properties.name')}>
                   <TextInput value={port.name ?? ''}
                     onChange={(value) =>
                       update(index, {
                         ports: container.ports.map((p, i) => (i === portIndex ? { ...p, name: value || null } : p)),
                       })} />
                 </Field>
-                <Field label="Host IP">
+                <Field label="Host IP" tooltip={tooltip('ports.items.properties.hostIP')}>
                   <TextInput value={port.hostIP ?? ''}
                     onChange={(value) =>
                       update(index, {
                         ports: container.ports.map((p, i) => (i === portIndex ? { ...p, hostIP: value || null } : p)),
                       })} />
                 </Field>
-                <Field label="Host Port">
+                <Field label="Host Port" tooltip={tooltip('ports.items.properties.hostPort')}>
                   <TextInput type="number" value={port.hostPort ?? ''}
                     onChange={(value) =>
                       update(index, {
@@ -382,7 +407,7 @@ export function ContainersEditor({ legend, containers, onChange }) {
                         ),
                       })} />
                 </Field>
-                <Field label="Container Port">
+                <Field label="Container Port" tooltip={tooltip('ports.items.properties.containerPort')}>
                   <TextInput type="number" value={port.containerPort ?? ''}
                     onChange={(value) =>
                       update(index, {
@@ -391,7 +416,7 @@ export function ContainersEditor({ legend, containers, onChange }) {
                         ),
                       })} />
                 </Field>
-                <Field label="Protocol">
+                <Field label="Protocol" tooltip={tooltip('ports.items.properties.protocol')}>
                   <Select value={port.protocol ?? ''} placeholder="Select…" options={['TCP', 'UDP', 'SCTP']}
                     onChange={(value) =>
                       update(index, {
@@ -418,7 +443,7 @@ export function ContainersEditor({ legend, containers, onChange }) {
             </button>
           </fieldset>
           <fieldset className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">Volume Mounts</legend>
+            <legend className="px-1 font-semibold">Volume Mounts{renderTooltip(tooltip('volumeMounts'))}</legend>
             {(container.volumeMounts || []).map((mount, mountIndex) => {
               const patchMount = (patch) =>
                 update(index, {
@@ -428,25 +453,30 @@ export function ContainersEditor({ legend, containers, onChange }) {
                 })
               return (
                 <div key={mountIndex} className="flex flex-wrap items-end gap-2">
-                  <Field label="Name" required={Boolean(mount.mountPath)}>
+                  <Field label="Name" required={Boolean(mount.mountPath)}
+                    tooltip={tooltip('volumeMounts.items.properties.name')}>
                     <TextInput required={Boolean(mount.mountPath)} value={mount.name ?? ''}
                       onChange={(value) => patchMount({ name: value || null })} />
                   </Field>
                   <Toggle label="Read Only" checked={mount.readOnly || false}
+                    tooltip={tooltip('volumeMounts.items.properties.readOnly')}
                     onChange={(value) => patchMount({ readOnly: value })} />
-                  <Field label="Mount Path" required={Boolean(mount.name)}>
+                  <Field label="Mount Path" required={Boolean(mount.name)}
+                    tooltip={tooltip('volumeMounts.items.properties.mountPath')}>
                     <TextInput required={Boolean(mount.name)} value={mount.mountPath ?? ''}
                       onChange={(value) => patchMount({ mountPath: value || null })} />
                   </Field>
-                  <Field label="Mount Propagation">
+                  <Field label="Mount Propagation"
+                    tooltip={tooltip('volumeMounts.items.properties.mountPropagation')}>
                     <TextInput value={mount.mountPropagation ?? ''}
                       onChange={(value) => patchMount({ mountPropagation: value || null })} />
                   </Field>
-                  <Field label="Sub Path">
+                  <Field label="Sub Path" tooltip={tooltip('volumeMounts.items.properties.subPath')}>
                     <TextInput disabled={Boolean(mount.subPathExpr)} value={mount.subPath ?? ''}
                       onChange={(value) => patchMount({ subPath: value || null })} />
                   </Field>
-                  <Field label="Sub Path Expression">
+                  <Field label="Sub Path Expression"
+                    tooltip={tooltip('volumeMounts.items.properties.subPathExpr')}>
                     <TextInput disabled={Boolean(mount.subPath)} value={mount.subPathExpr ?? ''}
                       onChange={(value) => patchMount({ subPathExpr: value || null })} />
                   </Field>
@@ -601,15 +631,16 @@ export function ExtensionsBrowser({
 // Controlled custom-volumes editor (Vue customVolumes repeater + the parallel
 // customVolumesType array): emptyDir/configMap/secret variants with their
 // items. onChange receives the next volumes and types arrays together.
-export function CustomVolumesEditor({ volumes, types, onChange }) {
+export function CustomVolumesEditor({ volumes, types, onChange, tooltipPrefix }) {
   const list = volumes || []
   const change = (nextVolumes, nextTypes) => onChange(nextVolumes, nextTypes || types)
   const updateVolume = (index, volume) => change(list.map((v, i) => (i === index ? volume : v)))
   const isNamed = (volume) => volume.name !== null && volume.name !== ''
+  const tooltip = (suffix) => (tooltipPrefix ? `${tooltipPrefix}.${suffix}` : undefined)
 
   return (
     <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">Custom Volumes</legend>
+      <legend className="px-1 font-semibold">Custom Volumes{renderTooltip(tooltipPrefix)}</legend>
       <p>List of volumes that can be mounted by custom containers belonging to the pod</p>
       {list.map((volume, index) => {
         const type = types[index]
@@ -617,11 +648,12 @@ export function CustomVolumesEditor({ volumes, types, onChange }) {
           <fieldset key={index} className="flex flex-col gap-2 border p-3">
             <legend className="px-1">Volume #{index + 1}</legend>
             <div className="flex items-end gap-2">
-              <Field label="Name" required={type !== null}>
+              <Field label="Name" required={type !== null} tooltip={tooltip('name')}>
                 <TextInput required={type !== null} value={volume.name ?? ''}
                   onChange={(value) => updateVolume(index, { ...volume, name: value || null })} />
               </Field>
-              <Field label="Type">
+              <Field label="Type"
+                tooltip={tooltipPrefix && <HelpTooltip text="Specifies the type of volume to be used" />}>
                 <Select value={type ?? ''} placeholder="Choose one..."
                   options={['emptyDir', 'configMap', 'secret']}
                   onChange={(value) => {
@@ -658,12 +690,12 @@ export function CustomVolumesEditor({ volumes, types, onChange }) {
             </div>
             {type === 'emptyDir' && (
               <div className="flex gap-2">
-                <Field label="Medium">
+                <Field label="Medium" tooltip={tooltip('emptyDir.properties.medium')}>
                   <TextInput value={volume.emptyDir?.medium ?? ''}
                     onChange={(value) =>
                       updateVolume(index, { ...volume, emptyDir: { ...volume.emptyDir, medium: value || null } })} />
                 </Field>
-                <Field label="Size Limit">
+                <Field label="Size Limit" tooltip={tooltip('emptyDir.properties.sizeLimit')}>
                   <TextInput value={volume.emptyDir?.sizeLimit ?? ''}
                     onChange={(value) =>
                       updateVolume(index, { ...volume, emptyDir: { ...volume.emptyDir, sizeLimit: value || null } })} />
@@ -673,7 +705,10 @@ export function CustomVolumesEditor({ volumes, types, onChange }) {
             {(type === 'configMap' || type === 'secret') && (
               <div className="flex flex-col gap-2">
                 <div className="flex items-end gap-2">
-                  <Field label={type === 'configMap' ? 'ConfigMap Name' : 'Secret Name'}>
+                  <Field label={type === 'configMap' ? 'ConfigMap Name' : 'Secret Name'}
+                    tooltip={tooltip(
+                      type === 'configMap' ? 'configMap.properties.name' : 'secret.properties.secretName'
+                    )}>
                     <TextInput
                       value={(type === 'configMap' ? volume.configMap?.name : volume.secret?.secretName) ?? ''}
                       onChange={(value) =>
@@ -686,9 +721,10 @@ export function CustomVolumesEditor({ volumes, types, onChange }) {
                         })} />
                   </Field>
                   <Toggle label="Optional" checked={volume[type]?.optional || false}
+                    tooltip={tooltip(`${type}.properties.optional`)}
                     onChange={(value) =>
                       updateVolume(index, { ...volume, [type]: { ...volume[type], optional: value } })} />
-                  <Field label="Default Mode">
+                  <Field label="Default Mode" tooltip={tooltip(`${type}.properties.defaultMode`)}>
                     <TextInput type="number" min="0" value={volume[type]?.defaultMode ?? ''}
                       onChange={(value) =>
                         updateVolume(index, {
@@ -699,7 +735,8 @@ export function CustomVolumesEditor({ volumes, types, onChange }) {
                 </div>
                 {(volume[type]?.items || []).map((item, itemIndex) => (
                   <div key={itemIndex} className="flex items-end gap-2">
-                    <Field label="Item Key" required={isNamed(volume)}>
+                    <Field label="Item Key" required={isNamed(volume)}
+                      tooltip={tooltip(`${type}.properties.items.items.properties.key`)}>
                       <TextInput value={item.key ?? ''}
                         onChange={(value) =>
                           updateVolume(index, {
@@ -712,7 +749,8 @@ export function CustomVolumesEditor({ volumes, types, onChange }) {
                             },
                           })} />
                     </Field>
-                    <Field label="Item Mode">
+                    <Field label="Item Mode"
+                      tooltip={tooltip(`${type}.properties.items.items.properties.mode`)}>
                       <TextInput type="number" value={item.mode ?? ''}
                         onChange={(value) =>
                           updateVolume(index, {
@@ -725,7 +763,8 @@ export function CustomVolumesEditor({ volumes, types, onChange }) {
                             },
                           })} />
                     </Field>
-                    <Field label="Item Path" required={isNamed(volume)}>
+                    <Field label="Item Path" required={isNamed(volume)}
+                      tooltip={tooltip(`${type}.properties.items.items.properties.path`)}>
                       <TextInput value={item.path ?? ''}
                         onChange={(value) =>
                           updateVolume(index, {
@@ -779,10 +818,14 @@ export function CustomVolumesEditor({ volumes, types, onChange }) {
 // SGScript or an inline scriptSpec, entry repeater with raw /secretKeyRef/
 // configMapKeyRef sources, reorder, and file upload for raw entries.
 // `sources` is the parallel [{base, entries[]}] descriptor array.
-export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEdit, blankEntry }) {
+export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEdit, blankEntry, tooltipPrefix }) {
   const fileInput = useRef(null)
   const fileTarget = useRef(null)
   const scripts = value.scripts || []
+  // Entry fields resolve against the SGScript schema regardless of the host
+  // form, as in Vue; only continueOnSGScriptError belongs to the host CRD.
+  const sg = (key, transform) =>
+    tooltipPrefix ? <HelpTooltip field={key} transform={transform} /> : undefined
   const deepCopy = (object) => JSON.parse(JSON.stringify(object))
   const commit = (mutate) => {
     const nextValue = deepCopy(value)
@@ -859,7 +902,9 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                 Move Down
               </button>
             </div>
-            <Field label="Script Source">
+            <Field label="Script Source"
+              tooltip={tooltipPrefix &&
+                <HelpTooltip text="Determine the source from which the script should be loaded." />}>
               <Select value={source.base} aria-label={`Script ${baseIndex + 1} source`}
                 disabled={isEdit && defaultScript && Object.hasOwn(base, 'scriptSpec')}
                 options={[{ value: 'createNewScript', label: 'Create new script' }, ...scriptOptions]}
@@ -884,11 +929,13 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
             {showBody && base.scriptSpec && (
               <div className="flex flex-col gap-2">
                 <Toggle label="Continue on Error" checked={base.scriptSpec.continueOnError || false}
+                  tooltip={sg('sgscript.spec.continueOnError', enabledDisabled)}
                   onChange={(checked) =>
                     commit((next) => {
                       next.scripts[baseIndex].scriptSpec.continueOnError = checked
                     })} />
                 <Toggle label="Managed Versions" checked={base.scriptSpec.managedVersions || false}
+                  tooltip={sg('sgscript.spec.managedVersions', (text) => text.replace(/true/g, 'Enabled'))}
                   onChange={(checked) =>
                     commit((next) => {
                       next.scripts[baseIndex].scriptSpec.managedVersions = checked
@@ -913,7 +960,7 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                         </button>
                       </div>
                       {isEdit && Object.hasOwn(entry, 'version') && (
-                        <Field label="Version">
+                        <Field label="Version" tooltip={sg('sgscript.spec.scripts.version')}>
                           <TextInput type="number" value={entry.version}
                             onChange={(input) =>
                               patchEntry((draft) => {
@@ -922,23 +969,23 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                         </Field>
                       )}
                       <div className="flex flex-wrap gap-2">
-                        <Field label="Name">
+                        <Field label="Name" tooltip={sg('sgscript.spec.scripts.name')}>
                           <TextInput disabled={defaultScript} value={entry.name ?? ''}
                             placeholder="Type a name..."
                             onChange={(input) => patchEntry((draft) => { draft.name = input })} />
                         </Field>
-                        <Field label="Database">
+                        <Field label="Database" tooltip={sg('sgscript.spec.scripts.database')}>
                           <TextInput disabled={defaultScript} value={entry.database ?? ''}
                             placeholder="Type a database name..."
                             onChange={(input) => patchEntry((draft) => { draft.database = input })} />
                         </Field>
-                        <Field label="User">
+                        <Field label="User" tooltip={sg('sgscript.spec.scripts.user')}>
                           <TextInput disabled={defaultScript} value={entry.user ?? ''}
                             placeholder="Type a user name..."
                             onChange={(input) => patchEntry((draft) => { draft.user = input })} />
                         </Field>
                       </div>
-                      <Field label="Wrap in Transaction">
+                      <Field label="Wrap in Transaction" tooltip={sg('sgscript.spec.scripts.wrapInTransaction')}>
                         <Select disabled={defaultScript} value={entry.wrapInTransaction ?? ''}
                           options={[
                             { value: '', label: 'NONE' },
@@ -952,11 +999,15 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                             })} />
                       </Field>
                       <Toggle label="Store Status in Databases" checked={entry.storeStatusInDatabase || false}
+                        tooltip={sg('sgscript.spec.scripts.storeStatusInDatabase')}
                         onChange={(checked) =>
                           patchEntry((draft) => { draft.storeStatusInDatabase = checked })} />
                       <Toggle label="Retry on Error" checked={entry.retryOnError || false}
+                        tooltip={sg('sgscript.spec.scripts.retryOnError')}
                         onChange={(checked) => patchEntry((draft) => { draft.retryOnError = checked })} />
-                      <Field label="Entry Source" required>
+                      <Field label="Entry Source" required
+                        tooltip={tooltipPrefix &&
+                          <HelpTooltip text={'Determine the source from which the script should be loaded. Possible values are: \n* Raw Script \n* From Secret \n* From ConfigMap.'} />}>
                         <Select required disabled={defaultScript} value={entryType}
                           aria-label={`Script ${baseIndex + 1} entry ${entryIndex + 1} source`}
                           options={[
@@ -1000,9 +1051,15 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                         <>
                           <h3 className="font-semibold">
                             {entryType === 'secretKeyRef' ? 'Secret Key Ref' : 'Config Map Key Ref'}
+                            {renderTooltip(
+                              sg(`sgscript.spec.scripts.scriptFrom.properties.${entryType}`)
+                            )}
                           </h3>
                           <div className="flex gap-2">
-                            <Field label="Name" required>
+                            <Field label="Name" required
+                              tooltip={sg(
+                                `sgscript.spec.scripts.scriptFrom.properties.${entryType}.properties.name`
+                              )}>
                               <TextInput required disabled={defaultScript}
                                 placeholder="Type a name.."
                                 value={entry.scriptFrom[entryType]?.name || ''}
@@ -1011,7 +1068,10 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                                     draft.scriptFrom[entryType].name = input
                                   })} />
                             </Field>
-                            <Field label="Key" required>
+                            <Field label="Key" required
+                              tooltip={sg(
+                                `sgscript.spec.scripts.scriptFrom.properties.${entryType}.properties.key`
+                              )}>
                               <TextInput required disabled={defaultScript}
                                 placeholder="Type a key.."
                                 value={entry.scriptFrom[entryType]?.key || ''}
@@ -1062,6 +1122,8 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
       </button>
       {scripts.length > 0 && (
         <Toggle label="Continue on SGScripts Error" checked={value.continueOnSGScriptError}
+          tooltip={tooltipPrefix &&
+            <HelpTooltip field={`${tooltipPrefix}.continueOnSGScriptError`} transform={enabledDisabled} />}
           onChange={(checked) =>
             commit((next) => {
               next.continueOnSGScriptError = checked

@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { Plus, Trash2 } from 'lucide-react'
 import { api } from '../../lib/api'
 import { extractReportText, parseCompassReport } from '../../lib/babelfish'
+import { HelpTooltip } from '../HelpTooltip'
 import { Field, TextInput } from './../forms/fields'
 
 // Babelfish Compass application (Vue BabelfishCompass): a report name plus
@@ -48,11 +49,14 @@ export default function BabelfishCompass() {
       <h1 className="text-2xl font-semibold">Babelfish Compass</h1>
       <div className="flex flex-col gap-6 lg:flex-row">
         <form onSubmit={submit} className="flex w-full flex-col gap-3 lg:w-1/3">
-          <Field label="Report Name" required>
+          <Field label="Report Name" required
+            tooltip={<HelpTooltip text="The name used by the Babelfish Compass tool to generate the report" />}>
             <TextInput required value={reportName} onChange={setReportName} />
           </Field>
           <fieldset className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">SQL Files</legend>
+            <legend className="px-1 font-semibold">
+              SQL Files <HelpTooltip text="One or more SQL/DDL scripts to be analyzed" />
+            </legend>
             {files.map((file, index) => (
               <div key={index} className="flex items-center gap-2">
                 <input type="file" required={index === 0} onChange={setFile(index)}

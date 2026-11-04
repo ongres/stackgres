@@ -6,7 +6,7 @@ import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildObjectStorage } from '../../lib/payloads'
 import { nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
-import { Field, Select, TextInput, Toggle } from './fields'
+import { Field, Select, TextInput, Toggle, renderTooltip } from './fields'
 
 const MASK = '******'
 const TYPES = [
@@ -127,7 +127,7 @@ export default function ObjectStorageForm({ isEdit }) {
       title={isEdit ? `Edit Object Storage: ${routeName}` : 'Create Object Storage'}
       form={form}
     >
-      <Field label="Configuration Name" required error={form.errors.name}>
+      <Field label="Configuration Name" required error={form.errors.name} tooltip="sgobjectstorage.metadata.name">
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
       {nameCollision && (
@@ -138,7 +138,7 @@ export default function ObjectStorageForm({ isEdit }) {
       )}
       <Toggle label="Advanced options" checked={advancedMode} onChange={setAdvancedMode} />
       <fieldset className="flex flex-col gap-2 border p-3">
-        <legend className="px-1 font-semibold">Storage Type *</legend>
+        <legend className="px-1 font-semibold">Storage Type *{renderTooltip('sgobjectstorage.spec.type')}</legend>
         {form.errors.type && <p role="alert">{form.errors.type}</p>}
         <div className="flex flex-wrap gap-3">
           {TYPES.map((candidate) => (
@@ -154,22 +154,22 @@ export default function ObjectStorageForm({ isEdit }) {
       {type === 's3' && (
         <fieldset className="flex flex-col gap-3 border p-3">
           <legend className="px-1 font-semibold">Amazon S3 Configuration</legend>
-          <Field label="Bucket" required error={form.errors.bucket}>
+          <Field label="Bucket" required error={form.errors.bucket} tooltip="sgobjectstorage.spec.s3.bucket">
             <TextInput value={s3.bucket} onChange={(bucket) => setS3({ ...s3, bucket })} required />
           </Field>
           {advancedMode && (
-            <Field label="Region">
+            <Field label="Region" tooltip="sgobjectstorage.spec.s3.region">
               <TextInput value={s3.region} onChange={(region) => setS3({ ...s3, region })} />
             </Field>
           )}
-          <Field label="API Key" required>
+          <Field label="API Key" required tooltip="sgobjectstorage.spec.s3.awsCredentials.secretKeySelectors.accessKeyId">
             <TextInput value={s3.accessKeyId} onChange={(accessKeyId) => setS3({ ...s3, accessKeyId })} required />
           </Field>
-          <Field label="API Secret" required>
+          <Field label="API Secret" required tooltip="sgobjectstorage.spec.s3.awsCredentials.secretKeySelectors.secretAccessKey">
             <TextInput type="password" value={s3.secretAccessKey} onChange={(secretAccessKey) => setS3({ ...s3, secretAccessKey })} required />
           </Field>
           {advancedMode && (
-            <Field label="Storage Class">
+            <Field label="Storage Class" tooltip="sgobjectstorage.spec.s3.storageClass">
               <Select value={s3.storageClass} onChange={(storageClass) => setS3({ ...s3, storageClass })} options={S3_STORAGE_CLASSES} placeholder="Select Storage Class..." />
             </Field>
           )}
@@ -179,32 +179,32 @@ export default function ObjectStorageForm({ isEdit }) {
       {type === 's3Compatible' && (
         <fieldset className="flex flex-col gap-3 border p-3">
           <legend className="px-1 font-semibold">AS3 Compatible Configuration</legend>
-          <Field label="Bucket" required error={form.errors.bucket}>
+          <Field label="Bucket" required error={form.errors.bucket} tooltip="sgobjectstorage.spec.s3Compatible.bucket">
             <TextInput value={s3Compatible.bucket} onChange={(bucket) => setS3Compatible({ ...s3Compatible, bucket })} required />
           </Field>
           {advancedMode && (
             <>
-              <Field label="Endpoint">
+              <Field label="Endpoint" tooltip="sgobjectstorage.spec.s3Compatible.endpoint">
                 <TextInput value={s3Compatible.endpoint} onChange={(endpoint) => setS3Compatible({ ...s3Compatible, endpoint })} />
               </Field>
-              <Field label="Region">
+              <Field label="Region" tooltip="sgobjectstorage.spec.s3Compatible.region">
                 <TextInput value={s3Compatible.region} onChange={(region) => setS3Compatible({ ...s3Compatible, region })} />
               </Field>
             </>
           )}
-          <Field label="API Key" required>
+          <Field label="API Key" required tooltip="sgobjectstorage.spec.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId">
             <TextInput value={s3Compatible.accessKeyId} onChange={(accessKeyId) => setS3Compatible({ ...s3Compatible, accessKeyId })} required />
           </Field>
-          <Field label="API Secret" required>
+          <Field label="API Secret" required tooltip="sgobjectstorage.spec.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey">
             <TextInput type="password" value={s3Compatible.secretAccessKey} onChange={(secretAccessKey) => setS3Compatible({ ...s3Compatible, secretAccessKey })} required />
           </Field>
           {advancedMode && (
             <>
-              <Field label="Enable Path Style Addressing">
+              <Field label="Enable Path Style Addressing" tooltip="sgobjectstorage.spec.s3Compatible.enablePathStyleAddressing">
                 <Toggle label="Bucket URL Force Path Style" checked={s3Compatible.enablePathStyleAddressing}
                   onChange={(enablePathStyleAddressing) => setS3Compatible({ ...s3Compatible, enablePathStyleAddressing })} />
               </Field>
-              <Field label="Storage Class">
+              <Field label="Storage Class" tooltip="sgobjectstorage.spec.s3Compatible.storageClass">
                 <Select value={s3Compatible.storageClass} onChange={(storageClass) => setS3Compatible({ ...s3Compatible, storageClass })} options={S3_STORAGE_CLASSES} placeholder="Select Storage Class..." />
               </Field>
             </>
@@ -215,15 +215,17 @@ export default function ObjectStorageForm({ isEdit }) {
       {type === 'gcs' && (
         <fieldset className="flex flex-col gap-3 border p-3">
           <legend className="px-1 font-semibold">Google Cloud Storage Configuration</legend>
-          <Field label="Bucket" required error={form.errors.bucket}>
+          <Field label="Bucket" required error={form.errors.bucket} tooltip="sgobjectstorage.spec.gcs.bucket">
             <TextInput value={gcs.bucket} onChange={(bucket) => setGcs({ ...gcs, bucket })} required />
           </Field>
           <Toggle label="Fetch Credentials from Metadata Service" checked={gcs.fetchCredentials}
-            onChange={(fetchCredentials) => setGcs({ ...gcs, fetchCredentials })} />
+            onChange={(fetchCredentials) => setGcs({ ...gcs, fetchCredentials })}
+            tooltip="sgobjectstorage.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService" />
           {!gcs.fetchCredentials && (
             <Field
               label={`${isEdit ? 'Set New ' : ''}Service Account JSON`}
               required={!isEdit}
+              tooltip="sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON"
               help={isEdit && gcs.serviceAccountJSON === MASK ? 'Current credentials are kept unless a new file is uploaded' : ''}
             >
               <input type="file" accept=".json,application/json" onChange={uploadJSON} required={!isEdit} />
@@ -233,7 +235,7 @@ export default function ObjectStorageForm({ isEdit }) {
             <>
               <p className="text-center font-semibold">– OR –</p>
               <div className="flex flex-wrap gap-3">
-                <Field label="Service Account JSON Name">
+                <Field label="Service Account JSON Name" tooltip="sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name">
                   <TextInput value={secretKeySelectors.serviceAccountJSON?.name || ''}
                     onChange={(value) =>
                       setSecretKeySelectors({
@@ -241,7 +243,7 @@ export default function ObjectStorageForm({ isEdit }) {
                         serviceAccountJSON: { ...secretKeySelectors.serviceAccountJSON, name: value },
                       })} />
                 </Field>
-                <Field label="Service Account JSON Key">
+                <Field label="Service Account JSON Key" tooltip="sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key">
                   <TextInput value={secretKeySelectors.serviceAccountJSON?.key || ''}
                     onChange={(value) =>
                       setSecretKeySelectors({
@@ -258,13 +260,13 @@ export default function ObjectStorageForm({ isEdit }) {
       {type === 'azureBlob' && (
         <fieldset className="flex flex-col gap-3 border p-3">
           <legend className="px-1 font-semibold">Microsoft Azure Configuration</legend>
-          <Field label="Bucket" required error={form.errors.bucket}>
+          <Field label="Bucket" required error={form.errors.bucket} tooltip="sgobjectstorage.spec.azureBlob.bucket">
             <TextInput value={azureBlob.bucket} onChange={(bucket) => setAzureBlob({ ...azureBlob, bucket })} required />
           </Field>
-          <Field label="Account Name" required>
+          <Field label="Account Name" required tooltip="sgobjectstorage.spec.azureBlob.azureCredentials.secretKeySelectors.storageAccount">
             <TextInput value={azureBlob.storageAccount} onChange={(storageAccount) => setAzureBlob({ ...azureBlob, storageAccount })} required />
           </Field>
-          <Field label="Account Access Key" required>
+          <Field label="Account Access Key" required tooltip="sgobjectstorage.spec.azureBlob.azureCredentials.secretKeySelectors.accessKey">
             <TextInput type="password" value={azureBlob.accessKey} onChange={(accessKey) => setAzureBlob({ ...azureBlob, accessKey })} required />
           </Field>
         </fieldset>

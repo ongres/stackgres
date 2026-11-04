@@ -100,7 +100,7 @@ export default function PoolConfigForm({ isEdit }) {
           {clusters.map((cluster) => cluster.metadata.name).join(', ')}
         </p>
       )}
-      <Field label="Configuration Name" required error={form.errors.name}>
+      <Field label="Configuration Name" required error={form.errors.name} tooltip="sgpoolingconfig.metadata.name">
         <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
       </Field>
       {nameCollision && (
@@ -109,7 +109,7 @@ export default function PoolConfigForm({ isEdit }) {
           namespace. Please specify a different name or create the configuration on another namespace
         </p>
       )}
-      <Field label="PgBouncer Parameters" help="One parameter per line: parameter=value">
+      <Field label="PgBouncer Parameters" help="One parameter per line: parameter=value" tooltip="sgpoolingconfig.spec.pgBouncer.pgbouncer.ini">
         <TextArea value={params} onChange={setParams} placeholder={'parameter = value'} rows={12} />
       </Field>
       <DefaultParametersTable

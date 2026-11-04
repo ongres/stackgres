@@ -1,5 +1,7 @@
 import { Link, useOutletContext, useParams } from 'react-router-dom'
 import { useKindList } from '../../contexts/DataContext'
+import { useTooltips } from '../../contexts/TooltipsContext'
+import { HelpTooltip } from '../HelpTooltip'
 import { ShardedConditionAlerts, ShardedConnectionInfo } from './ShardedClusterDetail'
 
 // Summary row for one section (coordinator or workers) of the sharded stats.
@@ -27,6 +29,7 @@ function sectionCells(label, stats, instances) {
 export default function ShardedClusterStatus() {
   const { namespace } = useParams()
   const { cluster } = useOutletContext()
+  const { getTooltip: tt } = useTooltips()
   const sgclusters = useKindList('sgclusters', namespace)
 
   const memberNames = cluster.status?.clusters || []
@@ -56,11 +59,43 @@ export default function ShardedClusterStatus() {
         <thead>
           <tr>
             <th className="border-b p-2" />
-            <th className="border-b p-2">Total CPU</th>
-            <th className="border-b p-2">Total Memory</th>
-            <th className="border-b p-2">Primary Node Disk</th>
-            <th className="border-b p-2">Total Allocated Disk</th>
-            <th className="border-b p-2">Instances</th>
+            <th className="border-b p-2">
+              Total CPU{' '}
+              <HelpTooltip
+                text={tt('sgshardedcluster.stats.coordinator.cpuRequested').slice(0, -2)}
+              />
+            </th>
+            <th className="border-b p-2">
+              Total Memory <HelpTooltip field="sgshardedcluster.stats.coordinator.memoryRequested" />
+            </th>
+            <th className="border-b p-2">
+              Primary Node Disk{' '}
+              <HelpTooltip
+                text={
+                  tt('sgshardedcluster.stats.coordinator.diskUsed').slice(0, -2) +
+                  ' / ' +
+                  tt('sgshardedcluster.spec.coordinator.pods.persistentVolume.size')
+                }
+              />
+            </th>
+            <th className="border-b p-2">
+              Total Allocated Disk{' '}
+              <HelpTooltip field="sgshardedcluster.stats.coordinator.diskRequested" />
+            </th>
+            <th className="border-b p-2">
+              Instances{' '}
+              <HelpTooltip
+                text={
+                  tt('sgshardedcluster.stats.coordinator.podsReady') +
+                  ' / ' +
+                  tt('sgshardedcluster.spec.coordinator.instances') +
+                  ' – ' +
+                  tt('sgshardedcluster.stats.workers.podsReady') +
+                  ' / ' +
+                  tt('sgshardedcluster.spec.workers.instancesPerCluster')
+                }
+              />
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -80,13 +115,41 @@ export default function ShardedClusterStatus() {
         <table className="w-full border-collapse text-left text-sm">
           <thead>
             <tr>
-              <th className="border-b p-2">Pod Name</th>
-              <th className="border-b p-2">Role</th>
-              <th className="border-b p-2">Status</th>
-              <th className="border-b p-2">CPU</th>
-              <th className="border-b p-2">Memory</th>
-              <th className="border-b p-2">Disk</th>
-              <th className="border-b p-2">Containers</th>
+              <th className="border-b p-2">
+                Pod Name <HelpTooltip field="sgcluster.pods.name" />
+              </th>
+              <th className="border-b p-2">
+                Role <HelpTooltip field="sgcluster.pods.role" />
+              </th>
+              <th className="border-b p-2">
+                Status <HelpTooltip field="sgcluster.pods.status" />
+              </th>
+              <th className="border-b p-2">
+                CPU <HelpTooltip text={tt('sgcluster.pods.cpuRequested').slice(0, -2)} />
+              </th>
+              <th className="border-b p-2">
+                Memory <HelpTooltip field="sgcluster.pods.memoryRequested" />
+              </th>
+              <th className="border-b p-2">
+                Disk{' '}
+                <HelpTooltip
+                  text={
+                    tt('sgcluster.pods.diskUsed').slice(0, -2) +
+                    ' / ' +
+                    tt('sgcluster.pods.diskRequested')
+                  }
+                />
+              </th>
+              <th className="border-b p-2">
+                Containers{' '}
+                <HelpTooltip
+                  text={
+                    tt('sgcluster.pods.containersReady').slice(0, -2) +
+                    ' / ' +
+                    tt('sgcluster.pods.containers')
+                  }
+                />
+              </th>
             </tr>
           </thead>
           <tbody>

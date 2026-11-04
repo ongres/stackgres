@@ -1,14 +1,25 @@
 import { cn } from '../../lib/utils'
+import { HelpTooltip } from '../HelpTooltip'
 
 // Minimal controlled field primitives for the CRD forms. Purely functional
 // styling; the visual pass belongs to the design-system work.
 
-export function Field({ label, required, error, children, help }) {
+// `tooltip` is either a tooltip key string (resolved against sg-tooltips.json)
+// or a ready <HelpTooltip> element for literals/transformed texts.
+export function renderTooltip(tooltip) {
+  if (!tooltip) {
+    return null
+  }
+  return typeof tooltip === 'string' ? <HelpTooltip field={tooltip} /> : tooltip
+}
+
+export function Field({ label, required, error, children, help, tooltip }) {
   return (
     <label className="flex flex-col gap-1 text-sm">
       <span>
         {label}
         {required && <span aria-hidden="true"> *</span>}
+        {renderTooltip(tooltip)}
       </span>
       {children}
       {help && <span className="text-xs">{help}</span>}
@@ -69,12 +80,13 @@ export function Select({ value, onChange, options, placeholder, ...rest }) {
   )
 }
 
-export function Toggle({ label, checked, onChange, disabled }) {
+export function Toggle({ label, checked, onChange, disabled, tooltip }) {
   return (
     <label className="flex items-center gap-2 text-sm">
       <input type="checkbox" checked={checked} disabled={disabled}
         onChange={(event) => onChange(event.target.checked)} />
       {label}
+      {renderTooltip(tooltip)}
     </label>
   )
 }

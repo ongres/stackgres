@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { useSettings } from '../../contexts/SettingsContext'
+import { HelpTooltip } from '../HelpTooltip'
 import { fromDateTimeLocal, toDateTimeLocal } from '../../lib/datetime'
 import { formatTimestamp, tzOffset } from '../../lib/format'
 
@@ -20,17 +21,18 @@ const LOG_TYPES = { pg: 'Postgres', pa: 'Patroni' }
 const RECORDS = 50
 const LIVE_POLL_MS = 3000
 
+// Third element: the Vue help-tooltip key for the field label.
 const DETAIL_FIELDS = [
-  ['Message', 'message'],
-  ['Type', 'logType'],
-  ['Pod Name', 'podName'],
-  ['Role', 'role'],
-  ['User', 'userName'],
-  ['Database', 'databaseName'],
-  ['Process ID', 'processId'],
-  ['Connection From', 'connectionFrom'],
-  ['Error Level', 'errorLevel'],
-  ['Application Name', 'applicationName'],
+  ['Message', 'message', 'sgclusterlogentry.message'],
+  ['Type', 'logType', 'sgclusterlogentry.logType'],
+  ['Pod Name', 'podName', 'sgclusterlogentry.podName'],
+  ['Role', 'role', 'sgclusterlogentry.role'],
+  ['User', 'userName', 'sgclusterlogentry.userName'],
+  ['Database', 'databaseName', 'sgclusterlogentry.databaseName'],
+  ['Process ID', 'processId', 'sgclusterlogentry.processId'],
+  ['Connection From', 'connectionFrom', 'sgclusterlogentry.connectionFrom'],
+  ['Error Level', 'errorLevel', 'sgclusterlogentry.errorLevel'],
+  ['Application Name', 'applicationName', 'sgclusterlogentry.applicationName'],
 ]
 
 export default function ClusterLogs() {
@@ -190,10 +192,10 @@ export default function ClusterLogs() {
               </button>
               {expanded === index && (
                 <ul className="flex flex-col gap-1 p-2">
-                  {DETAIL_FIELDS.map(([label, field]) =>
+                  {DETAIL_FIELDS.map(([label, field, tooltipKey]) =>
                     entry[field] ? (
                       <li key={field}>
-                        <strong>{label}:</strong> {entry[field]}
+                        <strong>{label}<HelpTooltip field={tooltipKey} />:</strong> {entry[field]}
                       </li>
                     ) : null
                   )}

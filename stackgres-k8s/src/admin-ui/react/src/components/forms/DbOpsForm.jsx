@@ -10,8 +10,9 @@ import { buildDbOps } from '../../lib/payloads'
 import { generatedName, nameValidationMessage } from '../../lib/names'
 import { prefix } from '../../lib/format'
 import CrdFormShell from './CrdFormShell'
+import { HelpTooltip } from '../HelpTooltip'
 import { TolerationsEditor } from './clusterEditors'
-import { Field, Select, TextInput, Toggle } from './fields'
+import { Field, Select, TextInput, Toggle, renderTooltip } from './fields'
 
 const OPS = [
   'benchmark',
@@ -44,9 +45,32 @@ const REPACK_DB_LABELS = {
   excludeExtension: 'Exclude Extension',
 }
 
+// The Vue templates reword some tooltips of inverted (noX / disableX) flags.
+const PAGE_SKIPPING_TRANSFORM = (t) => t.replace('Defaults to: `false`', 'Enabled by default')
+const NO_ORDER_TRANSFORM = (t) =>
+  t.replace('If true', 'Disable to').replace('Defaults to: `false`', 'Enabled by default')
+const NO_KILL_BACKEND_TRANSFORM = (t) =>
+  t.replace("If true don't", 'Disable to not').replace('Defaults to: `false`', 'Enabled by default')
+const VACUUM_DB_TOOLTIPS = {
+  full: 'sgdbops.spec.vacuum.databases.full',
+  freeze: 'sgdbops.spec.vacuum.databases.freeze',
+  analyze: 'sgdbops.spec.vacuum.databases.analyze',
+  disablePageSkipping: (
+    <HelpTooltip field="sgdbops.spec.vacuum.databases.disablePageSkipping" transform={PAGE_SKIPPING_TRANSFORM} />
+  ),
+}
+const REPACK_DB_TOOLTIPS = {
+  noOrder: <HelpTooltip field="sgdbops.spec.repack.databases.noOrder" transform={NO_ORDER_TRANSFORM} />,
+  noKillBackend: (
+    <HelpTooltip field="sgdbops.spec.repack.databases.noKillBackend" transform={NO_KILL_BACKEND_TRANSFORM} />
+  ),
+  noAnalyze: <HelpTooltip field="sgdbops.spec.repack.databases.noAnalyze" transform={NO_KILL_BACKEND_TRANSFORM} />,
+  excludeExtension: 'sgdbops.spec.repack.databases.excludeExtension',
+}
+
 const opLabel = (op) => op.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())
 
-function DurationSelects({ label, value, onChange }) {
+function DurationSelects({ label, value, onChange, tooltip }) {
   const part = (key, max, unit) => (
     <label className="flex items-center gap-1">
       <select
@@ -65,7 +89,7 @@ function DurationSelects({ label, value, onChange }) {
     </label>
   )
   return (
-    <Field label={label}>
+    <Field label={label} tooltip={tooltip}>
       <div className="flex flex-wrap gap-2 text-sm">
         {part('d', 30, 'days')}
         {part('h', 23, 'hours')}
@@ -194,7 +218,7 @@ export default function DbOpsForm() {
 
   return (
     <CrdFormShell title="Create Database Operation" form={form}>
-      <Field label="Operation Name" required error={form.errors.name}>
+      <Field label="Operation Name" required error={form.errors.name} tooltip="sgdbops.metadata.name">
         <TextInput value={name} onChange={setName} required error={form.errors.name} />
       </Field>
       {nameCollision && (
@@ -203,12 +227,12 @@ export default function DbOpsForm() {
           Please specify a different name or create the operation on another namespace.
         </p>
       )}
-      <Field label="Target Cluster" required error={form.errors.sgCluster}>
+      <Field label="Target Cluster" required error={form.errors.sgCluster} tooltip="sgdbops.spec.sgCluster">
         <Select value={sgCluster} onChange={setSgCluster} required placeholder="Choose a Cluster"
           options={clusters.map((c) => c.metadata.name)} />
       </Field>
       <fieldset className="flex flex-col gap-2 border p-3">
-        <legend className="px-1 font-semibold">Database Operation *</legend>
+        <legend className="px-1 font-semibold">Database Operation *{renderTooltip('sgdbops.spec.op')}</legend>
         {form.errors.op && <p role="alert">{form.errors.op}</p>}
         <div className="flex flex-wrap gap-3">
           {OPS.map((candidate) => (
@@ -223,7 +247,11 @@ export default function DbOpsForm() {
 
       <fieldset className="flex flex-col gap-3 border p-3">
         <legend className="px-1 font-semibold">General Operation Details</legend>
-        <Field label={`Run At (${timezone === 'local' ? 'local time' : 'UTC'})`} help="Leave empty to run as soon as possible">
+        <Field label={`Run At (${timezone === 'local' ? 'local time' : 'UTC'})`} help="Leave empty to run as soon as possible"
+          tooltip={
+            <HelpTooltip field="sgdbops.spec.runAt"
+              transform={(t) => (timezone === 'local' ? t.replace('UTC ', '') : t)} />
+          }>
           <input type="datetime-local" step="1" value={runAtLocal}
             onChange={(event) => setRunAtLocal(event.target.value)} className="border p-2" />
         </Field>
@@ -232,24 +260,25 @@ export default function DbOpsForm() {
             Bear in mind &quot;Run At&quot; times are expressed in UTC (Coordinated Universal Time).
           </p>
         )}
-        <DurationSelects label="Timeout" value={timeout} onChange={setTimeoutValue} />
-        <Field label="Max Retries">
+        <DurationSelects label="Timeout" value={timeout} onChange={setTimeoutValue} tooltip="sgdbops.spec.timeout" />
+        <Field label="Max Retries" tooltip="sgdbops.spec.maxRetries">
           <Select value={maxRetries} onChange={setMaxRetries} options={Array.from({ length: 11 }, (_, i) => String(i))} />
         </Field>
       </fieldset>
 
       <fieldset className="flex flex-col gap-3 border p-3">
         <legend className="px-1 font-semibold">Node Tolerations</legend>
-        <TolerationsEditor tolerations={tolerations} onChange={setTolerations} />
+        <TolerationsEditor tolerations={tolerations} onChange={setTolerations}
+          tooltipPrefix="sgdbops.spec.scheduling.tolerations" />
       </fieldset>
 
       {op === 'restart' && (
         <fieldset className="flex flex-col gap-3 border p-3">
           <legend className="px-1 font-semibold">Restart Details</legend>
-          <Field label="Method">
+          <Field label="Method" tooltip="sgdbops.spec.restart.method">
             <Select value={restart.method} onChange={(method) => setRestart({ ...restart, method })} options={METHODS} />
           </Field>
-          <Field label="Pods to Restart">
+          <Field label="Pods to Restart" tooltip="sgdbops.spec.restart.onlyPendingRestart">
             <Toggle label="Pending Pods Only" checked={restart.onlyPendingRestart}
               onChange={(onlyPendingRestart) => setRestart({ ...restart, onlyPendingRestart })} />
           </Field>
@@ -259,7 +288,7 @@ export default function DbOpsForm() {
       {op === 'securityUpgrade' && (
         <fieldset className="flex flex-col gap-3 border p-3">
           <legend className="px-1 font-semibold">Security Upgrade Details</legend>
-          <Field label="Method">
+          <Field label="Method" tooltip="sgdbops.spec.securityUpgrade.method">
             <Select value={securityUpgrade.method} onChange={(method) => setSecurityUpgrade({ method })} options={METHODS} />
           </Field>
         </fieldset>
@@ -274,11 +303,12 @@ export default function DbOpsForm() {
             </p>
           ) : minorTargets.length ? (
             <>
-              <Field label="Method">
+              <Field label="Method" tooltip="sgdbops.spec.minorVersionUpgrade.method">
                 <Select value={minorVersionUpgrade.method}
                   onChange={(method) => setMinorVersionUpgrade({ ...minorVersionUpgrade, method })} options={METHODS} />
               </Field>
-              <Field label="Target Postgres Version" required error={form.errors.targetVersion}>
+              <Field label="Target Postgres Version" required error={form.errors.targetVersion}
+                tooltip="sgdbops.spec.minorVersionUpgrade.postgresVersion">
                 <Select value={minorVersionUpgrade.postgresVersion}
                   onChange={(postgresVersion) => setMinorVersionUpgrade({ ...minorVersionUpgrade, postgresVersion })}
                   options={minorTargets} placeholder="Choose version..." required />
@@ -304,24 +334,30 @@ export default function DbOpsForm() {
           ) : majorTargets.length ? (
             <>
               <Toggle label="Hard Link Files" checked={majorVersionUpgrade.link}
-                onChange={(link) => setMajorVersionUpgrade({ ...majorVersionUpgrade, link })} />
+                onChange={(link) => setMajorVersionUpgrade({ ...majorVersionUpgrade, link })}
+                tooltip="sgdbops.spec.majorVersionUpgrade.link" />
               <Toggle label="Clone Files" checked={majorVersionUpgrade.clone}
-                onChange={(clone) => setMajorVersionUpgrade({ ...majorVersionUpgrade, clone })} />
+                onChange={(clone) => setMajorVersionUpgrade({ ...majorVersionUpgrade, clone })}
+                tooltip="sgdbops.spec.majorVersionUpgrade.clone" />
               <Toggle label="Check Clusters" checked={majorVersionUpgrade.check}
-                onChange={(check) => setMajorVersionUpgrade({ ...majorVersionUpgrade, check })} />
-              <Field label="Backup Path">
+                onChange={(check) => setMajorVersionUpgrade({ ...majorVersionUpgrade, check })}
+                tooltip="sgdbops.spec.majorVersionUpgrade.check" />
+              <Field label="Backup Path" tooltip="sgdbops.spec.majorVersionUpgrade.backupPath">
                 <TextInput value={majorVersionUpgrade.backupPath || ''}
                   onChange={(backupPath) =>
                     setMajorVersionUpgrade({ ...majorVersionUpgrade, backupPath: backupPath.length ? backupPath : null })} />
               </Field>
-              <Field label="Target Postgres Version" required error={form.errors.targetVersion}>
+              {/* The Vue form reuses the minor-version key here; fixed deliberately. */}
+              <Field label="Target Postgres Version" required error={form.errors.targetVersion}
+                tooltip="sgdbops.spec.majorVersionUpgrade.postgresVersion">
                 <Select value={majorVersionUpgrade.postgresVersion}
                   onChange={(postgresVersion) =>
                     setMajorVersionUpgrade({ ...majorVersionUpgrade, postgresVersion, sgPostgresConfig: '' })}
                   options={majorTargets} placeholder="Choose version..." required />
               </Field>
               {majorVersionUpgrade.postgresVersion && (
-                <Field label="Target Postgres Configuration" required error={form.errors.targetConfig}>
+                <Field label="Target Postgres Configuration" required error={form.errors.targetConfig}
+                  tooltip="sgdbops.spec.majorVersionUpgrade.sgPostgresConfig">
                   <Select value={majorVersionUpgrade.sgPostgresConfig}
                     onChange={(sgPostgresConfig) => setMajorVersionUpgrade({ ...majorVersionUpgrade, sgPostgresConfig })}
                     options={pgConfigs.map((c) => c.metadata.name)} placeholder="Choose config..." required />
@@ -340,18 +376,25 @@ export default function DbOpsForm() {
       {op === 'vacuum' && (
         <fieldset className="flex flex-col gap-3 border p-3">
           <legend className="px-1 font-semibold">Vacuum Details</legend>
-          <Toggle label="Full Vacuum" checked={vacuum.full} onChange={(full) => setVacuum({ ...vacuum, full })} />
-          <Toggle label="Freeze" checked={vacuum.freeze} onChange={(freeze) => setVacuum({ ...vacuum, freeze })} />
-          <Toggle label="Analyze" checked={vacuum.analyze} onChange={(analyze) => setVacuum({ ...vacuum, analyze })} />
+          <Toggle label="Full Vacuum" checked={vacuum.full} onChange={(full) => setVacuum({ ...vacuum, full })}
+            tooltip="sgdbops.spec.vacuum.full" />
+          <Toggle label="Freeze" checked={vacuum.freeze} onChange={(freeze) => setVacuum({ ...vacuum, freeze })}
+            tooltip="sgdbops.spec.vacuum.freeze" />
+          <Toggle label="Analyze" checked={vacuum.analyze} onChange={(analyze) => setVacuum({ ...vacuum, analyze })}
+            tooltip="sgdbops.spec.vacuum.analyze" />
           <Toggle label="Page Skipping" checked={!vacuum.disablePageSkipping}
-            onChange={(enabled) => setVacuum({ ...vacuum, disablePageSkipping: !enabled })} />
+            onChange={(enabled) => setVacuum({ ...vacuum, disablePageSkipping: !enabled })}
+            tooltip={
+              <HelpTooltip field="sgdbops.spec.vacuum.disablePageSkipping" transform={PAGE_SKIPPING_TRANSFORM} />
+            } />
           <Toggle label="Database Specific Options" checked={vacuumPerDbs}
+            tooltip="sgdbops.spec.vacuum.databases"
             onChange={(enabled) => {
               setVacuumPerDbs(enabled)
               if (enabled && !vacuumDbs.length)
                 setVacuumDbs([{ name: '', full: 'inherit', freeze: 'inherit', analyze: 'inherit', disablePageSkipping: 'inherit' }])
             }} />
-          {vacuumPerDbs && <h4 className="font-semibold">Databases</h4>}
+          {vacuumPerDbs && <h4 className="font-semibold">Databases{renderTooltip('sgdbops.spec.vacuum.databases')}</h4>}
           {vacuumPerDbs &&
             vacuumDbs.map((db, index) => (
               <div key={index} className="flex flex-col gap-2 border p-2">
@@ -359,12 +402,12 @@ export default function DbOpsForm() {
                   Database #{index + 1}{db.name ? ` – ${db.name}` : ''}
                 </h5>
                 <div className="flex flex-wrap items-end gap-2">
-                  <Field label="Name" required>
+                  <Field label="Name" required tooltip="sgdbops.spec.vacuum.databases.name">
                     <TextInput value={db.name} required placeholder="Type a name..."
                       onChange={(value) => setVacuumDbs(vacuumDbs.map((d, i) => (i === index ? { ...d, name: value } : d)))} />
                   </Field>
                   {['full', 'freeze', 'analyze', 'disablePageSkipping'].map((key) => (
-                    <Field key={key} label={VACUUM_DB_LABELS[key]}>
+                    <Field key={key} label={VACUUM_DB_LABELS[key]} tooltip={VACUUM_DB_TOOLTIPS[key]}>
                       {dbSelect(db[key], (value) =>
                         setVacuumDbs(vacuumDbs.map((d, i) =>
                           i === index ? { ...d, [key]: value === 'inherit' ? 'inherit' : value === 'true' } : d)))}
@@ -390,20 +433,26 @@ export default function DbOpsForm() {
       {op === 'repack' && (
         <fieldset className="flex flex-col gap-3 border p-3">
           <legend className="px-1 font-semibold">Repack Details</legend>
-          <Toggle label="Order" checked={!repack.noOrder} onChange={(enabled) => setRepack({ ...repack, noOrder: !enabled })} />
-          <Toggle label="Kill Backend" checked={!repack.noKillBackend} onChange={(enabled) => setRepack({ ...repack, noKillBackend: !enabled })} />
-          <Toggle label="Analyze" checked={!repack.noAnalyze} onChange={(enabled) => setRepack({ ...repack, noAnalyze: !enabled })} />
+          <Toggle label="Order" checked={!repack.noOrder} onChange={(enabled) => setRepack({ ...repack, noOrder: !enabled })}
+            tooltip={<HelpTooltip field="sgdbops.spec.repack.noOrder" transform={NO_ORDER_TRANSFORM} />} />
+          <Toggle label="Kill Backend" checked={!repack.noKillBackend} onChange={(enabled) => setRepack({ ...repack, noKillBackend: !enabled })}
+            tooltip={<HelpTooltip field="sgdbops.spec.repack.noKillBackend" transform={NO_KILL_BACKEND_TRANSFORM} />} />
+          <Toggle label="Analyze" checked={!repack.noAnalyze} onChange={(enabled) => setRepack({ ...repack, noAnalyze: !enabled })}
+            tooltip={<HelpTooltip field="sgdbops.spec.repack.noAnalyze" transform={NO_KILL_BACKEND_TRANSFORM} />} />
           <Toggle label="Exclude Extension" checked={repack.excludeExtension}
-            onChange={(excludeExtension) => setRepack({ ...repack, excludeExtension })} />
+            onChange={(excludeExtension) => setRepack({ ...repack, excludeExtension })}
+            tooltip="sgdbops.spec.repack.excludeExtension" />
           <DurationSelects label="Wait Timeout" value={repack.waitTimeout}
-            onChange={(waitTimeout) => setRepack({ ...repack, waitTimeout })} />
+            onChange={(waitTimeout) => setRepack({ ...repack, waitTimeout })}
+            tooltip="sgdbops.spec.repack.waitTimeout" />
           <Toggle label="Database Specific Options" checked={repackPerDbs}
+            tooltip="sgdbops.spec.repack.databases"
             onChange={(enabled) => {
               setRepackPerDbs(enabled)
               if (enabled && !repackDbs.length)
                 setRepackDbs([{ name: '', noOrder: 'inherit', inheritTimeout: true, waitTimeout: { d: 0, h: 0, m: 0, s: 0 }, noKillBackend: 'inherit', noAnalyze: 'inherit', excludeExtension: 'inherit' }])
             }} />
-          {repackPerDbs && <h3 className="font-semibold">Databases</h3>}
+          {repackPerDbs && <h3 className="font-semibold">Databases{renderTooltip('sgdbops.spec.repack.databases')}</h3>}
           {repackPerDbs &&
             repackDbs.map((db, index) => (
               <div key={index} className="flex flex-col gap-2 border p-2">
@@ -411,12 +460,12 @@ export default function DbOpsForm() {
                   Database #{index + 1}{db.name ? ` – ${db.name}` : ''}
                 </h3>
                 <div className="flex flex-wrap items-end gap-2">
-                  <Field label="Name" required>
+                  <Field label="Name" required tooltip="sgdbops.spec.repack.databases.name">
                     <TextInput value={db.name} required placeholder="Type a name..."
                       onChange={(value) => setRepackDbs(repackDbs.map((d, i) => (i === index ? { ...d, name: value } : d)))} />
                   </Field>
                   {['noOrder', 'noKillBackend', 'noAnalyze', 'excludeExtension'].map((key) => (
-                    <Field key={key} label={REPACK_DB_LABELS[key]}>
+                    <Field key={key} label={REPACK_DB_LABELS[key]} tooltip={REPACK_DB_TOOLTIPS[key]}>
                       {dbSelect(db[key], (value) =>
                         setRepackDbs(repackDbs.map((d, i) =>
                           i === index ? { ...d, [key]: value === 'inherit' ? 'inherit' : value === 'true' } : d)))}
@@ -427,7 +476,7 @@ export default function DbOpsForm() {
                     <Trash2 size={16} />
                   </button>
                 </div>
-                <Field label="Wait Timeout">
+                <Field label="Wait Timeout" tooltip="sgdbops.spec.repack.databases.waitTimeout">
                   <Select
                     value={db.inheritTimeout ? 'inherit' : 'custom'}
                     options={[
@@ -439,7 +488,7 @@ export default function DbOpsForm() {
                         i === index ? { ...d, inheritTimeout: value === 'inherit' } : d))} />
                 </Field>
                 {!db.inheritTimeout && (
-                  <DurationSelects label="Custom Wait Timeout" value={db.waitTimeout}
+                  <DurationSelects label="Custom Wait Timeout" tooltip="sgdbops.spec.repack.databases.waitTimeout" value={db.waitTimeout}
                     onChange={(waitTimeout) =>
                       setRepackDbs(repackDbs.map((d, i) => (i === index ? { ...d, waitTimeout } : d)))} />
                 )}
@@ -469,10 +518,10 @@ export default function DbOpsForm() {
       {op === 'benchmark' && (
         <fieldset className="flex flex-col gap-3 border p-3">
           <legend className="px-1 font-semibold">Benchmark Details</legend>
-          <Field label="Type">
+          <Field label="Type" tooltip="sgdbops.spec.benchmark.type">
             <Select value={benchmark.type} onChange={() => {}} options={['pgbench']} />
           </Field>
-          <Field label="Connection Type">
+          <Field label="Connection Type" tooltip="sgdbops.spec.benchmark.connectionType">
             <Select value={benchmark.connectionType}
               onChange={(connectionType) => setBenchmark({ ...benchmark, connectionType })}
               options={[
@@ -480,7 +529,7 @@ export default function DbOpsForm() {
                 { value: 'replicas-service', label: 'Connect to the Replicas Service' },
               ]} />
           </Field>
-          <Field label="Database Size" required error={form.errors.databaseSize}>
+          <Field label="Database Size" required error={form.errors.databaseSize} tooltip="sgdbops.spec.benchmark.pgbench.databaseSize">
             <div className="flex gap-2">
               <TextInput type="number" min="1" value={benchmark.pgbench.databaseSize.size} required
                 onChange={(size) =>
@@ -493,17 +542,18 @@ export default function DbOpsForm() {
           </Field>
           <Toggle label="Prepared Statements" checked={benchmark.pgbench.usePreparedStatements}
             onChange={(usePreparedStatements) =>
-              setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, usePreparedStatements } })} />
-          <Field label="Concurrent Clients">
+              setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, usePreparedStatements } })}
+            tooltip="sgdbops.spec.benchmark.pgbench.usePreparedStatements" />
+          <Field label="Concurrent Clients" tooltip="sgdbops.spec.benchmark.pgbench.concurrentClients">
             <TextInput type="number" min="1" value={benchmark.pgbench.concurrentClients}
               onChange={(concurrentClients) =>
                 setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, concurrentClients } })} />
           </Field>
-          <Field label="Threads">
+          <Field label="Threads" tooltip="sgdbops.spec.benchmark.pgbench.threads">
             <TextInput type="number" min="1" value={benchmark.pgbench.threads}
               onChange={(threads) => setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, threads } })} />
           </Field>
-          <DurationSelects label="Duration" value={benchmark.pgbench.duration}
+          <DurationSelects label="Duration" tooltip="sgdbops.spec.benchmark.pgbench.duration" value={benchmark.pgbench.duration}
             onChange={(duration) => setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, duration } })} />
           <p role="note">
             The pgbench Benchmark Duration does not include database preparation that, depending on

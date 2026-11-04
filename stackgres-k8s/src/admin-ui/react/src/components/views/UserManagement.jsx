@@ -4,6 +4,7 @@ import { useCanI } from '../../contexts/PermissionsContext'
 import { userManagementPermissions } from '../../lib/permissions'
 import { useFlatList } from '../../hooks/useFlatList'
 import DeleteResourceDialog from '../DeleteResourceDialog'
+import { HelpTooltip } from '../HelpTooltip'
 
 const RULE_COLUMNS = ['apiGroups', 'nonResourceURLs', 'resourceNames', 'resources', 'verbs']
 const joinRule = (values) => (values && values.length ? values.join(', ') : '')
@@ -82,11 +83,15 @@ export default function UserManagement() {
           <table className="w-full border-collapse text-left">
             <thead>
               <tr>
-                <th className="border-b p-2">Name</th>
-                <th className="border-b p-2">Namespace</th>
+                <th className="border-b p-2">
+                  Name <HelpTooltip field="sgrole.metadata.name" />
+                </th>
+                <th className="border-b p-2">
+                  Namespace <HelpTooltip field="sgrole.metadata.namespace" />
+                </th>
                 {roleHeaders.map((header) => (
                   <th key={header} className="border-b p-2">
-                    {header}
+                    {header} <HelpTooltip field={'sgrole.rules.' + header} />
                   </th>
                 ))}
                 <th className="border-b p-2" />
@@ -125,10 +130,12 @@ export default function UserManagement() {
           <table className="w-full border-collapse text-left">
             <thead>
               <tr>
-                <th className="border-b p-2">Name</th>
+                <th className="border-b p-2">
+                  Name <HelpTooltip field="sgclusterrole.metadata.name" />
+                </th>
                 {roleHeaders.map((header) => (
                   <th key={header} className="border-b p-2">
-                    {header}
+                    {header} <HelpTooltip field={'sgclusterrole.rules.' + header} />
                   </th>
                 ))}
                 <th className="border-b p-2" />
@@ -166,11 +173,21 @@ export default function UserManagement() {
           <table className="w-full border-collapse text-left">
             <thead>
               <tr>
-                <th className="border-b p-2">Name</th>
-                <th className="border-b p-2">K8s Username</th>
-                <th className="border-b p-2">API Username</th>
-                <th className="border-b p-2">Roles</th>
-                <th className="border-b p-2">Cluster Roles</th>
+                <th className="border-b p-2">
+                  Name <HelpTooltip field="sguser.metadata.name" />
+                </th>
+                <th className="border-b p-2">
+                  K8s Username <HelpTooltip field="sguser.k8sUsername" />
+                </th>
+                <th className="border-b p-2">
+                  API Username <HelpTooltip field="sguser.apiUsername" />
+                </th>
+                <th className="border-b p-2">
+                  Roles <HelpTooltip field="sguser.roles" />
+                </th>
+                <th className="border-b p-2">
+                  Cluster Roles <HelpTooltip field="sguser.clusterRoles" />
+                </th>
                 <th className="border-b p-2" />
               </tr>
             </thead>

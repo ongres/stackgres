@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDown, ArrowUp } from 'lucide-react'
+import { renderTooltip } from './forms/fields'
 
 // Generic read-only table: client-side sorting, text filtering and paging.
-// columns: [{ key, header, cell(item) → node, sortValue?(item) → comparable }]
+// columns: [{ key, header, cell(item) → node, sortValue?(item) → comparable,
+// tooltip? (help-tooltip key or element, shown next to the header) }]
 export default function DataTable({
   columns,
   items,
@@ -64,19 +66,22 @@ export default function DataTable({
           <tr>
             {columns.map((column) => (
               <th key={column.key} className="border-b p-2">
-                {column.sortValue ? (
-                  <button
-                    type="button"
-                    onClick={() => toggleSort(column)}
-                    className="flex items-center gap-1 font-semibold"
-                  >
-                    {column.header}
-                    {sort && sort.key === column.key &&
-                      (sort.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
-                  </button>
-                ) : (
-                  column.header
-                )}
+                <span className="inline-flex items-center whitespace-nowrap">
+                  {column.sortValue ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleSort(column)}
+                      className="inline-flex items-center gap-1 font-semibold"
+                    >
+                      {column.header}
+                      {sort && sort.key === column.key &&
+                        (sort.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
+                    </button>
+                  ) : (
+                    column.header
+                  )}
+                  {renderTooltip(column.tooltip)}
+                </span>
               </th>
             ))}
           </tr>
