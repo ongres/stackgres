@@ -68,13 +68,14 @@ check_rbac_failure() {
   fi
 }
 
+# The admin user is bound to the cluster role of the chart, that only allows to read namespaces.
 check_rbac_list() {
   local PERMISSIONS_IN_RESPONSE
 
   PERMISSIONS_IN_RESPONSE="$(run_curl -r "stackgres/auth/rbac/can-i" -n "$CLUSTER_NAMESPACE" -e "-L" \
    | jq --compact-output -M -S '.unnamespaced.namespaces')"
 
-  if [ "$PERMISSIONS_IN_RESPONSE" = '["get","list","create","patch","delete"]' ]
+  if [ "$PERMISSIONS_IN_RESPONSE" = '["get","list"]' ]
   then
     success "rbac can-i permissions list is available"
   else
