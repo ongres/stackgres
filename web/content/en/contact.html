@@ -101,3 +101,21 @@ description: "Start a conversation with the StackGres team today. Feel free to c
     </div>
 </section>
 
+<script>
+    (function () {
+        var topic = new URLSearchParams(window.location.search).get('topic');
+        if (!topic) return;
+
+        var messages = {
+            'containers-extensions': 'I am missing an extension on StackGres Containers. The extension(s) I need: ',
+            'containers-limits': 'I am hitting the fair-use rate limits on StackGres Containers and would like to get them raised.',
+            'containers-enterprise': 'I am interested in the Enterprise subscription for StackGres Containers.'
+        };
+
+        var description = document.getElementById('Description');
+        if (description && !description.value && messages[topic]) {
+            description.value = messages[topic];
+        }
+    })();
+</script>
+
