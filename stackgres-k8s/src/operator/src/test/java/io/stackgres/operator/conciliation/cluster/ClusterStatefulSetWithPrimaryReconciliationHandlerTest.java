@@ -51,7 +51,9 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -985,6 +987,22 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
     verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
   }
 
+  @Test
+  @DisplayName("A replica Pod that is not ready and pending restart only for the status reported"
+      + " for a previous Pod with the same name should be waited for instead of being re-created")
+  void replicaNotReadyAndPendingRestartOnlyForItsStatus_shouldWaitForTheReplicaPod() {
+    setUpRollout(null, null);
+    setUpPodRevisions(UPDATE_REVISION, UPDATE_REVISION);
+    setPodStatusPendingRestart(1);
+    setPodPending(1);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
   private String podName(int podIndex) {
     return requiredStatefulSet.getMetadata().getName() + "-" + podIndex;
   }
@@ -1005,6 +1023,21 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
       labels.put(CONTROLLER_REVISION_HASH_LABEL, revisionByPodIndex[podIndex]);
       pod.getMetadata().setLabels(labels);
     }
+  }
+
+  /**
+   * The cluster controller of a Pod reports in the SGCluster status that the Pod is pending
+   * restart, and that status is cleared only by the cluster controller of the Pod re-created with
+   * the same name once it runs.
+   */
+  private void setPodStatusPendingRestart(int podIndex) {
+    final StackGresClusterPodStatus podStatus = new StackGresClusterPodStatus();
+    podStatus.setName(podName(podIndex));
+    podStatus.setPendingRestart(true);
+    if (cluster.getStatus() == null) {
+      cluster.setStatus(new StackGresClusterStatus());
+    }
+    cluster.getStatus().setPodStatuses(List.of(podStatus));
   }
 
   /**
