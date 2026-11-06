@@ -1,5 +1,8 @@
 {{ define "head-seo" }}
 {{ if or site.Params.previewgate site.Params.noindex }}<meta name="robots" content="noindex, nofollow">{{ else }}<meta name="robots" content="index, follow">{{ end }}
+<meta name="description" content="Postgres container images, à la carte: any version, any set of extensions, one docker command. Built by the team behind StackGres.">
+<meta property="og:title" content="StackGres Containers">
+<meta property="og:description" content="Postgres container images, à la carte: any version, any set of extensions, one docker command.">
 <link href="{{ "css/bootstrap-grid.min.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
 <link href="{{ "css/containers.css" | relURL }}?{{ now.Unix }}" rel="stylesheet">
 {{ end }}

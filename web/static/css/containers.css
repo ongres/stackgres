@@ -1688,7 +1688,7 @@
     top: 0;
     z-index: 2;
     /* opaque backing so scrolled rows don't show through */
-    background: #1B142C;
+    background: var(--activeBg);
 }
 
 #containers-wrap li.extension {
@@ -1706,14 +1706,12 @@
 }
 
 #containers-wrap ul.extensionsList:not(.available) li.extension.disabled {
-    display: inline-block;
+    display: grid;
 }
 
 #containers-wrap #showExtensions {
     margin: 0;
     position: relative;
-    top: 5px;
-    margin-bottom: -8px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
@@ -1852,7 +1850,6 @@
     margin-bottom: 0;
     width: 60px;
     position: relative;
-    top: -9px;
     border-color: var(--baseLightColor);
 }
 
@@ -1957,7 +1954,6 @@
     display: inline-block;
     padding-right: 45px;
     position: relative;
-    top: 10px;
 }
 
 #containers-wrap .helpTooltip {
@@ -2035,12 +2031,13 @@
 
 #containers-wrap .popUp .info {
     border: 1px solid var(--baseLightColor);
-    padding: 20px;
-    border-radius: 3px;
+    padding: 20px 25px;
+    border-radius: 10px;
     margin: 0 auto;
     background: var(--bgColor);
     position: relative;
     z-index: 10;
+    max-width: 560px;
 }
 
 #containers-wrap .label {
@@ -2048,9 +2045,12 @@
 }
 
 #containers-wrap #extensions {
-    border: 1px solid var(--baseColor);
-    border-radius: 3px;
-    display: inline-block;
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
 }
 
 #containers-wrap #extensionsPopup li {
@@ -2226,7 +2226,7 @@
     height: 100%;
     /* masks the tail of the full-height tree line past the last item, so it
        must match the card background */
-    background: #1B142C;
+    background: var(--detailsBg);
     position: absolute;
     left: 0;
     top: 12px;
@@ -2239,7 +2239,7 @@
     height: 100%;
     position: absolute;
     left: -13px;
-    background: #1B142C;
+    background: var(--detailsBg);
     top: 12px;
 }
 
@@ -2650,6 +2650,9 @@
 #containers-wrap {
     /* --lGreen is this page's primary accent — map that role to the site's cyan */
     --lGreen: var(--lBlue);
+    /* inner-card background: --activeBg (#161636) darkened 35%, same tone as
+       the command code line; kept solid so the tree-line masks blend exactly */
+    --detailsBg: #0e0e23;
 }
 #containers-wrap #checkout > fieldset {
     /* --baseColor is the card background here; on the main palette that's a
@@ -2666,6 +2669,9 @@
     border: 1px solid rgba(255, 255, 255, .15);
     border-radius: 10px;
     padding: 20px;
+    /* the UA default (margin: 0 2px) pushes full-width fieldsets 2px past the
+       clipping section edge, shaving flush-right content */
+    margin: 0;
 }
 
 #containers-wrap pre.copyCode {
@@ -2677,10 +2683,6 @@
     /* the grid's .col base width (100%) stacks the Command/Image toggle
        groups; shrink-wrap them so they share one centered line */
     width: auto;
-}
-#containers-wrap #extensions {
-    /* match the surrounding card border, not the vivid accent */
-    border-color: rgba(255, 255, 255, .15);
 }
 #containers-wrap a.btn,
 #containers-wrap a.btn strong {
@@ -2731,4 +2733,528 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* ── Containers launch layout (handover artboard A): hero, sticky command
+      band with chips, numbered steps, extensions table, info strip ── */
+
+#containers-wrap .containersHero {
+    padding: 20px 0 10px;
+}
+
+#containers-wrap .containersHero h1 {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 0 0 15px;
+}
+
+#containers-wrap .betaBadge {
+    font-size: 40%;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--lGreen);
+    color: #1B142C;
+    white-space: nowrap;
+}
+
+#containers-wrap .heroTagline {
+    font-size: 115%;
+    margin: 0 0 8px;
+}
+
+#containers-wrap .heroTagline code {
+    color: var(--lGreen);
+}
+
+#containers-wrap .heroNote {
+    margin: 0;
+    opacity: .8;
+}
+
+#containers-wrap .commandPanel {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0 40px;
+    padding: 20px;
+    background: var(--activeBg);
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: 10px;
+}
+
+#containers-wrap .commandPanel pre.copyCode,
+#containers-wrap .commandPanel pre.copyCode code {
+    margin: 0;
+    width: 100%;
+    /* the code line sits darker than the command band around it (the inner
+       code element carries its own legacy background, so cover both) */
+    background: rgba(0, 0, 0, .35);
+}
+
+#containers-wrap .commandPanel pre.copyCode code {
+    background: transparent;
+}
+
+#containers-wrap .commandControls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 25px;
+}
+
+#containers-wrap .controlLabel {
+    font-size: 75%;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    opacity: .7;
+    white-space: nowrap;
+}
+
+#containers-wrap .controlGroup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#containers-wrap .copyCommandBtn {
+    margin-left: auto;
+}
+
+#containers-wrap .imageChipsRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+}
+
+#containers-wrap .chip {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 85%;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .15);
+    white-space: nowrap;
+}
+
+#containers-wrap .chip.accent {
+    color: var(--lGreen);
+    border-color: var(--lGreen);
+    background: color-mix(in srgb, var(--lGreen) 12%, transparent);
+}
+
+#containers-wrap .chipActions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+#containers-wrap .btn.plain {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--lGreen);
+    font-size: 90%;
+}
+
+#containers-wrap #checkout {
+    width: 100%;
+}
+
+#containers-wrap .stepTitle {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 45px 0 20px;
+}
+
+#containers-wrap .stepBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    align-self: center;
+    background: var(--lGreen);
+    color: #1B142C;
+    font-size: 55%;
+    font-weight: 700;
+}
+
+#containers-wrap .extensionsSubtitle {
+    font-size: 65%;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: .8;
+}
+
+#containers-wrap .configureGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    align-items: end;
+}
+
+#containers-wrap .configureGrid > .form-group {
+    margin: 0;
+    width: 100%;
+}
+
+#containers-wrap .patroniControls .form-group.switch {
+    margin: 0;
+    width: auto;
+    flex: 0 0 auto;
+}
+
+#containers-wrap .configureGrid select {
+    width: 100%;
+}
+
+#containers-wrap .patroniControls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#containers-wrap .patroniControls select {
+    flex: 1;
+    min-width: 0;
+}
+
+#containers-wrap .extToolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+#containers-wrap .extToolbar .searchBar {
+    flex: 1;
+    min-width: 320px;
+    margin: 0;
+}
+
+#containers-wrap .extToolbar .searchBar input.search {
+    width: 100%;
+    float: none;
+    height: 45px;
+    margin: 0;
+    top: 0;
+}
+
+#containers-wrap .extToolbar .form-group.switch {
+    top: 0;
+}
+
+#containers-wrap .extToolbar .form-group.switch,
+#containers-wrap .extToolbar .clearSelectionBtn {
+    margin: 0;
+}
+
+#containers-wrap .extToolbar .searchBar {
+    display: flex;
+    align-items: center;
+    height: 45px;
+}
+
+#containers-wrap .extToolbar .clearSelectionBtn {
+    height: 45px;
+    display: inline-flex;
+    align-items: center;
+}
+
+#containers-wrap .clearSelectionBtn {
+    margin-left: auto;
+}
+
+#containers-wrap .extNotice {
+    margin: 10px 0 0;
+    padding-left: 12px;
+    border-left: 3px solid var(--lGreen);
+    opacity: .85;
+}
+
+/* Extensions table: checkbox+name · version · description · tags · details */
+#containers-wrap ul.extensionsList li.extension {
+    display: grid;
+    grid-template-columns: minmax(160px, 1.3fr) 110px 3.2fr minmax(110px, .9fr) 30px;
+    gap: 0 15px;
+    align-items: center;
+    width: 100%;
+}
+
+#containers-wrap ul.extensionsList li.extension .extInfo {
+    display: contents;
+}
+
+#containers-wrap li.extension .tags {
+    font-size: 85%;
+    opacity: .7;
+}
+
+#containers-wrap li.extension.extHeader .tags {
+    opacity: 1;
+}
+
+#containers-wrap li.extension .extDetails {
+    grid-column: 1 / -1;
+}
+
+#containers-wrap li.extension.beyondPage {
+    display: none !important;
+}
+
+#containers-wrap .extFooter {
+    padding: 15px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+    opacity: .9;
+}
+
+#containers-wrap .containersInfo {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 30px;
+    margin: 60px 0 20px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, .15);
+}
+
+#containers-wrap .containersInfo h4 {
+    margin: 0 0 10px;
+}
+
+#containers-wrap .containersInfo p {
+    margin: 0;
+    opacity: .85;
+}
+
+@media screen and (max-width: 1100px) {
+    #containers-wrap .configureGrid,
+    #containers-wrap .containersInfo {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media screen and (max-width: 720px) {
+    #containers-wrap .commandPanel {
+        position: static;
+    }
+
+    #containers-wrap .configureGrid,
+    #containers-wrap .containersInfo {
+        grid-template-columns: 1fr;
+    }
+
+    #containers-wrap ul.extensionsList {
+        overflow-x: auto;
+    }
+
+    #containers-wrap ul.extensionsList li.extension {
+        min-width: 640px;
+    }
+}
+
+/* Launch-layout overrides of the legacy pga column sizing/button skin */
+#containers-wrap ul.extensionsList li.extension label.name,
+#containers-wrap ul.extensionsList li.extension .name {
+    width: auto;
+    max-width: none;
+    overflow: visible;
+}
+
+#containers-wrap button.btn:not(.plain):not(.viewExtensionDetails) {
+    background: var(--lGreen);
+    color: #1B142C;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#containers-wrap button.btn:not(.plain):not(.viewExtensionDetails):hover {
+    opacity: .85;
+}
+
+#containers-wrap #clearExtensions.btn {
+    background: none;
+    color: var(--lGreen);
+    padding: 0 10px;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#containers-wrap #imageChips {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Selects read as dropdowns: custom chevron anchored right */
+#containers-wrap .configureGrid select,
+#containers-wrap .patroniControls select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ffffff' stroke-opacity='.7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+#containers-wrap .helpTooltip {
+    cursor: pointer;
+}
+
+/* Launch table: neutralize the legacy float/width cell metrics so the grid
+   columns align between the header row and the extension rows */
+#containers-wrap ul.extensionsList li.extension.extHeader .name {
+    padding-left: 28px;
+}
+
+#containers-wrap ul.extensionsList li.extension.extHeader .extInfo span.version {
+    float: none;
+}
+
+#containers-wrap ul.extensionsList li.extension .extInfo span.version,
+#containers-wrap ul.extensionsList li.extension .extInfo span.version select {
+    width: 100%;
+    max-width: 90px;
+    margin: 0;
+}
+
+#containers-wrap ul.extensionsList li.extension .description {
+    padding-left: 0;
+    width: auto;
+}
+
+#containers-wrap ul.extensionsList li.extension .extInfo > * {
+    margin: 0;
+}
+
+#containers-wrap ul.extensionsList li.extension label.name,
+#containers-wrap ul.extensionsList li.extension .name {
+    height: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#containers-wrap ul.extensionsList li.extension label.name span {
+    top: 0;
+    width: auto;
+}
+
+#containers-wrap ul.extensionsList li.extension {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+/* The help popup must sit above the fixed site header */
+#containers-wrap .popUp {
+    z-index: 1000;
+}
+
+/* Help popup must beat the site header's z-index (999999) */
+#containers-wrap .popUp {
+    z-index: 1000000;
+}
+
+/* Row details chevron matches the select chevrons; kept off the scroll edge */
+#containers-wrap ul.extensionsList li.extension {
+    padding-right: 12px;
+}
+
+#containers-wrap ul.extensionsList li.extension .btn.viewExtensionDetails {
+    color: transparent;
+    font-size: 0;
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ffffff' stroke-opacity='.7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#containers-wrap ul.extensionsList li.extension.open .btn.viewExtensionDetails {
+    transform: rotate(180deg);
+}
+
+#containers-wrap li.extension .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    opacity: 1;
+}
+
+#containers-wrap li.extension .tags .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 80%;
+    line-height: 1.5;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .15);
+    color: rgba(255, 255, 255, .75);
+    white-space: nowrap;
+}
+
+#containers-wrap li.extension .description p::first-letter {
+    text-transform: uppercase;
+}
+
+#containers-wrap ul.extensionsList li.extension .btn.viewExtensionDetails {
+    align-self: center;
+    float: none;
+    position: static;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* The details panel sits inside the command band now: darker than the band
+   (like the code line), flat so the tree-line masks (var(--detailsBg)) blend */
+#containers-wrap #checkout > fieldset {
+    background: var(--detailsBg);
+}
+
+/* Per-row version selects carry the same chevron (only when selectable) */
+#containers-wrap li.extension select.extVersion {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+#containers-wrap li.extension select.extVersion {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ffffff' stroke-opacity='.45' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 7px center;
+    background-size: 10px;
+    padding-right: 22px;
+}
+
+#containers-wrap li.extension select.extVersion:not([disabled]) {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ffffff' stroke-opacity='.7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    cursor: pointer;
 }

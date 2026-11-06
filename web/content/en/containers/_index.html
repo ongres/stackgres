@@ -7,236 +7,245 @@ breadcrumbs: false
 ---
 
 <section id="containers">
-    <div class="row">
-        <div class="col-sm-12 marginAuto">
-            <div class="row align-items-start">
-                <div id="imageDetails" class="col-sm-12 marginAuto align-items-start">
-                    <div class="col-sm-10 offset-md-1 copyCodeWrap">
-                        <pre class="copyCode fullWidth"><code
-                                id="imageUrl"
-                                data-url="sgcr.dev/postgres"
-                                data-urlDigest=""
-                                data-shareUrl=""
-                            >docker pull sgcr.dev/postgres</code></pre>
-                        <button class="copyBtn" type="button" onclick="copyValue()" title="Copy to clipboard" aria-label="Copy to clipboard"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-                    </div>
-                    <div class="col-sm-12 textCenter inlineItems">
-                        <div class="col inlineItems">
-                            <label>
-                                Command
-                            </label>
-                            <div class="form-group switch row">
-                                <label class="monospaced small">
-                                    <input
-                                        type="radio"
-                                        name="command"
-                                        id="command-pull"
-                                        value="docker pull $imageURL"
-                                        checked
-                                        onchange="updateCommand();"
-                                    />
-                                    <span>pull</span>
-                                </label>
-                                <label class="monospaced small">
-                                    <input
-                                        type="radio"
-                                        name="command"
-                                        id="command-run"
-                                        value="docker run --rm --name pg -d -e POSTGRES_PASSWORD=pwd $imageURL
+    <header class="containersHero">
+        <h1>
+            StackGres Containers
+            <span class="betaBadge">Public Beta</span>
+        </h1>
+        <p class="heroTagline">
+            Postgres container images, &agrave; la carte: any version, any set of extensions, one
+            <code>docker</code> command.
+        </p>
+        <p class="heroNote">
+            Built by the team behind StackGres. Images run anywhere OCI images run, including Docker.
+            <a href="https://speakerdeck.com/ongres/postgres-a-la-carte-dynamic-container-images-with-your-choice-of-extensions" target="_blank">How it works &nearr;</a>
+        </p>
+    </header>
+
+    <div class="commandPanel">
+        <div class="copyCodeWrap">
+            <pre class="copyCode fullWidth"><code
+                    id="imageUrl"
+                    aria-live="polite"
+                    data-url="sgcr.dev/postgres"
+                    data-urlDigest=""
+                    data-shareUrl=""
+                >docker pull sgcr.dev/postgres</code></pre>
+        </div>
+        <div class="commandControls">
+            <div class="controlGroup">
+                <span class="controlLabel">Command</span>
+                <div class="form-group switch noMargin">
+                    <label class="monospaced small">
+                        <input
+                            type="radio"
+                            name="command"
+                            id="command-pull"
+                            value="docker pull $imageURL"
+                            checked
+                            onchange="updateCommand();"
+                        />
+                        <span>pull</span>
+                    </label>
+                    <label class="monospaced small">
+                        <input
+                            type="radio"
+                            name="command"
+                            id="command-run"
+                            value="docker run --rm --name pg -d -e POSTGRES_PASSWORD=pwd $imageURL
     
         docker exec -it pg psql postgres postgres"
-                                        onchange="updateCommand()"
-                                    />
-                                    <span>run</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col inlineItems">
-                            <label>
-                                Image
-                            </label>
-                            <div class="form-group switch row">
-                                <label class="monospaced small">
-                                    <input
-                                        type="radio"
-                                        name="image"
-                                        id="image-canonical"
-                                        value="canonical"
-                                        checked
-                                        onchange="updateCommand()"
-                                    />
-                                    <span>canonical</span>
-                                </label>
-                                <label class="monospaced small">
-                                    <input
-                                        type="radio"
-                                        name="image"
-                                        id="image-digest"
-                                        value="digest"
-                                        onchange="updateCommand()"
-                                    />
-                                    <span>digest</span>
-                                </label>
-                            </div>
-                        </div>
-                        <br/><br/>
-                    </div>
+                            onchange="updateCommand()"
+                        />
+                        <span>run</span>
+                    </label>
                 </div>
-                <div class="col-sm-12">
-                    <div class="row">
-                        <form id="imageForm" class="col-sm-12 col-md-8">
-                            <div class="form-group col-xs-12 col-sm-6 hidden">
-                                <label>
-                                    Platform
-                                </label>
-                                <div id="platformContainer" class="row"></div>
-                            </div>
-                            <div class="form-group col-xs-12 col-sm-6 hidden">
-                                <label>
-                                    Flavor
-                                </label>
-                                <select name="flavor" id="flavor" class="getOptions">
-                                    <option value="">Choose flavor...</option>
-                                    <option value="postgres" selected>Postgres</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-xs-12 col-sm-6 hidden">
-                                <label>
-                                    T-Shirt Size
-                                </label>
-                                <select name="tshirt-size" id="tshirt-size" class="getOptions">
-                                    <option value="">Choose size...</option>
-                                    <option value="m" selected>M</option>
-                                </select>
-                            </div>
-                            <fieldset>
-                                <div class="form-group">
-                                    <label>
-                                        Postgres Version
-                                        <span class="helpTooltip" title="Select the version of Postgres that will contain the image. You may select a label like latest for the latest major and minor version, or a label like 15.latest that will select the latest minor version for Postgres 15."></span>
-                                    </label>
-                                    <select
-                                        name="version"
-                                        id="version"
-                                        class="getExtensions autoWidth noMargin"
-                                        onchange="getExtensions(); getImageUrl(); updateUrl();"
-                                        disabled
-                                    >
-                                        <option disabled>Choose version...</option>
-                                    </select>
-                                </div>
-                            </fieldset>
-                            <fieldset>
-                                <div class="form-group row">
-                                    <div class="col">
-                                        <label>
-                                            Patroni
-                                            <span class="helpTooltip" title='Add a Patroni layer to the image, to implement high availability. You may select "latest" or any other Patroni version available.'></span>
-                                        </label>
-                                        <div class="form-group switch noMargin">
-                                            <label class="monospaced small">
-                                                <input
-                                                    type="radio"
-                                                    name="patroni"
-                                                    id="patroni-disable"
-                                                    value="disable"
-                                                    checked
-                                                    onchange="togglePatroniVersions(); getImageUrl(); updateUrl();"
-                                                />
-                                                <span>Disable</span>
-                                            </label>
-                                            <label class="monospaced small">
-                                                <input
-                                                    type="radio"
-                                                    name="patroni"
-                                                    id="patroni-enable"
-                                                    value="enable"
-                                                    onchange="togglePatroniVersions(); getImageUrl(); updateUrl();"
-                                                />
-                                                <span>Enable</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="form-group padXS">
-                                            <label>
-                                                Patroni Version
-                                            </label>
-                                            <select
-                                                name="patroniVersion"
-                                                id="patroniVersion"
-                                                class="noMargin"
-                                                onchange="getImageUrl(); updateUrl();"
-                                                disabled
-                                            >
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </fieldset>
-                            
-                            <div class="clearfix"></div>
-
-                            <fieldset id="extensions" class="col-sm-12 hidden">
-                                <div class="fLeft">
-                                    <label class="noMargin">
-                                        Extensions <span class="extensionsCount"></span>
-                                        <span class="helpTooltip" title="Add as many extensions as you want for your Postgres image. Note that all extensions are specifically compiled against the Postgres major and minor version selected. Some extensions may have more than one available version."></span>
-                                    </label>
-                                   
-                                    <div id="showExtensions" class="form-group switch row">
-                                        <label class="monospaced small">
-                                            <input type="radio" name="availableExtensions" id="availableExtensions" value="available" checked onchange="toggleAvailableExtensions()">
-                                            <span>
-                                                Available
-                                                <span class="availableCount"></span>
-                                            </span>
-                                        </label>
-                                        <label class="monospaced small">
-                                            <input type="radio" name="availableExtensions" id="unavailableExtensions" value="unavailable" onchange="toggleAvailableExtensions()">
-                                            <span>
-                                                Unavailable
-                                                <span class="unavailableCount"></span>
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div id="extensionsList">
-                                    <div class="fields">
-                                        <div class="toolbar">
-                                            <div class="searchBar extensions form-group relative">
-                                                <input type="text" onkeyup="filterContainerExtensions()" id="searchExtension" name="searchExtension" class="search fRight autoWidth" placeholder="Filter extensions..." autocomplete="off">
-                                                <button type="button" onclick="clearExtFilter()" id="clearExtensions" class="btn hidden">CLEAR</a>
-                                            </div>
-                                        </div>
-                                        <div class="clearfix"></div>
-                                    </div>
-                                </div>
-                                <div class="box textCenter">
-                                    <p>Don't find the extension you are looking for? <a href="https://github.com/postgres-anywhere" target="_blank">Please let us know.</a></p>
-                                </div>
-                            </fieldset>
-                        </form>
-
-                        <div id="checkout" class="col-sm-12 col-md-4">
-                            <fieldset>
-                                <h3>
-                                    Image Details
-                                </h3>
-                                <div id="imageSummary"></div>
-                                <a id="shareImageBtn" class="btn fullWidth hidden" onclick="getShareUrl();">
-                                    <strong class="uppercase">
-                                        Share This Image
-                                    </strong>
-                                </a>
-                                <input id="shareUrl" class="hidden"/>
-                            </fieldset>
-                        </div>
-                    </div>
-                </div>
-                
             </div>
+            <div class="controlGroup">
+                <span class="controlLabel">Image</span>
+                <div class="form-group switch noMargin">
+                    <label class="monospaced small">
+                        <input
+                            type="radio"
+                            name="image"
+                            id="image-canonical"
+                            value="canonical"
+                            checked
+                            onchange="updateCommand()"
+                        />
+                        <span>tag</span>
+                    </label>
+                    <label class="monospaced small">
+                        <input
+                            type="radio"
+                            name="image"
+                            id="image-digest"
+                            value="digest"
+                            onchange="updateCommand()"
+                        />
+                        <span>digest</span>
+                    </label>
+                </div>
+            </div>
+            <button type="button" class="btn copyCommandBtn" onclick="copyCommand()">
+                Copy command
+            </button>
+        </div>
+        <div class="imageChipsRow">
+            <span class="controlLabel">Image details</span>
+            <span id="imageChips"></span>
+            <span class="chipActions">
+                <button type="button" class="btn plain" id="detailsToggle" onclick="toggleImageDetails()">Details &#9662;</button>
+                <button type="button" class="btn plain" onclick="getShareUrl();">Share</button>
+            </span>
+        </div>
+        <div id="checkout" class="hidden">
+            <fieldset>
+                <h3>
+                    Image Details
+                </h3>
+                <div id="imageSummary"></div>
+                <input id="shareUrl" class="hidden"/>
+            </fieldset>
+        </div>
     </div>
+
+    <form id="imageForm">
+        <section class="buildStep">
+            <h2 class="stepTitle">
+                <span class="stepBadge">1</span>
+                Configure
+            </h2>
+            <div class="configureGrid">
+                <div class="form-group">
+                    <label for="flavor">Flavor</label>
+                    <select name="flavor" id="flavor" class="getOptions">
+                        <option value="postgres" selected>Postgres</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="version">
+                        Postgres Version
+                        <span class="helpTooltip" title="Select the version of Postgres that will contain the image. You may select a label like latest for the latest major and minor version, or a label like 15.latest that will select the latest minor version for Postgres 15."></span>
+                    </label>
+                    <select
+                        name="version"
+                        id="version"
+                        class="getExtensions noMargin"
+                        onchange="getExtensions(); getImageUrl(); updateUrl();"
+                        disabled
+                    >
+                        <option disabled>Choose version...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="platform">Platform</label>
+                    <select name="platform" id="platform" class="getOptions" onchange="getVersions(this.value); getExtensions(this.value); updateUrl();" disabled>
+                        <option disabled selected>Loading platforms...</option>
+                    </select>
+                </div>
+                <div class="form-group patroniGroup">
+                    <label>
+                        Patroni
+                        <span class="helpTooltip" title='Add a Patroni layer to the image, to implement high availability. You may select "latest" or any other Patroni version available.'></span>
+                    </label>
+                    <div class="patroniControls">
+                        <div class="form-group switch noMargin">
+                            <label class="monospaced small">
+                                <input
+                                    type="radio"
+                                    name="patroni"
+                                    id="patroni-enable"
+                                    value="enable"
+                                    onchange="togglePatroniVersions(); getImageUrl(); updateUrl();"
+                                />
+                                <span>On</span>
+                            </label>
+                            <label class="monospaced small">
+                                <input
+                                    type="radio"
+                                    name="patroni"
+                                    id="patroni-disable"
+                                    value="disable"
+                                    checked
+                                    onchange="togglePatroniVersions(); getImageUrl(); updateUrl();"
+                                />
+                                <span>Off</span>
+                            </label>
+                        </div>
+                        <select
+                            name="patroniVersion"
+                            id="patroniVersion"
+                            class="noMargin hidden"
+                            onchange="getImageUrl(); updateUrl();"
+                            disabled
+                        >
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <fieldset id="extensions" class="buildStep hidden">
+            <h2 class="stepTitle">
+                <span class="stepBadge">2</span>
+                Extensions
+                <span class="extensionsSubtitle" id="extensionsSubtitle"></span>
+                <span class="extensionsCount hidden"></span>
+                <span class="helpTooltip" title="Add as many extensions as you want for your Postgres image. Note that all extensions are specifically compiled against the Postgres major and minor version selected. Some extensions may have more than one available version."></span>
+            </h2>
+            <div class="extToolbar">
+                <div class="searchBar extensions form-group relative">
+                    <input type="text" onkeyup="filterContainerExtensions()" id="searchExtension" name="searchExtension" class="search" placeholder="Search extensions..." autocomplete="off">
+                    <button type="button" onclick="clearExtFilter()" id="clearExtensions" class="btn hidden">CLEAR</button>
+                </div>
+                <div id="showExtensions" class="form-group switch noMargin">
+                    <label class="monospaced small">
+                        <input type="radio" name="availableExtensions" id="availableExtensions" value="available" checked onchange="toggleAvailableExtensions()">
+                        <span>
+                            Available
+                            <span class="availableCount"></span>
+                        </span>
+                    </label>
+                    <label class="monospaced small">
+                        <input type="radio" name="availableExtensions" id="unavailableExtensions" value="unavailable" onchange="toggleAvailableExtensions()">
+                        <span>
+                            Unavailable
+                            <span class="unavailableCount"></span>
+                        </span>
+                    </label>
+                </div>
+                <button type="button" class="btn clearSelectionBtn" onclick="clearExtensionSelection()">Clear selection</button>
+            </div>
+            <p id="extNotice" class="extNotice hidden" role="status"></p>
+            <div id="extensionsList">
+                <div class="fields"></div>
+            </div>
+            <div class="extFooter">
+                Showing <span id="extShownCount">0</span> of <span id="extTotalCount">0</span>
+                &middot; Missing an extension? <a href="/contact/?topic=containers-extensions">Let us know</a>
+            </div>
+        </fieldset>
+    </form>
+
+    <footer class="containersInfo">
+        <div>
+            <h4>Platforms</h4>
+            <p>linux/amd64 and linux/arm64. Pick one in Platform, or omit it to get a multi-arch manifest.</p>
+        </div>
+        <div>
+            <h4>Pinning and retention</h4>
+            <p>Every image ever pulled stays available. Switch the reference to <strong>digest</strong> for an immutable, reproducible pull.</p>
+        </div>
+        <div>
+            <h4>Beta and limits</h4>
+            <p>Free, no registration. Fair-use rate limits apply; if you hit them, <a href="/contact/?topic=containers-limits">contact us</a> and we will raise them.</p>
+        </div>
+        <div>
+            <h4>After the beta</h4>
+            <p>Public images stay free, forever. An Enterprise subscription is coming for organizations that need it. <a href="/contact/?topic=containers-enterprise">Contact us &rarr;</a></p>
+        </div>
+    </footer>
 </section>
 <div id="popUp" class="hidden popUp">
     <div class="overlay" onclick="togglePopup()"></div>
@@ -248,7 +257,7 @@ breadcrumbs: false
     const imageUrl = document.getElementById('imageUrl');
     const imageDigest = document.querySelector('input#image-digest');
     const imageCanonical = document.querySelector('input#image-canonical');
-    const platformContainer = document.getElementById('platformContainer');
+    const platformSelector = document.getElementById('platform');
     const optionsGetters = document.querySelectorAll(".getOptions");
     const versionSelector = document.getElementById('version');
     const patroniVersions = document.querySelector('#patroniVersion');
@@ -577,17 +586,71 @@ breadcrumbs: false
 
 
             imageSummary.innerHTML = imageSummaryHtml;
-            document.querySelector('#shareImageBtn').classList.remove('hidden');
+            buildImageChips(data);
         })
         .catch( (error) => {
             console.error('Error fetching the image URL:', error);
             document.querySelector('#imageSummary').innerHTML = '<p class="fetchError">The image details could not be loaded. Please try again later.</p>';
-            document.querySelector('#shareImageBtn').classList.add('hidden');
         });
+    }
+
+    // Copy the current command (install-section mechanism: hidden #copyText
+    // input); the button label flips to "Copied" for a moment as feedback.
+    function copyCommand() {
+        const copyText = document.getElementById('copyText');
+        copyText.value = imageUrl.textContent.trim();
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+
+        const button = document.querySelector('.copyCommandBtn');
+        button.innerText = 'Copied';
+        setTimeout( () => { button.innerText = 'Copy command'; }, 1500);
+
+        // The page's one conversion metric
+        if(typeof gtag === 'function') {
+            gtag('event', 'copy_command', { command: document.querySelector('input[name="command"]:checked').id });
+        }
+    }
+
+    function toggleImageDetails() {
+        const checkout = document.getElementById('checkout');
+        checkout.classList.toggle('hidden');
+        document.getElementById('detailsToggle').innerHTML =
+            checkout.classList.contains('hidden') ? 'Details &#9662;' : 'Details &#9652;';
+    }
+
+    function clearExtensionSelection() {
+        document.querySelectorAll('li.extension input.enableExtension:checked').forEach( (checkbox) => {
+            checkbox.checked = false;
+            checkbox.closest('li.extension').classList.remove('active');
+        });
+        const url = (new URL(window.location));
+        url.searchParams.delete('extensions');
+        history.pushState(null, '', url);
+        getImageUrl();
+    }
+
+    // Image-details chips next to the command box
+    function buildImageChips(data) {
+        const chips = [];
+        const version = data.image.flavor.versions[0];
+        chips.push(`<span class="chip">Postgres ${version.majorVersion}.${version.minorVersion}</span>`);
+        if(platformSelector.selectedIndex !== -1 && platformSelector.options.length) {
+            chips.push(`<span class="chip">${platformSelector.options[platformSelector.selectedIndex].text}</span>`);
+        }
+        data.image.addons.forEach( (addon) => {
+            chips.push(`<span class="chip capitalFirstLetter">${addon.name} ${addon.version}</span>`);
+        });
+        version.extensions.forEach( (ext) => {
+            chips.push(`<span class="chip accent">${ext.name} ${ext.version}</span>`);
+        });
+        document.getElementById('imageChips').innerHTML = chips.join('');
     }
 
     function togglePatroniVersions() {
         patroniVersions.toggleAttribute('disabled');
+        patroniVersions.classList.toggle('hidden');
     }
 
     function getAddons() {
@@ -634,28 +697,18 @@ breadcrumbs: false
         }
         return response.json();
     })
-    .then(data =>
+    .then(data => {
+        platformSelector.innerHTML = '';
         data.platforms.forEach(platform => {
-            const input = document.createElement('label');
-            input.innerHTML = `
-                ${platform.os}/${platform.architecture}
-                <input
-                    type="radio"
-                    name="platform"
-                    id="platform-${platform.architecture}"
-                    value="${platform.architecture}"
-                    class="getOptions"
-                    ${platform.architecture === 'amd64' && 'checked'}
-                    onchange="getVersions('${platform.architecture}')"
-                />
-            `;
-
-            input.classList.add('radioLabel');
-            input.setAttribute('for', `platform-${platform.architecture}`);
-
-            platformContainer.appendChild(input);
-        })
-    )
+            addOption(
+                'platform',
+                platform.architecture,
+                `${platform.os}/${platform.architecture}`,
+                (platform.architecture === 'amd64')
+            );
+        });
+        platformSelector.removeAttribute('disabled');
+    })
     .then( () => {
         getVersions();
         getAddons();
@@ -666,7 +719,7 @@ breadcrumbs: false
     })
     .catch( (error) => {
         console.error('Error fetching the available platforms:', error);
-        platformContainer.innerHTML = '<p class="fetchError">The image builder could not be loaded. Please try again later.</p>';
+        platformSelector.insertAdjacentHTML('afterend', '<p class="fetchError">The image builder could not be loaded. Please try again later.</p>');
     });
 
 
@@ -694,6 +747,7 @@ breadcrumbs: false
             return response.json();
         })
         .then( (data) => {
+            versionSelector.innerHTML = '<option disabled>Choose version...</option>';
             data.versions.forEach(version => {
                 addOption(
                     'version',
@@ -791,6 +845,15 @@ breadcrumbs: false
                 url.searchParams.delete('patroni');
                 url.searchParams.delete('patroniVersion');
             }
+
+            const platform = document.querySelector('#platform:not([disabled])');
+            if(platform && platform.options.length) {
+                if(platform.value !== 'amd64') {
+                    url.searchParams.set('platform', platform.value);
+                } else {
+                    url.searchParams.delete('platform');
+                }
+            }
             history.pushState(null, '', url);
         }
     }
@@ -824,7 +887,7 @@ breadcrumbs: false
         });
         
         // Set SELECT inputs
-        ['version','patroniVersion'].forEach( (id) => {
+        ['platform','version','patroniVersion'].forEach( (id) => {
             if(urlParams.has(id)) {
                 let select = document.querySelector(`[name="${id}"]`);
             
@@ -925,12 +988,13 @@ breadcrumbs: false
             extData = extensionsList[version];
         }
 
+        const previouslySelected = [...document.querySelectorAll('li.extension.active')].map( (ext) => ext.dataset.name);
         const defaultExtEnabled = getDefaultExtEnabled();
         
         let extHtml = `
                 <li class="extension extHeader">
                     <span class="name">
-                        Name
+                        Extension
                     </span>
                     <span class="extInfo">
                         <span class="version">
@@ -938,6 +1002,9 @@ breadcrumbs: false
                         </span>
                         <span class="description">
                             Description
+                        </span>
+                        <span class="tags">
+                            Tags
                         </span>
                     </span>
                 </li>`;
@@ -953,6 +1020,7 @@ breadcrumbs: false
                             class="plain enableExtension"
                             onchange="${ ext.extensionVersions.length ? 'toggleExtension(\'' + ext.name + '\')' : ''}"
                             value='{"name":"${ext.name}"}'
+                            aria-label="Select ${ext.name}"
                             ${defaultExtEnabled.includes(ext.name) ? 'checked' : ''}
                             ${ !ext.extensionVersions.length ? 'disabled' : ''}
                             ${ (ext.extensionVersions.length == 0) ? 'title="This extension is not available for the Postgres version you selected"' : ''}
@@ -988,10 +1056,14 @@ breadcrumbs: false
                             onclick="${ ext.extensionVersions.length ? 'toggleExtension(\'' + ext.name + '\', true)' : ''}"
                         >
                             <p>
-                                ${ext.metadata.longDescription}
+                                ${ext.metadata.longDescription || ext.metadata.description || ''}
                             </p>
                         </span>
-                        <button class="btn plain viewExtensionDetails" onclick="viewExtensionDetails('${ext.name}')">▾</button>
+                        <span class="tags">${
+                            (ext.extensionVersions.length && ext.extensionVersions[0].metadata.keywords || [])
+                                .slice(0, 3).map( (keyword) => `<span class="tag">${keyword}</span>`).join('')
+                        }</span>
+                        <button class="btn plain viewExtensionDetails" onclick="viewExtensionDetails('${ext.name}')" aria-label="Toggle ${ext.name} details">▾</button>
                     </span>
                     <div class="extDetails">`;
 
@@ -1109,11 +1181,48 @@ breadcrumbs: false
         const extensions = document.querySelector('#extensions');
         extensions.classList.remove('hidden');
 
+        // Selections that did not survive the version/platform change
+        const removed = previouslySelected.filter( (name) => {
+            const checkbox = document.querySelector(`li.extension[data-name="${name}"] input.enableExtension`);
+            return !checkbox || !checkbox.checked;
+        });
+        const extNotice = document.getElementById('extNotice');
+        if(removed.length) {
+            const platformLabel = (platformSelector.selectedIndex !== -1 && platformSelector.options.length)
+                ? platformSelector.options[platformSelector.selectedIndex].text
+                : 'this platform';
+            extNotice.innerText = `${removed.length} extension${removed.length > 1 ? 's' : ''} not available on ${platformLabel} ${removed.length > 1 ? 'were' : 'was'} removed: ${removed.join(', ')}`;
+            extNotice.classList.remove('hidden');
+            syncExtensionsUrlParam();
+        } else {
+            extNotice.classList.add('hidden');
+        }
+
         setExtensionsFromUrl();
         filterContainerExtensions();
     }
 
-    function getExtensions(architecture = 'amd64', flavor = 'postgres', majorVersion = '', minorVersion = '') {
+    // Rebuild the extensions share-url param from what is actually checked
+    function syncExtensionsUrlParam() {
+        const url = (new URL(window.location));
+        const checked = [...document.querySelectorAll('li.extension input.enableExtension:checked')]
+            .map( (checkbox) => {
+                const extObj = JSON.parse(checkbox.value);
+                return `${extObj.name}${Object.hasOwn(extObj, 'version') ? ('--' + extObj.version) : ''}`;
+            });
+        if(checked.length) {
+            url.searchParams.set('extensions', checked.join());
+        } else {
+            url.searchParams.delete('extensions');
+        }
+        history.pushState(null, '', url);
+    }
+
+    function getExtensions(architecture = '', flavor = 'postgres', majorVersion = '', minorVersion = '') {
+
+        if(!architecture.length) {
+            architecture = platformSelector.value || 'amd64';
+        }
 
         if(!majorVersion.length && !minorVersion.length) {
             majorVersion = versionSelector.value.split('.')[0];
@@ -1125,8 +1234,9 @@ breadcrumbs: false
             return;
         }
 
-        if(extensionsList.hasOwnProperty(majorVersion + '.' + minorVersion)) {
-            parseExtensionsData(majorVersion + '.' + minorVersion);
+        const extCacheKey = architecture + '/' + majorVersion + '.' + minorVersion;
+        if(extensionsList.hasOwnProperty(extCacheKey)) {
+            parseExtensionsData(extCacheKey);
         } else {
             fetch(`https://sgcr.dev/api/stackgres/v1/extensions?architecture=${architecture}&flavor=${flavor}&major=${majorVersion}&minor=${minorVersion}`)
             .then(response => {
@@ -1136,8 +1246,8 @@ breadcrumbs: false
                 return response.json();
             })
             .then( (data) => {
-                extensionsList[majorVersion + '.' + minorVersion] = data.extensions;
-                parseExtensionsData(majorVersion + '.' + minorVersion, data.extensions);
+                extensionsList[extCacheKey] = data.extensions;
+                parseExtensionsData(extCacheKey, data.extensions);
             })
             .catch( (error) => {
                 console.error('Error fetching the available extensions:', error);
@@ -1187,6 +1297,32 @@ breadcrumbs: false
         const extensionsCount = document.querySelector('span.extensionsCount');
         const extCount = document.querySelectorAll('li.extension:not(.extHeader):not(.disabled):not(.hidden)').length + document.querySelectorAll('li.extension.disabled:not(.hidden)').length;
         extensionsCount.innerHTML = '(' + extCount + ')';
+
+        // Footer counts: what the active tab currently shows vs its total
+        const activeAvailable = activeList && activeList.classList.contains('available');
+        const matching = document.querySelectorAll(
+            activeAvailable
+                ? 'li.extension:not(.extHeader):not(.disabled):not(.hidden)'
+                : 'li.extension.disabled:not(.hidden)'
+        ).length;
+        const tabTotal = document.querySelectorAll(
+            activeAvailable
+                ? 'li.extension:not(.extHeader):not(.disabled)'
+                : 'li.extension.disabled'
+        ).length;
+        document.getElementById('extShownCount').innerText = matching;
+        document.getElementById('extTotalCount').innerText = tabTotal;
+
+        // "N available for Postgres X on platform" sub-line
+        const availableTotal = document.querySelectorAll('li.extension:not(.extHeader):not(.disabled)').length;
+        const versionLabel = (versionSelector.selectedIndex !== -1 && versionSelector.options.length > 1)
+            ? versionSelector.options[versionSelector.selectedIndex].text.replace(/latest \((.+)\)/, '$1')
+            : '';
+        const platformLabel = (platformSelector.selectedIndex !== -1 && platformSelector.options.length)
+            ? platformSelector.options[platformSelector.selectedIndex].text
+            : '';
+        document.getElementById('extensionsSubtitle').innerText =
+            `${availableTotal} available for Postgres ${versionLabel} on ${platformLabel}`;
     }
 
     function clearExtFilter() {
@@ -1214,6 +1350,24 @@ breadcrumbs: false
         const popUp = document.querySelector('#popUp');
         popUp.classList.toggle('hidden');
     }
+
+    // The help icons open the page popup with their help text.
+    document.querySelectorAll('.helpTooltip[title]').forEach( (icon) => {
+        icon.setAttribute('role', 'button');
+        icon.setAttribute('tabindex', '0');
+        icon.setAttribute('aria-label', 'Help');
+        const openHelp = () => {
+            document.querySelector('#popUp .info').innerText = icon.getAttribute('title');
+            document.querySelector('#popUp').classList.remove('hidden');
+        };
+        icon.addEventListener('click', (event) => { event.preventDefault(); openHelp(); });
+        icon.addEventListener('keydown', (event) => {
+            if(event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openHelp();
+            }
+        });
+    });
 
     function isDefaultExtValueEnabled(extName) {
         extensionsList.find( (ext)=> {
