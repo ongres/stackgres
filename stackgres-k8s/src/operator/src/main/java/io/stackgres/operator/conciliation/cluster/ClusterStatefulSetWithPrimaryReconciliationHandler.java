@@ -379,8 +379,9 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
             .or(ClusterRolloutUtil::isPodReady)
             .or(pod -> ClusterRolloutUtil
                 .getPodRestartReasons(context, Optional.of(updatedSts), pod)
-                .requiresRestart())))) {
-      LOGGER.debug("A Pod is not ready nor failing and not pending restart, wait for it to become ready or fail");
+                .getReasons().contains(PodRestartReason.STATEFULSET))))) {
+      LOGGER.debug("A Pod is not ready nor failing and not created from a previous revision,"
+          + " wait for it to become ready or fail");
       return;
     }
     final Optional<Pod> anyOtherPodAndPendingRestartAnyReason = otherPods
