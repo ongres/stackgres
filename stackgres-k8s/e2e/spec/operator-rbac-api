@@ -1,6 +1,21 @@
 #!/bin/sh
 
+# The permissions of the admin user are cluster wide and shared with any other spec that calls
+# the REST API, that authenticates as the same user: while they are reduced to check the REST API
+# denies the request this spec has to be the only one running.
+e2e_exclusive_lock() {
+  true
+}
+
+# The exclusive specs run where the operator is not installed for them, so this spec installs it.
 e2e_test_install() {
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+  install_operator_only
+  wait_pods_running "$OPERATOR_NAMESPACE" 2
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
@@ -42,7 +57,8 @@ check_rbac_failure() {
   HTTP_STATUS="$(get_rbac_status "create")"
 
   kubectl delete clusterrolebinding stackgres-restapi-admin
-  kubectl create clusterrolebinding stackgres-restapi-admin --clusterrole=cluster-admin --user=admin
+  kubectl create clusterrolebinding stackgres-restapi-admin \
+    --clusterrole=stackgres-restapi-admin --user=admin
 
   if [ "$HTTP_STATUS" = "403" ]
   then
@@ -52,13 +68,14 @@ check_rbac_failure() {
   fi
 }
 
+# The admin user is bound to the cluster role of the chart, that only allows to read namespaces.
 check_rbac_list() {
   local PERMISSIONS_IN_RESPONSE
 
   PERMISSIONS_IN_RESPONSE="$(run_curl -r "stackgres/auth/rbac/can-i" -n "$CLUSTER_NAMESPACE" -e "-L" \
    | jq --compact-output -M -S '.unnamespaced.namespaces')"
 
-  if [ "$PERMISSIONS_IN_RESPONSE" = '["get","list","create","patch","delete"]' ]
+  if [ "$PERMISSIONS_IN_RESPONSE" = '["get","list"]' ]
   then
     success "rbac can-i permissions list is available"
   else

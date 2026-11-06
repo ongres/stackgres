@@ -15,7 +15,8 @@ public enum ShardedDbOpsEventReason implements OperatorEventReason {
   SHARDED_DBOPS_CREATED(NORMAL, "ShardedDbOpsCreated"),
   SHARDED_DBOPS_UPDATED(NORMAL, "ShardedDbOpsUpdated"),
   SHARDED_DBOPS_DELETED(NORMAL, "ShardedDbOpsDeleted"),
-  SHARDED_DBOPS_CONFIG_ERROR(WARNING, "ShardedDbOpsConfigFailed");
+  SHARDED_DBOPS_CONFIG_ERROR(WARNING, "ShardedDbOpsConfigFailed"),
+  SHARDED_DBOPS_PODS_TERMINATION_TIMEOUT(WARNING, "ShardedDbOpsPodsTerminationTimeout");
 
   private final Type type;
   private final String reason;

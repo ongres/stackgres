@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -18,6 +20,9 @@ import io.stackgres.common.KubernetesTestServerSetup;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
@@ -122,6 +127,36 @@ class ShardedClusterRequiredResourcesGeneratorTest {
     mockPoolConfig();
 
     generator.getRequiredResources(cluster);
+  }
+
+  @Test
+  void givenClusterWithoutPinnedExtensions_shouldGenerateClustersWithTheExtensions() {
+    mockProfile();
+    mockPgConfig();
+    mockPoolConfig();
+    cluster.getStatus().setExtensions(null);
+
+    List<HasMetadata> requiredResources = generator.getRequiredResources(cluster);
+
+    final List<String> pinnedExtensions = cluster.getStatus().getExtensions()
+        .stream()
+        .map(StackGresClusterInstalledExtension::getName)
+        .toList();
+    assertFalse(pinnedExtensions.isEmpty(),
+        "No extension was pinned in the status of the SGShardedCluster");
+    final List<StackGresCluster> generatedClusters = requiredResources.stream()
+        .filter(StackGresCluster.class::isInstance)
+        .map(StackGresCluster.class::cast)
+        .toList();
+    assertFalse(generatedClusters.isEmpty(), "No SGCluster was generated");
+    generatedClusters.forEach(generatedCluster -> assertEquals(
+        pinnedExtensions,
+        Optional.ofNullable(generatedCluster.getSpec().getPostgres().getExtensions())
+        .stream()
+        .flatMap(List::stream)
+        .map(StackGresClusterExtension::getName)
+        .toList(),
+        "Extensions of SGCluster " + generatedCluster.getMetadata().getName()));
   }
 
   void mockProfile() {

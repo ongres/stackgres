@@ -129,6 +129,47 @@ class ClusterPostgresVersionContextAppenderTest {
   }
 
   @Test
+  void clusterRolledOutByADbOps_shouldStillSetTheTargetPostgresVersion() {
+    cluster.getStatus().setPostgresVersion(FIRST_PG_MINOR_VERSION);
+    cluster.getSpec().getPostgres().setVersion(SECOND_PG_MINOR_VERSION);
+    cluster.getMetadata().setAnnotations(Map.of(
+        StackGresContext.ROLLOUT_KEY, StackGresContext.ROLLOUT_ALWAYS_VALUE,
+        StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY, "major-version-upgrade"));
+
+    contextAppender.appendContext(cluster, contextBuilder);
+
+    // An operation that rolls out the pods by itself, like the major version upgrade, changes the
+    // version of the cluster and waits for the operator to apply it to the StatefulSet: the
+    // version it set has to be pinned although the operator is not the one rolling the pods out.
+    assertEquals(SECOND_PG_MINOR_VERSION, cluster.getStatus().getPostgresVersion());
+  }
+
+  @Test
+  void clusterRolledBackByAMajorVersionUpgrade_shouldSetThePreviousMajorVersion() {
+    cluster.getStatus().setPostgresVersion(POSTGRES_VERSION);
+    cluster.getSpec().getPostgres().setVersion(FIRST_PG_MINOR_VERSION);
+    final StackGresClusterDbOpsStatus dbOps = new StackGresClusterDbOpsStatus();
+    dbOps.setMajorVersionUpgrade(new StackGresClusterDbOpsMajorVersionUpgradeStatus());
+    cluster.getStatus().setDbOps(dbOps);
+
+    contextAppender.appendContext(cluster, contextBuilder);
+
+    // The rollback of a major version upgrade moves the cluster back to the major version it had
+    // before, and the operation waits for the StatefulSet to be updated with it: the change has to
+    // be applied while the operation is in progress, as the change to a newer major version is.
+    assertEquals(FIRST_PG_MINOR_VERSION, cluster.getStatus().getPostgresVersion());
+  }
+
+  @Test
+  void clusterWithoutAMajorVersionUpgrade_shouldNotSetAPreviousMajorVersion() {
+    cluster.getStatus().setPostgresVersion(POSTGRES_VERSION);
+    cluster.getSpec().getPostgres().setVersion(FIRST_PG_MINOR_VERSION);
+
+    assertThrows(IllegalArgumentException.class,
+        () -> contextAppender.appendContext(cluster, contextBuilder));
+  }
+
+  @Test
   void clusterWithFinalPostgresVersion_shouldSetIt() {
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
 

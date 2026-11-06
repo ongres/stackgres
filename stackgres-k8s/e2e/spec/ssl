@@ -43,7 +43,13 @@ generated_ssl_check() {
 
   ssl_check
 
-  wait_until eval '! kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls -l /etc/ssl/tls.key | grep -qF "$(printf %s "$SSL_KEY_FILE" | cut -d " " -f 2-)"'
+  # The certificate is re-generated when what is left of its validity is shorter than the validity
+  # gap, that is a twelfth of the duration but at least one day, so with a duration of P1DT2M it
+  # only becomes renewable 2 minutes after it has been generated. From there the operator still has
+  # to run a reconciliation cycle (60 seconds by default) and the kubelet has to refresh the
+  # projected secret (its sync period, 60 seconds by default) before the new key appears in
+  # /etc/ssl/tls.key, which adds up to more than E2E_TIMEOUT.
+  wait_until -t "$((E2E_TIMEOUT * 2))" eval '! kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls -l /etc/ssl/tls.key | grep -qF "$(printf %s "$SSL_KEY_FILE" | cut -d " " -f 2-)"'
 
   NEW_SSL_KEY_FILE="$(wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls -l /etc/ssl/tls.key)"
 

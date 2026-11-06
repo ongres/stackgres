@@ -160,9 +160,11 @@ spec:
 
 ### Connecting Through Query Routers
 
-Each query router SGCluster exposes a Kubernetes Service named after the SGCluster (for example `cluster-router0`). Applications can connect through any of these services to issue read/write queries; the query router will forward the query to the appropriate worker.
+The operator creates a Kubernetes Service named after the SGShardedCluster with the `-routers` suffix (for example `cluster-routers`) that points to the Pods of all the query routers. Each new connection to this Service is sent to one of the query routers, so it is the single entrypoint to give to applications that issue read/write queries through the query routers; the query router will forward the query to the appropriate worker. Scaling `spec.coordinator.queryRouterClusters` adds or removes query routers from this Service without changing its name.
 
-You can enable, disable or customize the type of the query router primary services centrally through `spec.postgresServices.coordinator.queryRouters`:
+In addition, each query router SGCluster exposes its own Kubernetes Service named after the SGCluster (for example `cluster-router0`), useful to reach a specific query router.
+
+You can enable, disable or customize the `-routers` Service (type, node ports, load balancer settings and so on) through `spec.postgresServices.coordinator.queryRouters`:
 
 ```yaml
 spec:
@@ -173,7 +175,9 @@ spec:
         enabled: true
 ```
 
-This setting is propagated to the primary Service of every query router SGCluster. Replicas Services on query router SGClusters are always disabled because query routers are single-instance clusters.
+The `enabled` field is also propagated to the primary Service of every query router SGCluster, while the other fields only apply to the `-routers` Service: the Service of each query router SGCluster is always of type `ClusterIP`. Replicas Services on query router SGClusters are always disabled because query routers are single-instance clusters.
+
+Custom annotations and labels for the `-routers` Service can be set with `spec.metadata.annotations.queryRoutersPrimariesService` and `spec.metadata.labels.queryRoutersPrimariesService`.
 
 ### Overriding Specific Query Routers
 

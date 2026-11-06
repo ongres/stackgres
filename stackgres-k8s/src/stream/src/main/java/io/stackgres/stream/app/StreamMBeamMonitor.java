@@ -6,6 +6,9 @@
 package io.stackgres.stream.app;
 
 import java.lang.management.ManagementFactory;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -122,8 +125,19 @@ public class StreamMBeamMonitor {
       return mbeanInfo;
     }
 
-    public Object getAttribute(String attributeName) throws Exception {
-      return platformMBeanServer.getAttribute(objectName, attributeName);
+    /**
+     * The values of the attributes, read in a single operation so that they are as close as
+     * possible to the values the MBean holds at the same instant. The attributes that can not be
+     * read are not returned, as {@link MBeanServer#getAttributes} does.
+     */
+    public Map<String, Object> getAttributes(List<String> attributeNames) throws Exception {
+      final Map<String, Object> attributes = new HashMap<>();
+      for (var attribute : platformMBeanServer
+          .getAttributes(objectName, attributeNames.toArray(String[]::new))
+          .asList()) {
+        attributes.put(attribute.getName(), attribute.getValue());
+      }
+      return attributes;
     }
   }
 

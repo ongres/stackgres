@@ -95,7 +95,7 @@ public class ClusterReplicationInitializationContextAppender {
     final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
         .get(cluster)
         .getMajorVersion(version);
-    return Seq.seq(backupScanner.getResources(cluster.getMetadata().getNamespace()))
+    final var backupsAndSecrets = Seq.seq(backupScanner.getResources(cluster.getMetadata().getNamespace()))
         .filter(backup -> backup.getSpec().getSgCluster().equals(
             cluster.getMetadata().getName()))
         .filter(backup -> BackupStatus.isCompleted(backup))
@@ -150,16 +150,22 @@ public class ClusterReplicationInitializationContextAppender {
             .stream()
             .map(entry -> Map.entry(entry.getKey(), entry.getValue().get()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
-        .skipUntil(backupAndFoundSecrets -> Optional.of(cluster)
-            .map(StackGresCluster::getStatus)
-            .map(StackGresClusterStatus::getReplicationInitializationFailedSgBackup)
-            .map(backupAndFoundSecrets.v1.getMetadata().getName()::equals)
+        .toList();
+    // The SGBackup that failed to initialize a replica is only used as the position from which to
+    // retry with an older SGBackup while it still is a candidate. Once it is not (because it is too
+    // old, invalid or has been removed) all the candidates are considered again, otherwise no
+    // SGBackup would ever be selected anymore.
+    final var failedSgBackup = Optional.of(cluster)
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getReplicationInitializationFailedSgBackup)
+        .filter(failedSgBackupName -> backupsAndSecrets.stream()
+            .anyMatch(backupAndSecrets -> backupAndSecrets.v1.getMetadata().getName()
+                .equals(failedSgBackupName)));
+    return Seq.seq(backupsAndSecrets)
+        .skipUntil(backupAndSecrets -> failedSgBackup
+            .map(backupAndSecrets.v1.getMetadata().getName()::equals)
             .orElse(true))
-        .skip(Optional.of(cluster)
-            .map(StackGresCluster::getStatus)
-            .map(StackGresClusterStatus::getReplicationInitializationFailedSgBackup)
-            .map(ignore -> 1)
-            .orElse(0))
+        .skip(failedSgBackup.map(ignore -> 1).orElse(0))
         .findFirst();
   }
 
@@ -186,33 +192,46 @@ public class ClusterReplicationInitializationContextAppender {
         .filter(backup -> backup.getSpec().getSgCluster().equals(
             cluster.getMetadata().getName()))
         .filter(backup -> backup.getStatus() == null
-            || BackupStatus.isFinished(backup)
-            || Optional.ofNullable(backup.getStatus())
-            .filter(status -> Optional.of(status)
-                .map(StackGresBackupStatus::getSgBackupConfig)
-                .map(StackGresBackupConfigSpec::getStorage)
-                .equals(backupObjectStorage.map(StackGresObjectStorage::getSpec)))
-            .filter(status -> Optional.of(status)
-                .map(StackGresBackupStatus::getBackupPath)
-                .equals(Optional
-                    .ofNullable(cluster.getSpec().getConfigurations().getBackups())
-                    .map(Collection::stream)
-                    .flatMap(Stream::findFirst)
-                    .map(StackGresClusterBackupConfiguration::getPath)))
-            .filter(status -> Optional.of(status)
-                .map(StackGresBackupStatus::getBackupInformation)
-                .map(StackGresBackupInformation::getPostgresMajorVersion)
-                .filter(postgresMajorVersion::equals)
-                .isPresent())
-            .filter(status -> BackupStatus.isCompleted(backup))
-            .map(StackGresBackupStatus::getProcess)
-            .map(StackGresBackupProcess::getTiming)
-            .map(StackGresBackupTiming::getEnd)
-            .map(Instant::parse)
-            .or(() -> Optional.of(now))
-            .filter(end -> backupNewerThan.map(end::isAfter).orElse(true))
-            .isPresent())
+            || !BackupStatus.isCompleted(backup)
+            || isStillUsableToInitializeAReplica(
+                cluster, backup, backupObjectStorage, postgresMajorVersion, backupNewerThan))
         .findFirst();
+  }
+
+  /**
+   * A completed SGBackup is only kept as the SGBackup to create while it still can be used to
+   * initialize a replica. When it can not a new SGBackup has to be created, otherwise the
+   * SGCluster would never be able to reach the configured number of instances.
+   */
+  private boolean isStillUsableToInitializeAReplica(
+      StackGresCluster cluster,
+      StackGresBackup backup,
+      Optional<StackGresObjectStorage> backupObjectStorage,
+      String postgresMajorVersion,
+      Optional<Instant> backupNewerThan) {
+    return Optional.of(backup.getStatus())
+        .filter(status -> Optional.of(status)
+            .map(StackGresBackupStatus::getSgBackupConfig)
+            .map(StackGresBackupConfigSpec::getStorage)
+            .equals(backupObjectStorage.map(StackGresObjectStorage::getSpec)))
+        .filter(status -> Optional.of(status)
+            .map(StackGresBackupStatus::getBackupPath)
+            .equals(Optional
+                .ofNullable(cluster.getSpec().getConfigurations().getBackups())
+                .map(Collection::stream)
+                .flatMap(Stream::findFirst)
+                .map(StackGresClusterBackupConfiguration::getPath)))
+        .filter(status -> Optional.of(status)
+            .map(StackGresBackupStatus::getBackupInformation)
+            .map(StackGresBackupInformation::getPostgresMajorVersion)
+            .filter(postgresMajorVersion::equals)
+            .isPresent())
+        .map(StackGresBackupStatus::getProcess)
+        .map(StackGresBackupProcess::getTiming)
+        .map(StackGresBackupTiming::getEnd)
+        .map(Instant::parse)
+        .filter(end -> backupNewerThan.map(end::isAfter).orElse(true))
+        .isPresent();
   }
 
 }

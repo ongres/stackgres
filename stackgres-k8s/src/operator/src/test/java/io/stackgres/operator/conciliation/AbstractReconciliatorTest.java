@@ -18,6 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceWriter;
@@ -115,6 +117,30 @@ class AbstractReconciliatorTest {
     verify(reconciliator, times(0)).onError(any(), any());
     verify(reconciliator, times(0)).onConfigCreated(any(), any());
     verify(reconciliator, times(0)).onConfigUpdated(any(), any());
+  }
+
+  @Test
+  void shouldNotReconcileIfPausedAfterTheReconciliationHasBeenQueued() {
+    TestResource pausedCustomResource = new TestResource();
+    pausedCustomResource.setMetadata(new ObjectMeta());
+    pausedCustomResource.getMetadata().setName(customResource.getMetadata().getName());
+    pausedCustomResource.getMetadata().setNamespace(customResource.getMetadata().getNamespace());
+    pausedCustomResource.getMetadata().setUid(customResource.getMetadata().getUid());
+    pausedCustomResource.getMetadata().setAnnotations(
+        Map.of(StackGresContext.RECONCILIATION_PAUSE_KEY, "true"));
+    when(finder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(pausedCustomResource));
+
+    reconciliator.reconcile(customResource);
+
+    verify(reconciliator, timeout(1000).times(1))
+        .reconciliationCycle(any(), anyInt(), anyBoolean());
+
+    reconciliator.stop();
+
+    verify(conciliator, times(0)).evalReconciliationState(any());
+    verify(reconciliator, times(0)).onPreReconciliation(any());
+    verify(reconciliator, times(0)).onPostReconciliation(any());
   }
 
   @Test

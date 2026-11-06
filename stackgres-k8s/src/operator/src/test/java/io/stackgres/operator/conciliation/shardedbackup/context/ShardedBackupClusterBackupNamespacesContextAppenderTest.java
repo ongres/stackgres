@@ -129,4 +129,21 @@ class ShardedBackupClusterBackupNamespacesContextAppenderTest {
     verify(contextBuilder).clusterBackupNamespaces(Set.of("copied", "other-copied"));
   }
 
+  @Test
+  void givenClusterWithBackupsOfAnotherClusterInOtherNamespaces_shouldPass() {
+    when(backupScanner.getResources()).thenReturn(
+        List.of(
+            new StackGresShardedBackupBuilder()
+            .withNewMetadata()
+            .withNamespace("copied")
+            .withName("copied")
+            .endMetadata()
+            .withNewSpec()
+            .withSgShardedCluster("another-namespace.another-cluster")
+            .endSpec()
+            .build()));
+    contextAppender.appendContext(backup, contextBuilder);
+    verify(contextBuilder).clusterBackupNamespaces(Set.of());
+  }
+
 }

@@ -148,6 +148,9 @@ EOF
       DBOPS="$({ kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf .; } | jq -c .)"
       DBOPS="$(printf '%s' "$DBOPS" | jq -c '.status.dbOps = '"$DBOPS_PATCH")"
       DBOPS="$(printf '%s' "$DBOPS" | jq -c '.metadata.annotations["'"$ROLLOUT_DBOPS_KEY"'"] = "'"$DBOPS_NAME"'"')"
+      # This operation restarts the Pods of the cluster by itself: the annotation tells the
+      # operator not to roll them out while it does
+      DBOPS="$(printf '%s' "$DBOPS" | jq -c '.metadata.annotations["'"$ROLLOUT_DBOPS_MANAGED_KEY"'"] = "'"$DBOPS_NAME"'"')"
       printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
       }
     do
@@ -351,7 +354,7 @@ EOF
     echo "Restarting primary instance $PRIMARY_INSTANCE to perform major version upgrade..."
     create_event "MajorVersionUpgradeStarted" "Normal" "Major version upgrade started on instance $PRIMARY_INSTANCE"
 
-    kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE"
+    kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --ignore-not-found
 
     echo "done"
     echo
@@ -398,7 +401,7 @@ EOF
     echo "Restarting primary instance $PRIMARY_INSTANCE to perform major version upgrade check..."
     create_event "MajorVersionUpgradeCheckStarted" "Normal" "Major version upgrade check started on instance $PRIMARY_INSTANCE"
 
-    kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE"
+    kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --ignore-not-found
 
     echo "done"
     echo
@@ -456,7 +459,7 @@ EOF
   echo
 
   until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
-      jq 'del(.status.dbOps) | del(.metadata.annotations["'"$ROLLOUT_DBOPS_KEY"'"])' | \
+      jq 'del(.status.dbOps) | del(.metadata.annotations["'"$ROLLOUT_DBOPS_KEY"'"]) | del(.metadata.annotations["'"$ROLLOUT_DBOPS_MANAGED_KEY"'"])' | \
       kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
   do
     retry_backoff
@@ -867,7 +870,7 @@ rollback_major_version_upgrade() {
   echo "Restarting primary instance $PRIMARY_INSTANCE to perform major version upgrade rollback..."
   create_event "MajorVersionUpgradeRollbackStarted" "Normal" "Major version upgrade rollback started on instance $PRIMARY_INSTANCE"
 
-  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE"
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --ignore-not-found
 
   echo "done"
   echo
@@ -888,6 +891,16 @@ rollback_major_version_upgrade() {
   echo "done"
   echo
 
+  # The cluster was downscaled to its primary to perform the upgrade, so it is scaled back up here
+  # as it is when the upgrade completes: a rollback restores the cluster as it was, and leaving it
+  # with its primary alone would silently remove the replicas of a cluster whose upgrade was only
+  # rolled back.
+  PHASE="upscale"
+  echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+  update_status
+
+  upscale_cluster_instances
+
   PHASE="cleanup"
   echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
 
@@ -895,7 +908,7 @@ rollback_major_version_upgrade() {
   echo
 
   until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
-      jq 'del(.status.dbOps) | del(.metadata.annotations["'"$ROLLOUT_DBOPS_KEY"'"])' | \
+      jq 'del(.status.dbOps) | del(.metadata.annotations["'"$ROLLOUT_DBOPS_KEY"'"]) | del(.metadata.annotations["'"$ROLLOUT_DBOPS_MANAGED_KEY"'"])' | \
       kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
   do
     retry_backoff

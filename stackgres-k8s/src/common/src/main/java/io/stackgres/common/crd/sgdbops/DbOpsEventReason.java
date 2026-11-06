@@ -15,7 +15,8 @@ public enum DbOpsEventReason implements OperatorEventReason {
   DBOPS_CREATED(NORMAL, "DbOpsCreated"),
   DBOPS_UPDATED(NORMAL, "DbOpsUpdated"),
   DBOPS_DELETED(NORMAL, "DbOpsDeleted"),
-  DBOPS_CONFIG_ERROR(WARNING, "DbOpsConfigFailed");
+  DBOPS_CONFIG_ERROR(WARNING, "DbOpsConfigFailed"),
+  DBOPS_PODS_TERMINATION_TIMEOUT(WARNING, "DbOpsPodsTerminationTimeout");
 
   private final Type type;
   private final String reason;

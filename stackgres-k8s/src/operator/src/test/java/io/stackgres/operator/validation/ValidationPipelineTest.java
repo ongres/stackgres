@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.validation;
 
+import java.time.Instant;
 import java.util.Collections;
 
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
@@ -48,6 +49,15 @@ public abstract class ValidationPipelineTest<R extends CustomResource<?, ?>,
     T review = getConstraintViolatingReview();
     review.getRequest().setOperation(Operation.UPDATE);
     review.getRequest().setOldObject(getConstraintViolatingReview().getRequest().getObject());
+    getPipeline().validate(review);
+  }
+
+  @Test
+  void updatesOfAResourceBeingDeleted_shouldBeValidated() throws ValidationFailed {
+    T review = getConstraintViolatingReview();
+    review.getRequest().setOperation(Operation.UPDATE);
+    review.getRequest().getObject().getMetadata()
+        .setDeletionTimestamp(Instant.now().toString());
     getPipeline().validate(review);
   }
 

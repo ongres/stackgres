@@ -99,19 +99,3 @@ check_sharded_mock_data() {
     fail "Mock data did not survive the upgrade"
   fi
 }
-
-check_sharded_members_postgres_version() {
-  local VERSION="$1"
-  local SUFFIX
-  for SUFFIX in coord worker0 worker1
-  do
-    if kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$SUFFIX-0" \
-      --template '{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}' \
-      | grep -qF -- "-pg${VERSION}-"
-    then
-      success "Member $CLUSTER_NAME-$SUFFIX is running postgres $VERSION"
-    else
-      fail "Member $CLUSTER_NAME-$SUFFIX is not running postgres $VERSION"
-    fi
-  done
-}

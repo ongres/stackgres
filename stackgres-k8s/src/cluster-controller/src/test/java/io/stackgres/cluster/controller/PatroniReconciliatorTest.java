@@ -14,6 +14,7 @@ import java.util.Map;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
+import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.Test;
 
@@ -73,6 +74,24 @@ class PatroniReconciliatorTest {
     StackGresCluster cluster = clusterWithStartGateAnnotations(Map.of("a", "1", "b", "2"));
     cluster.getMetadata().setAnnotations(Map.of("a", "1", "b", "2", "c", "3"));
     assertFalse(PatroniReconciliator.isStartGateClosed(cluster));
+  }
+
+  @Test
+  void getPodAssignedReplicationRole_ofAPodOfTheCluster_returnsTheRoleOfItsGroup() {
+    StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getSpec().setInstances(2);
+    assertEquals(StackGresReplicationRole.HA_READ,
+        PatroniReconciliator.getPodAssignedReplicationRole(cluster, "test-1").orElseThrow().v1);
+  }
+
+  @Test
+  void getPodAssignedReplicationRole_ofAPodBeyondTheInstances_returnsEmpty() {
+    // The additional Pod of a rollout with the reduced impact method belongs to no replication
+    // group, so it has no tags to be written and its Patroni has to be allowed to start anyway.
+    StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getSpec().setInstances(2);
+    assertTrue(
+        PatroniReconciliator.getPodAssignedReplicationRole(cluster, "test-2").isEmpty());
   }
 
   private StackGresCluster clusterWithStartGateAnnotations(Map<String, String> startGateAnnotations) {

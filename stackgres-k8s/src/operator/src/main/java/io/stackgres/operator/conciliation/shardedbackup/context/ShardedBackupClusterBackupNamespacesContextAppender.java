@@ -33,19 +33,30 @@ public class ShardedBackupClusterBackupNamespacesContextAppender
 
   @Override
   public void appendContext(StackGresShardedBackup backup, Builder contextBuilder) {
+    final String clusterNamespace = StackGresUtil.getNamespaceFromRelativeId(
+        backup.getSpec().getSgShardedCluster(), backup.getMetadata().getNamespace());
+    final String clusterName = StackGresUtil.getNameFromRelativeId(
+        backup.getSpec().getSgShardedCluster());
     final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(
-        backup.getMetadata().getNamespace());
+        backup.getMetadata().getNamespace(),
+        clusterNamespace + "." + clusterName);
     contextBuilder.clusterBackupNamespaces(clusterBackupNamespaces);
   }
 
-  private Set<String> getClusterBackupNamespaces(final String backupNamespace) {
+  // Only the namespaces that hold a backup of this cluster are listed: the job that creates a
+  // backup lists the backups of each of them and keeps the ones of this cluster, so a namespace
+  // that holds a backup of another cluster contributes nothing, and the permission to list the
+  // backups of a namespace is only granted to the cluster the backups it holds belong to, so
+  // listing it fails with Forbidden and the job retries it for the whole backoff of retry.
+  private Set<String> getClusterBackupNamespaces(
+      final String backupNamespace, final String clusterRelativeId) {
     return backupScanner.getResources()
         .stream()
         .map(Optional::of)
         .filter(backup -> backup
             .map(StackGresShardedBackup::getSpec)
             .map(StackGresShardedBackupSpec::getSgShardedCluster)
-            .map(StackGresUtil::isRelativeIdNotInSameNamespace)
+            .map(clusterRelativeId::equals)
             .orElse(false))
         .map(backup -> backup
             .map(StackGresShardedBackup::getMetadata)

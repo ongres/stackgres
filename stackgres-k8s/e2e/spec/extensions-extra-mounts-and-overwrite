@@ -32,6 +32,7 @@ check_extension_with_extra_mount_installed_when_booting() {
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_until eval '[ -n "$(get_primary_index)" ]'
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[]
@@ -45,7 +46,7 @@ check_extension_with_extra_mount_installed_when_booting() {
     fail "postgis ($POSTGIS_VERSION) was not installed"
   fi
 
-  try_function run_query -i 0 -q 'CREATE EXTENSION postgis;'
+  try_function run_query -i "$(get_primary_index)" -q 'CREATE EXTENSION postgis;'
   if "$RESULT"
   then
     success "postgis ($POSTGIS_VERSION) was created"
@@ -60,7 +61,7 @@ check_extension_with_extra_mount_installed_when_booting() {
     fail "Cluster is pending restart after booting with postgis ($POSTGIS_VERSION)"
   fi
 
-  try_function run_query -i 0 -q "SELECT 'mpoint_7', ST_AsEWKT(ST_GeomFromGML('<gml:MultiPoint srsName=\"EPSG:27582\"><gml:pointMember><gml:Point><gml:coordinates>1,2</gml:coordinates></gml:Point></gml:pointMember><gml:pointMember><gml:Point srsName=\"EPSG:27562\"><gml:coordinates>400000,5000000</gml:coordinates></gml:Point></gml:pointMember></gml:MultiPoint>'));"
+  try_function run_query -i "$(get_primary_index)" -q "SELECT 'mpoint_7', ST_AsEWKT(ST_GeomFromGML('<gml:MultiPoint srsName=\"EPSG:27582\"><gml:pointMember><gml:Point><gml:coordinates>1,2</gml:coordinates></gml:Point></gml:pointMember><gml:pointMember><gml:Point srsName=\"EPSG:27562\"><gml:coordinates>400000,5000000</gml:coordinates></gml:Point></gml:pointMember></gml:MultiPoint>'));"
   if "$RESULT"
   then
     success "postgis ($POSTGIS_VERSION) has extra mount installed correctly"
@@ -91,7 +92,9 @@ check_extension_with_same_shared_library_when_added() {
     fail "postgis_raster ($POSTGIS_RASTER_VERSION) was not installed"
   fi
 
-  try_function run_query -i 0 -q 'CREATE EXTENSION postgis_raster;'
+  wait_until eval '[ -n "$(get_primary_index)" ]'
+
+  try_function run_query -i "$(get_primary_index)" -q 'CREATE EXTENSION postgis_raster;'
   if "$RESULT"
   then
     success "postgis_raster ($POSTGIS_RASTER_VERSION) was created"

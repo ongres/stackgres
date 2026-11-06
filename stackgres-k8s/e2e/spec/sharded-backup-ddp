@@ -61,6 +61,11 @@ check_sharded_backup_is_working() {
 
   create_sharded_backup "$SHARDED_BACKUP_NAME_0" true
 
+  # The sharded backup only completes after all the backups it is composed of have completed, so
+  # it is awaited first: each backup is then already completed and is only asserted to be, and the
+  # time given to the sharded backup is not divided between the backups by awaiting them first.
+  wait_sharded_backup_is_completed "$SHARDED_BACKUP_NAME_0"
+
   local BACKUP_NAME
   local SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
   local CLUSTER_NAME
@@ -72,8 +77,6 @@ check_sharded_backup_is_working() {
     BACKUP_NAME="$SHARDED_BACKUP_NAME_0-$SUFFIX"
     wait_backup_is_completed "$BACKUP_NAME" "$NODE"
   done
-
-  wait_sharded_backup_is_completed "$SHARDED_BACKUP_NAME_0"
 
   if kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME_0" \
     --template='{{ range .status.sgBackups }}{{ . }} {{ end }}' \
@@ -271,7 +274,7 @@ rotate_wal_file_sharded_cluster() {
 
 check_init_data_after_restore() {
   local RESULT
-  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
+  RESULT="$(run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
     -q "SELECT num FROM fibonacci ORDER BY num;")"
   if printf '%s' "$RESULT" \
     | tr -d '\n' \
@@ -285,7 +288,7 @@ check_init_data_after_restore() {
 
 check_init_data_after_pitr() {
   local RESULT
-  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
+  RESULT="$(run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
     -q "SELECT num FROM fibonacci ORDER BY num;")"
   if printf '%s' "$RESULT" \
     | tr -d '\n' \

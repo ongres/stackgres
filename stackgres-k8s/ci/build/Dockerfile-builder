@@ -1,20 +1,26 @@
-####
+##
 # This Dockerfile is used in order to build a container that runs the StackGres builds
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile-builder -t registry.gitlab.com/ongresinc/stackgres/build-amd64:1.7 stackgres-k8s/ci/build/
-# #
 # docker build --platform linux/amd64,linux/arm64 -f stackgres-k8s/ci/build/Dockerfile-builder -t "registry.gitlab.com/ongresinc/stackgres/$(yq -r '.variables.BUILDER_IMAGE_NAME' .gitlab-ci.yml)" stackgres-k8s/ci/build/
 #
 # or:
 #
 # docker build -f stackgres-k8s/ci/build/Dockerfile-builder -t "registry.gitlab.com/ongresinc/stackgres/$(yq -r '.variables.BUILDER_IMAGE_NAME' .gitlab-ci.yml)-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
 #
-#
 ###
 
 FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-25.0.4.1
   USER root
+  RUN microdnf -y update ca-certificates
+  RUN $JAVA_HOME/bin/keytool -delete -cacerts -storepass changeit -noprompt \
+        -alias "cn_emsign_ecc_root_ca__g3,o_emudhra_technologies_limited,ou_emsign_pki,c_in [jdk]" || true \
+        && $JAVA_HOME/bin/keytool -delete -cacerts -storepass changeit -noprompt \
+          -alias "emsigneccrootcag3 [jdk]" || true \
+        && $JAVA_HOME/bin/keytool -delete -cacerts -storepass changeit -noprompt \
+          -alias "emsignrootcag2 [jdk]" || true \
+        && $JAVA_HOME/bin/keytool -delete -cacerts -storepass changeit -noprompt \
+          -alias "comodoaaaca [jdk]" || true
   RUN microdnf --nodocs install python3-pip jq util-linux findutils && microdnf clean all
   RUN pip3 install yamllint yq

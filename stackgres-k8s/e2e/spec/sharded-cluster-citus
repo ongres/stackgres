@@ -250,8 +250,12 @@ query_routers_check() {
     fail "SGCluster $ROUTER_CLUSTER was not created"
   fi
 
+  # A pod that is being removed is still Running, so the pod that is awaited is also required not
+  # to be terminating: it has to be the pod of a query router that was just started
   if try_function wait_until eval '[ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-      "$ROUTER_CLUSTER-0" --template "{{ .status.phase }}" 2>/dev/null)" = Running ]' \
+      "$ROUTER_CLUSTER-0" \
+      --template "{{ .status.phase }}{{ if .metadata.deletionTimestamp }} terminating{{ end }}" \
+      2>/dev/null)" = Running ]' \
     && "$RESULT"
   then
     success "Query router pod $ROUTER_CLUSTER-0 is Running"
@@ -437,6 +441,20 @@ query_routers_scaling_check() {
     fail "SGCluster $ROUTER_CLUSTER was not scaled down once removed from pg_dist_node"
   fi
 
+  # The pod of the query router is removed asynchronously after its SGCluster is scaled down, and
+  # the query routers are only scaled up again once it is gone: the coordinator registers the
+  # group of a query router with a placeholder host that only the Patroni of the query router
+  # replaces when it starts, so a query router whose Patroni never stopped would stay registered
+  # with the placeholder host and would never become active again.
+  if try_function wait_until eval '[ -z "$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+      "$ROUTER_CLUSTER-0" -o name 2>/dev/null)" ]' \
+    && "$RESULT"
+  then
+    success "Query router pod $ROUTER_CLUSTER-0 was removed once scaled down"
+  else
+    fail "Query router pod $ROUTER_CLUSTER-0 was not removed once scaled down"
+  fi
+
   # A stale query router would make Citus reject the addition of any node
   set_query_routers 2
   wait_query_router_registered "$ROUTER_CLUSTER" "$ROUTER_GROUP"
@@ -461,8 +479,12 @@ wait_query_router_registered() {
   local ROUTER_CLUSTER="$1"
   local ROUTER_GROUP="$2"
 
+  # A pod that is being removed is still Running, so the pod that is awaited is also required not
+  # to be terminating: it has to be the pod of a query router that was just started
   if try_function wait_until eval '[ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-      "$ROUTER_CLUSTER-0" --template "{{ .status.phase }}" 2>/dev/null)" = Running ]' \
+      "$ROUTER_CLUSTER-0" \
+      --template "{{ .status.phase }}{{ if .metadata.deletionTimestamp }} terminating{{ end }}" \
+      2>/dev/null)" = Running ]' \
     && "$RESULT"
   then
     success "Query router pod $ROUTER_CLUSTER-0 is Running"
@@ -478,6 +500,10 @@ wait_query_router_registered() {
   then
     success "Query router of group $ROUTER_GROUP is registered in pg_dist_node without shards"
   else
+    run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 -d citus \
+      -q "SELECT nodeid, groupid, nodename, nodeport, noderole, isactive, hasmetadata,
+        shouldhaveshards FROM pg_dist_node ORDER BY groupid" || true
+    kubectl get pod -n "$CLUSTER_NAMESPACE" "$ROUTER_CLUSTER-0" -o wide || true
     fail "Query router of group $ROUTER_GROUP is not registered in pg_dist_node without shards"
   fi
 

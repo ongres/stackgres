@@ -83,7 +83,7 @@ check_mock_data_replication(){
   local PRIMARY_INDEX
   local SERVER
   local RESPONSE_PRIMARY
-  PRIMARY_INDEX="$(get_primary_index)"
+  PRIMARY_INDEX="$(get_primary_index_or_first)"
   SERVER="replicas"
   RESPONSE_REPlICA="$(read_mock_table -i "$PRIMARY_INDEX")"
   if [ "$RESPONSE_PRIMARY" = "$RESPONSE_REPlICA" ]
@@ -95,12 +95,27 @@ check_mock_data_replication(){
   fi
 }
 
+# The index of the instance that is the primary of the cluster, or of its first instance when
+# none of them is, as happens when two clusters share an external DCS and the primary is an
+# instance of the other one: all the instances of this one are replicas of that primary
+get_primary_index_or_first() {
+  local PRIMARY_INDEX
+  PRIMARY_INDEX="$(get_primary_index)"
+  printf '%s' "${PRIMARY_INDEX:-0}"
+}
+
 get_replica_index() {
   kubectl -n "$CLUSTER_NAMESPACE" get pod -l role=replica | tail -n 1 | awk '{print $1}' | awk -F "-" '{print $NF}'
 }
 
 get_primary_index() {
-  PATRONI_MAJOR_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+  local POD
+  # Any Pod of the cluster can be asked for the version: the instance 0 may not be one of them,
+  # since a reduced impact restart leaves the primary in the instance that it adds for it
+  POD="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
+    -o name | head -n 1 | cut -d / -f 2)"
+  PATRONI_MAJOR_VERSION="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$POD" -c patroni -- \
     patronictl version 2>/dev/null | sed -n 's/^patronictl version \([0-9]\+\)\..*$/\1/p')"
   if [ "$PATRONI_MAJOR_VERSION" -lt 4 ]
   then

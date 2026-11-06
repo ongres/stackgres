@@ -22,6 +22,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.operator.conciliation.ContextAppender;
 import io.stackgres.operator.conciliation.cluster.context.ClusterPostgresVersionContextAppender;
+import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForUtil;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext.Builder;
 import io.stackgres.operator.validation.ValidationUtil;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -168,10 +169,18 @@ public class ShardedClusterPostgresVersionContextAppender
       clusterCoordinatorPostgresConfigContextAppender.appendContext(cluster, contextBuilder, version);
       clusterRestoreBackupContextAppender.appendContext(cluster, contextBuilder, version);
       var replicateCluster = shardedClusterReplicateFromContextAppender.appendContext(cluster, contextBuilder);
+      // The extensions are looked up using the SGCluster of the coordinator, that in turn is
+      // generated with the extensions pinned in the status of the SGShardedCluster (see
+      // StackGresShardedClusterForUtil.setPostgresExtensions). The SGCluster of the coordinator is
+      // therefore generated first, only to look up the extensions, and the pinned extensions are
+      // set on it right after, before the SGClusters of the workers and of the query routers are
+      // generated with them. Relying on the status alone would leave the SGCluster of the
+      // coordinator without extensions until the next reconciliation cycle.
       var coordinator = clusterCoordinatorContextAppender.appendContext(cluster, contextBuilder, replicateCluster);
-      clusterWorkersContextAppender.appendContext(cluster, contextBuilder, version, replicateCluster);
       clusterExtensionsContextAppender.appendContext(cluster, contextBuilder, version,
           buildVersion, previousVersion, previousBuildVersion, coordinator);
+      StackGresShardedClusterForUtil.setPostgresExtensions(cluster, coordinator.getSpec());
+      clusterWorkersContextAppender.appendContext(cluster, contextBuilder, version, replicateCluster);
     }
 
     if ((version == null && previousVersion.isEmpty())

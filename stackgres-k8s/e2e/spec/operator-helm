@@ -174,14 +174,7 @@ check_operator_upgrade_0_9_5() {
 }
 
 check_operator_upgrade_first_old_minor() {
-  local PREVIOUS_VERSION="$(
-    FIRST_OLDER_MINOR_VERSION="${STACKGRES_VERSION%.*}"
-    FIRST_OLDER_MINOR_VERSION="${FIRST_OLDER_MINOR_VERSION#*.}"
-    printf '%s.%s.%s' \
-      "${STACKGRES_VERSION%%.*}" \
-      "$((FIRST_OLDER_MINOR_VERSION - 1))" \
-      "${STACKGRES_VERSION##*.}"
-    )"
+  local PREVIOUS_VERSION="$(get_older_minor_version 1).${STACKGRES_VERSION##*.}"
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
     --overwrite "version=$PREVIOUS_VERSION"
   local EXIT_CODE RESULT
@@ -195,14 +188,7 @@ check_operator_upgrade_first_old_minor() {
 }
 
 check_operator_upgrade_second_old_minor() {
-  local PREVIOUS_VERSION="$(
-    FIRST_OLDER_MINOR_VERSION="${STACKGRES_VERSION%.*}"
-    FIRST_OLDER_MINOR_VERSION="${FIRST_OLDER_MINOR_VERSION#*.}"
-    printf '%s.%s.%s' \
-      "${STACKGRES_VERSION%%.*}" \
-      "$((FIRST_OLDER_MINOR_VERSION - 2))" \
-      "${STACKGRES_VERSION##*.}"
-    )"
+  local PREVIOUS_VERSION="$(get_older_minor_version 2).${STACKGRES_VERSION##*.}"
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
     --overwrite "version=$PREVIOUS_VERSION"
   local EXIT_CODE RESULT
@@ -243,22 +229,8 @@ check_operator_upgrade_with_cluster_using_first_and_second_old_versions() {
   CLUSTER_2_NAME="$(get_sgcluster_name "$SPEC_NAME-2")"
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
-  local PREVIOUS_VERSION_1="$(
-    FIRST_OLDER_MINOR_VERSION="${STACKGRES_VERSION%.*}"
-    FIRST_OLDER_MINOR_VERSION="${FIRST_OLDER_MINOR_VERSION#*.}"
-    printf '%s.%s.%s' \
-      "${STACKGRES_VERSION%%.*}" \
-      "$((FIRST_OLDER_MINOR_VERSION - 1))" \
-      "${STACKGRES_VERSION##*.}"
-    )"
-  local PREVIOUS_VERSION_2="$(
-    SECOND_OLDER_MINOR_VERSION="${STACKGRES_VERSION%.*}"
-    SECOND_OLDER_MINOR_VERSION="${SECOND_OLDER_MINOR_VERSION#*.}"
-    printf '%s.%s.%s' \
-      "${STACKGRES_VERSION%%.*}" \
-      "$((SECOND_OLDER_MINOR_VERSION - 2))" \
-      "${STACKGRES_VERSION##*.}"
-    )"
+  local PREVIOUS_VERSION_1="$(get_older_minor_version 1).${STACKGRES_VERSION##*.}"
+  local PREVIOUS_VERSION_2="$(get_older_minor_version 2).${STACKGRES_VERSION##*.}"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set-string cluster.postgres.version=13.9
