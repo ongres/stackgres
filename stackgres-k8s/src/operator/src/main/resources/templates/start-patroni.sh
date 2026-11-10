@@ -9,17 +9,6 @@ export PATRONI_RESTAPI_CONNECT_ADDRESS="$(eval "echo $PATRONI_RESTAPI_CONNECT_AD
 echo "Setting up scripts..."
 sh -e $SHELL_XTRACE "$TEMPLATES_PATH/setup-scripts.sh"
 
-
-echo "Waiting for the controller to setup things..."
-(
-  START="$(date +%s)"
-  set +x
-  until [ "$(( $(date +%s -r "$PATRONI_START_FILE_PATH" 2>/dev/null || printf 0) - START ))" -ge 0 ]
-  do
-    sleep 1
-  done
-)
-
 ## Restore
 if [ -n "$RECOVERY_FROM_BACKUP" ]
 then
@@ -181,7 +170,14 @@ REPLICATION_INITIALIZATION_FROM_REPLICA_EOF
   chmod 700 "$PATRONI_CONFIG_PATH/replication-initialization-from-replica.sh"
 fi
 
-## Patroni configuration 
+## Patroni configuration
+# The controller reloads Patroni only when the config file differs from the last one it reloaded
+# Patroni with, that survives the restart of this container. The config file is regenerated below
+# without what the controller writes into it, and a reconciliation cycle that read the previous
+# config file may allow Patroni to start before writing it again, so that once it is written the
+# config file would be equal to the last one and Patroni would never be reloaded with it. Removing
+# the last one makes the controller reload Patroni after this container restarts.
+rm -f "$PATRONI_CONFIG_PATH/last-${PATRONI_CONFIG_FILE_PATH##*/}"
 echo "Creating patroni configuration"
 cat << 'PATRONI_CONFIG_EOF' | exec-with-env "${PATRONI_ENV}" -- sh -e $SHELL_XTRACE
 cat << EOF > "$PATRONI_CONFIG_FILE_PATH".tmp
@@ -412,6 +408,21 @@ EOF
 PATRONI_CONFIG_EOF
 chmod 600 "$PATRONI_CONFIG_FILE_PATH".tmp
 mv "$PATRONI_CONFIG_FILE_PATH".tmp "$PATRONI_CONFIG_FILE_PATH"
+
+# The config file is generated before the controller is waited for so that the controller finds it
+# and writes the tags of the replication role of this member, and the rest of the configuration it
+# reconciles, into it. Patroni reads the file when it starts, so waiting here is what keeps it from
+# starting with the empty tags the template carries and being, for as long as a reconciliation
+# cycle, a candidate for failover and for the replicas service it was meant to stay out of.
+echo "Waiting for the controller to setup things..."
+(
+  START="$(date +%s)"
+  set +x
+  until [ "$(( $(date +%s -r "$PATRONI_START_FILE_PATH" 2>/dev/null || printf 0) - START ))" -ge 0 ]
+  do
+    sleep 1
+  done
+)
 
 cat << EOF > "${LOCAL_BIN_PATH}/postgres"
 #!/bin/sh

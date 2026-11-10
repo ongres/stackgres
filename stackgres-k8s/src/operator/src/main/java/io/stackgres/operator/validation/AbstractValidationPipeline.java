@@ -7,7 +7,10 @@ package io.stackgres.operator.validation;
 
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -49,10 +52,24 @@ public abstract class AbstractValidationPipeline<T extends AdmissionReview<?>>
   @Override
   public void validate(T review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
-      final Object object = review.getRequest().getObject();
-      final Object oldObject = review.getRequest().getOldObject();
+      final HasMetadata object = review.getRequest().getObject();
+      final HasMetadata oldObject = review.getRequest().getOldObject();
 
       if (Objects.equals(object, oldObject)) {
+        return;
+      }
+
+      // The deletion of a custom resource that has a finalizer only completes when the operator
+      // removes it, an update that the API server sends to this pipeline like any other. A
+      // validation that reads another resource, as the SGShardedCluster an SGShardedDbOps operates
+      // on, fails once that resource has been deleted, and the rejected update leaves the
+      // finalizer where it is: the custom resource, and the namespace that holds it, then stay
+      // terminating forever. A custom resource that is being deleted is not validated, since its
+      // spec will not be acted upon anymore.
+      if (Optional.ofNullable(object)
+          .map(HasMetadata::getMetadata)
+          .map(ObjectMeta::getDeletionTimestamp)
+          .isPresent()) {
         return;
       }
     }

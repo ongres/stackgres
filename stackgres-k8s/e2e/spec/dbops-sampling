@@ -31,8 +31,12 @@ check_sampling_is_working() {
     -- psql -q -c 'CREATE DATABASE sampling'
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \
     -- pgbench -s 10 -i -I dtgv
+  # The sampling only sees the statements that run while it collects them, and it is collected
+  # twice here, since the operation is re-created after the first run. The workload has to outlast
+  # the time both Jobs take to be started plus the two collect durations, so it is run for much
+  # longer than that and stopped as soon as the sampling has been checked
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni \
-    -- pgbench -s 10 -T 30 &
+    -- pgbench -s 10 -T 300 &
   PGBENCH_PID="$!"
   trap_kill "$PGBENCH_PID"
 
@@ -90,10 +94,7 @@ EOF
 
   check_pgbench "$REPLAY_DBOPS_NAME"
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" -o json \
-    | jq -r '.status.benchmark.sampling.queries[].query' \
-    | grep -xF "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$REPLAY_DBOPS_NAME" \
-      --template '{{ (index .status.benchmark.pgbench.statements 0).command }}')"
+  if replayed_statement_is_sampled_query '.status.benchmark.sampling.queries[].query'
   then
     echo "SUCCESS. pgbench returned the sampled statements command."
   else
@@ -129,16 +130,32 @@ EOF
 
   check_pgbench "$REPLAY_DBOPS_NAME"
 
-  if kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" -o json \
-    | jq -r '.status.benchmark.sampling.queries[0].query' \
-    | grep -xF "$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$REPLAY_DBOPS_NAME" \
-      --template '{{ (index .status.benchmark.pgbench.statements 0).command }}')"
+  if replayed_statement_is_sampled_query '.status.benchmark.sampling.queries[0].query'
   then
     echo "SUCCESS. pgbench returned the first sampled statements command."
   else
     echo "FAILED. pgbench did not returned the first sampled statements command."
     return 1
   fi
+}
+
+# pgbench only reports the first line of each statement of a script and truncates it at 127
+# characters (see first_line in pgbench.c), so the query that was replayed can not be compared
+# verbatim with the sampled query it comes from: the sampled queries selected by the jq filter
+# passed as first parameter are cut the same way pgbench cut the command it reported.
+replayed_statement_is_sampled_query() {
+  local SAMPLED_QUERIES="$1"
+  local COMMAND
+  COMMAND="$(kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$REPLAY_DBOPS_NAME" \
+    --template '{{ (index .status.benchmark.pgbench.statements 0).command }}')"
+  if [ -z "$COMMAND" ]
+  then
+    return 1
+  fi
+  kubectl get -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" -o json \
+    | jq -r "$SAMPLED_QUERIES"' | split("\n")[0]' \
+    | cut -c "1-${#COMMAND}" \
+    | grep -qxF "$COMMAND"
 }
 
 check_sampling() {

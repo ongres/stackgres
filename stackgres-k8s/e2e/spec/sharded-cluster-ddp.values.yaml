@@ -7,12 +7,19 @@ cluster:
     scripts:
     - database: ddp
       name: create-sakila-user
+      # The scripts are retried since they are applied as soon as the cluster they belong to has
+      # bootstrapped, that is before the other clusters of the sharded cluster have created the
+      # authenticator role their connection pooling authenticates with: until they do, a script
+      # that reaches them fails with role "authenticator" does not exist and, without a retry,
+      # the initial scripts are never applied.
+      retryOnError: true
       scriptFrom:
         secretKeyRef: # read the user from a Secret to maintain credentials in a safe place
           name: sql-scripts-sakila-user
           key: create-sakila-user.sql
     - database: ddp
       wrapInTransaction: repeatable-read
+      retryOnError: true
       scriptFrom:
         configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
           name: sql-scripts-sakila-schema

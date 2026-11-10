@@ -64,9 +64,6 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
   protected static final Logger LOGGER = LoggerFactory.getLogger(
       AbstractReconciliator.class.getPackage().getName());
 
-  private static final String STACKGRES_IO_RECONCILIATION = StackGresContext
-      .RECONCILIATION_PAUSE_KEY;
-
   private final String operatorServiceAccountName;
   private final CustomResourceScanner<T> scanner;
   private final CustomResourceFinder<T> finder;
@@ -248,18 +245,18 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
     stopped.complete(null);
   }
 
+  // A custom resource that requires a finalizer is reconciled while it is being deleted even if its
+  // reconciliation is paused, or pausing the reconciliation would make it impossible to remove the
+  // finalizer and the custom resource could never be deleted.
+  private boolean isReconciliationPaused(T config) {
+    return !ReconciliationUtil.isResourceReconciliationNotPaused(config)
+        && (getFinalizers().isEmpty()
+            || config.getMetadata().getDeletionTimestamp() == null);
+  }
+
   protected void reconciliationsCycle(List<Optional<Tuple2<T, Integer>>> configs) {
     mergedConfigs(configs).stream()
-        // A custom resource that requires a finalizer is reconciled while it is being deleted even
-        // if its reconciliation is paused, or pausing the reconciliation would make it impossible
-        // to remove the finalizer and the custom resource could never be deleted.
-        .filter(t -> (!getFinalizers().isEmpty()
-            && t.v1.getMetadata().getDeletionTimestamp() != null)
-            || Optional.ofNullable(t.v1.getMetadata().getAnnotations())
-            .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
-            .map(Boolean::parseBoolean)
-            .map(b -> !b)
-            .orElse(true))
+        .filter(t -> !isReconciliationPaused(t.v1))
         .forEach(t -> reconciliatorWorkerThreadPool.scheduleReconciliation(
             () -> unblockableReconciliationCycle(t.v1, t.v2, t.v3),
             t.v4,
@@ -336,6 +333,14 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>, R ex
           return;
         }
         configUnmutated = configFound.get();
+        // The reconciliation is also paused on the custom resource that is loaded here and not
+        // only on the one that was queued: a custom resource that is paused after its
+        // reconciliation has been queued would otherwise be reconciled with the spec it has at
+        // this moment, so the annotation would do nothing for the changes made after it was set.
+        if (isReconciliationPaused(configUnmutated)) {
+          LOGGER.debug("{} reconciliation is paused, skipping reconciliation", configId);
+          return;
+        }
       } else {
         configUnmutated = configKey;
       }

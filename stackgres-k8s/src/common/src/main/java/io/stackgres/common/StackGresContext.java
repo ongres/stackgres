@@ -95,6 +95,7 @@ public interface StackGresContext {
   String ROLLOUT_KEY = STACKGRES_KEY_PREFIX + "rollout";
   String ROLLOUT_SCHEDULE_KEY = STACKGRES_KEY_PREFIX + "rollout-schedule";
   String ROLLOUT_DBOPS_KEY = STACKGRES_KEY_PREFIX + "rollout-dbops";
+  String ROLLOUT_DBOPS_MANAGED_KEY = STACKGRES_KEY_PREFIX + "rollout-dbops-managed";
   String ROLLOUT_METHOD_KEY = STACKGRES_KEY_PREFIX + "rollout-method";
   String ROLLOUT_DBOPS_METHOD_KEY = STACKGRES_KEY_PREFIX + "rollout-dbops-method";
   String ROLLOUT_ALWAYS_VALUE = "always";

@@ -67,6 +67,25 @@ public class ClusterRolloutUtil {
       "max_wal_senders",
       "max_worker_processes");
 
+  /**
+   * Whether an operation that performs the rollout by itself, like the major version upgrade, is
+   * running on the cluster: while it does, the operator must not delete a Pod, restart a Postgres
+   * instance or switch the primary over, or the two compete for the same Pods and the operation
+   * fails when the operator deletes the Pod it is about to delete itself.
+   *
+   * <p>This does not stop the cluster from being reconciled: such an operation changes the spec of
+   * the cluster, the version of Postgres among the rest, and waits for the operator to apply it to
+   * the StatefulSet. Only the rollout of the Pods is left to the operation, see
+   * {@link #isRolloutAllowed(StackGresCluster)} for whether the operator may roll them out at
+   * all.</p>
+   */
+  public static boolean isRolloutManagedByDbOps(StackGresCluster cluster) {
+    return Optional
+        .ofNullable(cluster.getMetadata().getAnnotations())
+        .orElse(Map.of())
+        .containsKey(StackGresContext.ROLLOUT_DBOPS_MANAGED_KEY);
+  }
+
   public static boolean isRolloutAllowed(StackGresCluster cluster) {
     final Map<String, String> annotations = Optional
         .ofNullable(cluster.getMetadata().getAnnotations())

@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.management.InstanceNotFoundException;
+import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.CompositeDataSupport;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -87,8 +89,7 @@ public class StreamReconciliator
               .map(StackGresStreamSourcePostgres::getDatabase))
           .orElse("postgres") + ".";
       StackGresStreamSnapshotStatus snapshotStatus = stream.getStatus().getSnapshot();
-      setStatusMetrics(
-          stream,
+      setStatusMetricsFromMBean(
           snapshotStatus,
           StackGresStreamSnapshotStatus.class,
           mbeanMonitor.getSnapshotMBean());
@@ -110,8 +111,7 @@ public class StreamReconciliator
         stream.getStatus().setStreaming(new StackGresStreamStreamingStatus());
       }
       StackGresStreamStreamingStatus streamingStatus = stream.getStatus().getStreaming();
-      setStatusMetrics(
-          stream,
+      setStatusMetricsFromMBean(
           streamingStatus,
           StackGresStreamStreamingStatus.class,
           mbeanMonitor.getStreamingMBean());
@@ -143,50 +143,85 @@ public class StreamReconciliator
     return table;
   }
 
-  private void setStatusMetrics(
-      StackGresStream currentStream,
+  private void setStatusMetricsFromMBean(
       Object statusSection,
       Class<?> statusSectionClass,
-      StreamMBeanInfo streamMBeanInfo)
-      throws Exception {
+      StreamMBeanInfo streamMBeanInfo) {
     try {
-      for (Field field : statusSectionClass.getDeclaredFields()) {
-        String attributeName = field.getName().substring(0, 1).toUpperCase(Locale.US)
-            + field.getName().substring(1);
-        String setterMethodName = "set" + attributeName;
-        Method setterMethod = statusSectionClass.getMethod(setterMethodName, field.getType());
-        for (var attribute : streamMBeanInfo.getMbeanInfo().getAttributes()) {
-          if (attribute.getName().equals(attributeName)) {
-            Object attributeValue = streamMBeanInfo.getAttribute(attributeName);
-            if (attributeValue instanceof String[] attributeValueStringArray) {
-              attributeValue = Arrays.asList(attributeValueStringArray);
-            } else if (attributeValue instanceof Map attributeValueMap) {
-              Map<?, ?> attributeValueMapGeneric = attributeValueMap;
-              attributeValue = Seq.<Object, Object>seq(attributeValueMapGeneric)
-                  .flatMap(t -> {
-                    if (t.v1 instanceof List keyList
-                        && t.v2 instanceof CompositeDataSupport cdsValues
-                        && cdsValues.getCompositeType().keySet().contains("value")) {
-                      return ((List<?>) keyList).stream()
-                          .map(key -> Tuple.tuple(key, cdsValues.get("value")));
-                    }
-                    return Seq.of(t.map1(Object::toString).map2(Object::toString));
-                  })
-                  .toMap(Tuple2::v1, Tuple2::v2);
-            }
-            setterMethod.invoke(statusSection, attributeValue);
-            if (attributeValue instanceof Number attributeValueNumber) {
-              metrics.gauge(attributeName, attributeValueNumber);
-            }
-            break;
-          }
-        }
-      }
+      // The attributes are read in a single operation so that the values that are set in the
+      // status are those the MBean holds at the same instant: read one by one, the status can
+      // pair a counter with another one that was read before more events were processed
+      setStatusMetrics(
+          statusSection,
+          statusSectionClass,
+          streamMBeanInfo.getAttributes(
+              getAttributeNames(statusSectionClass, streamMBeanInfo)));
     } catch (InstanceNotFoundException ex) {
       LOGGER.trace("Error while reading MBean", ex);
     } catch (Exception ex) {
       LOGGER.error("Error while reading MBean", ex);
     }
+  }
+
+  /**
+   * The names of the attributes of the MBean that a field of the status section is mapped to.
+   */
+  static List<String> getAttributeNames(
+      Class<?> statusSectionClass, StreamMBeanInfo streamMBeanInfo) {
+    final Set<String> mbeanAttributeNames =
+        Arrays.stream(streamMBeanInfo.getMbeanInfo().getAttributes())
+        .map(MBeanAttributeInfo::getName)
+        .collect(Collectors.toSet());
+    return Arrays.stream(statusSectionClass.getDeclaredFields())
+        .map(StreamReconciliator::getAttributeName)
+        .filter(mbeanAttributeNames::contains)
+        .toList();
+  }
+
+  /**
+   * Set each field of the status section from the attribute of the same name. The attributes are
+   * looked up by name, so the order in which the fields are declared and the one in which the
+   * attributes were read are both irrelevant.
+   */
+  void setStatusMetrics(
+      Object statusSection,
+      Class<?> statusSectionClass,
+      Map<String, Object> attributes)
+      throws Exception {
+    for (Field field : statusSectionClass.getDeclaredFields()) {
+      String attributeName = getAttributeName(field);
+      if (!attributes.containsKey(attributeName)) {
+        continue;
+      }
+      Object attributeValue = attributes.get(attributeName);
+      if (attributeValue instanceof String[] attributeValueStringArray) {
+        attributeValue = Arrays.asList(attributeValueStringArray);
+      } else if (attributeValue instanceof Map attributeValueMap) {
+        Map<?, ?> attributeValueMapGeneric = attributeValueMap;
+        attributeValue = Seq.<Object, Object>seq(attributeValueMapGeneric)
+            .flatMap(t -> {
+              if (t.v1 instanceof List keyList
+                  && t.v2 instanceof CompositeDataSupport cdsValues
+                  && cdsValues.getCompositeType().keySet().contains("value")) {
+                return ((List<?>) keyList).stream()
+                    .map(key -> Tuple.tuple(key, cdsValues.get("value")));
+              }
+              return Seq.of(t.map1(Object::toString).map2(Object::toString));
+            })
+            .toMap(Tuple2::v1, Tuple2::v2);
+      }
+      String setterMethodName = "set" + attributeName;
+      Method setterMethod = statusSectionClass.getMethod(setterMethodName, field.getType());
+      setterMethod.invoke(statusSection, attributeValue);
+      if (attributeValue instanceof Number attributeValueNumber) {
+        metrics.gauge(attributeName, attributeValueNumber);
+      }
+    }
+  }
+
+  private static String getAttributeName(Field field) {
+    return field.getName().substring(0, 1).toUpperCase(Locale.US)
+        + field.getName().substring(1);
   }
 
   @Dependent

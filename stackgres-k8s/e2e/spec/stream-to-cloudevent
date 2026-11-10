@@ -87,6 +87,10 @@ EXECUTE 'CREATE FUNCTION create_complex_table() RETURNS void AS $sql$CREATE TABL
   AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_type el WHERE el.oid = t.typelem AND el.typarray = t.oid)
   AND pg_catalog.pg_type_is_visible(t.oid)
   AND t.typname NOT LIKE 'pg_%'
+  -- An empty array is not a valid int2vector or oidvector and Postgres rejects reading the value
+  -- back since 16.12, so the snapshot of the stream fails on it
+  -- (see https://stackoverflow.com/a/74612592)
+  AND t.typname NOT IN ('int2vector', 'oidvector')
   AND t.typtype NOT IN ('p')
   AND t.typcategory NOT IN ('U','Z')
   ORDER BY t.typname) _) || ', PRIMARY KEY (i))' || '$sql$ LANGUAGE sql';
@@ -125,6 +129,10 @@ EXECUTE 'CREATE FUNCTION insert_complex(i bigint) RETURNS void LANGUAGE plpgsql 
   AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_type el WHERE el.oid = t.typelem AND el.typarray = t.oid)
   AND pg_catalog.pg_type_is_visible(t.oid)
   AND t.typname NOT LIKE 'pg_%'
+  -- An empty array is not a valid int2vector or oidvector and Postgres rejects reading the value
+  -- back since 16.12, so the snapshot of the stream fails on it
+  -- (see https://stackoverflow.com/a/74612592)
+  AND t.typname NOT IN ('int2vector', 'oidvector')
   AND t.typtype NOT IN ('p')
   AND t.typcategory NOT IN ('U','Z')
   ORDER BY t.typname) _) || '$insert$; END$plpgsql$;';

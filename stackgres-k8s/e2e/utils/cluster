@@ -76,6 +76,24 @@ create_or_replace_cluster_only() {
   fi
 }
 
+# Awaits the condition $3 of the cluster $1 of the namespace $2 and, when it is not met, prints
+# the state of the cluster: the spec aborts right after and its namespace is removed with it, so
+# a state that is not printed here can not be looked at anymore once the spec has finished.
+wait_cluster_condition() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local CONDITION="$3"
+  if ! wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" \
+    --for="condition=$CONDITION" --timeout=0s
+  then
+    kubectl get sgcluster -n "$NAMESPACE" "$RELEASE" -o jsonpath='{.status}{"\n"}' || true
+    kubectl get pod -n "$NAMESPACE" \
+      -l "app=StackGresCluster,stackgres.io/cluster-name=$RELEASE" -o wide || true
+    kubectl get event -n "$NAMESPACE" --field-selector "involvedObject.name=$RELEASE" || true
+    return 1
+  fi
+}
+
 wait_cluster() {
   local RELEASE="$1"
   local NAMESPACE="$2"
@@ -94,9 +112,9 @@ wait_cluster() {
         | grep -q "^authenticator|"'
   elif [ "$WAIT_CLUSTER_BOOTSTRAP_ONLY" = true ]
   then
-    wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" --for=condition=Bootstrapped --timeout=0s
+    wait_cluster_condition "$RELEASE" "$NAMESPACE" Bootstrapped
   else
-    wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" --for=condition=InitialScriptsApplied --timeout=0s
+    wait_cluster_condition "$RELEASE" "$NAMESPACE" InitialScriptsApplied
   fi
 }
 
@@ -414,9 +432,9 @@ wait_sharded_cluster() {
           | grep -q "^authenticator|"'
     elif [ "$WAIT_CLUSTER_BOOTSTRAP_ONLY" = true ]
     then
-      wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" --for=condition=Bootstrapped --timeout=0s
+      wait_cluster_condition "$RELEASE" "$NAMESPACE" Bootstrapped
     else
-      wait_until kubectl wait -n "$NAMESPACE" "sgcluster/$RELEASE" --for=condition=InitialScriptsApplied --timeout=0s
+      wait_cluster_condition "$RELEASE" "$NAMESPACE" InitialScriptsApplied
     fi
 
     INDEX="$((INDEX + 1))"
@@ -519,6 +537,21 @@ switch_sharded_cluster_to_first() {
 
     INDEX="$((INDEX + 1))"
   done
+
+  if [ "$SHARDING_TYPE" = citus ]
+  then
+    local DATABASE
+    DATABASE="$(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.database }}')"
+    # The citus_update_node that patroni performs on the coordinator after a switchover unsets
+    # metadatasynced of every metadata node until the maintenance daemon synchronizes them again,
+    # and citus rejects any statement it has to propagate, like create_distributed_table, with
+    # "<node> is a metadata node, but is out of sync" until then. The nodes that are out of sync
+    # are not only the ones of the group that switched over.
+    wait_until eval '[ "$(run_query -n "$NAMESPACE" -c "$SHARDED_RELEASE" -d "$DATABASE" \
+      -x "$(kubectl get endpoints --namespace "$NAMESPACE" "$SHARDED_RELEASE-0" \
+        --template "{{ .metadata.annotations.leader }}")" \
+      -p 5432 -q "SELECT count(*) FROM pg_dist_node WHERE hasmetadata AND NOT metadatasynced")" = 0 ]'
+  fi
 }
 
 create_or_replace_sharded_cluster_for_version() {
@@ -750,6 +783,11 @@ remove_sharded_cluster() {
   wait_until eval 'helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -'
   helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
+  # The pods of the clusters are removed asynchronously after the SGShardedCluster is, and a wait
+  # for a number of running pods counts any pod of the namespace that is running: without waiting
+  # for them here, the pods that are being removed are counted as the pods of the sharded cluster
+  # that is created next, and what that wait should have covered is left to the waits after it.
+  wait_pods_terminated "$NAMESPACE" 0 "$RELEASE-\(coord\|worker[0-9]\+\|router[0-9]\+\)-[0-9]\+"
 }
 
 remove_sharded_cluster_if_exists() {

@@ -24,6 +24,12 @@ has_config_workers_changed() {
     "$(grep '^[[:space:]]*workers[[:space:]]\+[0-9]\+$' "$FLUENTD_LAST_CONFIG_PATH"/fluentd.conf)" ]
 }
 
+# The C extension of the pg gem may be built without the path of libpq
+set_libpq_library_path() {
+  LIBPQ_LIBRARY_PATH="$(find / -name 'libpq.so*' 2>/dev/null | sed 's#/[^/]\+$##' | sort | uniq | sed -z 's/\n$//' | tr '\n' ':')"
+  export LD_LIBRARY_PATH="$LIBPQ_LIBRARY_PATH${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+}
+
 run_fluentd() {
   set -x
   exec /usr/local/bin/fluentd \
@@ -33,6 +39,7 @@ run_fluentd() {
 echo 'Wait for postgres to be up, running and initialized'
 until curl -s "localhost:${PATRONI_PORT}/readiness" --fail > /dev/null; do sleep 1; done
 export TMPDIR=/tmp/fluentd
+set_libpq_library_path
 
 set +x
 PID=

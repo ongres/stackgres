@@ -71,8 +71,21 @@ check_automatic_backup() {
   then
     success "The automatic backup CR has completed"
   else
+    print_backups_state
     fail "The automatic backup CR has failed"
   fi
+}
+
+# The backups and the jobs that create them are the only place that says why a backup did not
+# complete or was not removed, and they are removed along with the namespace when the spec ends.
+# The jobs are described and not only listed since the schedules that were suppressed because a
+# previous job was still running are only reported there.
+print_backups_state() {
+  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o yaml || true
+  kubectl get job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" -o wide || true
+  kubectl describe job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" || true
+  kubectl logs -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" \
+    --all-containers --prefix --tail -1 || true
 }
 
 check_timelines(){
@@ -196,6 +209,7 @@ check_backup_retention() {
   then
     success "The maximum retainable backups are available"
   else
+    print_backups_state
     fail "The maximum retainable backups are not available"
   fi
 
@@ -216,7 +230,7 @@ check_backup_retention() {
     success "The backup retention has been honored. Old backups $BACKUP_NAME deleted"
   else
     fail_no_return "The backup retention has not been honored. Old backups $BACKUP_NAME not deleted"
-    kubectl get sgbackup -n "$CLUSTER_NAMESPACE"
+    print_backups_state
     return 1
   fi
 
@@ -224,6 +238,7 @@ check_backup_retention() {
   then
     success "The backup retention has been honored. Remaining backups are 2"
   else
+    print_backups_state
     fail "The backup retention has not been honored. Remaining backups are $(get_completed_managed_backup_count)"
   fi
 }

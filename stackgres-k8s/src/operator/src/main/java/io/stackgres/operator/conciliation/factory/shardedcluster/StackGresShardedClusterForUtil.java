@@ -419,7 +419,7 @@ public abstract class StackGresShardedClusterForUtil implements StackGresSharded
         .build());
   }
 
-  void setPostgresExtensions(
+  public static void setPostgresExtensions(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
     spec.getPostgres().setExtensions(
         Optional.ofNullable(cluster.getStatus())
