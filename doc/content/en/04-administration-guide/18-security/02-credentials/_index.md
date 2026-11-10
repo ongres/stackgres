@@ -16,7 +16,10 @@ When you create an SGCluster, StackGres automatically generates credentials for 
 |------|---------|------------|
 | `postgres` | Superuser | `superuser-password` |
 | `replicator` | Replication | `replication-password` |
-| `authenticator` | Patroni authentication | `authenticator-password` |
+| `authenticator` | PgBouncer authentication | `authenticator-password` |
+| `monitor` | Prometheus Postgres exporter | `monitor-password` |
+
+The password of the Patroni REST API is also generated and stored with the key `restapi-password`.
 
 These credentials are stored in a Secret with the same name as the cluster.
 
@@ -76,51 +79,109 @@ kubectl apply -f sgcluster.yaml
 
 ## Password Rotation
 
-### Manual Password Rotation
-
-To rotate the superuser password:
-
-```bash
-# Generate new password
-NEW_PASSWORD=$(openssl rand -base64 24)
-
-# Update PostgreSQL
-kubectl exec my-cluster-0 -c postgres-util -- psql -c \
-  "ALTER USER postgres PASSWORD '$NEW_PASSWORD'"
-
-# Update Secret
-kubectl patch secret my-cluster -p \
-  "{\"stringData\":{\"superuser-password\":\"$NEW_PASSWORD\"}}"
-```
+The credentials of the users and of the Patroni REST API can be taken from your own Secrets with the
+`spec.configurations.credentials` section of the SGCluster (see the
+[SGCluster CRD reference]({{% relref "06-crd-reference/01-sgcluster" %}})). To rotate a password, change
+it in the referenced Secret (or reference another Secret). At the next reconciliation cycle (usually
+within a minute) the operator applies the new password to the database user, so no SQL has to be run by hand.
 
 ### Rotating All Passwords
+
+Create a Secret with the new credentials:
 
 ```bash
 #!/bin/bash
 CLUSTER_NAME="my-cluster"
 
-# Generate new passwords
-SUPERUSER_PASS=$(openssl rand -base64 24)
-REPLICATOR_PASS=$(openssl rand -base64 24)
-AUTHENTICATOR_PASS=$(openssl rand -base64 24)
+kubectl create secret generic "${CLUSTER_NAME}-credentials" \
+  --from-literal=superuser-username=postgres \
+  --from-literal=superuser-password="$(openssl rand -base64 24)" \
+  --from-literal=replication-username=replicator \
+  --from-literal=replication-password="$(openssl rand -base64 24)" \
+  --from-literal=authenticator-username=authenticator \
+  --from-literal=authenticator-password="$(openssl rand -base64 24)" \
+  --from-literal=monitor-username=monitor \
+  --from-literal=monitor-password="$(openssl rand -base64 24)" \
+  --from-literal=restapi-password="$(openssl rand -base64 24)" \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
 
-# Update PostgreSQL users
-kubectl exec ${CLUSTER_NAME}-0 -c postgres-util -- psql << EOF
-ALTER USER postgres PASSWORD '${SUPERUSER_PASS}';
-ALTER USER replicator PASSWORD '${REPLICATOR_PASS}';
-ALTER USER authenticator PASSWORD '${AUTHENTICATOR_PASS}';
-EOF
+Reference it in the SGCluster (this is needed only the first time):
 
-# Update Secret
-kubectl patch secret ${CLUSTER_NAME} -p "{
-  \"stringData\": {
-    \"superuser-password\": \"${SUPERUSER_PASS}\",
-    \"replication-password\": \"${REPLICATOR_PASS}\",
-    \"authenticator-password\": \"${AUTHENTICATOR_PASS}\"
-  }
-}"
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: my-cluster
+spec:
+  configurations:
+    credentials:
+      patroni:
+        restApiPassword:
+          name: my-cluster-credentials
+          key: restapi-password
+      users:
+        superuser:
+          username:
+            name: my-cluster-credentials
+            key: superuser-username
+          password:
+            name: my-cluster-credentials
+            key: superuser-password
+        replication:
+          username:
+            name: my-cluster-credentials
+            key: replication-username
+          password:
+            name: my-cluster-credentials
+            key: replication-password
+        authenticator:
+          username:
+            name: my-cluster-credentials
+            key: authenticator-username
+          password:
+            name: my-cluster-credentials
+            key: authenticator-password
+        monitor:
+          username:
+            name: my-cluster-credentials
+            key: monitor-username
+          password:
+            name: my-cluster-credentials
+            key: monitor-password
+```
 
-echo "Passwords rotated successfully"
+Then restart the Pods of the cluster with a restart [SGDbOps]({{% relref "06-crd-reference/08-sgdbops" %}}),
+since Patroni reads the credentials of the superuser, of the replication user and of its REST API when its
+container starts. Until the Pods are restarted, Patroni keeps using the previous ones to rewind a former
+primary, to replicate from the primary and to authenticate the requests to its REST API. The cluster does
+not report a pending restart for this change.
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: my-cluster-restart
+spec:
+  sgCluster: my-cluster
+  op: restart
+  restart:
+    method: InPlace
+```
+
+### Changing Usernames
+
+When the username of the authenticator or of the monitor user changes, the operator creates the user
+with the new username. The user with the previous username is not removed. Changing the username of the
+monitor user requires a restart, that the cluster reports as pending.
+
+When the username of the superuser or of the replication user changes, the operator does not create the
+user with the new username, and it fails to apply any credentials change until the user exists. Create it
+before changing the username (replace the usernames with the new ones):
+
+```sql
+CREATE ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS;
+CREATE ROLE replicator WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN REPLICATION NOBYPASSRLS;
 ```
 
 ## Creating Application Users
