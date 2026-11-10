@@ -30,6 +30,9 @@ e2e_test() {
   if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
   then
     run_test "Checking that backup using volume snapshot is working" check_backup_using_volume_snapshot_is_working
+
+    run_test "Checking that the cluster keeps its data and elects a leader when all its Pods start together after a backup using volume snapshot" \
+      check_cluster_restart_after_backup_using_volume_snapshot
   else
     echo "Skipping Checking that backup using volume snapshot is working since volume snapshot feature is not available"
   fi
@@ -67,6 +70,40 @@ check_backup_using_volume_snapshot_is_working() {
   kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
 
   check_backup 0
+}
+
+# The data of the Pods was created by initdb (the primary) and by a clone of the primary (the
+# replica), not restored from a volume snapshot, so it must be kept when the Pods start once a
+# backup using volume snapshot is available to initialize the replicas. Starting all the Pods
+# together leaves no leader to initialize them from, if their data is moved away (see #3299).
+check_cluster_restart_after_backup_using_volume_snapshot() {
+  wait_until eval '[ "$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" \
+    --template "{{ .data.REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT }}")" = true ]'
+
+  local SYSTEM_IDENTIFIER
+  SYSTEM_IDENTIFIER="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
+    psql -q -t -A -c 'SELECT system_identifier FROM pg_control_system()')"
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" "$CLUSTER_NAME-1"
+
+  if wait_until -t "$((E2E_TIMEOUT * 2))" eval 'kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template "{{ .metadata.annotations.leader }}" | grep -q "^$CLUSTER_NAME-[0-9]\+$"'
+  then
+    success "The cluster elected a leader after all its Pods started together"
+  else
+    fail "The cluster did not elect any leader after all its Pods started together"
+  fi
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$(get_primary_index_or_first)" -c patroni -- \
+    psql -q -t -A -c 'SELECT system_identifier FROM pg_control_system()')" = "$SYSTEM_IDENTIFIER" ]
+  then
+    success "The cluster kept its data after all its Pods started together"
+  else
+    fail "The cluster did not keep its data after all its Pods started together"
+  fi
 }
 
 check_backup_retention_is_working() {
