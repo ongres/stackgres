@@ -28,12 +28,15 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.jooq.impl.DSL;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 @Singleton
 @OperatorVersionBinder
 public class ClusterDefaultScript implements ResourceGenerator<StackGresClusterContext> {
+
+  private static final String MONITOR_USERNAME_PLACEHOLDER = "${MONITOR_USERNAME}";
 
   private final LabelFactoryForCluster labelFactory;
 
@@ -44,10 +47,11 @@ public class ClusterDefaultScript implements ResourceGenerator<StackGresClusterC
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    return Stream.of(getDefaultScript(context.getSource()));
+    return Stream.of(getDefaultScript(context.getSource(),
+        PatroniSecret.getMonitorCredentials(context).v1));
   }
 
-  private StackGresScript getDefaultScript(StackGresCluster cluster) {
+  private StackGresScript getDefaultScript(StackGresCluster cluster, String monitorUsername) {
     return new StackGresScriptBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
@@ -55,12 +59,13 @@ public class ClusterDefaultScript implements ResourceGenerator<StackGresClusterC
         .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withNewSpec()
-        .withScripts(getDefaultScripts(cluster))
+        .withScripts(getDefaultScripts(cluster, monitorUsername))
         .endSpec()
         .build();
   }
 
-  private List<StackGresScriptEntry> getDefaultScripts(StackGresCluster cluster) {
+  private List<StackGresScriptEntry> getDefaultScripts(
+      StackGresCluster cluster, String monitorUsername) {
     return Seq.of(getPostgresExporterInitScript(0))
         .append(Seq.of(
             getBabelfishUserScript(cluster, 1),
@@ -69,7 +74,7 @@ public class ClusterDefaultScript implements ResourceGenerator<StackGresClusterC
             .filter(
                 script -> getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH))
         .append(getPasswordsUpdateScript(cluster, 4))
-        .append(getPostgresExporterGrantsScript(5))
+        .append(getPostgresExporterGrantsScript(5, monitorUsername))
         .toList();
   }
 
@@ -86,7 +91,7 @@ public class ClusterDefaultScript implements ResourceGenerator<StackGresClusterC
         .build();
   }
 
-  private StackGresScriptEntry getPostgresExporterGrantsScript(int id) {
+  private StackGresScriptEntry getPostgresExporterGrantsScript(int id, String monitorUsername) {
     return new StackGresScriptEntryBuilder()
         .withId(id)
         .withName("prometheus-postgres-exporter-grants")
@@ -95,7 +100,8 @@ public class ClusterDefaultScript implements ResourceGenerator<StackGresClusterC
             .asCharSource(ClusterDefaultScript.class.getResource(
                 "/prometheus-postgres-exporter/init-grants.sql"),
                 StandardCharsets.UTF_8)
-            .read()).get())
+            .read()).get()
+            .replace(MONITOR_USERNAME_PLACEHOLDER, DSL.quotedName(monitorUsername).toString()))
         .build();
   }
 
