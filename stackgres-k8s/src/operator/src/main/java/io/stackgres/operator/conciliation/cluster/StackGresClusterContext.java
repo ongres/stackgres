@@ -167,6 +167,11 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Map<String, String> getPodDataPersistentVolumeNames();
 
+  /**
+   * The names of the Pods whose data persistent volume claim was created from a volume snapshot.
+   */
+  Set<String> getPodDataPersistentVolumesFromVolumeSnapshot();
+
   default Optional<String> getBackupPath() {
     return Optional.of(getCluster())
         .map(StackGresCluster::getStatus)

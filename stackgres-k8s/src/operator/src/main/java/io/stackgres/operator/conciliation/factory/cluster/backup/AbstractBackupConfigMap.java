@@ -49,6 +49,8 @@ public abstract class AbstractBackupConfigMap {
 
     context.getPodDataPersistentVolumeNames().forEach((podName, pvDataName) -> backupEnvVars
         .put("POD_" + podName.replace("-", "_") + "_DATA_PV_NAME", pvDataName));
+    context.getPodDataPersistentVolumesFromVolumeSnapshot().forEach(podName -> backupEnvVars
+        .put("POD_" + podName.replace("-", "_") + "_DATA_PV_FROM_VOLUME_SNAPSHOT", Boolean.TRUE.toString()));
     backupEnvVars.put("PGDATA", ClusterPath.PG_DATA_PATH.path());
     backupEnvVars.put("PGPORT", String.valueOf(EnvoyUtil.PG_PORT));
     backupEnvVars.put("PGUSER", "postgres");

@@ -442,6 +442,15 @@ initialize() {
     return
   fi
 
+  # The data of a persistent volume that was not created from a volume snapshot has been created by
+  # initdb, by a clone of another instance or by a restore from the object storage and must be kept
+  POD_DATA_PV_FROM_VOLUME_SNAPSHOT_ENV_VAR="POD_$(printf %s "$POD_NAME" | tr '-' '_')_DATA_PV_FROM_VOLUME_SNAPSHOT"
+  if eval "[ \"\$$POD_DATA_PV_FROM_VOLUME_SNAPSHOT_ENV_VAR\" != true ]"
+  then
+    echo "Persistent volume $(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"") was not created from a volume snapshot, keeping $PG_DATA_PATH"
+    return
+  fi
+
   echo "File $PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"") was not found, preparing restore of snapshot based backup"
   
   if [ -d "$PG_DATA_PATH".failed ] \
@@ -507,6 +516,15 @@ initialize() {
 
   if [ -f "$PG_DATA_PATH/.already_restored_from_volume_snapshot_$(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"")" ]
   then
+    return
+  fi
+
+  # The data of a persistent volume that was not created from a volume snapshot has been created by
+  # initdb, by a clone of another instance or by a restore from the object storage and must be kept
+  POD_DATA_PV_FROM_VOLUME_SNAPSHOT_ENV_VAR="POD_$(printf %s "$POD_NAME" | tr '-' '_')_DATA_PV_FROM_VOLUME_SNAPSHOT"
+  if eval "[ \"\$$POD_DATA_PV_FROM_VOLUME_SNAPSHOT_ENV_VAR\" != true ]"
+  then
+    echo "Persistent volume $(eval "printf %s \"\$$POD_DATA_PV_NAME_ENV_VAR\"") was not created from a volume snapshot, keeping $PG_DATA_PATH"
     return
   fi
 
