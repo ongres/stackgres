@@ -1624,7 +1624,8 @@ spec:
                         description: |
                           Kubernetes [SecretKeySelectors](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#secretkeyselector-v1-core) that contains the credentials for patroni REST API.
 
-                          **Changing this field may require a restart.**
+                          **Changing this field requires a restart.** Patroni reads the password of its REST API when its container starts and, until the Pods are restarted, it only accepts the previous one,
+                            so the requests that the operator sends to the Patroni REST API are rejected. The cluster does not report a pending restart for this change: restart the Pods (for example with a restart SGDbOps) after changing it.
                         properties:
                           restApiPassword:
                             type: object
@@ -1643,37 +1644,28 @@ spec:
                         description: |
                           Kubernetes [SecretKeySelectors](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#secretkeyselector-v1-core) that contains the credentials of the users.
 
-                          **Changing this field may require a manual modification of the database users to reflect the new values specified.**
+                          When the referenced Secrets, or their content, change, the operator applies the new passwords to the database users at the next reconciliation cycle (usually within a minute).
+                            No SQL has to be run by hand to change a password.
 
-                          In particular you may have to create those users if username is changed or alter password if it is changed. Here are the SQL commands to perform such operation (replace
-                            default usernames with the new ones and `***` with their respective passwords):
+                          When the username of the authenticator or of the monitor user changes, the operator creates the user with the new username. The user with the previous username is not removed.
+
+                          When the username of the superuser or of the replication user changes, the operator does not create the user with the new username and fails to apply any credentials change
+                            until it exists. Create it before changing the username, with the following SQL commands (replace the default usernames with the new ones):
 
                           * Superuser username changed:
                           ```
-                          CREATE ROLE postgres;
-                          ```
-                          * Superuser password changed:
-                          ```
-                          ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS PASSWORD '***';
+                          CREATE ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS;
                           ```
                           * Replication username changed:
                           ```
-                          CREATE ROLE replicator;
-                          ```
-                          * Replication password changed:
-                          ```
-                          ALTER ROLE replicator WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN REPLICATION NOBYPASSRLS PASSWORD '***';
-                          ```
-                          * Authenticator username changed:
-                          ```
-                          CREATE ROLE authenticator;
-                          ```
-                          * Authenticator password changed:
-                          ```
-                          ALTER ROLE authenticator WITH SUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD '***';
+                          CREATE ROLE replicator WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN REPLICATION NOBYPASSRLS;
                           ```
 
-                          **Changing this field may require a restart.**
+                          **Changing the credentials of the superuser or of the replication user requires a restart.** Patroni reads them when its container starts and, until the Pods are restarted,
+                            keeps using the previous ones to rewind a former primary and to replicate from the primary. The cluster does not report a pending restart for this change: restart the Pods
+                            (for example with a restart SGDbOps) after changing them.
+
+                          **Changing the username of the monitor user requires a restart.** The cluster reports a pending restart for this change.
                         properties:
                           superuser:
                             type: object
