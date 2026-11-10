@@ -59,6 +59,37 @@ rollout_watch_stop() {
   kill "$ROLLOUT_WATCH_PID" >/dev/null 2>&1 || true
 }
 
+# The StatefulSet controller re-creates a deleted Pod almost immediately, leaving no time to check
+# what the rollout does while the Pod is missing. A quota of one Pod less than the Pods in the
+# namespace does not affect the existing Pods but forbids to create a Pod once one is deleted, so
+# that the deleted Pod is not re-created until rollout_allow_pods_creation is called.
+rollout_block_pods_creation() {
+  local PODS
+  PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    --field-selector=status.phase!=Succeeded,status.phase!=Failed -o name | wc -l)"
+  kubectl create resourcequota -n "$CLUSTER_NAMESPACE" rollout-block-pods-creation \
+    --hard=pods="$((PODS - 1))"
+}
+
+rollout_allow_pods_creation() {
+  kubectl delete resourcequota -n "$CLUSTER_NAMESPACE" rollout-block-pods-creation --ignore-not-found
+}
+
+# A Pod is not deleted during the specified timeout
+assert_pod_not_deleted() {
+  local POD="$1"
+  local TIMEOUT="$2"
+  local REASON="$3"
+
+  if wait_until -t "$TIMEOUT" eval '! kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD" -o json \
+    | jq -e ".metadata.deletionTimestamp == null" > /dev/null' > /dev/null
+  then
+    fail "Pod $POD was deleted $REASON"
+  else
+    success "Pod $POD was not deleted $REASON"
+  fi
+}
+
 # A Pod of a cluster with more than one instance must not be deleted while no other Pod is ready and
 # not being deleted, or the cluster is left with no instance available at all.
 assert_no_pod_deleted_while_no_other_pod_ready() {
