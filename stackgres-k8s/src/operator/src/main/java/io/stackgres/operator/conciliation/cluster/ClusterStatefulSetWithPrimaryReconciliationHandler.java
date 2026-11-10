@@ -320,6 +320,30 @@ public class ClusterStatefulSetWithPrimaryReconciliationHandler implements Recon
         && pods.stream().noneMatch(ClusterRolloutUtil::isPodInFailedPhase)) {
       return;
     }
+    // A Pod that is terminating, or that has been deleted and not yet re-created by the
+    // StatefulSet, is not available: deleting another Pod, restarting a Postgres instance or
+    // performing a switchover meanwhile may leave the cluster without any available instance,
+    // e.g. the primary Pod would be re-created since no replica is available to switch over to.
+    final Optional<Pod> anyPodTerminating = pods.stream()
+        .filter(ClusterRolloutUtil::isPodTerminating)
+        .findAny();
+    if (anyPodTerminating.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Pod {} is terminating, wait for it to be re-created",
+            anyPodTerminating.get().getMetadata().getName());
+      }
+      return;
+    }
+    final Optional<Integer> anyPodIndexMissing = Seq.range(0, requiredSts.getSpec().getReplicas())
+        .filter(podIndex -> pods.stream().noneMatch(pod -> getPodIndex(pod) == podIndex))
+        .findFirst();
+    if (anyPodIndexMissing.isPresent()) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Pod {}-{} has not been created yet by the StatefulSet, wait for it to be created",
+            requiredSts.getMetadata().getName(), anyPodIndexMissing.get());
+      }
+      return;
+    }
     final Optional<Pod> foundPrimaryPod = pods.stream()
         .filter(pod -> latestPrimaryFromPatroni.map(pod.getMetadata().getName()::equals).orElse(false))
         .findFirst();
