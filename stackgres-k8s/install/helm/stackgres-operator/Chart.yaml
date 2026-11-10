@@ -1,8 +1,8 @@
 apiVersion: v2
 name: stackgres-operator
 description: StackGres Operator
-version: "1.19.5-SNAPSHOT"
-appVersion: "1.19.5-SNAPSHOT"
+version: "1.19.5"
+appVersion: "1.19.5"
 keywords:
   - stackgres
   - postgresql
