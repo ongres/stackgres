@@ -136,6 +136,10 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
 
   private List<PersistentVolumeClaim> pvcList = new ArrayList<>();
 
+  private Map<String, String> patroniMemberStates = new HashMap<>();
+
+  private List<PatroniMember> stalePatroniMembers = new ArrayList<>();
+
   @BeforeEach
   void setUp() {
     handler = new ClusterStatefulSetWithPrimaryReconciliationHandler(
@@ -938,7 +942,8 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
       + " Postgres instance of the primary Pod")
   void primaryPendingRestartWithoutReplica_shouldRestartPostgresOfPrimaryPod() {
     setUpRollout("max_connections: 80->81", null);
-    podList.removeIf(pod -> pod.getMetadata().getName().equals(podName(1)));
+    setStatefulSetMocks(1, true);
+    removePod(1);
     setUpPatroniMembers("max_connections: 80->81", null);
 
     handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
@@ -987,6 +992,135 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
     setPodPending(1);
 
     handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A replica Pod that is terminating should be waited for instead of re-creating the"
+      + " primary Pod or deleting the replica Pod again (#3298)")
+  void replicaTerminating_shouldWaitForTheReplicaPod() {
+    setUpRollout(null, null);
+    setUpPodRevisions(PREVIOUS_REVISION, PREVIOUS_REVISION);
+    setPodTerminating(1);
+    patroniMemberStates.put(podName(1), "stopping");
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A replica Pod that has been deleted and not yet re-created by the StatefulSet"
+      + " should be waited for instead of re-creating the primary Pod")
+  void replicaMissing_shouldWaitForTheReplicaPodInsteadOfRecreatingThePrimaryPod() {
+    setUpRollout(null, null);
+    setUpPodRevisions(PREVIOUS_REVISION, PREVIOUS_REVISION);
+    removePod(1);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A replica Pod that has been deleted and not yet re-created by the StatefulSet"
+      + " while Patroni still lists its member as running should be waited for instead of"
+      + " re-creating the primary Pod or switching over to it")
+  void replicaMissingAndStillListedByPatroni_shouldWaitForTheReplicaPod() {
+    setUpRollout(null, null);
+    setUpPodRevisions(PREVIOUS_REVISION, PREVIOUS_REVISION);
+    keepPatroniMemberOfMissingPod(1);
+    removePod(1);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A pending restart of the primary while the replica Pod has been deleted and not"
+      + " yet re-created by the StatefulSet should wait for the replica Pod instead of restarting"
+      + " the Postgres instance of the primary Pod")
+  void primaryPendingRestartAndReplicaMissing_shouldWaitForTheReplicaPod() {
+    setUpRollout("shared_buffers: 128MB->64MB", null);
+    removePod(1);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A primary Pod that has been deleted and not yet re-created by the StatefulSet"
+      + " should be waited for instead of re-creating the only replica Pod left")
+  void primaryMissing_shouldWaitForThePrimaryPodInsteadOfRecreatingTheReplicaPod() {
+    setUpRollout(null, null);
+    setUpPodRevisions(PREVIOUS_REVISION, PREVIOUS_REVISION);
+    setUpPatroniHistoryLeader(0);
+    removePod(0);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A primary Pod that is terminating should be waited for instead of re-creating the"
+      + " replica Pod")
+  void primaryTerminating_shouldWaitForThePrimaryPodInsteadOfRecreatingTheReplicaPod() {
+    setUpRollout(null, null);
+    setUpPodRevisions(PREVIOUS_REVISION, PREVIOUS_REVISION);
+    setPodTerminating(0);
+    patroniMemberStates.put(podName(0), "stopping");
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A replica Pod that has been deleted and not yet re-created by the StatefulSet"
+      + " should be waited for instead of re-creating another replica Pod")
+  void replicaMissingWithAnotherReplica_shouldWaitForTheReplicaPod() {
+    setUpRollout(null, null);
+    addRunningPod(2, false);
+    setStatefulSetMocks(3, true);
+    setUpPodRevisions(PREVIOUS_REVISION, PREVIOUS_REVISION, PREVIOUS_REVISION);
+    removePod(1);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    verify(defaultHandler, never()).delete(any(), any(Pod.class));
+    verify(patroniCtlInstance, never()).restart(any(), any(), any());
+    verify(patroniCtlInstance, never()).switchover(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("All the Pods have been deleted and not yet re-created by the StatefulSet should"
+      + " not perform any action")
+  void allPodsMissing_shouldNotPerformAnyAction() {
+    setUpRollout(null, null);
+    setUpPodRevisions(PREVIOUS_REVISION, PREVIOUS_REVISION);
+    setUpPatroniHistoryLeader(0);
+    removePod(0);
+    removePod(1);
+
+    assertDoesNotThrow(() -> handler.patch(cluster, requiredStatefulSet, deployedStatefulSet));
 
     verify(defaultHandler, never()).delete(any(), any(Pod.class));
     verify(patroniCtlInstance, never()).restart(any(), any(), any());
@@ -1050,6 +1184,51 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
         .build());
   }
 
+  /**
+   * A Pod that has been deleted keeps being listed with the deletion timestamp set until its
+   * containers terminate, and it is not ready meanwhile.
+   */
+  private void setPodTerminating(int podIndex) {
+    final Pod pod = podList.get(podIndex);
+    pod.getMetadata().setDeletionTimestamp("2026-11-10T08:33:03Z");
+    pod.setStatus(new PodStatusBuilder()
+        .withPhase("Running")
+        .withConditions(new PodConditionBuilder()
+            .withType("Ready")
+            .withStatus("False")
+            .build())
+        .build());
+  }
+
+  /**
+   * A Pod that has been deleted is not listed anymore until the StatefulSet controller creates it
+   * again with the same name.
+   */
+  private void removePod(int podIndex) {
+    podList.removeIf(pod -> pod.getMetadata().getName().equals(podName(podIndex)));
+  }
+
+  /**
+   * Patroni keeps listing the member of a Pod that has been deleted until its key in the DCS
+   * expires.
+   */
+  private void keepPatroniMemberOfMissingPod(int podIndex) {
+    final PatroniMember member = new PatroniMember();
+    member.setMember(podName(podIndex));
+    member.setRole(PatroniMember.REPLICA);
+    member.setState(PatroniMember.RUNNING);
+    stalePatroniMembers.add(member);
+  }
+
+  /**
+   * The Patroni history names the latest primary even when its Pod and its member are gone.
+   */
+  private void setUpPatroniHistoryLeader(int podIndex) {
+    final PatroniHistoryEntry entry = new PatroniHistoryEntry();
+    entry.setNewLeader(podName(podIndex));
+    lenient().when(patroniCtlInstance.history()).thenReturn(List.of(entry));
+  }
+
   @SuppressWarnings("unchecked")
   private void setUpRollout(
       String primaryPendingRestartReason, String replicaPendingRestartReason) {
@@ -1086,8 +1265,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
 
   private void setUpPatroniMembers(
       String primaryPendingRestartReason, String replicaPendingRestartReason) {
-    lenient().when(patroniCtlInstance.list()).then(arguments -> podList
-        .stream()
+    lenient().when(patroniCtlInstance.list()).then(arguments -> Seq.seq(podList)
         .map(pod -> {
           final boolean primary = Objects.equals(
               PatroniUtil.PRIMARY_ROLE,
@@ -1095,7 +1273,8 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
           var member = new PatroniMember();
           member.setMember(pod.getMetadata().getName());
           member.setRole(primary ? PatroniMember.LEADER : PatroniMember.REPLICA);
-          member.setState(PatroniMember.RUNNING);
+          member.setState(patroniMemberStates.getOrDefault(
+              pod.getMetadata().getName(), PatroniMember.RUNNING));
           var pendingRestartReason = primary
               ? primaryPendingRestartReason : replicaPendingRestartReason;
           if (pendingRestartReason != null) {
@@ -1104,6 +1283,7 @@ class ClusterStatefulSetWithPrimaryReconciliationHandlerTest {
           }
           return member;
         })
+        .append(stalePatroniMembers)
         .toList());
   }
 
