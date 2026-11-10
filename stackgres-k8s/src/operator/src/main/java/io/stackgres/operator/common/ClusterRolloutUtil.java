@@ -508,6 +508,14 @@ public class ClusterRolloutUtil {
         .orElse(false);
   }
 
+  /**
+   * A Pod that has been deleted is still listed, with the deletion timestamp set, until its
+   * containers terminate.
+   */
+  public static boolean isPodTerminating(Pod pod) {
+    return pod.getMetadata().getDeletionTimestamp() != null;
+  }
+
   public static boolean isPodReady(
       Pod pod) {
     return Optional.ofNullable(pod.getStatus())
