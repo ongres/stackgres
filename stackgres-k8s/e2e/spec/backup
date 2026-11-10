@@ -33,6 +33,9 @@ e2e_test() {
 
     run_test "Checking that the cluster keeps its data and elects a leader when all its Pods start together after a backup using volume snapshot" \
       check_cluster_restart_after_backup_using_volume_snapshot
+
+    run_test "Checking that a replica is re-initialized from a backup using volume snapshot with patronictl reinit and keeps its data when restarted" \
+      check_replica_reinit_after_backup_using_volume_snapshot
   else
     echo "Skipping Checking that backup using volume snapshot is working since volume snapshot feature is not available"
   fi
@@ -103,6 +106,81 @@ check_cluster_restart_after_backup_using_volume_snapshot() {
     success "The cluster kept its data after all its Pods started together"
   else
     fail "The cluster did not keep its data after all its Pods started together"
+  fi
+}
+
+# With a backup using volume snapshot available to initialize the replicas, patronictl reinit
+# re-initializes a replica with the backup method, that keeps the data of its persistent volume
+# (not created from the volume snapshot) and recovers it from the backup (see #3167). The replica
+# must then follow the primary, and keep its data when its Pod is restarted (see #3299).
+check_replica_reinit_after_backup_using_volume_snapshot() {
+  wait_until eval '[ "$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" \
+    --template "{{ .data.REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT }}")" = true ]'
+
+  local PRIMARY_INDEX REPLICA_INDEX REPLICA_POD
+  PRIMARY_INDEX="$(get_primary_index_or_first)"
+  REPLICA_INDEX="$((1 - PRIMARY_INDEX))"
+  REPLICA_POD="$CLUSTER_NAME-$REPLICA_INDEX"
+
+  local SYSTEM_IDENTIFIER
+  SYSTEM_IDENTIFIER="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$PRIMARY_INDEX" -c patroni -- \
+    psql -q -t -A -c 'SELECT system_identifier FROM pg_control_system()')"
+
+  # Written after the backup, the replica can only get it from the WALs or from the primary
+  local REINIT_CHECK
+  REINIT_CHECK="$(date +%s)"
+  run_query -i "$PRIMARY_INDEX" -p 5432 -q "DROP TABLE IF EXISTS replica_reinit_check;
+    CREATE TABLE replica_reinit_check AS SELECT $REINIT_CHECK AS value;"
+
+  local REINIT_START
+  REINIT_START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" -c patroni -- \
+    patronictl reinit "$CLUSTER_NAME" "$REPLICA_POD" --force
+
+  if wait_until -t "$((E2E_TIMEOUT * 2))" eval 'kubectl logs -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" -c patroni \
+    --since-time "$REINIT_START" | grep -q "replica has been created using backup$"'
+  then
+    success "The replica was re-initialized using the backup method"
+  else
+    fail "The replica was not re-initialized using the backup method"
+  fi
+
+  check_replica_follows_primary_with_reinit_check \
+    "The replica followed the primary after being re-initialized" \
+    "The replica did not follow the primary after being re-initialized"
+
+  local REPLICA_UID
+  REPLICA_UID="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" --template '{{ .metadata.uid }}')"
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$REPLICA_POD"
+  wait_until eval '[ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" \
+    --template "{{ .metadata.uid }}")" != "$REPLICA_UID" ]'
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  if kubectl logs -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" -c patroni \
+    | grep -q "preparing restore of snapshot based backup"
+  then
+    fail "The replica moved away its data when restarted after being re-initialized"
+  else
+    success "The replica kept its data when restarted after being re-initialized"
+  fi
+
+  check_replica_follows_primary_with_reinit_check \
+    "The replica followed the primary after being restarted" \
+    "The replica did not follow the primary after being restarted"
+}
+
+check_replica_follows_primary_with_reinit_check() {
+  if wait_until -t "$((E2E_TIMEOUT * 2))" eval '
+    [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" -c patroni -- \
+      psql -q -t -A -c "SELECT system_identifier FROM pg_control_system()")" = "$SYSTEM_IDENTIFIER" ] \
+    && [ "$(run_query -i "$REPLICA_INDEX" -p 5432 -q "SELECT value FROM replica_reinit_check")" = "$REINIT_CHECK" ] \
+    && kubectl exec -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" -c patroni -- patronictl list -f json \
+      | jq -e --arg member "$REPLICA_POD" ".[] | select(.Member == \$member and .State == \"streaming\")" > /dev/null'
+  then
+    success "$1"
+  else
+    fail "$2"
   fi
 }
 
