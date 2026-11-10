@@ -76,14 +76,28 @@ check_always_in_place_rollout() {
   local PRIMARY
   local BEFORE_ROLLOUT_DATE
   local PODS
+  local REPLICA
   PRIMARY="$(get_cluster_primary)"
   PODS="$(get_cluster_pods)"
+  REPLICA="$(printf '%s' "$PODS" | tr ' ' '\n' | grep -v "^$PRIMARY$" | grep .)"
 
   rollout_watch_start
 
   trigger_cluster_require_restart
+
+  # The re-creation of the replica Pod is held back to check that the primary Pod is not deleted
+  # while no replica is available to switch over to (see #3298)
+  rollout_block_pods_creation
+
   BEFORE_ROLLOUT_DATE="$(date +%s)"
   set_update_strategy '{"type":"Always","method":"InPlace"}'
+
+  wait_until eval '! kubectl get pod -n "$CLUSTER_NAMESPACE" "$REPLICA" > /dev/null 2>&1'
+
+  assert_pod_not_deleted "$PRIMARY" "$((E2E_TIMEOUT / 3))" \
+    "while the replica Pod $REPLICA had not been re-created yet"
+
+  rollout_allow_pods_creation
 
   wait_rollout_completed "$BEFORE_ROLLOUT_DATE" 2
 
