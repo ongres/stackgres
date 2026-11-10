@@ -1,0 +1,105 @@
+#!/bin/sh
+
+get_cluster_primary() {
+  kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template='{{ .metadata.annotations.leader }}'
+}
+
+get_cluster_pods() {
+  kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
+    --template='{{ range .items }}{{ printf "%s " .metadata.name }}{{ end }}'
+}
+
+get_pods_creation_timestamps() {
+  kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
+    --template='{{ range .items }}{{ printf "%s=%s " .metadata.name .metadata.creationTimestamp }}{{ end }}'
+}
+
+# Count the restarts of the Postgres instance that the cluster controller of a Pod has performed
+get_postgres_restarts() {
+  local POD="$1"
+
+  kubectl logs -n "$CLUSTER_NAMESPACE" "$POD" -c cluster-controller \
+    | grep -cF 'Restarting postgres instance through patronictl due to operator request' || true
+}
+
+# Record every change of the Pods of the cluster, so that the order the Pods were deleted and became
+# ready during a rollout can be checked once it completes. The watch is re-opened when the API server
+# closes it, the Pods listed again are recorded as added again.
+rollout_watch_start() {
+  ROLLOUT_WATCH_PATH="$LOG_PATH/rollout-watch-$(date +%s).log"
+  ROLLOUT_WATCH_STOP_PATH="$ROLLOUT_WATCH_PATH.stop"
+  : > "$ROLLOUT_WATCH_PATH"
+  rm -f "$ROLLOUT_WATCH_STOP_PATH"
+  (
+    while ! [ -f "$ROLLOUT_WATCH_STOP_PATH" ]
+    do
+      kubectl get pod -n "$CLUSTER_NAMESPACE" \
+        -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
+        --watch --output-watch-events -o json --request-timeout=60s 2>/dev/null \
+        | jq -c --unbuffered '{
+            type: .type,
+            uid: .object.metadata.uid,
+            name: .object.metadata.name,
+            deleting: (.object.metadata.deletionTimestamp != null),
+            ready: any(.object.status.conditions[]?; .type == "Ready" and .status == "True")
+          }' >> "$ROLLOUT_WATCH_PATH" || true
+    done
+  ) &
+  ROLLOUT_WATCH_PID="$!"
+  trap_kill "$ROLLOUT_WATCH_PID"
+  wait_until eval '[ -s "$ROLLOUT_WATCH_PATH" ]'
+}
+
+rollout_watch_stop() {
+  touch "$ROLLOUT_WATCH_STOP_PATH"
+  pkill -P "$ROLLOUT_WATCH_PID" >/dev/null 2>&1 || true
+  kill "$ROLLOUT_WATCH_PID" >/dev/null 2>&1 || true
+}
+
+# A Pod of a cluster with more than one instance must not be deleted while no other Pod is ready and
+# not being deleted, or the cluster is left with no instance available at all.
+assert_no_pod_deleted_while_no_other_pod_ready() {
+  local VIOLATIONS
+  VIOLATIONS="$(jq -s -r '
+    reduce .[] as $event ({pods: {}, violations: []};
+      if $event.type == "DELETED"
+      then .pods |= del(.[$event.uid])
+      else
+        (if .pods[$event.uid] != null
+          and $event.deleting
+          and (.pods[$event.uid].deleting | not)
+          and ([.pods | to_entries[]
+            | select(.key != $event.uid and .value.ready and (.value.deleting | not))]
+            | length) == 0
+        then .violations += [$event.name] else . end)
+        | .pods[$event.uid] = {name: $event.name, ready: $event.ready, deleting: $event.deleting}
+      end)
+    | .violations[]' "$ROLLOUT_WATCH_PATH")"
+  if [ -z "$VIOLATIONS" ]
+  then
+    success "No Pod was deleted while no other Pod was ready"
+  else
+    fail "Pods $(printf '%s' "$VIOLATIONS" | paste -sd ' ') were deleted while no other Pod was ready, see $ROLLOUT_WATCH_PATH"
+  fi
+}
+
+# Each Pod is re-created once during a rollout: the Pod with the same name is not deleted again
+# after it has been re-created.
+assert_pods_recreated_once() {
+  local POD
+  local COUNT
+  for POD in "$@"
+  do
+    COUNT="$(jq -s -r --arg name "$POD" \
+      '[.[] | select(.name == $name) | .uid] | unique | length' "$ROLLOUT_WATCH_PATH")"
+    if [ "$COUNT" = 2 ]
+    then
+      success "Pod $POD was re-created once"
+    else
+      fail "Pod $POD was created $COUNT times instead of being re-created once, see $ROLLOUT_WATCH_PATH"
+    fi
+  done
+}
