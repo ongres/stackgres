@@ -9,10 +9,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
@@ -25,6 +30,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMounts;
 import io.stackgres.operator.conciliation.factory.TemplatesMounts;
@@ -32,6 +38,7 @@ import io.stackgres.operator.conciliation.factory.UserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.ImmutableClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.testutil.JsonUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -102,7 +109,7 @@ class PostgresExporterTest {
           .build())
         .build();
 
-    Assertions.assertEquals(1L, volumes.size());
+    Assertions.assertEquals(2L, volumes.size());
     Assertions.assertEquals(expected, volumes.getFirst().getVolume());
     Assertions.assertTrue(volumes.getFirst().getSource().isPresent());
     Assertions.assertInstanceOf(ConfigMap.class, volumes.getFirst().getSource().get());
@@ -134,7 +141,7 @@ class PostgresExporterTest {
           .build())
         .build();
 
-    Assertions.assertEquals(1L, volumes.size());
+    Assertions.assertEquals(2L, volumes.size());
     Assertions.assertEquals(expected, volumes.getFirst().getVolume());
     Assertions.assertTrue(volumes.getFirst().getSource().isPresent());
     Assertions.assertInstanceOf(ConfigMap.class, volumes.getFirst().getSource().get());
@@ -149,6 +156,44 @@ class PostgresExporterTest {
         sourceVolumeDataQueriesKeys.stream()
           .anyMatch(key -> key.startsWith(PostgresExporter.POSTGRES_EXPORTER_PGBOUNCER_QUERIES_PREFIX))
     );
+  }
+
+  @Test
+  void getContainer_shouldReadTheMonitorUsernameFromTheClusterSecret() {
+    ClusterContainerContext context = getClusterContainerContext();
+
+    Container container = postgresExporter.getContainer(context);
+    List<VolumePair> volumes = postgresExporter.buildVolumes(context.getClusterContext()).toList();
+
+    Map<String, String> env = container.getEnv().stream()
+        .filter(envVar -> envVar.getValue() != null)
+        .collect(Collectors.toMap(EnvVar::getName, EnvVar::getValue));
+    Assertions.assertFalse(env.containsKey("DATA_SOURCE_NAME"), env.toString());
+    Assertions.assertEquals("/var/opt/postgres-exporter/credentials/monitor-username",
+        env.get("DATA_SOURCE_USER_FILE"));
+    Assertions.assertEquals(":5432/postgres?host=/var/run/postgresql&sslmode=disable",
+        env.get("DATA_SOURCE_URI"));
+    VolumeMount credentialsMount = container.getVolumeMounts().stream()
+        .filter(volumeMount -> volumeMount.getName()
+            .equals(StackGresVolume.EXPORTER_CREDENTIALS.getName()))
+        .findFirst()
+        .orElseThrow();
+    Assertions.assertEquals("/var/opt/postgres-exporter/credentials",
+        credentialsMount.getMountPath());
+    // A volume mounted with a sub path is not updated when its source changes
+    Assertions.assertNull(credentialsMount.getSubPath());
+    io.fabric8.kubernetes.api.model.Volume credentialsVolume = volumes.stream()
+        .map(VolumePair::getVolume)
+        .filter(volume -> volume.getName().equals(StackGresVolume.EXPORTER_CREDENTIALS.getName()))
+        .findFirst()
+        .orElseThrow();
+    Assertions.assertEquals(PatroniSecret.name(context.getClusterContext()),
+        credentialsVolume.getSecret().getSecretName());
+    Assertions.assertEquals(List.of(new KeyToPathBuilder()
+        .withKey(StackGresPasswordKeys.MONITOR_USERNAME_KEY)
+        .withPath("monitor-username")
+        .build()),
+        credentialsVolume.getSecret().getItems());
   }
 
   @Test

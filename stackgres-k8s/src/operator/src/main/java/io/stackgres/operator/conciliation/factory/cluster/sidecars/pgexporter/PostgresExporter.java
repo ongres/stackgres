@@ -23,6 +23,8 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KeyToPathBuilder;
+import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
@@ -40,6 +42,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresExporter;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -75,6 +78,9 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
   private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
       "io.stackgres.prometheus-postgres-exporter");
   public static final String QUERIES_YAML = "queries.yaml";
+
+  private static final String CREDENTIALS_PATH = "/var/opt/postgres-exporter/credentials";
+  private static final String MONITOR_USERNAME_FILE = "monitor-username";
 
   private final LabelFactoryForCluster labelFactory;
   private final PostgresSocketMounts postgresSocketMounts;
@@ -114,8 +120,6 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
   @Override
   public Container getContainer(ClusterContainerContext context) {
     StackGresCluster cluster = context.getClusterContext().getSource();
-    String monitorUsername =
-        PatroniSecret.getMonitorCredentials(context.getClusterContext()).v1;
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.POSTGRES_EXPORTER.getName())
         .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.get(cluster)
@@ -129,12 +133,18 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
                 .withName("PGAPPNAME")
                 .withValue(StackGresContainer.POSTGRES_EXPORTER.getName())
                 .build(),
+            // The username of the monitor user is read from a file, that is updated when it changes
+            // without changing the Pod, so that the Postgres exporter is restarted to use it
             new EnvVarBuilder()
-                .withName("DATA_SOURCE_NAME")
-                .withValue("postgresql://" + monitorUsername + "@:" + EnvoyUtil.PG_PORT
+                .withName("DATA_SOURCE_URI")
+                .withValue(":" + EnvoyUtil.PG_PORT
                     + "/postgres"
                     + "?host=" + ClusterPath.PG_RUN_PATH.path()
                     + "&sslmode=disable")
+                .build(),
+            new EnvVarBuilder()
+                .withName("DATA_SOURCE_USER_FILE")
+                .withValue(CREDENTIALS_PATH + "/" + MONITOR_USERNAME_FILE)
                 .build(),
             new EnvVarBuilder()
                 .withName("PG_EXPORTER_EXTEND_QUERY_PATH")
@@ -170,6 +180,13 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
                 .withReadOnly(true)
                 .build()
         )
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(StackGresVolume.EXPORTER_CREDENTIALS.getName())
+                .withMountPath(CREDENTIALS_PATH)
+                .withReadOnly(true)
+                .build()
+        )
         .addAllToVolumeMounts(userOverrideMounts.getVolumeMounts(context));
 
     return container.build();
@@ -189,8 +206,30 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
             .source(buildSource(context))
+            .build(),
+        ImmutableVolumePair.builder()
+            .volume(buildCredentialsVolume(context))
             .build()
     );
+  }
+
+  /**
+   * Only the username of the monitor user, from the Secret of the cluster, since the Postgres
+   * exporter connects through the unix socket and does not need any password.
+   */
+  private io.fabric8.kubernetes.api.model.Volume buildCredentialsVolume(
+      StackGresClusterContext context) {
+    return new io.fabric8.kubernetes.api.model.VolumeBuilder()
+        .withName(StackGresVolume.EXPORTER_CREDENTIALS.getName())
+        .withSecret(new SecretVolumeSourceBuilder()
+            .withSecretName(PatroniSecret.name(context))
+            .withItems(new KeyToPathBuilder()
+                .withKey(StackGresPasswordKeys.MONITOR_USERNAME_KEY)
+                .withPath(MONITOR_USERNAME_FILE)
+                .build())
+            .withDefaultMode(0400)
+            .build())
+        .build();
   }
 
   private Volume buildVolume(StackGresClusterContext context) {
