@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.ClusterEnvVar;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
@@ -44,10 +45,12 @@ import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
 import io.stackgres.operator.initialization.DefaultClusterPostgresConfigFactory;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -120,6 +123,45 @@ class PatroniConfigEndpointsTest {
     assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
     assertTrue(patroniConfig.getPostgresql().getUseSlots());
     assertNull(patroniConfig.getStandbyCluster());
+  }
+
+  @Test
+  void generatedEndpointAfterReplicationUsernameChange_shouldAllowBothUsernamesToReplicate()
+      throws JsonProcessingException {
+    when(context.getDatabaseSecret()).thenReturn(Optional.of(new SecretBuilder()
+        .addToData(ResourceUtil.encodeSecret(Map.of(
+            StackGresPasswordKeys.REPLICATION_USERNAME_KEY, "replicator",
+            StackGresPasswordKeys.REPLICATION_PASSWORD_KEY, "test")))
+        .build()));
+    when(context.getReplicationUsername()).thenReturn(Optional.of("replicator2"));
+    Endpoints endpoints = generateEndpoint();
+
+    PatroniConfig patroniConfig = JsonUtil.jsonMapper()
+        .readValue(endpoints.getMetadata().getAnnotations().get(PatroniUtil.CONFIG_KEY),
+            PatroniConfig.class);
+    List<String> pgHba = patroniConfig.getPostgresql().getPgHba();
+    assertTrue(pgHba.contains("host replication replicator2 0.0.0.0/0 md5"), pgHba.toString());
+    assertTrue(pgHba.contains("host replication replicator2 ::/0 md5"), pgHba.toString());
+    assertTrue(pgHba.contains("host replication replicator 0.0.0.0/0 md5"), pgHba.toString());
+    assertTrue(pgHba.contains("host replication replicator ::/0 md5"), pgHba.toString());
+  }
+
+  @Test
+  void generatedEndpointWithoutReplicationUsernameChange_shouldAllowOnlyItToReplicate()
+      throws JsonProcessingException {
+    when(context.getDatabaseSecret()).thenReturn(Optional.of(new SecretBuilder()
+        .addToData(ResourceUtil.encodeSecret(Map.of(
+            StackGresPasswordKeys.REPLICATION_USERNAME_KEY, "replicator",
+            StackGresPasswordKeys.REPLICATION_PASSWORD_KEY, "test")))
+        .build()));
+    Endpoints endpoints = generateEndpoint();
+
+    PatroniConfig patroniConfig = JsonUtil.jsonMapper()
+        .readValue(endpoints.getMetadata().getAnnotations().get(PatroniUtil.CONFIG_KEY),
+            PatroniConfig.class);
+    List<String> pgHba = patroniConfig.getPostgresql().getPgHba();
+    assertEquals(2, pgHba.stream().filter(rule -> rule.startsWith("host replication ")).count(),
+        pgHba.toString());
   }
 
   @Test

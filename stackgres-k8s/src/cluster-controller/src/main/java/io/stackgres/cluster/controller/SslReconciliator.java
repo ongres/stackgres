@@ -27,9 +27,9 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterPatroniConfigEventReason;
+import io.stackgres.cluster.common.ClusterSuperuserCredentials;
 import io.stackgres.cluster.common.PatroniCommandUtil;
 import io.stackgres.cluster.common.PgBouncerCommandUtil;
-import io.stackgres.cluster.common.PostgresUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
@@ -68,6 +68,7 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
   private final ResourceFinder<Secret> secretFinder;
   private final WebClientFactory webClientFactory;
   private final PostgresConnectionManager postgresConnectionManager;
+  private final ClusterSuperuserCredentials clusterSuperuserCredentials;
 
   @Dependent
   public static class Parameters {
@@ -76,6 +77,7 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
     @Inject ResourceFinder<Secret> secretFinder;
     @Inject WebClientFactory webClientFactory;
     @Inject PostgresConnectionManager postgresConnectionManager;
+    @Inject ClusterSuperuserCredentials clusterSuperuserCredentials;
   }
 
   @Inject
@@ -88,6 +90,7 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
     this.secretFinder = parameters.secretFinder;
     this.webClientFactory = parameters.webClientFactory;
     this.postgresConnectionManager = parameters.postgresConnectionManager;
+    this.clusterSuperuserCredentials = parameters.clusterSuperuserCredentials;
   }
 
   @Override
@@ -199,7 +202,7 @@ public class SslReconciliator extends SafeReconciliator<StackGresClusterContext,
 
   @SuppressWarnings("null")
   private boolean testPostgresSsl(ClusterContext context) {
-    var postgresCredentials = PostgresUtil.getPostgresCredentials(context, secretFinder);
+    var postgresCredentials = clusterSuperuserCredentials.get(context);
     try (Connection connection = postgresConnectionManager.getConnection(
         "localhost",
         EnvoyUtil.PG_PORT,

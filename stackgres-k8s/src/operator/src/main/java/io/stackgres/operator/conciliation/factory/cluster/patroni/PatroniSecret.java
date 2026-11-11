@@ -132,11 +132,68 @@ public class PatroniSecret
     data.put(SUPERUSER_USERNAME_ENV, superuserCredentials.v1);
     data.put(SUPERUSER_PASSWORD_KEY, superuserCredentials.v2);
     data.put(SUPERUSER_PASSWORD_ENV, superuserCredentials.v2);
+    getPreviousUsername(
+        previousSecretData, superuserCredentials.v1,
+        SUPERUSER_USERNAME_KEY, SUPERUSER_USERNAME_ENV, SUPERUSER_PREVIOUS_USERNAME_KEY)
+        .ifPresent(previousUsername -> data.put(
+            SUPERUSER_PREVIOUS_USERNAME_KEY, previousUsername));
     data.put(
         ROLES_UPDATE_SQL_KEY,
         Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
-        + "ALTER ROLE " + DSL.quotedName(superuserCredentials.v1)
-        + " WITH PASSWORD " + DSL.inline(superuserCredentials.v2) + ";");
+        + getCreateOrUpdateRoleSql(
+            superuserCredentials.v1,
+            "SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS",
+            superuserCredentials.v2));
+  }
+
+  /**
+   * Return the SQL that creates the role, when it does not exist (as happens when its username is
+   * changed), or that updates its password.
+   */
+  private static String getCreateOrUpdateRoleSql(
+      String username, String attributes, String password) {
+    return "DO $$\n"
+        + "BEGIN\n"
+        + "  IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = "
+        + DSL.inline(username) + ") THEN\n"
+        + "    CREATE ROLE " + DSL.quotedName(username)
+        + " WITH " + attributes + " PASSWORD " + DSL.inline(password) + ";\n"
+        + "  ELSE\n"
+        + "    ALTER ROLE " + DSL.quotedName(username)
+        + " WITH PASSWORD " + DSL.inline(password) + ";\n"
+        + "  END IF;\n"
+        + "END$$;";
+  }
+
+  /**
+   * Return the username that the user had before it was changed to the specified one, that is
+   * kept until the username changes again.
+   */
+  private static Optional<String> getPreviousUsername(
+      Map<String, String> previousSecretData,
+      String username,
+      String usernameKey,
+      String usernameEnv,
+      String previousUsernameKey) {
+    return Optional.ofNullable(previousSecretData.get(usernameKey))
+        .or(() -> Optional.ofNullable(previousSecretData.get(usernameEnv)))
+        .filter(previousUsername -> !previousUsername.equals(username))
+        .or(() -> Optional.ofNullable(previousSecretData.get(previousUsernameKey)))
+        .filter(previousUsername -> !previousUsername.equals(username));
+  }
+
+  /**
+   * Return the username that the replication user had before it was changed, if any.
+   */
+  public static Optional<String> getPreviousReplicatorUsername(
+      StackGresClusterContext context) {
+    final Map<String, String> previousSecretData = context.getDatabaseSecret()
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .orElse(Map.of());
+    return getPreviousUsername(
+        previousSecretData, getReplicatorCredentials(context, previousSecretData).v1,
+        REPLICATION_USERNAME_KEY, REPLICATION_USERNAME_ENV, REPLICATION_PREVIOUS_USERNAME_KEY);
   }
 
   public static Tuple2<String, String> getSuperuserCredentials(
@@ -172,11 +229,18 @@ public class PatroniSecret
     data.put(REPLICATION_USERNAME_ENV, replicatorCredentials.v1);
     data.put(REPLICATION_PASSWORD_KEY, replicatorCredentials.v2);
     data.put(REPLICATION_PASSWORD_ENV, replicatorCredentials.v2);
+    getPreviousUsername(
+        previousSecretData, replicatorCredentials.v1,
+        REPLICATION_USERNAME_KEY, REPLICATION_USERNAME_ENV, REPLICATION_PREVIOUS_USERNAME_KEY)
+        .ifPresent(previousUsername -> data.put(
+            REPLICATION_PREVIOUS_USERNAME_KEY, previousUsername));
     data.put(
         ROLES_UPDATE_SQL_KEY,
         Optional.ofNullable(data.get(ROLES_UPDATE_SQL_KEY)).orElse("") + "\n"
-        + "ALTER ROLE " + DSL.quotedName(replicatorCredentials.v1)
-        + " WITH PASSWORD " + DSL.inline(replicatorCredentials.v2) + ";");
+        + getCreateOrUpdateRoleSql(
+            replicatorCredentials.v1,
+            "NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN REPLICATION NOBYPASSRLS",
+            replicatorCredentials.v2));
   }
 
   public static Tuple2<String, String> getReplicatorCredentials(

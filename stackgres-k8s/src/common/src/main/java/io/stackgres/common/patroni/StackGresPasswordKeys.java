@@ -15,6 +15,7 @@ public interface StackGresPasswordKeys {
   String SUPERUSER_PASSWORD_YAML_ENV = "PATRONI_SUPERUSER_PASSWORD_YAML";
   String SUPERUSER_USERNAME_KEY = "superuser-username";
   String SUPERUSER_PASSWORD_KEY = "superuser-password";
+  String SUPERUSER_PREVIOUS_USERNAME_KEY = "superuser-previous-username";
   String REPLICATION_USERNAME = "replicator";
   String REPLICATION_USERNAME_ENV = "PATRONI_REPLICATION_USERNAME";
   String REPLICATION_PASSWORD_ENV = "PATRONI_REPLICATION_PASSWORD";
@@ -22,6 +23,7 @@ public interface StackGresPasswordKeys {
   String REPLICATION_PASSWORD_YAML_ENV = "PATRONI_REPLICATION_PASSWORD_YAML";
   String REPLICATION_USERNAME_KEY = "replication-username";
   String REPLICATION_PASSWORD_KEY = "replication-password";
+  String REPLICATION_PREVIOUS_USERNAME_KEY = "replication-previous-username";
   String AUTHENTICATOR_USERNAME = "authenticator";
   String AUTHENTICATOR_USERNAME_ENV = "PATRONI_authenticator_USERNAME";
   String AUTHENTICATOR_PASSWORD_ENV = "PATRONI_authenticator_PASSWORD";

@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -31,11 +32,15 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterManagedSqlEventReason;
+import io.stackgres.cluster.common.ClusterSuperuserCredentials;
+import io.stackgres.cluster.common.PatroniConfigCredentials;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.YamlScalarWriter;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryScriptStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
@@ -47,6 +52,7 @@ import io.stackgres.common.patroni.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.patroni.StandbyCluster;
+import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
@@ -152,6 +158,10 @@ public class ManagedSqlReconciliatorTest {
     parameters.configMapFinder = configMapFinder;
     parameters.clusterScheduler = clusterScheduler;
     parameters.eventController = eventController;
+    parameters.clusterSuperuserCredentials = new ClusterSuperuserCredentials(
+        secretFinder, mock(PostgresConnectionManager.class),
+        new PatroniConfigCredentials(new YamlMapperProvider(),
+            new YamlScalarWriter(new YamlMapperProvider())));
 
     reconciliator = new ManagedSqlReconciliator(parameters);
     clusterSecretName = PatroniUtil.secretName(

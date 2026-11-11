@@ -23,6 +23,7 @@ import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_STATS_
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_PASSWORD_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_PASSWORD_YAML_ENV;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_PREVIOUS_USERNAME_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_USERNAME_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_USERNAME_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_USERNAME_YAML_ENV;
@@ -32,9 +33,11 @@ import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_PASSWORD
 import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_USERNAME_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_USERNAME_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_USERNAME_YAML_ENV;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.ROLES_UPDATE_SQL_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_YAML_ENV;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PREVIOUS_USERNAME_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_YAML_ENV;
@@ -378,6 +381,68 @@ class PatroniSecretTest {
         data.get(BABELFISH_PASSWORD_KEY));
     assertNotEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_ENV));
     assertNotEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_KEY));
+  }
+
+  @Test
+  void generateResourcesWithUsernamesChanged_shouldCreateTheUsersAndKeepThePreviousUsernames() {
+    when(context.getDatabaseSecret()).thenReturn(Optional.of(new SecretBuilder()
+        .addToData(ResourceUtil.encodeSecret(Map.of(
+            SUPERUSER_USERNAME_KEY, "postgres",
+            SUPERUSER_PASSWORD_KEY, "s",
+            REPLICATION_USERNAME_KEY, "replicator",
+            REPLICATION_PASSWORD_KEY, "r")))
+        .build()));
+    when(context.getSuperuserUsername()).thenReturn(Optional.of("postgres2"));
+    when(context.getReplicationUsername()).thenReturn(Optional.of("replicator2"));
+    Secret secret = patroniSecret.buildSource(context);
+
+    final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
+    assertEquals("postgres", data.get(SUPERUSER_PREVIOUS_USERNAME_KEY));
+    assertEquals("replicator", data.get(REPLICATION_PREVIOUS_USERNAME_KEY));
+    final String rolesUpdateSql = data.get(ROLES_UPDATE_SQL_KEY);
+    assertTrue(rolesUpdateSql.contains(
+        "IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = 'postgres2') THEN\n"
+        + "    CREATE ROLE \"postgres2\" WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN"
+        + " REPLICATION BYPASSRLS PASSWORD 's';\n"
+        + "  ELSE\n"
+        + "    ALTER ROLE \"postgres2\" WITH PASSWORD 's';\n"), rolesUpdateSql);
+    assertTrue(rolesUpdateSql.contains(
+        "IF NOT EXISTS (SELECT * FROM pg_roles WHERE rolname = 'replicator2') THEN\n"
+        + "    CREATE ROLE \"replicator2\" WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN"
+        + " REPLICATION NOBYPASSRLS PASSWORD 'r';\n"
+        + "  ELSE\n"
+        + "    ALTER ROLE \"replicator2\" WITH PASSWORD 'r';\n"), rolesUpdateSql);
+    assertEquals(Optional.of("replicator"), PatroniSecret.getPreviousReplicatorUsername(context));
+  }
+
+  @Test
+  void generateResourcesWithUsernamesUnchanged_shouldKeepThePreviousUsernames() {
+    when(context.getDatabaseSecret()).thenReturn(Optional.of(new SecretBuilder()
+        .addToData(ResourceUtil.encodeSecret(Map.of(
+            SUPERUSER_USERNAME_KEY, "postgres2",
+            SUPERUSER_PASSWORD_KEY, "s",
+            SUPERUSER_PREVIOUS_USERNAME_KEY, "postgres",
+            REPLICATION_USERNAME_KEY, "replicator2",
+            REPLICATION_PASSWORD_KEY, "r",
+            REPLICATION_PREVIOUS_USERNAME_KEY, "replicator")))
+        .build()));
+    Secret secret = patroniSecret.buildSource(context);
+
+    final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
+    assertEquals("postgres2", data.get(SUPERUSER_USERNAME_KEY));
+    assertEquals("postgres", data.get(SUPERUSER_PREVIOUS_USERNAME_KEY));
+    assertEquals("replicator2", data.get(REPLICATION_USERNAME_KEY));
+    assertEquals("replicator", data.get(REPLICATION_PREVIOUS_USERNAME_KEY));
+  }
+
+  @Test
+  void generateResourcesWithoutPreviousSecret_shouldNotHavePreviousUsernames() {
+    Secret secret = patroniSecret.buildSource(context);
+
+    final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
+    assertFalse(data.containsKey(SUPERUSER_PREVIOUS_USERNAME_KEY));
+    assertFalse(data.containsKey(REPLICATION_PREVIOUS_USERNAME_KEY));
+    assertEquals(Optional.empty(), PatroniSecret.getPreviousReplicatorUsername(context));
   }
 
   @Test
