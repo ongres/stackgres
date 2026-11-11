@@ -30,8 +30,12 @@ import io.fabric8.kubernetes.api.model.ContainerStatusBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.stackgres.cluster.common.ClusterSuperuserCredentials;
+import io.stackgres.cluster.common.PatroniConfigCredentials;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.FileSystemHandler;
+import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.YamlScalarWriter;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.fixture.Fixtures;
@@ -80,7 +84,10 @@ public class PgBouncerAuthFileReconciliatorTest {
   void setUp() throws Exception {
     reconciliator = new PgBouncerAuthFileReconciliator(
         "test", podFinder,
-        poolingConfigFinder, secretFinder,
+        poolingConfigFinder,
+        new ClusterSuperuserCredentials(secretFinder, postgresConnectionManager,
+            new PatroniConfigCredentials(new YamlMapperProvider(),
+                new YamlScalarWriter(new YamlMapperProvider()))),
         postgresConnectionManager, fileSystemHandler);
   }
 

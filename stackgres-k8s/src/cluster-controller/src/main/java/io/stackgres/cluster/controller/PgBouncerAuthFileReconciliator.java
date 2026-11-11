@@ -28,8 +28,7 @@ import java.util.function.Predicate;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodStatus;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.stackgres.cluster.common.PostgresUtil;
+import io.stackgres.cluster.common.ClusterSuperuserCredentials;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
@@ -57,7 +56,7 @@ public class PgBouncerAuthFileReconciliator {
   private final String podName;
   private final ResourceFinder<Pod> podFinder;
   private final CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
-  private final ResourceFinder<Secret> secretFinder;
+  private final ClusterSuperuserCredentials clusterSuperuserCredentials;
   private final PostgresConnectionManager postgresConnectionManager;
   private final FileSystemHandler fileSystemHandler;
 
@@ -65,7 +64,7 @@ public class PgBouncerAuthFileReconciliator {
       String podName,
       ResourceFinder<Pod> podFinder,
       CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
-      ResourceFinder<Secret> secretFinder,
+      ClusterSuperuserCredentials clusterSuperuserCredentials,
       PostgresConnectionManager postgresConnectionManager,
       FileSystemHandler fileSystemHandler) {
     super();
@@ -73,7 +72,7 @@ public class PgBouncerAuthFileReconciliator {
     this.podFinder = podFinder;
     this.poolingConfigFinder = poolingConfigFinder;
     this.postgresConnectionManager = postgresConnectionManager;
-    this.secretFinder = secretFinder;
+    this.clusterSuperuserCredentials = clusterSuperuserCredentials;
     this.fileSystemHandler = fileSystemHandler;
   }
 
@@ -97,7 +96,7 @@ public class PgBouncerAuthFileReconciliator {
       fileSystemHandler.copyOrReplace(AUTH_FILE_PATH, ORIGINAL_AUTH_FILE_PATH);
     }
     Collection<String> users = getPoolingConfigUserNames(context);
-    var postgresCredentials = PostgresUtil.getPostgresCredentials(context, secretFinder);
+    var postgresCredentials = clusterSuperuserCredentials.get(context);
     final String usersSection = extractAuthFileSectionForUsers(
         postgresCredentials.username(), users);
     try (
