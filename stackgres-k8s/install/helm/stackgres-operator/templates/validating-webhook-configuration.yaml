@@ -40,7 +40,7 @@ webhooks:
   - name: sgpgconfig.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgpgconfigs"]
@@ -64,7 +64,7 @@ webhooks:
   - name: sgpoolconfig.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgpoolconfigs"]
@@ -88,7 +88,7 @@ webhooks:
   - name: sginstanceprofile.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sginstanceprofiles"]
@@ -112,7 +112,7 @@ webhooks:
   - name: sgbackup.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgbackups"]
@@ -136,7 +136,7 @@ webhooks:
   - name: sgdistributedlogs.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgdistributedlogs"]
@@ -160,7 +160,7 @@ webhooks:
   - name: sgdbops.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgdbops"]
@@ -184,7 +184,7 @@ webhooks:
   - name: sgobjectstorage.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgobjectstorages"]
@@ -208,7 +208,7 @@ webhooks:
   - name: sgscript.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgscripts"]
@@ -232,7 +232,7 @@ webhooks:
   - name: sgshardedcluster.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgshardedclusters"]
@@ -256,7 +256,7 @@ webhooks:
   - name: sgshardedbackup.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgshardedbackups"]
@@ -280,7 +280,7 @@ webhooks:
   - name: sgshardeddbops.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgshardeddbops"]
@@ -304,7 +304,7 @@ webhooks:
   - name: sgstream.validating-webhook.stackgres.io
     sideEffects: None
     rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
         resources: ["sgstreams"]
