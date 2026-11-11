@@ -97,7 +97,7 @@ check_cluster_restart_after_backup_using_volume_snapshot() {
     fail "The cluster did not elect any leader after all its Pods started together"
   fi
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster_pods_running
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$(get_primary_index_or_first)" -c patroni -- \
@@ -125,6 +125,13 @@ check_replica_reinit_after_backup_using_volume_snapshot() {
   local SYSTEM_IDENTIFIER
   SYSTEM_IDENTIFIER="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$PRIMARY_INDEX" -c patroni -- \
     psql -q -t -A -c 'SELECT system_identifier FROM pg_control_system()')"
+
+  if wait_until -t "$((E2E_TIMEOUT * 2))" is_replica_streaming "$REPLICA_POD"
+  then
+    success "The replica is replicating from the primary before being re-initialized"
+  else
+    fail "The replica is not replicating from the primary before being re-initialized"
+  fi
 
   # Written after the backup, the replica can only get it from the WALs or from the primary
   local REINIT_CHECK
@@ -154,7 +161,7 @@ check_replica_reinit_after_backup_using_volume_snapshot() {
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$REPLICA_POD"
   wait_until eval '[ "$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" \
     --template "{{ .metadata.uid }}")" != "$REPLICA_UID" ]'
-  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster_pods_running
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   if kubectl logs -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" -c patroni \
@@ -170,13 +177,23 @@ check_replica_reinit_after_backup_using_volume_snapshot() {
     "The replica did not follow the primary after being restarted"
 }
 
+# The Pods of the backup CronJob, that runs every minute, are not counted as Pods of the cluster
+wait_cluster_pods_running() {
+  wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[0-9]\+"
+}
+
+is_replica_streaming() {
+  local REPLICA_POD="$1"
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" -c patroni -- patronictl list -f json \
+    | jq -e --arg member "$REPLICA_POD" '.[] | select(.Member == $member and .State == "streaming")' > /dev/null
+}
+
 check_replica_follows_primary_with_reinit_check() {
   if wait_until -t "$((E2E_TIMEOUT * 2))" eval '
     [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" -c patroni -- \
       psql -q -t -A -c "SELECT system_identifier FROM pg_control_system()")" = "$SYSTEM_IDENTIFIER" ] \
     && [ "$(run_query -i "$REPLICA_INDEX" -p 5432 -q "SELECT value FROM replica_reinit_check")" = "$REINIT_CHECK" ] \
-    && kubectl exec -n "$CLUSTER_NAMESPACE" "$REPLICA_POD" -c patroni -- patronictl list -f json \
-      | jq -e --arg member "$REPLICA_POD" ".[] | select(.Member == \$member and .State == \"streaming\")" > /dev/null'
+    && is_replica_streaming "$REPLICA_POD"'
   then
     success "$1"
   else
