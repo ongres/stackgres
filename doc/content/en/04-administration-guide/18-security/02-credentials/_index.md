@@ -83,7 +83,8 @@ The credentials of the users and of the Patroni REST API can be taken from your 
 `spec.configurations.credentials` section of the SGCluster (see the
 [SGCluster CRD reference]({{% relref "06-crd-reference/01-sgcluster" %}})). To rotate a password, change
 it in the referenced Secret (or reference another Secret). At the next reconciliation cycle (usually
-within a minute) the operator applies the new password to the database user, so no SQL has to be run by hand.
+within a minute) the operator applies the new password to the database user and to Patroni, so no SQL has
+to be run by hand and no restart is needed.
 
 ### Rotating All Passwords
 
@@ -151,38 +152,13 @@ spec:
             key: monitor-password
 ```
 
-Then restart the Pods of the cluster with a restart [SGDbOps]({{% relref "06-crd-reference/08-sgdbops" %}}),
-since Patroni reads the credentials of the superuser, of the replication user and of its REST API when its
-container starts. Until the Pods are restarted, Patroni keeps using the previous ones to rewind a former
-primary, to replicate from the primary and to authenticate the requests to its REST API. The cluster does
-not report a pending restart for this change.
-
-```yaml
-apiVersion: stackgres.io/v1
-kind: SGDbOps
-metadata:
-  name: my-cluster-restart
-spec:
-  sgCluster: my-cluster
-  op: restart
-  restart:
-    method: InPlace
-```
-
 ### Changing Usernames
 
-When the username of the authenticator or of the monitor user changes, the operator creates the user
-with the new username. The user with the previous username is not removed. Changing the username of the
-monitor user requires a restart, that the cluster reports as pending.
-
-When the username of the superuser or of the replication user changes, the operator does not create the
-user with the new username, and it fails to apply any credentials change until the user exists. Create it
-before changing the username (replace the usernames with the new ones):
-
-```sql
-CREATE ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS;
-CREATE ROLE replicator WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN REPLICATION NOBYPASSRLS;
-```
+When the username of a user changes, the operator creates the user with the new username. The user with
+the previous username is not removed. Patroni uses the new username of the superuser and of the replication
+user once the user was created, PgBouncer uses the new username of the authenticator user to authenticate the
+users that connect through it and the Postgres exporter uses the new username of the monitor user, without
+restarting the Pods.
 
 ## Creating Application Users
 

@@ -1624,8 +1624,8 @@ spec:
                         description: |
                           Kubernetes [SecretKeySelectors](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#secretkeyselector-v1-core) that contains the credentials for patroni REST API.
 
-                          **Changing this field requires a restart.** Patroni reads the password of its REST API when its container starts and, until the Pods are restarted, it only accepts the previous one,
-                            so the requests that the operator sends to the Patroni REST API are rejected. The cluster does not report a pending restart for this change: restart the Pods (for example with a restart SGDbOps) after changing it.
+                          When the referenced Secret, or its content, changes, the operator applies the new password to Patroni at the next reconciliation cycle (usually within a minute),
+                            without restarting it.
                         properties:
                           restApiPassword:
                             type: object
@@ -1644,28 +1644,14 @@ spec:
                         description: |
                           Kubernetes [SecretKeySelectors](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#secretkeyselector-v1-core) that contains the credentials of the users.
 
-                          When the referenced Secrets, or their content, change, the operator applies the new passwords to the database users at the next reconciliation cycle (usually within a minute).
-                            No SQL has to be run by hand to change a password.
+                          When the referenced Secrets, or their content, change, the operator applies the changes at the next reconciliation cycle (usually within a minute),
+                            without any manual step:
 
-                          When the username of the authenticator or of the monitor user changes, the operator creates the user with the new username. The user with the previous username is not removed.
-
-                          When the username of the superuser or of the replication user changes, the operator does not create the user with the new username and fails to apply any credentials change
-                            until it exists. Create it before changing the username, with the following SQL commands (replace the default usernames with the new ones):
-
-                          * Superuser username changed:
-                          ```
-                          CREATE ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS;
-                          ```
-                          * Replication username changed:
-                          ```
-                          CREATE ROLE replicator WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN REPLICATION NOBYPASSRLS;
-                          ```
-
-                          **Changing the credentials of the superuser or of the replication user requires a restart.** Patroni reads them when its container starts and, until the Pods are restarted,
-                            keeps using the previous ones to rewind a former primary and to replicate from the primary. The cluster does not report a pending restart for this change: restart the Pods
-                            (for example with a restart SGDbOps) after changing them.
-
-                          **Changing the username of the monitor user requires a restart.** The cluster reports a pending restart for this change.
+                          * The new passwords are set to the database users.
+                          * When the username of a user changes, the user with the new username is created. The user with the previous username is not removed.
+                          * Patroni uses the new credentials of the superuser and of the replication user, without restarting it, once they are set to the database users.
+                          * The Postgres exporter uses the new username of the monitor user, without restarting the Pods.
+                          * PgBouncer uses the new username of the authenticator user to authenticate the users that connect through it, without restarting the Pods.
                         properties:
                           superuser:
                             type: object
