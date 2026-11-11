@@ -137,6 +137,14 @@ public class PatroniRole implements
             .withResources(HasMetadata.getPlural(Secret.class))
             .withVerbs("get")
             .build())
+        // The cluster controller watches the Secret of the cluster to apply the credentials as
+        // soon as they change
+        .addToRules(new PolicyRuleBuilder()
+            .withApiGroups(HasMetadata.getGroup(Secret.class))
+            .withResources(HasMetadata.getPlural(Secret.class))
+            .withResourceNames(PatroniSecret.name(context))
+            .withVerbs("list", "watch")
+            .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(HasMetadata.getGroup(Pod.class))
             .withResources(HasMetadata.getPlural(Pod.class))
