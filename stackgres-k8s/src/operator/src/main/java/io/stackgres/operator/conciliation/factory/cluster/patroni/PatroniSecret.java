@@ -22,6 +22,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.YamlScalarWriter;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
@@ -45,6 +46,7 @@ public class PatroniSecret
     implements VolumeFactory<StackGresClusterContext>, StackGresPasswordKeys {
 
   private LabelFactoryForCluster labelFactory;
+  private YamlScalarWriter yamlScalarWriter;
 
   public static String name(StackGresClusterContext clusterContext) {
     return PatroniUtil.secretName(clusterContext.getSource().getMetadata().getName());
@@ -107,6 +109,8 @@ public class PatroniSecret
     setPgBouncerCredentials(context, previousSecretData, data);
 
     setRestApiCredentials(context, previousSecretData, data);
+
+    setYamlCredentials(data);
 
     return new SecretBuilder()
       .withNewMetadata()
@@ -410,8 +414,28 @@ public class PatroniSecret
     data.put(RESTAPI_PASSWORD_ENV, data.get(RESTAPI_PASSWORD_KEY));
   }
 
+  /**
+   * The credentials that the Patroni container writes into the Patroni config file, as YAML
+   * scalars that it can place there as they are.
+   */
+  private void setYamlCredentials(final Map<String, String> data) {
+    data.put(SUPERUSER_USERNAME_YAML_ENV, yamlScalarWriter.write(data.get(SUPERUSER_USERNAME_ENV)));
+    data.put(SUPERUSER_PASSWORD_YAML_ENV, yamlScalarWriter.write(data.get(SUPERUSER_PASSWORD_ENV)));
+    data.put(REPLICATION_USERNAME_YAML_ENV,
+        yamlScalarWriter.write(data.get(REPLICATION_USERNAME_ENV)));
+    data.put(REPLICATION_PASSWORD_YAML_ENV,
+        yamlScalarWriter.write(data.get(REPLICATION_PASSWORD_ENV)));
+    data.put(RESTAPI_USERNAME_YAML_ENV, yamlScalarWriter.write(data.get(RESTAPI_USERNAME_ENV)));
+    data.put(RESTAPI_PASSWORD_YAML_ENV, yamlScalarWriter.write(data.get(RESTAPI_PASSWORD_ENV)));
+  }
+
   @Inject
   public void setFactoryFactory(LabelFactoryForCluster labelFactory) {
     this.labelFactory = labelFactory;
+  }
+
+  @Inject
+  public void setYamlScalarWriter(YamlScalarWriter yamlScalarWriter) {
+    this.yamlScalarWriter = yamlScalarWriter;
   }
 }
