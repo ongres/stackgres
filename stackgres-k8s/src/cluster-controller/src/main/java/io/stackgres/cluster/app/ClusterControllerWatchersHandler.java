@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
@@ -73,6 +74,29 @@ public class ClusterControllerWatchersHandler {
         EndpointsList.class,
         onCreateOrUpdate(
             recponcileClusterEndpoints())));
+
+    monitors.add(createClusterSecretWatcher(
+        onCreateOrUpdate(
+            reconcileClusterSecret())));
+  }
+
+  /**
+   * The Secret of the cluster holds the credentials, that are applied to Patroni and to Postgres
+   * as soon as they change instead of waiting for the next reconciliation period.
+   */
+  private WatcherMonitor<Secret> createClusterSecretWatcher(
+      BiConsumer<Action, Secret> consumer) {
+    return new WatcherMonitor<>(Secret.class.getSimpleName(),
+        watcherListener -> client
+        .secrets()
+        .inNamespace(ClusterControllerProperty.CLUSTER_NAMESPACE.getString())
+        .withName(PatroniUtil.secretName(ClusterControllerProperty.CLUSTER_NAME.getString()))
+        .watch(watcherFactory.createWatcher(consumer, watcherListener)));
+  }
+
+  private BiConsumer<Action, Secret> reconcileClusterSecret() {
+    return (action, secret) -> clusterReference.get()
+        .ifPresent(this::reconcileClusterAndManagedSql);
   }
 
   private <T extends HasMetadata,
