@@ -260,6 +260,7 @@ LOCAL_PROVIDER_EOF
 restapi:
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:8008'
   listen: "*:8008"
+  authentication: { username: ${PATRONI_RESTAPI_USERNAME_YAML}, password: ${PATRONI_RESTAPI_PASSWORD_YAML} }
 postgresql:
   use_slots: true
   use_pg_rewind: true
@@ -269,13 +270,7 @@ postgresql:
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:5432'
   listen: 0.0.0.0,[::]:5432
   pg_ctl_timeout: $PATRONI_PG_CTL_TIMEOUT
-  authentication:
-    superuser:
-      username: '${PATRONI_SUPERUSER_USERNAME}'
-      password: '${PATRONI_SUPERUSER_PASSWORD}'
-    replication:
-      username: '${PATRONI_REPLICATION_USERNAME}'
-      password: '${PATRONI_REPLICATION_PASSWORD}'
+  authentication: { superuser: { username: ${PATRONI_SUPERUSER_USERNAME_YAML}, password: ${PATRONI_SUPERUSER_PASSWORD_YAML} }, replication: { username: ${PATRONI_REPLICATION_USERNAME_YAML}, password: ${PATRONI_REPLICATION_PASSWORD_YAML} } }
   parameters:
     unix_socket_directories: '${PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY}'
     dynamic_library_path: '${PG_LIB_PATH}:${PG_EXTRA_LIB_PATH}'
@@ -557,4 +552,11 @@ PREPARE_REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
   exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- "$PATRONI_CONFIG_PATH/prepare-replication-initialization-from-backup.sh"
 fi
 
-PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- /usr/local/bin/patroni "$PATRONI_CONFIG_FILE_PATH"
+# Patroni gives to its environment variables precedence over its config file and reads them only
+# when it starts, so the credentials, that the controller updates in the config file when they
+# change, are removed from its environment to let a reload of Patroni apply them
+PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- env \
+  -u PATRONI_SUPERUSER_USERNAME -u PATRONI_SUPERUSER_PASSWORD \
+  -u PATRONI_REPLICATION_USERNAME -u PATRONI_REPLICATION_PASSWORD \
+  -u PATRONI_RESTAPI_USERNAME -u PATRONI_RESTAPI_PASSWORD \
+  /usr/local/bin/patroni "$PATRONI_CONFIG_FILE_PATH"

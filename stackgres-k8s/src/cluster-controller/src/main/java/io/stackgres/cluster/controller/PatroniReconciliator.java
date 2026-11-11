@@ -13,8 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,10 +36,13 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterPatroniConfigEventReason;
 import io.stackgres.cluster.common.PatroniCommandUtil;
+import io.stackgres.cluster.common.PatroniConfigCredentials;
+import io.stackgres.cluster.common.PostgresUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -48,6 +55,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
+import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.SafeReconciliator;
@@ -92,6 +100,8 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
   private final ObjectMapper objectMapper;
   private final ResourceFinder<Secret> secretFinder;
   private final WebClientFactory webClientFactory;
+  private final PostgresConnectionManager postgresConnectionManager;
+  private final PatroniConfigCredentials patroniConfigCredentials;
 
   @Dependent
   public static class Parameters {
@@ -100,6 +110,8 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     @Inject ObjectMapper objectMapper;
     @Inject ResourceFinder<Secret> secretFinder;
     @Inject WebClientFactory webClientFactory;
+    @Inject PostgresConnectionManager postgresConnectionManager;
+    @Inject PatroniConfigCredentials patroniConfigCredentials;
   }
 
   @Inject
@@ -112,6 +124,8 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     this.objectMapper = parameters.objectMapper;
     this.secretFinder = parameters.secretFinder;
     this.webClientFactory = parameters.webClientFactory;
+    this.postgresConnectionManager = parameters.postgresConnectionManager;
+    this.patroniConfigCredentials = parameters.patroniConfigCredentials;
   }
 
   public Boolean isStartup() {
@@ -255,12 +269,19 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     // following reconciliation cycle and, the config file being already the one Patroni reads, it
     // never keeps the start of Patroni from being allowed.
     final boolean patroniStartAllowed = Files.exists(PATRONI_START_FILE_PATH);
+    // The credentials of the REST API that Patroni has loaded are the ones of the config file it
+    // was last reloaded with or, when it was not reloaded since it started, of the config file it
+    // started with, since they are not changed before it is reloaded for the first time
+    final Optional<PatroniCommandUtil.Credentials> loadedRestApiCredentials =
+        patroniConfigCredentials.getRestApi(Files.readAllLines(
+            Files.exists(LAST_PATRONI_CONFIG_PATH)
+            ? LAST_PATRONI_CONFIG_PATH : PATRONI_CONFIG_PATH));
+    updatePatroniCredentials(context, patroniStartAllowed);
     if (configChanged(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH)) {
       boolean patroniConfigReloaded = true;
       if (patroniStartAllowed) {
         try {
-          var credentials = PatroniCommandUtil.getPatorniCredentials(context, secretFinder);
-          PatroniCommandUtil.reloadPatroniConfig(webClientFactory, credentials);
+          reloadPatroniConfig(context, loadedRestApiCredentials);
         } catch (Exception ex) {
           LOGGER.warn("Can not reload patroni config now, will retry later: {}",
               ex.getMessage(), ex);
@@ -281,6 +302,103 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
     final boolean statusUpdated =
         setPodReplicatinGroupInClusterStatus(cluster, podReplicationRole.get().v2.intValue());
     return statusUpdated;
+  }
+
+  /**
+   * Write into the Patroni config file the credentials of the superuser, of the replication user
+   * and of the REST API, so that a reload of Patroni applies them when they change. The ones of the
+   * superuser and of the replication user are written only once Postgres accepts them, after the
+   * operator has updated the users, so that Patroni never uses credentials that do not work. The
+   * ones of the REST API are written only once Patroni was reloaded since it started, so that the
+   * ones it has loaded are always known from the last config file it was reloaded with.
+   */
+  private void updatePatroniCredentials(
+      StackGresClusterContext context, boolean patroniStartAllowed) throws IOException {
+    final List<String> lines = Files.readAllLines(PATRONI_CONFIG_PATH);
+    List<String> updatedLines = lines;
+    final PatroniCommandUtil.Credentials restApiCredentials =
+        PatroniCommandUtil.getPatorniCredentials(context, secretFinder);
+    // Until Patroni is reloaded for the first time since it started there is no last config file
+    // and the credentials of the REST API that Patroni has loaded are only known from the config
+    // file. Changing them before would lose them if the reload failed, leaving no credentials to
+    // reload Patroni with, since the ones of the Secret are the new ones it has not loaded.
+    if (Files.exists(LAST_PATRONI_CONFIG_PATH)
+        && !patroniConfigCredentials.getRestApi(lines)
+        .map(restApiCredentials::equals)
+        .orElse(true)) {
+      updatedLines = patroniConfigCredentials.replaceLine(
+          updatedLines,
+          PatroniConfigCredentials.RESTAPI_AUTHENTICATION_LINE_PATTERN,
+          patroniConfigCredentials.getRestApiAuthenticationLine(restApiCredentials));
+    }
+    final PostgresUtil.Credentials superuserCredentials =
+        PostgresUtil.getPostgresCredentials(context, secretFinder);
+    final PostgresUtil.Credentials replicationCredentials =
+        PostgresUtil.getReplicationCredentials(context, secretFinder);
+    if (!patroniConfigCredentials.getSuperuser(lines)
+        .map(superuserCredentials::equals)
+        .orElse(true)
+        || !patroniConfigCredentials.getReplication(lines)
+        .map(replicationCredentials::equals)
+        .orElse(true)) {
+      if (!patroniStartAllowed
+          || (canLogin(superuserCredentials) && canLogin(replicationCredentials))) {
+        updatedLines = patroniConfigCredentials.replaceLine(
+            updatedLines,
+            PatroniConfigCredentials.POSTGRESQL_AUTHENTICATION_LINE_PATTERN,
+            patroniConfigCredentials.getPostgresqlAuthenticationLine(
+                superuserCredentials, replicationCredentials));
+      } else {
+        LOGGER.info("Credentials of the superuser and of the replication user will be updated"
+            + " in the Patroni config once Postgres accepts them, will retry later");
+      }
+    }
+    if (!updatedLines.equals(lines)) {
+      final Path updatedConfigPath = PATRONI_CONFIG_PATH.resolveSibling(
+          "." + PATRONI_CONFIG_PATH.getFileName() + ".credentials.tmp");
+      Files.deleteIfExists(updatedConfigPath);
+      Files.createFile(updatedConfigPath, PosixFilePermissions.asFileAttribute(
+          PosixFilePermissions.fromString("rw-------")));
+      Files.write(updatedConfigPath, updatedLines);
+      Files.move(updatedConfigPath, PATRONI_CONFIG_PATH,
+          StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    }
+  }
+
+  private boolean canLogin(PostgresUtil.Credentials credentials) {
+    try (Connection connection = postgresConnectionManager.getConnection(
+        "localhost",
+        EnvoyUtil.PG_PORT,
+        "postgres",
+        credentials.username(),
+        credentials.password())) {
+      return true;
+    } catch (SQLException ex) {
+      LOGGER.debug("Can not login as user {}: {}", credentials.username(), ex.getMessage());
+      return false;
+    }
+  }
+
+  /**
+   * Reload Patroni authenticating with the credentials of the REST API it has loaded, falling back
+   * to the ones of the Secret if those are not known or are not accepted.
+   */
+  private void reloadPatroniConfig(
+      StackGresClusterContext context,
+      Optional<PatroniCommandUtil.Credentials> loadedRestApiCredentials) {
+    final PatroniCommandUtil.Credentials secretRestApiCredentials =
+        PatroniCommandUtil.getPatorniCredentials(context, secretFinder);
+    if (loadedRestApiCredentials.isPresent()
+        && !loadedRestApiCredentials.get().equals(secretRestApiCredentials)) {
+      try {
+        PatroniCommandUtil.reloadPatroniConfig(webClientFactory, loadedRestApiCredentials.get());
+        return;
+      } catch (RuntimeException ex) {
+        LOGGER.debug("Can not reload patroni config with the credentials it has loaded: {}",
+            ex.getMessage());
+      }
+    }
+    PatroniCommandUtil.reloadPatroniConfig(webClientFactory, secretRestApiCredentials);
   }
 
   /**

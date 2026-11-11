@@ -22,16 +22,22 @@ import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_ADMIN_
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_STATS_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_PASSWORD_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_PASSWORD_YAML_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_USERNAME_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_USERNAME_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.REPLICATION_USERNAME_YAML_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_PASSWORD_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_PASSWORD_YAML_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_USERNAME_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_USERNAME_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_USERNAME_YAML_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_YAML_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_YAML_ENV;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -43,9 +49,12 @@ import static org.mockito.Mockito.when;
 import java.util.Map;
 import java.util.Optional;
 
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.YamlScalarWriter;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
@@ -95,6 +104,7 @@ class PatroniSecretTest {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
     patroniSecret.setFactoryFactory(labelFactory);
+    patroniSecret.setYamlScalarWriter(new YamlScalarWriter(new YamlMapperProvider()));
     when(labelFactory.genericLabels(any(StackGresCluster.class))).thenReturn(ImmutableMap.of());
 
     when(context.getSource()).thenReturn(cluster);
@@ -368,6 +378,32 @@ class PatroniSecretTest {
         data.get(BABELFISH_PASSWORD_KEY));
     assertNotEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_ENV));
     assertNotEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_KEY));
+  }
+
+  @Test
+  void generateResources_shouldHaveTheCredentialsAsSingleLineYamlScalars() throws Exception {
+    final String password = "a'b\"c\\d:{e}, f#g\nh\u0007";
+    when(context.getSuperuserPassword()).thenReturn(Optional.of(password));
+    when(context.getReplicationPassword()).thenReturn(Optional.of(password));
+    when(context.getPatroniRestApiPassword()).thenReturn(Optional.of(password));
+    Secret secret = patroniSecret.buildSource(context);
+
+    final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
+    final YAMLMapper yamlMapper = new YamlMapperProvider().get();
+    for (var keys : Map.of(
+        SUPERUSER_USERNAME_YAML_ENV, SUPERUSER_USERNAME_ENV,
+        SUPERUSER_PASSWORD_YAML_ENV, SUPERUSER_PASSWORD_ENV,
+        REPLICATION_USERNAME_YAML_ENV, REPLICATION_USERNAME_ENV,
+        REPLICATION_PASSWORD_YAML_ENV, REPLICATION_PASSWORD_ENV,
+        RESTAPI_USERNAME_YAML_ENV, RESTAPI_USERNAME_ENV,
+        RESTAPI_PASSWORD_YAML_ENV, RESTAPI_PASSWORD_ENV).entrySet()) {
+      final String yamlValue = data.get(keys.getKey());
+      assertFalse(yamlValue.contains("\n"), keys.getKey() + ": " + yamlValue);
+      assertEquals(data.get(keys.getValue()),
+          yamlMapper.readTree("{ value: " + yamlValue + " }").get("value").asText(),
+          keys.getKey() + ": " + yamlValue);
+    }
+    assertEquals(password, data.get(SUPERUSER_PASSWORD_ENV));
   }
 
 }
