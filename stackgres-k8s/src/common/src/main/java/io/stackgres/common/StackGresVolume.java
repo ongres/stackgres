@@ -21,6 +21,7 @@ public enum StackGresVolume implements StackGresNamedObject {
   ENVOY("envoy", "%s-envoy-config"),
   EXPORTER_QUERIES("queries", "%s-prometheus-postgres-exporter-config"),
   EXPORTER_INIT("postgres-exporter-init", "%s-prometheus-postgres"),
+  EXPORTER_CREDENTIALS("postgres-exporter-secret", "%s"),
   PGBOUNCER_CONFIG("pgbouncer", "%s-connection-pooling-config"),
   PGBOUNCER_DYNAMIC_CONFIG("pgbouncer-dynamic-config"),
   PGBOUNCER_SECRETS("pgbouncer-secrets"),

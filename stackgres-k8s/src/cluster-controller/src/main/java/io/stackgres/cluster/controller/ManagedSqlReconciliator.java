@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterManagedSqlEventReason;
+import io.stackgres.cluster.common.ClusterSuperuserCredentials;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
@@ -35,7 +36,6 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntryStatus;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.crd.sgscript.StackGresScriptStatus;
 import io.stackgres.common.patroni.PatroniCtl;
-import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceWriter;
 import io.stackgres.common.resource.ResourceFinder;
@@ -64,6 +64,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
   private final String podName;
   private final EventController eventController;
   private final ManagedSqlCronScheduler cronScheduler;
+  private final ClusterSuperuserCredentials clusterSuperuserCredentials;
 
   @Dependent
   public static class Parameters {
@@ -76,6 +77,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
     @Inject CustomResourceWriter<StackGresCluster> clusterWriter;
     @Inject EventController eventController;
     @Inject ManagedSqlCronScheduler cronScheduler;
+    @Inject ClusterSuperuserCredentials clusterSuperuserCredentials;
   }
 
   @Inject
@@ -92,6 +94,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
     this.eventController = parameters.eventController;
     this.cronScheduler = parameters.cronScheduler;
+    this.clusterSuperuserCredentials = parameters.clusterSuperuserCredentials;
   }
 
   /**
@@ -147,15 +150,7 @@ public class ManagedSqlReconciliator extends SafeReconciliator<StackGresClusterC
       cronScheduler.unschedule();
       return;
     }
-    String superuserUsername = secretFinder.findByNameAndNamespace(
-        PatroniUtil.secretName(context.getCluster().getMetadata().getName()),
-        context.getCluster().getMetadata().getNamespace())
-        .map(Secret::getData)
-        .map(ResourceUtil::decodeSecret)
-        .map(data -> data.get(StackGresPasswordKeys.SUPERUSER_USERNAME_KEY))
-        .orElseThrow(() -> new RuntimeException("Can not find secret with name "
-            + PatroniUtil.secretName(context.getCluster().getMetadata().getName())
-            + " or can not find key " + StackGresPasswordKeys.SUPERUSER_USERNAME_KEY));
+    String superuserUsername = clusterSuperuserCredentials.get(context).username();
     var scriptsStatus = Optional.of(context.getCluster())
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getManagedSql)

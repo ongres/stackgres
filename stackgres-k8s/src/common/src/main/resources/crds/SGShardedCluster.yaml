@@ -843,7 +843,8 @@ spec:
                         description: |
                           Kubernetes [SecretKeySelectors](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#secretkeyselector-v1-core) that contains the credentials for patroni REST API.
 
-                          **Changing this field may require a restart.**
+                          When the referenced Secret, or its content, changes, the operator applies the new password to Patroni at the next reconciliation cycle (usually within a minute),
+                            without restarting it.
                         properties:
                           restApiPassword:
                             type: object
@@ -862,37 +863,14 @@ spec:
                         description: |
                           Kubernetes [SecretKeySelectors](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.36/#secretkeyselector-v1-core) that contains the credentials of the users.
 
-                          **Changing this field may require a manual modification of the database users to reflect the new values specified.**
+                          When the referenced Secrets, or their content, change, the operator applies the changes at the next reconciliation cycle (usually within a minute),
+                            without any manual step:
 
-                          In particular you may have to create those users if username is changed or alter password if it is changed. Here are the SQL commands to perform such operation (replace
-                            default usernames with the new ones and `***` with their respective passwords):
-
-                          * Superuser username changed:
-                          ```
-                          CREATE ROLE postgres;
-                          ```
-                          * Superuser password changed:
-                          ```
-                          ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS PASSWORD '***';
-                          ```
-                          * Replication username changed:
-                          ```
-                          CREATE ROLE replicator;
-                          ```
-                          * Replication password changed:
-                          ```
-                          ALTER ROLE replicator WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN REPLICATION NOBYPASSRLS PASSWORD '***';
-                          ```
-                          * Authenticator username changed:
-                          ```
-                          CREATE ROLE authenticator;
-                          ```
-                          * Authenticator password changed:
-                          ```
-                          ALTER ROLE authenticator WITH SUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD '***';
-                          ```
-
-                          **Changing this field may require a restart.**
+                          * The new passwords are set to the database users.
+                          * When the username of a user changes, the user with the new username is created. The user with the previous username is not removed.
+                          * Patroni uses the new credentials of the superuser and of the replication user, without restarting it, once they are set to the database users.
+                          * The Postgres exporter uses the new username of the monitor user, without restarting the Pods.
+                          * PgBouncer uses the new username of the authenticator user to authenticate the users that connect through it, without restarting the Pods.
                         properties:
                           superuser:
                             type: object

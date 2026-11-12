@@ -15,10 +15,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterPgBouncerConfigEventReason;
+import io.stackgres.cluster.common.ClusterSuperuserCredentials;
 import io.stackgres.cluster.common.PgBouncerCommandUtil;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
@@ -61,9 +61,9 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
     @Inject EventController eventController;
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
-    @Inject ResourceFinder<Secret> secretFinder;
     @Inject PostgresConnectionManager postgresConnectionManager;
     @Inject ResourceFinder<Pod> podFinder;
+    @Inject ClusterSuperuserCredentials clusterSuperuserCredentials;
   }
 
   @Inject
@@ -73,7 +73,7 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
         ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER);
     this.authFileReconciliator = new PgBouncerAuthFileReconciliator(
         parameters.propertyContext.getPodName(), parameters.podFinder,
-        parameters.poolingConfigFinder, parameters.secretFinder,
+        parameters.poolingConfigFinder, parameters.clusterSuperuserCredentials,
         parameters.postgresConnectionManager, new FileSystemHandler());
   }
 

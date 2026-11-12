@@ -17,6 +17,7 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.rbac.PolicyRule;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.stackgres.common.PatroniUtil;
@@ -78,7 +79,22 @@ class PatroniRoleTest {
 
     Role role = (Role) resources.get(1);
     assertNotNull(role.getRules());
-    assertEquals(14, role.getRules().size());
+    assertEquals(15, role.getRules().size());
+  }
+
+  @Test
+  void generateResource_roleAllowsToWatchOnlyTheSecretOfTheCluster() {
+    List<HasMetadata> resources = patroniRole.generateResource(context).toList();
+
+    Role role = (Role) resources.get(1);
+    List<PolicyRule> secretWatchRules = role.getRules().stream()
+        .filter(rule -> rule.getResources().contains("secrets"))
+        .filter(rule -> rule.getVerbs().contains("watch"))
+        .toList();
+    assertEquals(1, secretWatchRules.size());
+    assertEquals(List.of("list", "watch"), secretWatchRules.getFirst().getVerbs());
+    assertEquals(List.of(PatroniSecret.name(cluster)),
+        secretWatchRules.getFirst().getResourceNames());
   }
 
   @Test
