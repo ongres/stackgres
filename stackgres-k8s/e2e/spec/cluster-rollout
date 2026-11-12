@@ -1,0 +1,279 @@
+#!/bin/sh
+
+# The rollout performed by the operator without any SGDbOps, as configured by
+# SGCluster.spec.pods.updateStrategy and the stackgres.io/rollout annotation.
+
+e2e_test_install() {
+  ROLLOUT_OBSERVATION_TIMEOUT="${ROLLOUT_OBSERVATION_TIMEOUT:-60}"
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set instanceProfiles[0].name=size-s \
+    --set instanceProfiles[0].cpu=250m \
+    --set instanceProfiles[0].memory=512Mi
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  switch_cluster_to_first "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  generate_mock_data "$CLUSTER_NAME"
+  check_mock_data_samehost "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
+}
+
+e2e_test() {
+  run_test "Checking that a change that requires a restart is rolled out with the OnlyDbOps update strategy only when the rollout annotation is set" \
+    check_only_dbops_rolls_out_only_with_annotation
+
+  run_test "Checking that a change that requires a restart is not rolled out with the Never update strategy even when the rollout annotation is set" \
+    check_never_does_not_roll_out_with_annotation
+
+  run_test "Checking that the rollout in place re-creates the replica first and switches over to it before re-creating the primary" \
+    check_always_in_place_rollout
+
+  run_test "Checking that the rollout with reduced impact adds an instance before re-creating the existing ones" \
+    check_always_reduced_impact_rollout
+
+  run_test "Checking that the rollout of a change that only requires to restart Postgres does not re-create the Pods" \
+    check_postgres_only_rollout
+
+  run_test "Checking that the rollout with the Schedule update strategy is performed only inside the window of time" \
+    check_schedule_rollout
+}
+
+check_only_dbops_rolls_out_only_with_annotation() {
+  trigger_cluster_require_restart
+
+  assert_no_rollout "OnlyDbOps update strategy"
+
+  local BEFORE_ROLLOUT_DATE
+  BEFORE_ROLLOUT_DATE="$(date +%s)"
+  kubectl annotate sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    stackgres.io/rollout=always --overwrite
+
+  wait_rollout_completed "$BEFORE_ROLLOUT_DATE" 2
+
+  kubectl annotate sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" stackgres.io/rollout-
+
+  check_data
+}
+
+check_never_does_not_roll_out_with_annotation() {
+  set_update_strategy '{"type":"Never"}'
+  kubectl annotate sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    stackgres.io/rollout=always --overwrite
+
+  trigger_cluster_require_restart
+
+  assert_no_rollout "Never update strategy and the rollout annotation set to always"
+
+  # The change is left pending restart, it is rolled out by the next test
+  kubectl annotate sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" stackgres.io/rollout-
+}
+
+check_always_in_place_rollout() {
+  local PRIMARY
+  local BEFORE_ROLLOUT_DATE
+  local PODS
+  local REPLICA
+  PRIMARY="$(get_cluster_primary)"
+  PODS="$(get_cluster_pods)"
+  REPLICA="$(printf '%s' "$PODS" | tr ' ' '\n' | grep -v "^$PRIMARY$" | grep .)"
+
+  rollout_watch_start
+
+  trigger_cluster_require_restart
+
+  # The re-creation of the replica Pod is held back to check that the primary Pod is not deleted
+  # while no replica is available to switch over to (see #3298)
+  rollout_block_pods_creation
+
+  BEFORE_ROLLOUT_DATE="$(date +%s)"
+  set_update_strategy '{"type":"Always","method":"InPlace"}'
+
+  wait_until eval '! kubectl get pod -n "$CLUSTER_NAMESPACE" "$REPLICA" > /dev/null 2>&1'
+
+  assert_pod_not_deleted "$PRIMARY" "$((E2E_TIMEOUT / 3))" \
+    "while the replica Pod $REPLICA had not been re-created yet"
+
+  rollout_allow_pods_creation
+
+  wait_rollout_completed "$BEFORE_ROLLOUT_DATE" 2
+
+  rollout_watch_stop
+
+  assert_no_pod_deleted_while_no_other_pod_ready
+  # shellcheck disable=SC2086
+  assert_pods_recreated_once $PODS
+
+  if [ "$(get_cluster_primary)" != "$PRIMARY" ]
+  then
+    success "A switchover was performed before re-creating the primary Pod $PRIMARY"
+  else
+    fail "No switchover was performed before re-creating the primary Pod $PRIMARY"
+  fi
+
+  check_data
+}
+
+check_always_reduced_impact_rollout() {
+  local BEFORE_ROLLOUT_DATE
+
+  set_update_strategy '{"type":"Always","method":"ReducedImpact"}'
+
+  rollout_watch_start
+
+  BEFORE_ROLLOUT_DATE="$(date +%s)"
+  trigger_cluster_require_restart
+
+  wait_rollout_completed "$BEFORE_ROLLOUT_DATE" 2
+
+  rollout_watch_stop
+
+  # The instance added may be the one that is kept as the primary, so only the number of
+  # instances is checked and not which of them are left
+  if jq -s -e '[.[] | .name] | unique | length > 2' "$ROLLOUT_WATCH_PATH" > /dev/null
+  then
+    success "An instance was added during the rollout with reduced impact"
+  else
+    fail "No instance was added during the rollout with reduced impact"
+  fi
+
+  assert_no_pod_deleted_while_no_other_pod_ready
+
+  set_update_strategy '{"type":"Always","method":"InPlace"}'
+
+  check_data
+}
+
+check_postgres_only_rollout() {
+  local PODS_CREATION_TIMESTAMPS
+  local PRIMARY
+  local PRIMARY_POSTGRES_RESTARTS
+  local MAX_CONNECTIONS
+
+  # The restart of each Postgres instance is paced by the restart delay, PT5M by default
+  set_update_strategy '{"type":"Always","method":"InPlace","restartDelay":"PT10S"}'
+
+  PODS_CREATION_TIMESTAMPS="$(get_pods_creation_timestamps)"
+  PRIMARY="$(get_cluster_primary)"
+  PRIMARY_POSTGRES_RESTARTS="$(get_postgres_restarts "$PRIMARY")"
+  MAX_CONNECTIONS="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY" -c patroni \
+    -- psql -q -t -A -c 'SHOW max_connections')"
+
+  kubectl patch sgpgconfig -n "$CLUSTER_NAMESPACE" postgresconf --type merge \
+    -p '{"spec":{"postgresql.conf":{"max_connections":"'"$((MAX_CONNECTIONS + 10))"'"}}}'
+
+  wait_until -t "$((E2E_TIMEOUT * 3))" eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$(get_cluster_primary)" -c patroni \
+    -- psql -q -t -A -c "SHOW max_connections")" = "$((MAX_CONNECTIONS + 10))" ]'
+  wait_until -t "$((E2E_TIMEOUT * 3))" eval '! kubectl wait -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" \
+    --for=condition=PendingRestart --timeout 0'
+
+  if [ "$(get_pods_creation_timestamps)" = "$PODS_CREATION_TIMESTAMPS" ]
+  then
+    success "Pods were not re-created when only Postgres had to be restarted"
+  else
+    fail "Pods were re-created when only Postgres had to be restarted"
+  fi
+
+  if [ "$(get_cluster_primary)" != "$PRIMARY" ]
+  then
+    success "A switchover was performed instead of restarting the Postgres instance of the primary"
+  else
+    fail "No switchover was performed when the Postgres instance of the primary had to be restarted"
+  fi
+
+  if [ "$(get_postgres_restarts "$PRIMARY")" -le "$((PRIMARY_POSTGRES_RESTARTS + 1))" ]
+  then
+    success "The Postgres instance of Pod $PRIMARY was not restarted more than once"
+  else
+    fail "The Postgres instance of Pod $PRIMARY was restarted more than once"
+  fi
+
+  set_update_strategy '{"type":"Always","method":"InPlace","restartDelay":null}'
+
+  check_data
+}
+
+check_schedule_rollout() {
+  local BEFORE_ROLLOUT_DATE
+
+  set_update_strategy '{"type":"Schedule","schedule":[{"cron":"0 0 1 1 *","duration":"PT1M"}]}'
+
+  trigger_cluster_require_restart
+
+  assert_no_rollout "Schedule update strategy outside the window of time"
+
+  local PODS
+  PODS="$(get_cluster_pods)"
+  rollout_watch_start
+
+  BEFORE_ROLLOUT_DATE="$(date +%s)"
+  set_update_strategy '{"type":"Schedule","schedule":[{"cron":"* * * * *","duration":"PT1H"}]}'
+
+  wait_rollout_completed "$BEFORE_ROLLOUT_DATE" 2
+
+  rollout_watch_stop
+
+  assert_no_pod_deleted_while_no_other_pod_ready
+  # shellcheck disable=SC2086
+  assert_pods_recreated_once $PODS
+
+  check_data
+}
+
+set_update_strategy() {
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
+    -p '{"spec":{"pods":{"updateStrategy":'"$1"'}}}'
+}
+
+trigger_cluster_require_restart() {
+  local DATE
+  DATE="$(date +%s)"
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type merge \
+    -p "spec: { pods: { customEnv: { patroni: [{ name: REQUIRE_RESTART, value: '$DATE' }] } } }"
+  kubectl wait sts --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --for jsonpath='{.spec.template.spec.containers[?(@.name == "patroni")].env[?(@.name == "REQUIRE_RESTART")].value}'="$DATE"
+  kubectl wait sgcluster --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --for=condition=PendingRestart
+}
+
+# No Pod is re-created during the observation timeout
+assert_no_rollout() {
+  local REASON="$1"
+  local PODS_CREATION_TIMESTAMPS
+  PODS_CREATION_TIMESTAMPS="$(get_pods_creation_timestamps)"
+
+  if wait_until -t "$ROLLOUT_OBSERVATION_TIMEOUT" eval \
+    '[ "$(get_pods_creation_timestamps)" != "$PODS_CREATION_TIMESTAMPS" ]' > /dev/null
+  then
+    fail "Pods were re-created with the $REASON"
+  else
+    success "Pods were not re-created with the $REASON"
+  fi
+}
+
+# Every Pod has been re-created after the specified date and is ready, no other Pod exists and the
+# cluster is not pending restart anymore
+wait_rollout_completed() {
+  local BEFORE_ROLLOUT_DATE="$1"
+  local INSTANCES="$2"
+
+  wait_until -t "$((E2E_TIMEOUT * 4))" eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o json \
+    | jq -e --argjson before "$BEFORE_ROLLOUT_DATE" --argjson instances "$INSTANCES" "
+      (.items | length) == \$instances
+      and ([.items[]
+        | select((.metadata.creationTimestamp | fromdateiso8601) >= \$before)
+        | select(.metadata.deletionTimestamp == null)
+        | select(any(.status.conditions[]?; .type == \"Ready\" and .status == \"True\"))]
+        | length) == \$instances" > /dev/null'
+  wait_until eval '! kubectl wait -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" \
+    --for=condition=PendingRestart --timeout 0'
+}
+
+check_data() {
+  wait_until eval 'check_mock_data_samehost "$CLUSTER_NAME" "$(get_primary_index_or_first)"'
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
+}

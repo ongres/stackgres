@@ -1,3 +1,62 @@
+# :rocket: Release 1.19.5 (2026-11-12)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.19.5 is out! :bug: :gun: :confetti_ball: :beers: 
+
+> This release fixes the rollout of an `SGCluster`, performed by an `SGDbOps` of type `restart`, `securityUpgrade` or
+> `minorVersionUpgrade` or by the update strategy of the cluster, that could delete the primary Pod while the replica
+> Pod was being re-created, leaving the cluster without any available instance. It also fixes the data of the
+> instances of a cluster with a backup using volume snapshot being moved away at every start, leaving the cluster
+> without a leader when all its Pods started together. Finally, every change of the credentials of an `SGCluster`
+> is now applied without any manual step and without restarting its Pods, including the change of the username
+> of the superuser, of the replication user and of the monitor user.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres!
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+Nothing new here! :eyes:
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* The rollout of an `SGCluster` deleted the primary Pod, without performing any switchover, while the replica Pod it had just deleted was still terminating or had not been re-created yet, leaving the cluster without any available instance ([#3298](https://gitlab.com/ongresinc/stackgres/-/issues/3298))
+* Once a backup using volume snapshot was available, the patroni container of an `SGCluster` moved its data directory away at every start unless the data had been restored from a volume snapshot, so a cluster whose Pods all started together (like after a rollout) waited forever for a leader to bootstrap ([#3299](https://gitlab.com/ongresinc/stackgres/-/issues/3299))
+* The description of the credentials of the users in the `SGCluster` and `SGShardedCluster` CRDs said that changing them required to modify the database users by hand, while the operator applies the password changes, and it did not describe which changes require a restart ([#3302](https://gitlab.com/ongresinc/stackgres/-/issues/3302))
+* Patroni kept using the previous credentials of the superuser, of the replication user and of its REST API after they were changed in an `SGCluster`, until its Pods were restarted, so a former primary could not rewind, the replicas could not reconnect and the requests to the Patroni REST API were rejected ([#3301](https://gitlab.com/ongresinc/stackgres/-/issues/3301))
+* Changing the username of the superuser or of the replication user of an `SGCluster` did not create the user, and blocked the other credentials changes and all the managed SQL scripts ([#3304](https://gitlab.com/ongresinc/stackgres/-/issues/3304))
+* A monitor user with a username other than `monitor` did not get the grants on the functions used by the Postgres exporter, so some metrics were not collected ([#3305](https://gitlab.com/ongresinc/stackgres/-/issues/3305))
+* Changing the username of the monitor user of an `SGCluster` required to restart its Pods to be applied to the Postgres exporter ([#3306](https://gitlab.com/ongresinc/stackgres/-/issues/3306))
+* The changed credentials of an `SGCluster` were applied to Patroni only at the next reconciliation of the cluster controller, up to a minute later, while the requests to the Patroni REST API already used the new password ([#3307](https://gitlab.com/ongresinc/stackgres/-/issues/3307))
+* The validating webhooks installed by the operator also validated the deletion of an `SGCluster`, while the ones of the operator Helm chart did not, so a tool that applies the chart, like Argo CD, reported the `ValidatingWebhookConfiguration` as out of sync after every restart of the operator. Since no validation acts on the deletion of a custom resource, the validating webhooks no longer validate deletions, which no longer fail while the operator is not available ([#3308](https://gitlab.com/ongresinc/stackgres/-/issues/3308))
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.19.5/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.19.5)
+
 # :rocket: Release 1.19.4 (2026-11-04)
 
 ## :notepad_spiral: NOTES

@@ -275,6 +275,13 @@ public class PatroniConfigEndpoints
             "host all all ::/0 md5",
             "host replication " + PatroniSecret.getReplicatorCredentials(context).v1 + " 0.0.0.0/0 md5",
             "host replication " + PatroniSecret.getReplicatorCredentials(context).v1 + " ::/0 md5")
+        // The replicas keep replicating with the previous username of the replication user until
+        // the cluster controller updates it in their Patroni config, once the user was created
+        .append(PatroniSecret.getPreviousReplicatorUsername(context)
+            .stream()
+            .flatMap(previousUsername -> Seq.of(
+                "host replication " + previousUsername + " 0.0.0.0/0 md5",
+                "host replication " + previousUsername + " ::/0 md5")))
         .toList());
     patroniConf.getPostgresql().setParameters(
         getPostgresConfigValues(cluster, pgConfig, isBackupConfigurationPresent));

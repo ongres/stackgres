@@ -11,11 +11,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.stackgres.common.VolumeSnapshotUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -57,6 +59,7 @@ class ClusterPodDataPersistentVolumeNamesContextAppenderTest {
 
     verify(pvcScanner).getResourcesInNamespaceWithLabels(any(), any());
     verify(contextBuilder).podDataPersistentVolumeNames(Map.of());
+    verify(contextBuilder).podDataPersistentVolumesFromVolumeSnapshot(Set.of());
   }
 
   @Test
@@ -98,6 +101,54 @@ class ClusterPodDataPersistentVolumeNamesContextAppenderTest {
         Map.of(
             cluster.getMetadata().getName() + "-0", "pv-0",
             cluster.getMetadata().getName() + "-1", "pv-1"));
+    verify(contextBuilder).podDataPersistentVolumesFromVolumeSnapshot(Set.of());
+  }
+
+  @Test
+  void givenClusterWithPvcCreatedFromVolumeSnapshot_shouldReturnItsPod() {
+    final List<Pod> pods = List.of(
+        new PodBuilder()
+        .withNewMetadata()
+        .withName(cluster.getMetadata().getName() + "-0")
+        .endMetadata()
+        .build(),
+        new PodBuilder()
+        .withNewMetadata()
+        .withName(cluster.getMetadata().getName() + "-1")
+        .endMetadata()
+        .build());
+    final List<PersistentVolumeClaim> pvcs = List.of(
+        new PersistentVolumeClaimBuilder()
+        .withNewMetadata()
+        .withName(cluster.getMetadata().getName() + "-data-" + cluster.getMetadata().getName() + "-0")
+        .endMetadata()
+        .withNewSpec()
+        .withVolumeName("pv-0")
+        .endSpec()
+        .build(),
+        new PersistentVolumeClaimBuilder()
+        .withNewMetadata()
+        .withName(cluster.getMetadata().getName() + "-data-" + cluster.getMetadata().getName() + "-1")
+        .endMetadata()
+        .withNewSpec()
+        .withVolumeName("pv-1")
+        .withNewDataSource()
+        .withApiGroup(VolumeSnapshotUtil.VOLUME_SNAPSHOT_GROUP)
+        .withKind(VolumeSnapshotUtil.VOLUME_SNAPSHOT_KIND)
+        .withName("snapshot")
+        .endDataSource()
+        .endSpec()
+        .build());
+    when(pvcScanner.getResourcesInNamespaceWithLabels(any(), any()))
+        .thenReturn(pvcs);
+    contextAppender.appendContext(cluster, pods, contextBuilder);
+
+    verify(contextBuilder).podDataPersistentVolumeNames(
+        Map.of(
+            cluster.getMetadata().getName() + "-0", "pv-0",
+            cluster.getMetadata().getName() + "-1", "pv-1"));
+    verify(contextBuilder).podDataPersistentVolumesFromVolumeSnapshot(
+        Set.of(cluster.getMetadata().getName() + "-1"));
   }
 
 }

@@ -259,6 +259,12 @@ public class CrdWebhookInstaller {
     }
   }
 
+  /**
+   * The deletion of a custom resource is not validated, so it does not depend on the operator
+   * being available. The operations must match the ones of the ValidatingWebhookConfiguration of
+   * the operator Helm chart, or a tool that applies the chart reports a difference at every
+   * operator restart.
+   */
   private ValidatingWebhook getValidatingWebhookConfiguration(
       CustomResourceDefinition customResourceDefinition,
       String webhookCaCert) {
@@ -267,7 +273,7 @@ public class CrdWebhookInstaller {
             + ".validating-webhook." + customResourceDefinition.getSpec().getGroup())
         .withSideEffects("None")
         .withRules(List.of(new RuleWithOperationsBuilder()
-            .withOperations("CREATE", "UPDATE", "DELETE")
+            .withOperations("CREATE", "UPDATE")
             .withApiGroups(customResourceDefinition.getSpec().getGroup())
             .withApiVersions("*")
             .withResources(customResourceDefinition.getSpec().getNames().getPlural())

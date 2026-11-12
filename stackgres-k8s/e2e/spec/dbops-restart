@@ -11,7 +11,10 @@ e2e_test() {
   run_test "Checking that restart is working" check_restart_is_working
 
   run_test "Checking that restart in-place is working" check_restart_in_place_is_working
-  
+
+  run_test "Checking that restart in-place does not re-create the primary while the replica has not been re-created yet" \
+    check_restart_in_place_waits_for_the_replica
+
   run_test "Checking that restart with only pendingin restart is working" check_restart_only_pending_restart_is_working
 
   run_test "Checking that restart of the primary is performed with a switchover unless a hot standby sensitive parameter is decreased" \
@@ -69,6 +72,10 @@ check_restart_in_place_is_working() {
   reset_cluster
   trigger_cluster_require_restart
 
+  local PRIMARY
+  PRIMARY="$(get_cluster_primary)"
+  rollout_watch_start
+
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDbOps
@@ -83,6 +90,71 @@ spec:
 EOF
 
   check_restart
+
+  rollout_watch_stop
+
+  # The replica is re-created first and the primary is re-created only after switching over to
+  # the replica once it is ready, so that an instance is available during the whole restart
+  assert_no_pod_deleted_while_no_other_pod_ready
+  assert_pods_recreated_once "$CLUSTER_NAME-0" "$CLUSTER_NAME-1"
+
+  if [ "$(get_cluster_primary)" != "$PRIMARY" ]
+  then
+    success "A switchover was performed before re-creating the primary Pod $PRIMARY"
+  else
+    fail "No switchover was performed before re-creating the primary Pod $PRIMARY"
+  fi
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+}
+
+# The replica Pod is deleted first and the StatefulSet controller re-creates it almost immediately,
+# while the primary Pod must not be deleted in the meantime since no replica is available to switch
+# over to (see #3298). The re-creation of the replica Pod is held back to check it.
+check_restart_in_place_waits_for_the_replica() {
+  reset_cluster
+  trigger_cluster_require_restart
+
+  local PRIMARY
+  local REPLICA
+  PRIMARY="$(get_cluster_primary)"
+  REPLICA="$(get_cluster_pods | tr ' ' '\n' | grep -v "^$PRIMARY$" | grep .)"
+  rollout_watch_start
+  rollout_block_pods_creation
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  wait_until eval '! kubectl get pod -n "$CLUSTER_NAMESPACE" "$REPLICA" > /dev/null 2>&1'
+
+  assert_pod_not_deleted "$PRIMARY" "$((E2E_TIMEOUT / 3))" \
+    "while the replica Pod $REPLICA had not been re-created yet"
+
+  rollout_allow_pods_creation
+
+  check_restart
+
+  rollout_watch_stop
+
+  assert_no_pod_deleted_while_no_other_pod_ready
+  assert_pods_recreated_once "$PRIMARY" "$REPLICA"
+
+  if [ "$(get_cluster_primary)" != "$PRIMARY" ]
+  then
+    success "A switchover was performed before re-creating the primary Pod $PRIMARY"
+  else
+    fail "No switchover was performed before re-creating the primary Pod $PRIMARY"
+  fi
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
@@ -185,25 +257,6 @@ check_restart_of_primary_is_working() {
 
   wait_until check_mock_data_samehost "$CLUSTER_NAME"
   wait_until check_mock_data_replication "$CLUSTER_NAME"
-}
-
-get_cluster_primary() {
-  kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template='{{ .metadata.annotations.leader }}'
-}
-
-get_pods_creation_timestamps() {
-  kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
-    --template='{{ range .items }}{{ printf "%s=%s " .metadata.name .metadata.creationTimestamp }}{{ end }}'
-}
-
-# Count the restarts of the Postgres instance that the cluster controller of a Pod has performed
-get_postgres_restarts() {
-  local POD="$1"
-
-  kubectl logs -n "$CLUSTER_NAMESPACE" "$POD" -c cluster-controller \
-    | grep -cF 'Restarting postgres instance through patronictl due to operator request' || true
 }
 
 set_max_connections() {

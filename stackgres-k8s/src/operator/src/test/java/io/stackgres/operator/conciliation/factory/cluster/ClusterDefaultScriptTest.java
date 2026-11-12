@@ -6,10 +6,13 @@
 package io.stackgres.operator.conciliation.factory.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ManagedSqlUtil;
@@ -108,6 +111,39 @@ class ClusterDefaultScriptTest {
         passwordUpdate.getScriptFrom().getSecretKeyRef().getName());
     assertEquals(StackGresPasswordKeys.ROLES_UPDATE_SQL_KEY,
         passwordUpdate.getScriptFrom().getSecretKeyRef().getKey());
+  }
+
+  @Test
+  void generateResource_postgresExporterGrantsToDefaultMonitorUser() {
+    String grants = getPostgresExporterGrantsScript();
+
+    assertTrue(grants.contains("GRANT EXECUTE ON FUNCTION mounts() TO \"monitor\";"), grants);
+    assertFalse(grants.contains("${MONITOR_USERNAME}"), grants);
+  }
+
+  @Test
+  void generateResource_postgresExporterGrantsToConfiguredMonitorUser() {
+    when(context.getMonitorUsername()).thenReturn(Optional.of("my-monitor"));
+
+    String grants = getPostgresExporterGrantsScript();
+
+    assertTrue(grants.contains("GRANT EXECUTE ON FUNCTION df(text) TO \"my-monitor\";"), grants);
+    assertTrue(grants.contains("GRANT EXECUTE ON FUNCTION mounts() TO \"my-monitor\";"), grants);
+    assertTrue(grants.contains(
+        "GRANT EXECUTE ON FUNCTION monitor_dblink_connect(text) TO \"my-monitor\";"), grants);
+    assertTrue(grants.contains(
+        "GRANT EXECUTE ON FUNCTION monitor_dblink_connect_pgbouncer() TO \"my-monitor\";"), grants);
+    assertFalse(grants.contains(" TO monitor;"), grants);
+  }
+
+  private String getPostgresExporterGrantsScript() {
+    StackGresScript script = (StackGresScript) clusterDefaultScript.generateResource(context)
+        .toList().getFirst();
+    return script.getSpec().getScripts().stream()
+        .filter(e -> "prometheus-postgres-exporter-grants".equals(e.getName()))
+        .findFirst()
+        .orElseThrow()
+        .getScript();
   }
 
 }
