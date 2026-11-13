@@ -111,6 +111,7 @@ public abstract class ExtensionMetadataManager {
         .ofNullable(getExtensionsMetadata().indexSameMajorBuilds
             .get(StackGresExtensionIndexSameMajorBuild
                 .fromClusterExtension(cluster, extension, detectOs)))
+        .map(list -> filterAvailableForPostgresVersion(cluster, list))
         .map(this::extractLatestBuildVersions)
         .orElse(List.of());
   }
@@ -127,6 +128,7 @@ public abstract class ExtensionMetadataManager {
         .ofNullable(getExtensionsMetadata().indexAnyVersions
             .get(StackGresExtensionIndexAnyVersion
                 .fromClusterExtension(cluster, extension, detectOs)))
+        .map(list -> filterAvailableForPostgresVersion(cluster, list))
         .map(this::extractLatestBuildVersions)
         .stream()
         .flatMap(List::stream)
@@ -136,6 +138,31 @@ public abstract class ExtensionMetadataManager {
             .andThen(StackGresExtensionVersion::getVersion)
             .andThen(StackGresUtil::sortableVersion))
             .reversed())
+        .toList();
+  }
+
+  /**
+   * Remove the builds that require a Postgres minor newer than the one of the cluster
+   * (postgresFromVersion) or that only run up to a Postgres minor older than the one of the
+   * cluster (postgresToVersion), since the ABI of Postgres may change between minors of the same
+   * major. Both bounds are inclusive.
+   */
+  private List<StackGresExtensionMetadata> filterAvailableForPostgresVersion(
+      StackGresCluster cluster, List<StackGresExtensionMetadata> list) {
+    final String postgresVersion = StackGresUtil.sortableVersion(
+        StackGresUtil.getPostgresFlavorComponent(cluster).get(cluster)
+        .getVersion(cluster.getSpec().getPostgres().getVersion()));
+    return list.stream()
+        .filter(extensionMetadata -> Optional.of(extensionMetadata.getTarget())
+            .map(StackGresExtensionVersionTarget::getPostgresFromVersion)
+            .map(StackGresUtil::sortableVersion)
+            .map(postgresFromVersion -> postgresFromVersion.compareTo(postgresVersion) <= 0)
+            .orElse(true))
+        .filter(extensionMetadata -> Optional.of(extensionMetadata.getTarget())
+            .map(StackGresExtensionVersionTarget::getPostgresToVersion)
+            .map(StackGresUtil::sortableVersion)
+            .map(postgresToVersion -> postgresToVersion.compareTo(postgresVersion) >= 0)
+            .orElse(true))
         .toList();
   }
 

@@ -29,6 +29,10 @@ public class StackGresExtensionVersionTarget {
   @NotNull(message = "postgresVersion is required")
   private String postgresVersion;
 
+  private String postgresFromVersion;
+
+  private String postgresToVersion;
+
   private String build;
 
   private String arch;
@@ -62,6 +66,22 @@ public class StackGresExtensionVersionTarget {
 
   public void setPostgresVersion(String postgresVersion) {
     this.postgresVersion = postgresVersion;
+  }
+
+  public String getPostgresFromVersion() {
+    return postgresFromVersion;
+  }
+
+  public void setPostgresFromVersion(String postgresFromVersion) {
+    this.postgresFromVersion = postgresFromVersion;
+  }
+
+  public String getPostgresToVersion() {
+    return postgresToVersion;
+  }
+
+  public void setPostgresToVersion(String postgresToVersion) {
+    this.postgresToVersion = postgresToVersion;
   }
 
   public String getBuild() {
@@ -100,7 +120,8 @@ public class StackGresExtensionVersionTarget {
 
   @Override
   public int hashCode() {
-    return Objects.hash(arch, build, flavor, os, postgresVersion);
+    return Objects.hash(arch, build, flavor, os, postgresFromVersion, postgresToVersion,
+        postgresVersion);
   }
 
   @Override
@@ -114,6 +135,8 @@ public class StackGresExtensionVersionTarget {
     StackGresExtensionVersionTarget other = (StackGresExtensionVersionTarget) obj;
     return Objects.equals(arch, other.arch) && Objects.equals(build, other.build)
         && Objects.equals(flavor, other.flavor) && Objects.equals(os, other.os)
+        && Objects.equals(postgresFromVersion, other.postgresFromVersion)
+        && Objects.equals(postgresToVersion, other.postgresToVersion)
         && Objects.equals(postgresVersion, other.postgresVersion);
   }
 
