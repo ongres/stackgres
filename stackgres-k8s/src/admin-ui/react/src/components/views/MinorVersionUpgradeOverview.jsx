@@ -71,23 +71,25 @@ export default function MinorVersionUpgradeOverview({ dbop }) {
   return (
     <section className="flex flex-col gap-4">
       <div>
-        <h3 className="mb-2 font-semibold uppercase">Upgrade Log</h3>
-        <table className="w-full border-collapse text-left text-sm">
-          <tbody>
-            {timeline.map((entry) => (
-              <tr key={entry.label}>
-                <td className="border-b p-2">{stamp(entry.time)}</td>
-                <td className="border-b p-2">{entry.label}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Upgrade Log</h3>
+        <div className="rounded border overflow-auto">
+          <table className="w-full table-auto text-left">
+            <tbody>
+              {timeline.map((entry) => (
+                <tr key={entry.label} className="border-t">
+                  <td className="px-4 py-2">{stamp(entry.time)}</td>
+                  <td className="px-4 py-2">{entry.label}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div>
-        <h3 className="mb-2 font-semibold uppercase">Upgrade Overview</h3>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Upgrade Overview</h3>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {pods.map((pod) => (
-            <article key={pod.name} className="flex flex-col gap-1 border p-3 text-sm">
+            <article key={pod.name} className="flex flex-col gap-1 rounded-lg border p-4 text-sm">
               <strong>{pod.name}</strong>
               <span>{pod.role === 'primary' ? 'Primary' : pod.role ? 'Replica' : ''}</span>
               {pod.componentVersions?.postgresql && (

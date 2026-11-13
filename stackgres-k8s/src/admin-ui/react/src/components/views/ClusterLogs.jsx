@@ -111,19 +111,19 @@ export default function ClusterLogs() {
   }, [live, load])
 
   return (
-    <section className="flex flex-col gap-4 p-8">
-      <div className="flex flex-wrap items-center gap-3 text-sm">
-        <h2 className="text-xl font-semibold">Logs</h2>
+    <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <h2 className="text-lg font-semibold">Logs</h2>
         <input
           value={text}
           onChange={(event) => setText(event.target.value)}
           placeholder="Search…"
           aria-label="Search logs"
-          className="border p-2"
+          className="pl-3 pr-3 py-1.5 text-sm rounded border bg-[hsl(var(--input-background))] w-52 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--primary))]"
         />
-        <label className="flex items-center gap-1">
+        <label className="flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
           Type
-          <select value={logType} onChange={(event) => setLogType(event.target.value)} className="border p-1">
+          <select value={logType} onChange={(event) => setLogType(event.target.value)} className="px-2 py-1.5 text-sm border border-[hsl(var(--border))] rounded bg-[hsl(var(--input-background))]">
             <option value="">All</option>
             {Object.entries(LOG_TYPES).map(([value, label]) => (
               <option key={value} value={value}>
@@ -132,12 +132,12 @@ export default function ClusterLogs() {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-1">
+        <label className="flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
           Error Level
           <select
             value={errorLevel}
             onChange={(event) => setErrorLevel(event.target.value)}
-            className="border p-1"
+            className="px-2 py-1.5 text-sm border border-[hsl(var(--border))] rounded bg-[hsl(var(--input-background))]"
           >
             <option value="">All</option>
             {ERROR_LEVELS.map((level) => (
@@ -145,33 +145,33 @@ export default function ClusterLogs() {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-1">
+        <label className="flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
           From
-          <input type="datetime-local" step="1" className="border p-1" aria-label="Logs from"
+          <input type="datetime-local" step="1" className="px-2 py-1.5 text-sm border border-[hsl(var(--border))] rounded bg-[hsl(var(--input-background))]" aria-label="Logs from"
             value={toDateTimeLocal(dateStart, timezone)}
             max={toDateTimeLocal(new Date().toISOString(), timezone)}
             onChange={(event) => changeDateStart(event.target.value)} />
         </label>
-        <label className="flex items-center gap-1">
+        <label className="flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
           To
-          <input type="datetime-local" step="1" className="border p-1" aria-label="Logs to"
+          <input type="datetime-local" step="1" className="px-2 py-1.5 text-sm border border-[hsl(var(--border))] rounded bg-[hsl(var(--input-background))]" aria-label="Logs to"
             value={toDateTimeLocal(dateEnd, timezone)}
             min={toDateTimeLocal(dateStart, timezone) || undefined}
             onChange={(event) => changeDateEnd(event.target.value)} />
         </label>
         {(dateStart || dateEnd) && (
-          <button type="button" className="border p-1"
+          <button type="button" className="text-sm border rounded px-2 py-1 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
             onClick={() => { setDateStart(''); setDateEnd('') }}>
             Reset dates
           </button>
         )}
-        <label className="flex items-center gap-1">
+        <label className="flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
           <input type="checkbox" checked={live} onChange={() => setLive(!live)} />
           Live
         </label>
       </div>
       {logs === null ? (
-        <p className="text-sm">Loading logs…</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))] italic">Loading logs…</p>
       ) : logs.length ? (
         <ul className="flex flex-col font-mono text-xs">
           {logs.map((entry, index) => (
@@ -181,7 +181,16 @@ export default function ClusterLogs() {
                 onClick={() => setExpanded(expanded === index ? null : index)}
                 className="flex w-full items-baseline gap-2 p-1 text-left"
               >
-                <span data-status={entry.errorLevel}>{entry.errorLevel}</span>
+                <span
+                  data-status={entry.errorLevel}
+                  className={`w-16 shrink-0 uppercase ${
+                    ['ERROR', 'FATAL', 'PANIC'].includes(entry.errorLevel)
+                      ? 'text-red-500'
+                      : entry.errorLevel === 'WARNING'
+                        ? 'text-yellow-500'
+                        : 'text-[hsl(var(--muted-foreground))]'
+                  }`}
+                >{entry.errorLevel}</span>
                 <span>
                   {formatTimestamp(entry.logTime, 'date', timezone)}{' '}
                   {formatTimestamp(entry.logTime, 'time', timezone)}
@@ -205,10 +214,10 @@ export default function ClusterLogs() {
           ))}
         </ul>
       ) : (
-        <p className="text-sm">No logs match your search terms</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))] italic">No logs match your search terms</p>
       )}
       {logs && logs.length >= RECORDS && (
-        <button type="button" onClick={() => load(true)} className="self-start border p-2 text-sm">
+        <button type="button" onClick={() => load(true)} className="self-start text-sm border rounded px-3 py-1.5 hover:bg-[hsl(var(--muted))]">
           Load more
         </button>
       )}

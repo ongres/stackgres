@@ -12,20 +12,20 @@ export default function SGConfigDetail() {
   const { sgconfigs } = useSGConfigs()
 
   if (sgconfigs === null) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   const config = sgconfigs.find((candidate) => candidate.metadata.name === name)
   if (!config) {
-    return <p className="p-8 text-sm">Operator configuration &quot;{name}&quot; not found.</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Operator configuration &quot;{name}&quot; not found.</p>
   }
 
   return (
-    <section className="flex flex-col gap-4 p-8 text-sm">
+    <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Operator Configuration: {name}</h1>
+        <h1 className="text-lg font-semibold">Operator Configuration: {name}</h1>
         {canI('patch', 'sgconfigs') && (
-          <Link to={`/sgconfig/${name}/edit`} className="flex items-center gap-1 underline">
+          <Link to={`/sgconfig/${name}/edit`} className="flex items-center gap-1 text-[hsl(var(--primary))] hover:underline">
             <Pencil size={14} /> Edit
           </Link>
         )}

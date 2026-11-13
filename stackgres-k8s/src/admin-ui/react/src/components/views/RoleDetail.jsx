@@ -15,12 +15,12 @@ export default function RoleDetail({ kind }) {
   )
 
   if (items === null) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
   const role = items.find((candidate) => candidate.metadata.name === name)
   if (!role) {
     return (
-      <p className="p-8 text-sm">
+      <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">
         {clusterScoped ? 'Cluster role' : 'Role'} &quot;{name}&quot; not found.
       </p>
     )
@@ -32,13 +32,13 @@ export default function RoleDetail({ kind }) {
   const editPath = `/manage/${clusterScoped ? 'clusterrole' : 'role'}/${name}/edit`
 
   return (
-    <section className="flex flex-col gap-4 p-8 text-sm">
+    <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-lg font-semibold">
           {clusterScoped ? 'Cluster Role' : 'Role'}: {name}
         </h1>
         {canPatch && (
-          <Link to={editPath} className="flex items-center gap-1 underline">
+          <Link to={editPath} className="flex items-center gap-1 text-[hsl(var(--primary))] hover:underline">
             <Pencil size={14} /> Edit
           </Link>
         )}

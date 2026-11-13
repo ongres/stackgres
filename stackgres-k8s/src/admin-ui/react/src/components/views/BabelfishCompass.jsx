@@ -45,8 +45,8 @@ export default function BabelfishCompass() {
   }
 
   return (
-    <section className="flex flex-col gap-4 p-8 text-sm">
-      <h1 className="text-2xl font-semibold">Babelfish Compass</h1>
+    <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
+      <h1 className="text-lg font-semibold">Babelfish Compass</h1>
       <div className="flex flex-col gap-6 lg:flex-row">
         <form onSubmit={submit} className="flex w-full flex-col gap-3 lg:w-1/3">
           <Field label="Report Name" required
@@ -63,54 +63,57 @@ export default function BabelfishCompass() {
                   aria-label={`SQL file ${index + 1}`} />
                 {index > 0 && (
                   <button type="button" aria-label={`Delete SQL file ${index + 1}`}
+                    className="p-1 rounded text-red-500 hover:bg-red-500/10"
                     onClick={() => setFiles(files.filter((_, i) => i !== index))}>
                     <Trash2 size={16} />
                   </button>
                 )}
               </div>
             ))}
-            <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+            <button type="button" className="flex items-center gap-1 self-start text-[hsl(var(--primary))] hover:underline"
               onClick={() => setFiles([...files, null])}>
               <Plus size={14} /> Add File
             </button>
           </fieldset>
-          <button type="submit" disabled={processing} className="self-start border p-2 font-semibold">
+          <button type="submit" disabled={processing} className="self-start px-4 py-2 bg-[hsl(var(--primary))] text-white rounded text-sm font-medium hover:bg-[hsl(var(--primary)/0.85)]">
             {processing ? 'Processing…' : 'Send'}
           </button>
         </form>
         <div className="w-full lg:w-2/3">
           {result ? (
             <div className="flex flex-col gap-3">
-              <table className="w-fit border-collapse text-left">
-                <tbody>
-                  <tr>
-                    <th className="border-b p-2">Report Name</th>
-                    <td className="border-b p-2">{reportName}</td>
-                  </tr>
-                  {Object.entries(result.setup).map(([key, value]) => (
-                    <tr key={key}>
-                      <th className="border-b p-2">{key}</th>
-                      <td className="border-b p-2">{value}</td>
+              <div className="rounded border overflow-auto">
+                <table className="w-fit table-auto text-left">
+                  <tbody>
+                    <tr>
+                      <th className="px-4 py-2">Report Name</th>
+                      <td className="px-4 py-2">{reportName}</td>
                     </tr>
-                  ))}
-                  {Object.entries(result.metrics).map(([key, value]) => (
-                    <tr key={key}>
-                      <th className="border-b p-2">{key}</th>
-                      <td className="border-b p-2">{value}</td>
+                    {Object.entries(result.setup).map(([key, value]) => (
+                      <tr key={key} className="border-t">
+                        <th className="px-4 py-2">{key}</th>
+                        <td className="px-4 py-2">{value}</td>
+                      </tr>
+                    ))}
+                    {Object.entries(result.metrics).map(([key, value]) => (
+                      <tr key={key} className="border-t">
+                        <th className="px-4 py-2">{key}</th>
+                        <td className="px-4 py-2">{value}</td>
+                      </tr>
+                    ))}
+                    <tr className="border-t">
+                      <th className="px-4 py-2">Files Processed</th>
+                      <td className="px-4 py-2">{result.files.join(', ')}</td>
                     </tr>
-                  ))}
-                  <tr>
-                    <th className="border-b p-2">Files Processed</th>
-                    <td className="border-b p-2">{result.files.join(', ')}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <pre className="overflow-auto border p-3 font-mono" style={{ maxHeight: 'calc(100vh - 320px)' }}>
+                  </tbody>
+                </table>
+              </div>
+              <pre className="overflow-auto rounded border bg-[hsl(var(--secondary))] p-3 font-mono text-sm" style={{ maxHeight: 'calc(100vh - 320px)' }}>
                 {result.report}
               </pre>
             </div>
           ) : (
-            <p>Submit a report to see the Compass assessment here.</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))] italic">Submit a report to see the Compass assessment here.</p>
           )}
         </div>
       </div>

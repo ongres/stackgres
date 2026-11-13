@@ -25,16 +25,17 @@ function KindCard({ plural, namespace }) {
   }
 
   return (
-    <article className="border">
+    <article className="bg-[hsl(var(--card))] rounded shadow border">
       <header className="flex items-center justify-between gap-2 border-b p-3">
-        <Link to={listPath(plural, namespace)} className="font-semibold underline">
-          {kind.crd} <span className="text-xs font-normal">({items ? items.length : '-'})</span>
+        <Link to={listPath(plural, namespace)} className="font-semibold text-[hsl(var(--primary))] hover:underline">
+          {kind.crd} <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border bg-[hsl(var(--muted))]">({items ? items.length : '-'})</span>
         </Link>
         {canI('create', plural, namespace) && (
           <Link
             to={`${listPath(plural, namespace)}/new`}
             title={`Create ${kind.crd}`}
             aria-label={`Create ${kind.crd}`}
+            className="p-1 rounded-md text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.1)]"
           >
             <Plus size={16} />
           </Link>
@@ -56,7 +57,7 @@ function KindCard({ plural, namespace }) {
             {canI('create', plural, namespace) && (
               <>
                 , would you like to{' '}
-                <Link to={`${listPath(plural, namespace)}/new`} className="underline">
+                <Link to={`${listPath(plural, namespace)}/new`} className="text-[hsl(var(--primary))] hover:underline">
                   create a new one?
                 </Link>
               </>
@@ -72,8 +73,8 @@ export default function NamespaceOverview() {
   const { namespace } = useParams()
 
   return (
-    <section className="flex flex-col gap-4 p-8">
-      <h1 className="text-2xl font-semibold">Namespace Overview: {namespace}</h1>
+    <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
+      <h1 className="text-lg font-semibold">Namespace Overview: {namespace}</h1>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {Object.keys(KINDS).map((plural) => (
           <KindCard key={plural} plural={plural} namespace={namespace} />

@@ -17,34 +17,36 @@ export default function DbOpsEvents() {
 
   return (
     <section>
-      <h2 className="mb-2 font-semibold uppercase">Operation Events</h2>
+      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Operation Events</h2>
       {events && events.length ? (
-        <table className="w-full border-collapse text-left text-sm">
-          <thead>
-            <tr>
-              <th className="border-b p-2">First Timestamp</th>
-              <th className="border-b p-2">Last Timestamp</th>
-              <th className="border-b p-2">Component</th>
-              <th className="border-b p-2">Message</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((event) => (
-              <tr key={event.metadata.uid}>
-                <td className="border-b p-2">{stamp(event.firstTimestamp)}</td>
-                <td className="border-b p-2">{stamp(event.lastTimestamp)}</td>
-                <td className="border-b p-2">
-                  {event.involvedObject
-                    ? `${event.involvedObject.kind}/${event.involvedObject.name}`
-                    : ''}
-                </td>
-                <td className="border-b p-2">{event.message}</td>
+        <div className="rounded border overflow-auto">
+          <table className="w-full table-auto text-left">
+            <thead className="bg-[hsl(var(--muted))] text-left">
+              <tr>
+                <th className="px-4 py-2">First Timestamp</th>
+                <th className="px-4 py-2">Last Timestamp</th>
+                <th className="px-4 py-2">Component</th>
+                <th className="px-4 py-2">Message</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {events.map((event) => (
+                <tr key={event.metadata.uid} className="border-t">
+                  <td className="px-4 py-2">{stamp(event.firstTimestamp)}</td>
+                  <td className="px-4 py-2">{stamp(event.lastTimestamp)}</td>
+                  <td className="px-4 py-2">
+                    {event.involvedObject
+                      ? `${event.involvedObject.kind}/${event.involvedObject.name}`
+                      : ''}
+                  </td>
+                  <td className="px-4 py-2">{event.message}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <p className="text-sm">No events have been found</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))] italic">No events have been found</p>
       )}
     </section>
   )

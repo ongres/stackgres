@@ -22,8 +22,8 @@ export function ShardedConditionAlerts({ cluster }) {
   }
   return (
     <div className="flex flex-col gap-1 text-sm">
-      {pendingRestart && <p role="note">A restart is pending for this sharded cluster</p>}
-      {componentsOutdated && <p role="note">{componentsOutdated.message || 'Components are not up to date'}</p>}
+      {pendingRestart && <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">A restart is pending for this sharded cluster</p>}
+      {componentsOutdated && <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">{componentsOutdated.message || 'Components are not up to date'}</p>}
     </div>
   )
 }
@@ -38,23 +38,23 @@ export function ShardedConnectionInfo({ cluster }) {
   const coordinator = (cluster.status?.clusters || [])[0]
 
   if (!podsReady) {
-    return <p className="text-sm">No pods are available yet</p>
+    return <p className="text-sm text-[hsl(var(--muted-foreground))] italic">No pods are available yet</p>
   }
 
   return (
     <details className="text-sm">
-      <summary className="cursor-pointer font-semibold">Connection Information</summary>
+      <summary className="cursor-pointer text-sm font-semibold">Connection Information</summary>
       <ul className="flex flex-col gap-1 p-2">
         <li>
-          <strong>Read Write DNS:</strong> <code>{info.primaryDns}</code>
+          <strong>Read Write DNS:</strong> <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">{info.primaryDns}</code>
         </li>
         <li>
-          <strong>Read Only DNS:</strong> <code>{info.readsDns}</code>
+          <strong>Read Only DNS:</strong> <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">{info.readsDns}</code>
         </li>
         {coordinator && (
           <li>
             <strong>Local psql:</strong>{' '}
-            <code>
+            <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
               kubectl exec -ti {coordinator} -c postgres-util --{' '}
               {info.superuserUsername && info.superuserUsername !== 'postgres'
                 ? `psql -U ${info.superuserUsername}`
@@ -64,14 +64,14 @@ export function ShardedConnectionInfo({ cluster }) {
         )}
         <li>
           <strong>External psql:</strong>{' '}
-          <code>
+          <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
             psql -h {info.primaryDns} -U {info.superuserUsername || 'postgres'}
           </code>
         </li>
         {info.superuserSecretName && (
           <li>
             <strong>Password secret:</strong>{' '}
-            <code>
+            <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
               {info.superuserSecretName} / {info.superuserPasswordKey}
             </code>
           </li>
@@ -79,7 +79,7 @@ export function ShardedConnectionInfo({ cluster }) {
         {cluster.spec?.postgres?.flavor === 'babelfish' && (
           <li>
             <strong>Babelfish (port 1433) password secret:</strong>{' '}
-            <code>
+            <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
               {cluster.metadata.name} / babelfish-password
             </code>
           </li>
@@ -99,16 +99,16 @@ export default function ShardedClusterDetail() {
   const cluster = useResource('sgshardedclusters', namespace, name)
 
   if (items === null) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
   if (cluster === undefined) {
     return (
-      <section className="p-8 text-sm">
+      <section className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">
         <p>
           SGShardedCluster <strong>{name}</strong> was not found in namespace{' '}
           <strong>{namespace}</strong>.
         </p>
-        <Link to={`/${namespace}/sgshardedclusters`} className="underline">
+        <Link to={`/${namespace}/sgshardedclusters`} className="text-[hsl(var(--primary))] hover:underline">
           Back to StackGres Sharded Clusters
         </Link>
       </section>
@@ -124,20 +124,23 @@ export default function ShardedClusterDetail() {
 
   return (
     <div>
-      <nav aria-label="Sharded cluster sections" className="flex items-center gap-4 border-b px-8 pt-2 text-sm">
+      <nav aria-label="Sharded cluster sections" className="tabs-scroll-wrap border-b">
+        <div className="flex overflow-x-auto px-6">
         {tabs.map((tab) => (
           <NavLink
             key={tab.label}
             to={tab.to}
             end={tab.end}
-            className={({ isActive }) => `pb-2 ${isActive ? 'border-b-2 font-semibold' : ''}`}
+            className={({ isActive }) =>
+              `px-4 sm:px-6 h-[43px] font-medium text-sm flex items-center gap-1.5 whitespace-nowrap ${isActive ? 'border-b-2 border-[hsl(var(--primary))] text-[hsl(var(--primary))]' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`
+            }
           >
             {tab.label}
           </NavLink>
         ))}
-        <div className="ml-auto flex gap-3 pb-2">
+        <div className="ml-auto flex items-center gap-3 text-sm">
           {canI('patch', 'sgshardedclusters', namespace) && (
-            <Link to={`${base}/edit`} className="flex items-center gap-1 underline">
+            <Link to={`${base}/edit`} className="flex items-center gap-1 text-[hsl(var(--primary))] hover:underline">
               <Pencil size={14} /> Edit
             </Link>
           )}
@@ -153,8 +156,11 @@ export default function ShardedClusterDetail() {
             />
           )}
         </div>
+        </div>
       </nav>
-      <Outlet context={{ cluster }} />
+      <div className="pt-4">
+        <Outlet context={{ cluster }} />
+      </div>
     </div>
   )
 }

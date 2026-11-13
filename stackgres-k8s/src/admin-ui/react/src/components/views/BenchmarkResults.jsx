@@ -28,7 +28,7 @@ export default function BenchmarkResults({ dbop }) {
     <section className="flex flex-col gap-6">
       {pgbench.transactionsPerSecond?.overTime && (
         <div>
-          <h3 className="mb-2 font-semibold uppercase">TPS over-time</h3>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">TPS over-time</h3>
           <Chart
             type="line"
             height={350}
@@ -54,13 +54,13 @@ export default function BenchmarkResults({ dbop }) {
       )}
       {pgbench.hdrHistogram && (
         <div>
-          <h3 className="mb-2 font-semibold uppercase">Time Percentiles</h3>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Time Percentiles</h3>
           <HdrHistogram percentiles={pgbench.hdrHistogram} />
         </div>
       )}
       {pgbench.statements && (
         <div>
-          <h3 className="mb-2 font-semibold uppercase">Statements</h3>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Statements</h3>
           <Chart
             type="bar"
             height={350}

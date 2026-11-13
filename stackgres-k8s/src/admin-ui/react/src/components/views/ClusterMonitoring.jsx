@@ -78,17 +78,17 @@ export function MonitoringView({ base, pods }) {
   }, [dashboards, dashboardParam, range, pod, base, navigate])
 
   if (!activePods.length) {
-    return <p className="p-8 text-sm">No active pods have been found for this cluster</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">No active pods have been found for this cluster</p>
   }
   if (unavailable) {
     return (
-      <p className="p-8 text-sm">
+      <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">
         The list of Grafana monitoring dashboards is not available on this installation.
       </p>
     )
   }
   if (!dashboards || !pod || !selectedPod) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   const dashboard =
@@ -105,14 +105,14 @@ export function MonitoringView({ base, pods }) {
     navigate(`${base}/${podName}/${dashboardName}${rangeKey ? `/${rangeKey}` : ''}`)
 
   return (
-    <section className="flex flex-col gap-3 p-4">
-      <div className="flex flex-wrap items-center gap-3 text-sm">
-        <label className="flex items-center gap-1">
+    <section className="flex flex-col gap-3 px-6 pb-6 text-sm">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <label className="flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
           Dashboard
           <select
             value={dashboard.name}
             onChange={(event) => goTo(pod, event.target.value, range)}
-            className="border p-1 capitalize"
+            className="px-2 py-1.5 text-sm border border-[hsl(var(--border))] rounded bg-[hsl(var(--input-background))] capitalize"
           >
             {dashboards.map((candidate) => (
               <option key={candidate.name} value={candidate.name} className="capitalize">
@@ -121,12 +121,12 @@ export function MonitoringView({ base, pods }) {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-1">
+        <label className="flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
           Time range
           <select
             value={range}
             onChange={(event) => goTo(pod, dashboard.name, event.target.value)}
-            className="border p-1"
+            className="px-2 py-1.5 text-sm border border-[hsl(var(--border))] rounded bg-[hsl(var(--input-background))]"
           >
             <option value="">Default</option>
             {Object.entries(TIME_RANGES).map(([key, candidate]) => (
@@ -136,12 +136,12 @@ export function MonitoringView({ base, pods }) {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-1">
+        <label className="flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
           Node
           <select
             value={pod}
             onChange={(event) => goTo(event.target.value, dashboard.name, range)}
-            className="border p-1"
+            className="px-2 py-1.5 text-sm border border-[hsl(var(--border))] rounded bg-[hsl(var(--input-background))]"
           >
             {activePods.map((candidate) => (
               <option key={candidate.name} value={candidate.name}>

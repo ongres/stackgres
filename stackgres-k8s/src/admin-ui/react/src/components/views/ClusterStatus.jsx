@@ -56,26 +56,30 @@ function Totals({ cluster }) {
   ]
 
   return (
-    <table className="w-full border-collapse text-left text-sm">
-      <thead>
-        <tr>
-          {cells.map((cell) => (
-            <th key={cell.label} className="border-b p-2">
-              {cell.label} <HelpTooltip text={cell.tooltip} />
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          {cells.map((cell) => (
-            <td key={cell.label} className="border-b p-2">
-              {cell.value}
-            </td>
-          ))}
-        </tr>
-      </tbody>
-    </table>
+    <div className="rounded border overflow-auto">
+      <table className="w-full table-auto text-left">
+        <thead className="bg-[hsl(var(--muted))] text-left">
+          <tr>
+            {cells.map((cell) => (
+              <th key={cell.label} className="px-4 py-2">
+                <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                  {cell.label} <HelpTooltip text={cell.tooltip} />
+                </span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="border-t">
+            {cells.map((cell) => (
+              <td key={cell.label} className="px-4 py-2">
+                {cell.value}
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+    </div>
   )
 }
 
@@ -84,22 +88,22 @@ function ConnectionInfo({ cluster }) {
   const primary = (cluster.stats?.pods || []).find((pod) => pod.role === 'primary')
 
   if (!primary) {
-    return <p className="text-sm">No pods are available yet</p>
+    return <p className="text-sm text-[hsl(var(--muted-foreground))] italic">No pods are available yet</p>
   }
 
   return (
     <details className="text-sm">
-      <summary className="cursor-pointer font-semibold">Connection Information</summary>
+      <summary className="cursor-pointer text-sm font-semibold">Connection Information</summary>
       <ul className="flex flex-col gap-1 p-2">
         <li>
-          <strong>Read Write DNS:</strong> <code>{info.primaryDns}</code>
+          <strong>Read Write DNS:</strong> <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">{info.primaryDns}</code>
         </li>
         <li>
-          <strong>Read Only DNS:</strong> <code>{info.replicasDns}</code>
+          <strong>Read Only DNS:</strong> <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">{info.replicasDns}</code>
         </li>
         <li>
           <strong>Local psql:</strong>{' '}
-          <code>
+          <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
             kubectl exec -ti {primary.name} -c postgres-util --{' '}
             {info.superuserUsername ? `psql -U ${info.superuserUsername}` : 'psql'}
           </code>
@@ -107,7 +111,7 @@ function ConnectionInfo({ cluster }) {
         {info.superuserSecretName && (
           <li>
             <strong>Password secret:</strong>{' '}
-            <code>
+            <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
               {info.superuserSecretName} / {info.superuserPasswordKey}
             </code>
           </li>
@@ -124,76 +128,92 @@ export default function ClusterStatus() {
   const pods = stats.pods || []
 
   return (
-    <section className="flex flex-col gap-4 p-8">
-      <h2 className="text-xl font-semibold">Cluster</h2>
+    <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
+      <h2 className="text-lg font-semibold">Cluster</h2>
       <ConnectionInfo cluster={cluster} />
       <Totals cluster={cluster} />
       {pods.length ? (
-        <table className="w-full border-collapse text-left text-sm">
-          <thead>
-            <tr>
-              <th className="border-b p-2">
-                Pod Name <HelpTooltip field="sgcluster.pods.name" />
-              </th>
-              <th className="border-b p-2">
-                Role <HelpTooltip field="sgcluster.pods.role" />
-              </th>
-              <th className="border-b p-2">
-                Status <HelpTooltip field="sgcluster.pods.status" />
-              </th>
-              <th className="border-b p-2">
-                CPU <HelpTooltip text={cpuTooltip(tt, stats)} />
-              </th>
-              <th className="border-b p-2">
-                Memory <HelpTooltip text={memoryTooltip(tt, stats)} />
-              </th>
-              <th className="border-b p-2">
-                Disk{' '}
-                <HelpTooltip
-                  text={
-                    tt('sgcluster.pods.diskUsed').slice(0, -2) +
-                    ' / ' +
-                    tt('sgcluster.pods.diskRequested')
-                  }
-                />
-              </th>
-              <th className="border-b p-2">
-                Containers{' '}
-                <HelpTooltip
-                  text={
-                    tt('sgcluster.pods.containersReady').slice(0, -2) +
-                    ' / ' +
-                    tt('sgcluster.pods.containers')
-                  }
-                />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {pods.map((pod) => (
-              <tr key={pod.name}>
-                <td className="border-b p-2">{pod.name}</td>
-                <td className="border-b p-2">{pod.role}</td>
-                <td className="border-b p-2">{pod.status}</td>
-                <td className="border-b p-2">
-                  {pod.cpuRequested}
-                  {pod.cpuPsiAvg60 || pod.averageLoad1m
-                    ? ` (avg. load ${pod.cpuPsiAvg60 ?? pod.averageLoad1m})`
-                    : ''}
-                </td>
-                <td className="border-b p-2">{pod.memoryPsiAvg60 ?? pod.memoryRequested}</td>
-                <td className="border-b p-2">
-                  {pod.diskUsed ?? '-'} / {pod.diskRequested ?? '-'}
-                </td>
-                <td className="border-b p-2">
-                  {pod.containersReady} / {pod.containers}
-                </td>
+        <div className="rounded border overflow-auto">
+          <table className="w-full table-auto text-left">
+            <thead className="bg-[hsl(var(--muted))] text-left">
+              <tr>
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Pod Name <HelpTooltip field="sgcluster.pods.name" />
+                  </span>
+                </th>
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Role <HelpTooltip field="sgcluster.pods.role" />
+                  </span>
+                </th>
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Status <HelpTooltip field="sgcluster.pods.status" />
+                  </span>
+                </th>
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    CPU <HelpTooltip text={cpuTooltip(tt, stats)} />
+                  </span>
+                </th>
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Memory <HelpTooltip text={memoryTooltip(tt, stats)} />
+                  </span>
+                </th>
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Disk{' '}
+                    <HelpTooltip
+                      text={
+                        tt('sgcluster.pods.diskUsed').slice(0, -2) +
+                        ' / ' +
+                        tt('sgcluster.pods.diskRequested')
+                      }
+                    />
+                  </span>
+                </th>
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Containers{' '}
+                    <HelpTooltip
+                      text={
+                        tt('sgcluster.pods.containersReady').slice(0, -2) +
+                        ' / ' +
+                        tt('sgcluster.pods.containers')
+                      }
+                    />
+                  </span>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {pods.map((pod) => (
+                <tr key={pod.name} className="border-t">
+                  <td className="px-4 py-2">{pod.name}</td>
+                  <td className="px-4 py-2">{pod.role}</td>
+                  <td className="px-4 py-2">{pod.status}</td>
+                  <td className="px-4 py-2">
+                    {pod.cpuRequested}
+                    {pod.cpuPsiAvg60 || pod.averageLoad1m
+                      ? ` (avg. load ${pod.cpuPsiAvg60 ?? pod.averageLoad1m})`
+                      : ''}
+                  </td>
+                  <td className="px-4 py-2">{pod.memoryPsiAvg60 ?? pod.memoryRequested}</td>
+                  <td className="px-4 py-2">
+                    {pod.diskUsed ?? '-'} / {pod.diskRequested ?? '-'}
+                  </td>
+                  <td className="px-4 py-2">
+                    {pod.containersReady} / {pod.containers}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <p className="text-sm">No pods yet available</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))] italic">No pods yet available</p>
       )}
     </section>
   )

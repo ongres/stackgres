@@ -14,33 +14,33 @@ const joinRule = (values) => (values && values.length ? values.join(', ') : '')
 function RoleRows({ role, kind, detailPath, canPatch, canDelete, onDeleted, withNamespace }) {
   const rules = role.rules && role.rules.length ? role.rules : [null]
   return rules.map((rule, index) => (
-    <tr key={`${role.metadata.name}-${index}`}>
+    <tr key={`${role.metadata.name}-${index}`} className="border-t">
       {index === 0 && (
-        <td className="border-b p-2" rowSpan={rules.length}>
-          <Link to={detailPath} className="underline">
+        <td className="px-4 py-2" rowSpan={rules.length}>
+          <Link to={detailPath} className="text-[hsl(var(--primary))] hover:underline">
             {role.metadata.name}
           </Link>
         </td>
       )}
       {index === 0 && withNamespace && (
-        <td className="border-b p-2" rowSpan={rules.length}>
+        <td className="px-4 py-2" rowSpan={rules.length}>
           {role.metadata.namespace}
         </td>
       )}
       {rule ? (
         RULE_COLUMNS.map((column) => (
-          <td key={column} className="border-b p-2">
+          <td key={column} className="px-4 py-2">
             {joinRule(rule[column])}
           </td>
         ))
       ) : (
-        <td className="border-b p-2" colSpan={RULE_COLUMNS.length} />
+        <td className="px-4 py-2" colSpan={RULE_COLUMNS.length} />
       )}
       {index === 0 && (
-        <td className="border-b p-2" rowSpan={rules.length}>
+        <td className="px-4 py-2" rowSpan={rules.length}>
           <span className="flex gap-2">
             {canPatch && (
-              <Link to={`${detailPath}/edit`} aria-label={`Edit ${role.metadata.name}`}>
+              <Link to={`${detailPath}/edit`} aria-label={`Edit ${role.metadata.name}`} className="p-1 rounded text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.1)]">
                 <Pencil size={14} />
               </Link>
             )}
@@ -69,32 +69,39 @@ export default function UserManagement() {
   const roleHeaders = ['apiGroups', 'nonResourceURLs', 'resourceNames', 'resources', 'verbs']
 
   return (
-    <section className="flex flex-col gap-6 p-8 text-sm">
+    <section className="flex flex-col gap-6 px-6 pb-6 text-sm">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold">Roles</h2>
+          <h2 className="text-sm font-semibold">Roles</h2>
           {canI('create', 'roles', 'any') && (
-            <Link to="/manage/roles/new" className="underline">
+            <Link to="/manage/roles/new" className="text-[hsl(var(--primary))] hover:underline">
               Add New Role
             </Link>
           )}
         </div>
         {canI('list', 'roles', 'all') ? (
-          <table className="w-full border-collapse text-left">
-            <thead>
+          <div className="rounded border overflow-auto">
+          <table className="w-full table-auto text-left">
+            <thead className="bg-[hsl(var(--muted))] text-left">
               <tr>
-                <th className="border-b p-2">
-                  Name <HelpTooltip field="sgrole.metadata.name" />
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Name <HelpTooltip field="sgrole.metadata.name" />
+                  </span>
                 </th>
-                <th className="border-b p-2">
-                  Namespace <HelpTooltip field="sgrole.metadata.namespace" />
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Namespace <HelpTooltip field="sgrole.metadata.namespace" />
+                  </span>
                 </th>
                 {roleHeaders.map((header) => (
-                  <th key={header} className="border-b p-2">
-                    {header} <HelpTooltip field={'sgrole.rules.' + header} />
+                  <th key={header} className="px-4 py-2">
+                    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                      {header} <HelpTooltip field={'sgrole.rules.' + header} />
+                    </span>
                   </th>
                 ))}
-                <th className="border-b p-2" />
+                <th className="px-4 py-2" />
               </tr>
             </thead>
             <tbody>
@@ -112,33 +119,39 @@ export default function UserManagement() {
               ))}
             </tbody>
           </table>
+          </div>
         ) : (
-          <p role="note">You don&apos;t have enough permissions to list roles</p>
+          <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">You don&apos;t have enough permissions to list roles</p>
         )}
       </div>
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold">Cluster Roles</h2>
+          <h2 className="text-sm font-semibold">Cluster Roles</h2>
           {canI('create', 'clusterroles') && (
-            <Link to="/manage/clusterroles/new" className="underline">
+            <Link to="/manage/clusterroles/new" className="text-[hsl(var(--primary))] hover:underline">
               Add New Cluster Role
             </Link>
           )}
         </div>
         {canI('list', 'clusterroles') ? (
-          <table className="w-full border-collapse text-left">
-            <thead>
+          <div className="rounded border overflow-auto">
+          <table className="w-full table-auto text-left">
+            <thead className="bg-[hsl(var(--muted))] text-left">
               <tr>
-                <th className="border-b p-2">
-                  Name <HelpTooltip field="sgclusterrole.metadata.name" />
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Name <HelpTooltip field="sgclusterrole.metadata.name" />
+                  </span>
                 </th>
                 {roleHeaders.map((header) => (
-                  <th key={header} className="border-b p-2">
-                    {header} <HelpTooltip field={'sgclusterrole.rules.' + header} />
+                  <th key={header} className="px-4 py-2">
+                    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                      {header} <HelpTooltip field={'sgclusterrole.rules.' + header} />
+                    </span>
                   </th>
                 ))}
-                <th className="border-b p-2" />
+                <th className="px-4 py-2" />
               </tr>
             </thead>
             <tbody>
@@ -155,60 +168,72 @@ export default function UserManagement() {
               ))}
             </tbody>
           </table>
+          </div>
         ) : (
-          <p role="note">You don&apos;t have enough permissions to list cluster roles</p>
+          <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">You don&apos;t have enough permissions to list cluster roles</p>
         )}
       </div>
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold">Users</h2>
+          <h2 className="text-sm font-semibold">Users</h2>
           {userPermissions.create && (
-            <Link to="/manage/users/new" className="underline">
+            <Link to="/manage/users/new" className="text-[hsl(var(--primary))] hover:underline">
               Add New User
             </Link>
           )}
         </div>
         {userPermissions.get ? (
-          <table className="w-full border-collapse text-left">
-            <thead>
+          <div className="rounded border overflow-auto">
+          <table className="w-full table-auto text-left">
+            <thead className="bg-[hsl(var(--muted))] text-left">
               <tr>
-                <th className="border-b p-2">
-                  Name <HelpTooltip field="sguser.metadata.name" />
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Name <HelpTooltip field="sguser.metadata.name" />
+                  </span>
                 </th>
-                <th className="border-b p-2">
-                  K8s Username <HelpTooltip field="sguser.k8sUsername" />
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    K8s Username <HelpTooltip field="sguser.k8sUsername" />
+                  </span>
                 </th>
-                <th className="border-b p-2">
-                  API Username <HelpTooltip field="sguser.apiUsername" />
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    API Username <HelpTooltip field="sguser.apiUsername" />
+                  </span>
                 </th>
-                <th className="border-b p-2">
-                  Roles <HelpTooltip field="sguser.roles" />
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Roles <HelpTooltip field="sguser.roles" />
+                  </span>
                 </th>
-                <th className="border-b p-2">
-                  Cluster Roles <HelpTooltip field="sguser.clusterRoles" />
+                <th className="px-4 py-2">
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    Cluster Roles <HelpTooltip field="sguser.clusterRoles" />
+                  </span>
                 </th>
-                <th className="border-b p-2" />
+                <th className="px-4 py-2" />
               </tr>
             </thead>
             <tbody>
               {(users.items || []).map((user) => (
-                <tr key={user.metadata.name}>
-                  <td className="border-b p-2">
-                    <Link to={`/manage/user/${user.metadata.name}`} className="underline">
+                <tr key={user.metadata.name} className="border-t">
+                  <td className="px-4 py-2">
+                    <Link to={`/manage/user/${user.metadata.name}`} className="text-[hsl(var(--primary))] hover:underline">
                       {user.metadata.name}
                     </Link>
                   </td>
-                  <td className="border-b p-2">{user.k8sUsername}</td>
-                  <td className="border-b p-2">{user.apiUsername || ''}</td>
-                  <td className="border-b p-2">{(user.roles || []).map((role) => role.name).join(', ')}</td>
-                  <td className="border-b p-2">
+                  <td className="px-4 py-2">{user.k8sUsername}</td>
+                  <td className="px-4 py-2">{user.apiUsername || ''}</td>
+                  <td className="px-4 py-2">{(user.roles || []).map((role) => role.name).join(', ')}</td>
+                  <td className="px-4 py-2">
                     {(user.clusterRoles || []).map((role) => role.name).join(', ')}
                   </td>
-                  <td className="border-b p-2">
+                  <td className="px-4 py-2">
                     <span className="flex gap-2">
                       {userPermissions.patch && (
-                        <Link to={`/manage/user/${user.metadata.name}/edit`} aria-label={`Edit ${user.metadata.name}`}>
+                        <Link to={`/manage/user/${user.metadata.name}/edit`} aria-label={`Edit ${user.metadata.name}`} className="p-1 rounded text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.1)]">
                           <Pencil size={14} />
                         </Link>
                       )}
@@ -226,8 +251,9 @@ export default function UserManagement() {
               ))}
             </tbody>
           </table>
+          </div>
         ) : (
-          <p role="note">You don&apos;t have enough permissions to list users</p>
+          <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">You don&apos;t have enough permissions to list users</p>
         )}
       </div>
     </section>

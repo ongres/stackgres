@@ -28,7 +28,7 @@ function PromoteClusterButton({ cluster }) {
   }
 
   return (
-    <button type="button" onClick={promote} className="underline">
+    <button type="button" onClick={promote} className="text-[hsl(var(--primary))] hover:underline">
       Promote
     </button>
   )
@@ -42,15 +42,15 @@ export default function ClusterDetail() {
   const cluster = useResource('sgclusters', namespace, name)
 
   if (items === null) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
   if (cluster === undefined) {
     return (
-      <section className="p-8 text-sm">
+      <section className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">
         <p>
           SGCluster <strong>{name}</strong> was not found in namespace <strong>{namespace}</strong>.
         </p>
-        <Link to={`/${namespace}/sgclusters`} className="underline">
+        <Link to={`/${namespace}/sgclusters`} className="text-[hsl(var(--primary))] hover:underline">
           Back to StackGres Clusters
         </Link>
       </section>
@@ -71,20 +71,23 @@ export default function ClusterDetail() {
 
   return (
     <div>
-      <nav aria-label="Cluster sections" className="flex items-center gap-4 border-b px-8 pt-2 text-sm">
+      <nav aria-label="Cluster sections" className="tabs-scroll-wrap border-b">
+        <div className="flex overflow-x-auto px-6">
         {tabs.map((tab) => (
           <NavLink
             key={tab.label}
             to={tab.to}
             end={tab.end}
-            className={({ isActive }) => `pb-2 ${isActive ? 'border-b-2 font-semibold' : ''}`}
+            className={({ isActive }) =>
+              `px-4 sm:px-6 h-[43px] font-medium text-sm flex items-center gap-1.5 whitespace-nowrap ${isActive ? 'border-b-2 border-[hsl(var(--primary))] text-[hsl(var(--primary))]' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`
+            }
           >
             {tab.label}
           </NavLink>
         ))}
-        <div className="ml-auto flex gap-3 pb-2">
+        <div className="ml-auto flex items-center gap-3 text-sm">
           {canI('patch', 'sgclusters', namespace) && (
-            <Link to={`${base}/edit`} className="flex items-center gap-1 underline">
+            <Link to={`${base}/edit`} className="flex items-center gap-1 text-[hsl(var(--primary))] hover:underline">
               <Pencil size={14} /> Edit
             </Link>
           )}
@@ -106,8 +109,11 @@ export default function ClusterDetail() {
             />
           )}
         </div>
+        </div>
       </nav>
-      <Outlet context={{ cluster }} />
+      <div className="pt-4">
+        <Outlet context={{ cluster }} />
+      </div>
     </div>
   )
 }

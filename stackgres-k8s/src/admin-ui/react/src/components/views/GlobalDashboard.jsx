@@ -26,19 +26,19 @@ export default function GlobalDashboard() {
   )
 
   return (
-    <section className="flex flex-col gap-4 p-8">
-      <h1 className="text-2xl font-semibold">
+    <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
+      <h1 className="text-lg font-semibold">
         {usedNamespaces.length ? 'Used Namespaces' : 'Select a namespace'}
       </h1>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="namespaces">
         {usedNamespaces.map((namespace) => (
-          <article key={namespace} className="border">
+          <article key={namespace} className="bg-[hsl(var(--card))] rounded shadow border">
             <header className="flex items-center justify-between border-b p-3">
-              <Link to={`/${namespace}`} className="font-semibold underline">
+              <Link to={`/${namespace}`} className="font-semibold text-[hsl(var(--primary))] hover:underline">
                 {namespace}
               </Link>
               {canI('create', 'sgclusters', namespace) && (
-                <Link to={`/${namespace}/sgclusters/new`} className="text-xs uppercase underline">
+                <Link to={`/${namespace}/sgclusters/new`} className="text-xs font-medium text-[hsl(var(--primary))] hover:underline uppercase">
                   Create Cluster
                 </Link>
               )}
@@ -48,7 +48,7 @@ export default function GlobalDashboard() {
                 canI('list', plural, namespace) ? (
                   <li key={plural} className="flex items-center justify-between gap-2">
                     <Link to={listPath(plural, namespace)}>{kind.crd}</Link>
-                    <span>{countIn(plural, namespace)}</span>
+                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border bg-[hsl(var(--muted))]">{countIn(plural, namespace)}</span>
                   </li>
                 ) : null
               )}
@@ -61,7 +61,7 @@ export default function GlobalDashboard() {
         <select
           value=""
           onChange={(event) => event.target.value && navigate(`/${event.target.value}`)}
-          className="border p-2"
+          className="w-full border p-2 rounded bg-[hsl(var(--input-background))]"
         >
           <option value="">Select a namespace…</option>
           {namespaces.map((namespace) => (
