@@ -131,8 +131,6 @@ export function FloatingTooltip() {
         overflow: 'auto',
         maxWidth: 400,
         padding: '10px 15px',
-        background: 'var(--bgColor, #fff)',
-        border: '1px solid',
         ...style,
       }}
       dangerouslySetInnerHTML={{ __html: md.render(content) }}

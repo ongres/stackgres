@@ -53,20 +53,20 @@ export default function CloneResourceDialog({ kind, item }) {
 
   return (
     <>
-      <button type="button" onClick={show} className="underline">
+      <button type="button" onClick={show} className="text-sm text-[hsl(var(--primary))] hover:underline">
         Clone
       </button>
       {open && (
-        <div role="dialog" aria-label="Clone resource" className="fixed inset-0 z-10 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={close} aria-hidden="true" />
-          <form onSubmit={submit} className="relative flex max-w-md flex-col gap-3 border bg-white p-6 text-sm">
+        <div role="dialog" aria-label="Clone resource" className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={close} aria-hidden="true" />
+          <form onSubmit={submit} className="relative mx-4 flex w-full max-w-md flex-col gap-3 rounded-lg border bg-[hsl(var(--card))] p-6 text-sm shadow-lg">
             <h2 className="text-lg font-semibold">Clone {item.metadata.name}</h2>
             {kind === 'sgclusters' && (
               <p>Only the cluster specification is cloned; no source data is copied.</p>
             )}
             <label className="flex flex-col gap-1">
               Namespace
-              <select value={namespace} onChange={(event) => setNamespace(event.target.value)} className="border p-2">
+              <select value={namespace} onChange={(event) => setNamespace(event.target.value)} className="w-full border p-2 rounded bg-[hsl(var(--input-background))]">
                 {namespaces.map((candidate) => (
                   <option key={candidate}>{candidate}</option>
                 ))}
@@ -74,15 +74,15 @@ export default function CloneResourceDialog({ kind, item }) {
             </label>
             <label className="flex flex-col gap-1">
               Name
-              <input value={name} onChange={(event) => setName(event.target.value)} className="border p-2" />
+              <input value={name} onChange={(event) => setName(event.target.value)} className="w-full border p-2 rounded bg-[hsl(var(--input-background))]" />
             </label>
-            {collision && <p role="alert">A resource with this name already exists in the target namespace</p>}
-            {error && !collision && <p role="alert">{error}</p>}
+            {collision && <p role="alert" className="text-sm text-red-500">A resource with this name already exists in the target namespace</p>}
+            {error && !collision && <p role="alert" className="text-sm text-red-500">{error}</p>}
             <div className="flex gap-3">
-              <button type="submit" disabled={collision} className="border p-2 font-semibold">
+              <button type="submit" disabled={collision} className="px-4 py-2 bg-[hsl(var(--primary))] text-white rounded text-sm font-medium hover:bg-[hsl(var(--primary)/0.85)]">
                 Clone
               </button>
-              <button type="button" onClick={close} className="border p-2">
+              <button type="button" onClick={close} className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]">
                 Cancel
               </button>
             </div>

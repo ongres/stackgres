@@ -30,13 +30,13 @@ export default function RestartClusterDialog({ namespace, cluster }) {
 
   return (
     <>
-      <button type="button" onClick={open} className="underline">
+      <button type="button" onClick={open} className="text-sm text-[hsl(var(--primary))] hover:underline">
         Restart
       </button>
       {restartName && (
-        <div role="dialog" aria-label="Restart Cluster" className="fixed inset-0 z-10 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={close} aria-hidden="true" />
-          <div className="relative flex max-w-md flex-col gap-3 border bg-white p-6 text-sm">
+        <div role="dialog" aria-label="Restart Cluster" className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={close} aria-hidden="true" />
+          <div className="relative mx-4 flex w-full max-w-md flex-col gap-3 rounded-lg border bg-[hsl(var(--card))] p-6 text-sm shadow-lg">
             <h2 className="text-lg font-semibold">Restart Cluster</h2>
             <p>
               This operation will create a new <strong>RESTART sgdbop</strong> with the name{' '}
@@ -45,10 +45,10 @@ export default function RestartClusterDialog({ namespace, cluster }) {
             </p>
             <p>Are you sure you want to proceed?</p>
             <div className="flex gap-3">
-              <button type="button" onClick={execute} className="border p-2 font-semibold">
+              <button type="button" onClick={execute} className="px-4 py-2 bg-[hsl(var(--primary))] text-white rounded text-sm font-medium hover:bg-[hsl(var(--primary)/0.85)]">
                 Restart
               </button>
-              <button type="button" onClick={close} className="border p-2">
+              <button type="button" onClick={close} className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]">
                 Cancel
               </button>
             </div>

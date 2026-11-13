@@ -1,6 +1,17 @@
 // Recursive read-only renderer for a CRD spec/status object: nested
 // definition lists, arrays as indexed entries, primitives as label/value.
-export default function SpecTree({ value, label }) {
+// Nested levels draw the cloud console's tree connectors: a vertical rule per
+// list, a horizontal tick per item, and a mask under the last item's tick so
+// the rule ends in a └ corner (the mask matches the dialog card background).
+const treeList = 'ml-2 border-l border-[hsl(var(--border))]'
+const treeItem = (isLast) =>
+  `relative min-w-0 pl-3 pt-0.5 pb-0.5 before:content-[''] before:absolute before:left-0 before:top-3 before:w-2.5 before:border-t before:border-[hsl(var(--border))] ${
+    isLast
+      ? "after:content-[''] after:absolute after:left-[-1px] after:top-3 after:bottom-0 after:w-[1px] after:bg-[hsl(var(--card))]"
+      : ''
+  }`
+
+export default function SpecTree({ value, label, isLast = true, topLevel = false }) {
   if (value === null || value === undefined) {
     return null
   }
@@ -10,11 +21,11 @@ export default function SpecTree({ value, label }) {
       return null
     }
     return (
-      <li>
+      <li className={topLevel ? 'min-w-0 pt-0.5 pb-0.5' : treeItem(isLast)}>
         <strong>{label}</strong>
-        <ul className="border-l pl-4">
+        <ul className={treeList}>
           {value.map((entry, index) => (
-            <SpecTree key={index} value={entry} label={`#${index + 1}`} />
+            <SpecTree key={index} value={entry} label={`#${index + 1}`} isLast={index === value.length - 1} />
           ))}
         </ul>
       </li>
@@ -22,29 +33,35 @@ export default function SpecTree({ value, label }) {
   }
 
   if (typeof value === 'object') {
-    const entries = Object.entries(value)
+    const entries = Object.entries(value).filter(
+      ([, child]) => child !== null && child !== undefined
+    )
     if (!entries.length) {
       return null
     }
-    const body = (
-      <ul className={label ? 'border-l pl-4' : 'flex flex-col gap-1'}>
-        {entries.map(([key, child]) => (
-          <SpecTree key={key} value={child} label={key} />
-        ))}
-      </ul>
-    )
-    return label ? (
-      <li>
+    if (!label) {
+      return (
+        <ul className="flex flex-col gap-1">
+          {entries.map(([key, child]) => (
+            <SpecTree key={key} value={child} label={key} topLevel isLast />
+          ))}
+        </ul>
+      )
+    }
+    return (
+      <li className={topLevel ? 'min-w-0 pt-0.5 pb-0.5' : treeItem(isLast)}>
         <strong>{label}</strong>
-        {body}
+        <ul className={treeList}>
+          {entries.map(([key, child], index) => (
+            <SpecTree key={key} value={child} label={key} isLast={index === entries.length - 1} />
+          ))}
+        </ul>
       </li>
-    ) : (
-      body
     )
   }
 
   return (
-    <li className="flex gap-2">
+    <li className={`${topLevel ? 'min-w-0 pt-0.5 pb-0.5' : treeItem(isLast)} flex gap-2`}>
       <strong>{label}:</strong>
       <span className="break-all">{String(value)}</span>
     </li>

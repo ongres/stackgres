@@ -56,16 +56,17 @@ export default function DataTable({
   }
 
   if (!sorted.length) {
-    return <p className="p-4 text-sm">{emptyMessage}</p>
+    return <p className="p-4 text-sm text-[hsl(var(--muted-foreground))] italic">{emptyMessage}</p>
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
+      <div className="rounded border overflow-auto">
+      <table className="w-full table-auto text-left">
+        <thead className="bg-[hsl(var(--muted))] sticky top-0 z-10">
           <tr>
             {columns.map((column) => (
-              <th key={column.key} className="border-b p-2">
+              <th key={column.key} className="px-4 py-2">
                 <span className="inline-flex items-center whitespace-nowrap">
                   {column.sortValue ? (
                     <button
@@ -88,11 +89,11 @@ export default function DataTable({
         </thead>
         <tbody>
           {pageItems.map((item) => (
-            <tr key={`${item.metadata.namespace}/${item.metadata.name}`}>
+            <tr key={`${item.metadata.namespace}/${item.metadata.name}`} className="border-t">
               {columns.map((column, index) => (
-                <td key={column.key} className="border-b p-2 align-top">
+                <td key={column.key} className="px-4 py-2 align-top">
                   {index === 0 && rowLink ? (
-                    <Link to={rowLink(item)} className="underline">
+                    <Link to={rowLink(item)} className="text-[hsl(var(--primary))] hover:underline">
                       {column.cell(item)}
                     </Link>
                   ) : (
@@ -104,6 +105,7 @@ export default function DataTable({
           ))}
         </tbody>
       </table>
+      </div>
       {pages > 1 && (
         <nav aria-label="Table pages" className="flex items-center justify-center gap-2 text-sm">
           {Array.from({ length: pages }, (_, index) => (
@@ -112,7 +114,11 @@ export default function DataTable({
               type="button"
               onClick={() => setPage(index)}
               aria-current={index === currentPage ? 'page' : undefined}
-              className={index === currentPage ? 'font-bold' : ''}
+              className={`px-2 py-1 rounded hover:bg-[hsl(var(--muted))] ${
+                index === currentPage
+                  ? 'font-semibold text-[hsl(var(--primary))]'
+                  : 'text-[hsl(var(--muted-foreground))]'
+              }`}
             >
               {index + 1}
             </button>
