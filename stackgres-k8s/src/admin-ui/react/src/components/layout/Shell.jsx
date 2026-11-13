@@ -15,14 +15,18 @@ export default function Shell() {
 
   return (
     <>
-      <Toaster theme={theme} position="top-right" />
+      <Toaster theme={theme} position="top-right" richColors />
       {isLoggedIn ? (
-        <div className="flex min-h-screen flex-col">
+        <div className="min-h-screen flex flex-col">
           <CommandPalette />
           <TopBar />
-          <div className="flex flex-1">
-            {namespace && <Sidebar />}
-            <main className="flex-1">
+          <div className="flex flex-1 pt-14">
+            {namespace && (
+              <div className="relative shrink-0 h-[calc(100vh-3.5rem)] sticky top-14 z-20 hidden md:block">
+                <Sidebar />
+              </div>
+            )}
+            <main className="flex-1 min-w-0 overflow-x-hidden" aria-label="Page content">
               <Breadcrumbs />
               <Outlet />
             </main>

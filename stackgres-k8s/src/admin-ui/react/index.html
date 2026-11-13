@@ -5,6 +5,14 @@
     <meta name="robots" content="index, follow" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StackGres</title>
+    <script>
+      // Apply the persisted theme before first paint to avoid a light flash
+      // for dark-theme users (the sgTheme cookie is shared with the Vue console).
+      ;(function () {
+        var dark = /(?:^|;\s*)sgTheme=dark(?:;|$)/.test(document.cookie)
+        document.documentElement.classList.add(dark ? 'dark' : 'light')
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

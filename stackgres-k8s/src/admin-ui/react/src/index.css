@@ -1,6 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Design tokens (colors, typography, dark theme) arrive with the
-   design-system sub-issue; the scaffold stays unstyled on purpose. */
+@layer base {
+  /* Token system shared with the StackGres Cloud console. Palette derived
+     from stackgres.io brand colors: darkBlue #0B031C, mediumBlue #383753,
+     activeBg #161636, inputBg #272642, blue #369AFF, green #2EBE97,
+     yellow #F2A90C */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 259 40% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 259 40% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 259 40% 10%;
+    --primary: 210 95% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 242 25% 96%;
+    --secondary-foreground: 259 40% 10%;
+    --muted: 242 25% 96%;
+    --muted-foreground: 242 12% 42%;
+    --accent: 242 25% 93%;
+    --accent-foreground: 259 40% 10%;
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 242 20% 87%;
+    --input: 242 20% 87%;
+    --ring: 210 95% 40%;
+    --radius: 0.375rem;
+    --input-background: 242 25% 98%;
+    --success: 164 61% 30%;
+    --success-foreground: 0 0% 100%;
+    --warning: 41 91% 36%;
+    --warning-foreground: 0 0% 100%;
+    --pill-dark: 242 15% 81%;
+    --pill-mid: 242 18% 88%;
+    --pill-light: 242 20% 94%;
+    /* chrome (sidebar + topbar) shares the main panel background */
+    --surface-nav: 0 0% 100%;
+    --surface-nav-foreground: 259 40% 10%;
+  }
+
+  .dark {
+    --background: 250 20% 5%;
+    --foreground: 0 0% 98%;
+    --card: 248 18% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 245 18% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 210 100% 61%;
+    --primary-foreground: 259 81% 6%;
+    --secondary: 240 16% 14%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 16% 14%;
+    --muted-foreground: 242 18% 68%;
+    --accent: 242 12% 19%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 242 20% 27%;
+    --input: 242 20% 27%;
+    --ring: 210 100% 61%;
+    --input-background: 242 12% 19%;
+    --success: 164 61% 46%;
+    --success-foreground: 164 80% 8%;
+    --warning: 41 91% 50%;
+    --warning-foreground: 35 90% 10%;
+    --pill-dark: 242 10% 28%;
+    --pill-mid: 242 11% 21%;
+    --pill-light: 240 14% 15%;
+    --surface-nav: 250 20% 5%;
+    --surface-nav-foreground: 0 0% 98%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'cv05', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+pre, code, .font-mono {
+    font-family: 'Roboto Mono', monospace;
+}
+
+.disabled, [disabled] {
+    cursor: not-allowed !important;
+}
+
+table th,
+table td {
+    font-size: 0.875rem;
+}
+
+table thead th {
+    background-color: hsl(var(--muted) / 0.5);
+}
+
+/* :where() keeps the zebra stripe at zero specificity, so per-row utility
+   backgrounds (like the selected-row highlight) always win over it */
+:where(table tbody tr:nth-child(even)) {
+    background-color: hsl(var(--muted) / 0.15);
+}
+
+/* Scrollable tab bar with fade hint */
+.tabs-scroll-wrap {
+  position: relative;
+}
+.tabs-scroll-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2rem;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, hsl(var(--background)));
+  z-index: 1;
+}
+
+/* Field help: the inline icon and the floating markdown tooltip */
+.helpTooltip {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 0.375rem;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+.helpTooltip:hover,
+.helpTooltip.show {
+  color: hsl(var(--primary));
+}
+
+#helpTooltip {
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px hsl(var(--foreground) / 0.12);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+#helpTooltip p + p,
+#helpTooltip ul,
+#helpTooltip pre {
+  margin-top: 0.5rem;
+}
+#helpTooltip ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+#helpTooltip code {
+  background-color: hsl(var(--muted));
+  border-radius: 0.25rem;
+  padding: 0 0.25rem;
+  font-size: 0.8125rem;
+}
+#helpTooltip a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
