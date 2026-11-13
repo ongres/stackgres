@@ -1,3 +1,60 @@
+# :rocket: Release 1.19.6 (2026-11-25)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.19.6 is out! :confetti_ball: :champagne: 
+
+> This patch release brings the latest minors of PostgreSQL 14 to 18 (18.7, 17.12, 16.16, 15.20 and 14.25), that
+> include a fix for [CVE-2026-6460](https://www.postgresql.org/support/security/CVE-2026-6460/) (CVSS 8.8). A type
+> confusion allows a user that can create objects to execute arbitrary code as the operating system user running
+> PostgreSQL, mainly through `ALTER ... SET DATA TYPE`. Every previous minor of PostgreSQL 14 to 18 is affected, so
+> upgrading the clusters to the new minors is strongly recommended.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* PostgreSQL 18.7, 17.12, 16.16, 15.20 and 14.25
+* Fluent-bit 5.2.0
+* Postgres-exporter 0.21.1
+* OTEL Contrib Collector 0.165.0
+* Updated base images
+* New SGDistributedLogs use timescaledb_tsl 2.31.2, that runs on PostgreSQL 17.12 ([#3310](https://gitlab.com/ongresinc/stackgres/-/issues/3310))
+* New SGShardedClusters of type citus with PostgreSQL 16 or later install citus and citus_columnar 14.3.0, that run on PostgreSQL 16.16, 17.12 and 18.7, while existing SGShardedClusters keep the installed version ([#3310](https://gitlab.com/ongresinc/stackgres/-/issues/3310))
+* SGDbOps and SGShardedDbOps minor version upgrade can set the extension versions for the target PostgreSQL minor, and are rejected when an extension has no build for it ([#3315](https://gitlab.com/ongresinc/stackgres/-/issues/3315))
+* The operator reads the extensions catalog `v3`, that any custom extensions repository or mirror must now serve, and only installs the extension builds that run on the PostgreSQL minor of the cluster, as set by the minimum and the maximum PostgreSQL version of each build ([#3310](https://gitlab.com/ongresinc/stackgres/-/issues/3310))
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* Extension versions with a suffix are sorted wrongly (#3316)
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.19.6/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.19.6)
+
 # :rocket: Release 1.19.5 (2026-11-12)
 
 ## :notepad_spiral: NOTES
