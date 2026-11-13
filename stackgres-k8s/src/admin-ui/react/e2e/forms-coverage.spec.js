@@ -405,7 +405,7 @@ test('creates a babelfish-flavored cluster with the feature gate', async ({ page
   await page.getByRole('button', { name: /Custom/ }).click()
 
   await page.getByRole('textbox', { name: /Cluster Name/ }).fill(name)
-  await page.getByRole('combobox', { name: 'Postgres Flavor' }).selectOption('babelfish')
+  await page.getByRole('radio', { name: 'Babelfish (Experimental)' }).click()
   await page.getByRole('checkbox', { name: 'Babelfish Experimental Feature' }).check()
   await page.getByRole('button', { name: 'Create Cluster' }).click()
 

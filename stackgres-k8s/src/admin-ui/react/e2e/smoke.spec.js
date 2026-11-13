@@ -17,10 +17,10 @@ test('login, namespace navigation and RBAC-gated sidebar against the mock API', 
   await expect(page).toHaveURL(/\/admin\/default$/)
 
   const sidebar = page.getByRole('navigation', { name: 'Resources' })
-  await expect(sidebar.getByRole('link', { name: 'StackGres Clusters', exact: true })).toBeVisible()
+  await expect(sidebar.getByRole('link', { name: 'StackGres Clusters', exact: true }).first()).toBeVisible()
   await expect(sidebar.getByRole('link', { name: 'Database Operations', exact: true })).toBeVisible()
 
-  await sidebar.getByRole('link', { name: 'StackGres Clusters', exact: true }).click()
+  await sidebar.getByRole('link', { name: 'StackGres Clusters', exact: true }).first().click()
   await expect(page).toHaveURL(/\/admin\/default\/sgclusters$/)
   await expect(page.getByRole('heading', { name: 'StackGres Clusters', exact: true })).toBeVisible()
 

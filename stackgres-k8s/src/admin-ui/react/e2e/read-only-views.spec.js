@@ -29,7 +29,7 @@ test('cluster list renders stats columns and navigates to the tabs', async ({ pa
   await page.getByRole('link', { name: 'Events' }).click()
   await expect(page.getByRole('cell', { name: /Cluster created successfully/ }).first()).toBeVisible()
 
-  await page.getByRole('link', { name: 'Configuration' }).click()
+  await page.getByRole('link', { name: 'Configuration', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Cluster Details' })).toBeVisible()
 })
 
