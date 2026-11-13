@@ -7,9 +7,9 @@ import { useCanI } from '../../contexts/PermissionsContext'
 import { useFlatList } from '../../hooks/useFlatList'
 import { useNamespaces } from '../../hooks/useNamespaces'
 import { nameValidationMessage } from '../../lib/names'
-import SpecTree from '../SpecTree'
 import { HelpTooltip } from '../HelpTooltip'
-import { Field, Select, TextInput } from './fields'
+import SummaryDialog from './SummaryDialog'
+import { Field, FieldGroup, FieldRow, Select, TextInput } from './fields'
 
 const RULE_KEYS = ['apiGroups', 'nonResourceURLs', 'resourceNames', 'resources', 'verbs']
 const blankRule = () => ({
@@ -26,14 +26,14 @@ function RulesEditor({ rules, onChange }) {
   const list = rules || []
   const updateRule = (index, rule) => onChange(list.map((r, i) => (i === index ? rule : r)))
   return (
-    <fieldset className="flex flex-col gap-3 border p-3">
-      <legend className="px-1 font-semibold">
+    <fieldset className="flex flex-col gap-3 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">
         Rules <HelpTooltip field="sgrole.rules" />
       </legend>
       {list.map((rule, index) => (
-        <fieldset key={index} className="flex flex-col gap-2 border p-3">
-          <legend className="px-1">Rule #{index + 1}</legend>
-          <button type="button" className="self-start text-sm underline"
+        <fieldset key={index} className="flex flex-col gap-2 rounded-lg border p-4">
+          <legend className="px-2 text-sm">Rule #{index + 1}</legend>
+          <button type="button" className="self-start text-sm text-red-500 hover:underline"
             onClick={() => {
               const remaining = list.filter((_, i) => i !== index)
               onChange(remaining.length ? remaining : null)
@@ -42,8 +42,8 @@ function RulesEditor({ rules, onChange }) {
           </button>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {RULE_KEYS.map((key) => (
-              <fieldset key={key} className="flex flex-col gap-2 border p-2">
-                <legend className="px-1">
+              <fieldset key={key} className="flex flex-col gap-2 rounded-lg border p-4">
+                <legend className="px-2 text-sm">
                   {key} <HelpTooltip field={'sgrole.rules.' + key} />
                 </legend>
                 {(rule[key] || []).map((entry, entryIndex) => (
@@ -54,7 +54,7 @@ function RulesEditor({ rules, onChange }) {
                           ...rule,
                           [key]: rule[key].map((e, i) => (i === entryIndex ? value : e)),
                         })} />
-                    <button type="button" aria-label={`Delete ${key} ${entryIndex + 1}`}
+                    <button type="button" aria-label={`Delete ${key} ${entryIndex + 1}`} className="p-1.5 rounded text-red-500 hover:bg-red-500/10"
                       onClick={() => {
                         const remaining = rule[key].filter((_, i) => i !== entryIndex)
                         updateRule(index, { ...rule, [key]: remaining.length ? remaining : null })
@@ -63,7 +63,7 @@ function RulesEditor({ rules, onChange }) {
                     </button>
                   </div>
                 ))}
-                <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+                <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
                   onClick={() => updateRule(index, { ...rule, [key]: [...(rule[key] || []), ''] })}>
                   <Plus size={14} /> Add New
                 </button>
@@ -72,7 +72,7 @@ function RulesEditor({ rules, onChange }) {
           </div>
         </fieldset>
       ))}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => onChange([...list, blankRule()])}>
         <Plus size={14} /> Add Rule
       </button>
@@ -103,7 +103,7 @@ export default function RoleForm({ kind, isEdit = false }) {
   }
 
   if (role === null) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   const patch = (updater) =>
@@ -159,51 +159,47 @@ export default function RoleForm({ kind, isEdit = false }) {
   }
 
   return (
-    <section className="flex max-w-4xl flex-col gap-4 p-8 text-sm">
-      <h1 className="text-2xl font-semibold">
+    <section className="flex max-w-4xl flex-col gap-4 px-6 pb-6 text-sm">
+      <h1 className="text-lg font-semibold">
         {isEdit ? `Edit ${label}: ${routeName}` : `Create ${label}`}
       </h1>
       <form onSubmit={submit} className="flex flex-col gap-3">
-        <Field label={`${label} Name`} required tooltip="sgrole.metadata.name">
-          <TextInput required disabled={isEdit} value={role.metadata.name}
-            onChange={(value) => patch((next) => { next.metadata.name = value })} />
-        </Field>
-        {nameCollision && (
-          <p role="alert">
-            There&apos;s already a <strong>{label}</strong> with the same name. Please specify a
-            different name
-          </p>
-        )}
-        {!clusterScoped && (
-          <Field label="Role Namespace" required tooltip="sgrole.metadata.namespace">
-            <Select required disabled={isEdit} value={role.metadata.namespace}
-              options={namespaceOptions} placeholder="Select a namespace…"
-              onChange={(value) => patch((next) => { next.metadata.namespace = value })} />
-          </Field>
-        )}
+        <FieldGroup>
+          <FieldRow>
+            <Field label={`${label} Name`} required tooltip="sgrole.metadata.name">
+              <TextInput required disabled={isEdit} value={role.metadata.name}
+                onChange={(value) => patch((next) => { next.metadata.name = value })} />
+            </Field>
+            {!clusterScoped && (
+              <Field label="Role Namespace" required tooltip="sgrole.metadata.namespace">
+                <Select required disabled={isEdit} value={role.metadata.namespace}
+                  options={namespaceOptions} placeholder="Select a namespace…"
+                  onChange={(value) => patch((next) => { next.metadata.namespace = value })} />
+              </Field>
+            )}
+          </FieldRow>
+          {nameCollision && (
+            <p role="alert" className="text-sm text-red-500">
+              There&apos;s already a <strong>{label}</strong> with the same name. Please specify a
+              different name
+            </p>
+          )}
+        </FieldGroup>
         <RulesEditor rules={role.rules} onChange={(rules) => patch((next) => { next.rules = rules })} />
         <div className="flex items-center gap-3">
-          <button type="submit" disabled={submitting} className="border p-2 font-semibold">
+          <button type="submit" disabled={submitting} className="px-4 py-2 bg-[hsl(var(--primary))] text-white rounded text-sm font-medium hover:bg-[hsl(var(--primary)/0.85)]">
             {isEdit ? `Update ${label}` : `Create ${label}`}
           </button>
-          <button type="button" className="border p-2" onClick={() => setPreview(role)}>
+          <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" onClick={() => setPreview(role)}>
             View Summary
           </button>
-          <button type="button" className="border p-2" onClick={() => navigate('/manage/users')}>
+          <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" onClick={() => navigate('/manage/users')}>
             Cancel
           </button>
         </div>
       </form>
       {preview && (
-        <section className="border p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold uppercase">Summary</h2>
-            <button type="button" onClick={() => setPreview(false)} className="underline">
-              Close
-            </button>
-          </div>
-          <SpecTree value={preview} />
-        </section>
+        <SummaryDialog value={preview} onClose={() => setPreview(false)} />
       )}
     </section>
   )

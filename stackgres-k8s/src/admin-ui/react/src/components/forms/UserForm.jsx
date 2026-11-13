@@ -5,8 +5,8 @@ import { api, ApiError } from '../../lib/api'
 import { useCanI } from '../../contexts/PermissionsContext'
 import { useFlatList } from '../../hooks/useFlatList'
 import { nameValidationMessage } from '../../lib/names'
-import SpecTree from '../SpecTree'
-import { Field, TextInput, Toggle } from './fields'
+import SummaryDialog from './SummaryDialog'
+import { Field, FieldGroup, FieldRow, TextInput, Toggle } from './fields'
 
 const joinRules = (role, column) =>
   `[ ${(role.rules || [])
@@ -23,45 +23,47 @@ function RoleBindings({ legend, roles, bound, onToggle, withNamespace, emptyMess
   const isBound = (role) => (bound || []).some((entry) => entry.name === role.metadata.name)
 
   return (
-    <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{legend}</legend>
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{legend}</legend>
       <div className="flex items-end gap-2">
         <Field label={`Search ${legend}`}>
           <TextInput value={search} onChange={setSearch} />
         </Field>
-        <button type="button" className="border p-2" onClick={() => setSearch('')}>
+        <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" onClick={() => setSearch('')}>
           Clear
         </button>
       </div>
       {visible.length ? (
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr>
-              <th className="border-b p-2">Bind</th>
-              <th className="border-b p-2">Name</th>
-              {withNamespace && <th className="border-b p-2">Namespace</th>}
-              <th className="border-b p-2">API Groups</th>
-              <th className="border-b p-2">Resources</th>
-              <th className="border-b p-2">Verbs</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.map((role) => (
-              <tr key={`${role.metadata.namespace || ''}/${role.metadata.name}`}>
-                <td className="border-b p-2">
-                  <input type="checkbox" checked={isBound(role)}
-                    aria-label={`Bind ${role.metadata.name}`}
-                    onChange={() => onToggle(role)} />
-                </td>
-                <td className="border-b p-2">{role.metadata.name}</td>
-                {withNamespace && <td className="border-b p-2">{role.metadata.namespace}</td>}
-                <td className="border-b p-2">{joinRules(role, 'apiGroups')}</td>
-                <td className="border-b p-2">{joinRules(role, 'resources')}</td>
-                <td className="border-b p-2">{joinRules(role, 'verbs')}</td>
+        <div className="rounded border overflow-auto">
+          <table className="w-full table-auto text-left">
+            <thead className="bg-[hsl(var(--muted))] text-left">
+              <tr>
+                <th className="px-4 py-2">Bind</th>
+                <th className="px-4 py-2">Name</th>
+                {withNamespace && <th className="px-4 py-2">Namespace</th>}
+                <th className="px-4 py-2">API Groups</th>
+                <th className="px-4 py-2">Resources</th>
+                <th className="px-4 py-2">Verbs</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {visible.map((role) => (
+                <tr key={`${role.metadata.namespace || ''}/${role.metadata.name}`} className="border-t">
+                  <td className="px-4 py-2">
+                    <input type="checkbox" checked={isBound(role)}
+                      aria-label={`Bind ${role.metadata.name}`}
+                      onChange={() => onToggle(role)} />
+                  </td>
+                  <td className="px-4 py-2">{role.metadata.name}</td>
+                  {withNamespace && <td className="px-4 py-2">{role.metadata.namespace}</td>}
+                  <td className="px-4 py-2">{joinRules(role, 'apiGroups')}</td>
+                  <td className="px-4 py-2">{joinRules(role, 'resources')}</td>
+                  <td className="px-4 py-2">{joinRules(role, 'verbs')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <p>{emptyMessage}</p>
       )}
@@ -101,7 +103,7 @@ export default function UserForm({ isEdit = false }) {
   }
 
   if (user === null) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   const patch = (updater) =>
@@ -165,64 +167,68 @@ export default function UserForm({ isEdit = false }) {
   }
 
   return (
-    <section className="flex max-w-4xl flex-col gap-4 p-8 text-sm">
-      <h1 className="text-2xl font-semibold">{isEdit ? `Edit User: ${routeName}` : 'Create User'}</h1>
+    <section className="flex max-w-4xl flex-col gap-4 px-6 pb-6 text-sm">
+      <h1 className="text-lg font-semibold">{isEdit ? `Edit User: ${routeName}` : 'Create User'}</h1>
       <form onSubmit={submit} className="flex flex-col gap-3">
-        <Field label="User Name" required tooltip="sgrole.metadata.name">
-          <TextInput required disabled={isEdit} value={user.metadata.name}
-            onChange={(value) => patch((next) => { next.metadata.name = value })} />
-        </Field>
-        {nameCollision && (
-          <p role="alert">
-            There&apos;s already a <strong>User</strong> with the same name. Please specify a
-            different name
-          </p>
-        )}
-        <Field label="K8s Username" required tooltip="sguser.k8sUsername">
-          <TextInput required value={user.k8sUsername || ''}
-            onChange={(value) => patch((next) => { next.k8sUsername = value || null })} />
-        </Field>
-        {!isEdit && (
-          <Field label="Password" required tooltip="sguser.password">
-            <TextInput type="password" required value={user.password || ''}
-              onChange={(value) => patch((next) => { next.password = value || null })} />
-          </Field>
-        )}
-        <Toggle label="Mandatory API Username" tooltip="sguser.apiUsernameNotBlank"
-          checked={user.apiUsernameNotBlank || false}
-          onChange={(value) => patch((next) => { next.apiUsernameNotBlank = value })} />
-        <Field label="API Username" required={user.apiUsernameNotBlank} tooltip="sguser.apiUsername">
-          <TextInput required={user.apiUsernameNotBlank} value={user.apiUsername || ''}
-            onChange={(value) => patch((next) => { next.apiUsername = value || null })} />
-        </Field>
-        <RoleBindings legend="Roles" roles={roles} bound={user.roles} withNamespace
-          onToggle={toggleBinding('roles')}
-          emptyMessage="No roles are available on this installation" />
-        <RoleBindings legend="Cluster Roles" roles={clusterRoles} bound={user.clusterRoles}
-          onToggle={toggleBinding('clusterRoles')}
-          emptyMessage="No cluster roles are available on this installation" />
+        <FieldGroup>
+          <FieldRow>
+            <Field label="User Name" required tooltip="sgrole.metadata.name">
+              <TextInput required disabled={isEdit} value={user.metadata.name}
+                onChange={(value) => patch((next) => { next.metadata.name = value })} />
+            </Field>
+          </FieldRow>
+          {nameCollision && (
+            <p role="alert" className="text-sm text-red-500">
+              There&apos;s already a <strong>User</strong> with the same name. Please specify a
+              different name
+            </p>
+          )}
+        </FieldGroup>
+        <FieldGroup title="User Information">
+          <FieldRow>
+            <Field label="K8s Username" required tooltip="sguser.k8sUsername">
+              <TextInput required value={user.k8sUsername || ''}
+                onChange={(value) => patch((next) => { next.k8sUsername = value || null })} />
+            </Field>
+            {!isEdit && (
+              <Field label="Password" required tooltip="sguser.password">
+                <TextInput type="password" required value={user.password || ''}
+                  onChange={(value) => patch((next) => { next.password = value || null })} />
+              </Field>
+            )}
+          </FieldRow>
+          <FieldRow>
+            <Toggle label="Mandatory API Username" tooltip="sguser.apiUsernameNotBlank"
+              checked={user.apiUsernameNotBlank || false}
+              onChange={(value) => patch((next) => { next.apiUsernameNotBlank = value })} />
+            <Field label="API Username" required={user.apiUsernameNotBlank} tooltip="sguser.apiUsername">
+              <TextInput required={user.apiUsernameNotBlank} value={user.apiUsername || ''}
+                onChange={(value) => patch((next) => { next.apiUsername = value || null })} />
+            </Field>
+          </FieldRow>
+        </FieldGroup>
+        <FieldGroup title="Role Binding">
+          <RoleBindings legend="Roles" roles={roles} bound={user.roles} withNamespace
+            onToggle={toggleBinding('roles')}
+            emptyMessage="No roles are available on this installation" />
+          <RoleBindings legend="Cluster Roles" roles={clusterRoles} bound={user.clusterRoles}
+            onToggle={toggleBinding('clusterRoles')}
+            emptyMessage="No cluster roles are available on this installation" />
+        </FieldGroup>
         <div className="flex items-center gap-3">
-          <button type="submit" disabled={submitting} className="border p-2 font-semibold">
+          <button type="submit" disabled={submitting} className="px-4 py-2 bg-[hsl(var(--primary))] text-white rounded text-sm font-medium hover:bg-[hsl(var(--primary)/0.85)]">
             {isEdit ? 'Update User' : 'Create User'}
           </button>
-          <button type="button" className="border p-2" onClick={() => setPreview(user)}>
+          <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" onClick={() => setPreview(user)}>
             View Summary
           </button>
-          <button type="button" className="border p-2" onClick={() => navigate('/manage/users')}>
+          <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" onClick={() => navigate('/manage/users')}>
             Cancel
           </button>
         </div>
       </form>
       {preview && (
-        <section className="border p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold uppercase">Summary</h2>
-            <button type="button" onClick={() => setPreview(false)} className="underline">
-              Close
-            </button>
-          </div>
-          <SpecTree value={preview} />
-        </section>
+        <SummaryDialog value={preview} onClose={() => setPreview(false)} />
       )}
     </section>
   )

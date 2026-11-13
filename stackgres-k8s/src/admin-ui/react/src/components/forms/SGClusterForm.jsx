@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import Chart from 'react-apexcharts'
 import { toast } from 'sonner'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Sparkles } from 'lucide-react'
 import { api, ApiError } from '../../lib/api'
 import { useData, useKindList } from '../../contexts/DataContext'
 import { useSettings } from '../../contexts/SettingsContext'
@@ -18,7 +18,6 @@ import {
   joinCronFields,
   tzCrontab,
 } from '../../lib/sgcluster'
-import SpecTree from '../SpecTree'
 import { HelpTooltip } from '../HelpTooltip'
 import {
   ContainersEditor,
@@ -30,7 +29,8 @@ import {
   NodeAffinityTerms,
   TolerationsEditor,
 } from './clusterEditors'
-import { Field, renderTooltip, Select, TextArea, TextInput, Toggle } from './fields'
+import SummaryDialog from './SummaryDialog'
+import { Field, renderTooltip, Select, TextArea, TextInput, Toggle, FieldGroup, FieldRow } from './fields'
 
 const deep = (value) => JSON.parse(JSON.stringify(value))
 
@@ -110,14 +110,45 @@ const STEP_LABELS = {
   'non-production': 'Non Production',
 }
 
+// Template cards (Vue express setups): a three-bar gauge lit progressively,
+// sparkles for the fully manual option.
 const TEMPLATES = [
-  { id: 'minimal', label: 'Minimal', description: 'A cluster with one instance and default settings' },
-  { id: 'basic', label: 'Basic', description: 'A testing cluster with extensions and monitoring' },
-  { id: 'full', label: 'Full', description: 'A production-ready cluster with custom configurations' },
-  { id: 'custom', label: 'Custom', description: 'Configure every cluster section manually' },
+  { id: 'minimal', label: 'Minimal', bars: 1 },
+  { id: 'basic', label: 'Basic', bars: 2 },
+  { id: 'full', label: 'Full', bars: 3 },
+  { id: 'custom', label: 'Custom', bars: null },
 ]
 
+function TemplateIcon({ bars }) {
+  if (bars === null) {
+    return <Sparkles className="h-10 w-10 text-[hsl(var(--primary))]" strokeWidth={1.5} aria-hidden="true" />
+  }
+  return (
+    <span className="flex h-10 items-end gap-1" aria-hidden="true">
+      {[1, 2, 3].map((bar) => (
+        <span
+          key={bar}
+          className={`w-2 rounded-sm ${bar === 1 ? 'h-5' : bar === 2 ? 'h-7' : 'h-10'} ${
+            bar <= bars ? 'bg-[hsl(var(--primary))]' : 'bg-[hsl(var(--primary)/0.2)]'
+          }`}
+        />
+      ))}
+    </span>
+  )
+}
+
 const CLUSTER_PROFILES = ['production', 'testing', 'development']
+
+// The Vue flavor cards' inline logos (CreateSGClusters.vue); the outline path
+// follows the text color so both themes keep contrast.
+const VANILLA_LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><path d="M49.1 30c-.3-.9-1.1-1.5-2-1.7-.5-.1-1 0-1.6.1-1.1.2-1.9.3-2.5.3 2.2-3.8 4.1-8.1 5.1-12.2 1.7-6.6.8-9.6-.3-10.9C45 2 40.9.1 35.9 0c-2.6 0-5 .5-6.2.9-1.1-.2-2.3-.3-3.6-.3-2.4 0-4.5.5-6.3 1.5-1-.3-2.6-.8-4.4-1.1C11.1.3 7.6.8 5 2.6 2 4.8.5 8.6.8 13.9c.1 1.7 1 6.8 2.5 11.7.9 2.8 1.8 5.1 2.7 6.9 1.3 2.5 2.8 4 4.4 4.5.9.3 2.5.5 4.2-.9.2.3.5.5.9.8.5.3 1.1.6 1.7.7 2.2.5 4.2.4 5.9-.3v2.1c.1 2.5.3 4.5.8 5.9 0 .1.1.2.1.3.3.8.7 2.1 1.8 3.1 1.1 1.1 2.5 1.4 3.7 1.4.6 0 1.2-.1 1.7-.2 1.9-.4 4-1 5.5-3.2 1.4-2.1 2.2-5.2 2.3-10.1v-.7h.4c1.9.1 4.2-.3 5.6-1 1.4-.5 5-2.4 4.1-4.9z" fill="currentColor"/><path fill="#336791" d="M45.9 30.5c-5.6 1.2-6-.8-6-.8 6-8.8 8.5-20.1 6.3-22.8-5.9-7.5-16-4-16.2-3.9h-.1c-1.1-.2-2.4-.4-3.8-.4-2.6 0-4.5.7-6 1.8 0 0-18.1-7.5-17.3 9.4.3 3.6 5.2 27.2 11.1 20 2.2-2.6 4.3-4.8 4.3-4.8 1 .7 2.3 1 3.6.9l.1-.1v1c-1.5 1.7-1.1 2-4.1 2.6-3.1.6-1.3 1.8-.1 2.1 1.4.4 4.7.9 7-2.3l-.1.4c.6.5 1 3.1.9 5.5-.1 2.4-.1 4 .3 5.3.5 1.3.9 4.2 4.9 3.3C34 47 35.8 45.1 36 42c.2-2.2.6-1.9.6-3.9l.3-.9c.4-3 .1-4 2.1-3.5h.5c1.5.1 3.5-.2 4.7-.8 2.7-1 4.1-3 1.7-2.4z"/><g fill="#FFF"><path d="M47.7 30.3c-.2-.7-.9-.9-2.1-.6-3.4.7-4.6.2-5-.1 2.7-4.1 4.8-8.9 6-13.5.6-2.2.9-4.2.9-5.8 0-1.8-.3-3.1-.9-3.9-2.5-3.3-6.3-5-10.8-5-3.1 0-5.7.8-6.2 1-1.1-.3-2.2-.4-3.5-.4-2.3 0-4.3.5-6 1.7-.8-.3-2.6-.9-4.9-1.3-4-.6-7.1-.2-9.4 1.4-2.7 1.8-3.9 5.2-3.7 10 .1 1.6 1 6.6 2.4 11.3 1.9 6.3 4 9.8 6.2 10.5.3.1.6.1.9.1.8 0 1.8-.4 2.8-1.6 1.7-2 3.3-3.7 3.9-4.4.9.5 1.8.7 2.8.7v.1c-.2.2-.3.4-.5.6-.7.9-.8 1-3 1.5-.6.1-2.2.5-2.3 1.6 0 1.2 1.9 1.8 2.1 1.8.8.2 1.5.3 2.2.3 1.7 0 3.2-.6 4.5-1.7 0 4.4.1 8.8.7 10.2.4 1.1 1.5 3.8 4.9 3.8.5 0 1-.1 1.6-.2 3.5-.8 5-2.3 5.6-5.7.3-1.8.9-6.2 1.1-8.6.5.2 1.2.2 2 .2 1.6 0 3.4-.3 4.5-.9 1.4-.4 3.7-1.8 3.2-3.1zm-8.3-15.8c0 .7-.1 1.3-.2 2s-.2 1.4-.2 2.3c0 .9.1 1.8.2 2.6.2 1.8.4 3.5-.4 5.3-.1-.2-.3-.5-.4-.8-.1-.2-.3-.7-.6-1.2-1.2-2.2-4.1-7.3-2.6-9.4.3-.5 1.4-1.2 4.2-.8zM36 2.7c4.1.1 7.3 1.6 9.5 4.5 1.7 2.2-.2 12.3-5.7 21.1l-.2-.2s0-.1-.1-.1c1.4-2.4 1.2-4.7.9-6.8-.1-.9-.2-1.7-.2-2.4 0-.8.1-1.5.2-2.2.1-.8.3-1.7.2-2.7v-.4c-.1-1-1.2-3.8-3.4-6.4-1.2-1.4-3-3-5.4-4.1 1.2-.1 2.6-.3 4.2-.3zM13.4 33.3c-1.1 1.3-1.9 1.1-2.1 1-1.7-.6-3.6-4.1-5.3-9.6-1.5-4.8-2.3-9.6-2.4-11-.3-4.3.8-7.3 3-8.9 3.7-2.6 9.7-1 12.2-.3l-.1.1c-4 4-3.9 10.9-3.9 11.4v.7c.1 1.2.2 3.3-.1 5.8-.3 2.3.4 4.5 1.9 6.1l.5.5c-.7.7-2.2 2.3-3.7 4.2zm4.2-5.7c-1.2-1.3-1.8-3.1-1.5-4.9.4-2.6.2-4.8.2-6v-.4c.6-.5 3.3-2 5.2-1.5.9.2 1.4.8 1.6 1.8 1.2 5.3.2 7.6-.7 9.4-.2.4-.3.7-.5 1.1l-.1.3c-.3.7-.5 1.4-.7 2-1.2-.2-2.5-.8-3.5-1.8zm.2 7.2c-.4-.1-.7-.3-.9-.4.2-.1.5-.2 1-.3 2.5-.5 2.9-.9 3.8-2 .2-.2.4-.5.7-.9.5-.5.7-.4 1-.3.3.1.6.5.7.9.1.2.1.6-.1.9-1.7 2.6-4.3 2.6-6.2 2.1zm13.3 12.3c-3.1.7-4.2-.9-4.9-2.7-.5-1.2-.7-6.4-.5-12.2V32c0-.1 0-.3-.1-.4-.2-.8-.8-1.5-1.5-1.8-.3-.1-.8-.3-1.4-.2.1-.6.4-1.2.6-1.8l.1-.3c.1-.3.3-.6.4-1 .8-1.9 2-4.4.7-10.2-.5-2.2-2-3.2-4.4-3-1.4.1-2.7.7-3.4 1.1-.1.1-.3.1-.4.2.2-2.2.9-6.3 3.4-8.8 1.6-1.6 3.8-2.4 6.4-2.4 5.2.1 8.5 2.7 10.3 4.9 1.6 1.9 2.5 3.8 2.8 4.8-2.6-.3-4.4.2-5.3 1.5-2 2.8 1.1 8.2 2.5 10.8.3.5.5.9.6 1.1.5 1.1 1.1 1.9 1.5 2.5.1.2.3.3.4.5-.8.2-2.2.8-2.1 3.4-.1 1.3-.8 7.5-1.2 9.7-.5 2.8-1.5 3.9-4.5 4.5zM44 32.3c-.8.4-2.2.7-3.4.7-1.4.1-2.1-.2-2.3-.3-.1-1.6.5-1.8 1.2-2 .1 0 .2-.1.3-.1.1 0 .1.1.2.1 1.1.8 3.2.8 6.1.2-.5.5-1.1 1-2.1 1.4z"/><path d="M22.4 16.2c.1-.4-.6-.7-1.2-.8-.5-.1-1 0-1.2.2-.1.1-.2.2-.2.3 0 .2.1.4.2.6.3.3.6.6 1 .6h.2c.6 0 1.2-.5 1.2-.9zM36.8 15.1c-.6.1-1.2.3-1.1.7 0 .3.5.7 1.1.7h.1c.4-.1.7-.3.8-.4.2-.2.3-.5.3-.6 0-.4-.6-.5-1.2-.4z"/></g></svg>`
+
+const BABELFISH_LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><path fill="#3BF" d="M28.6 32c-.7-1.3-2.1-1.9-3.5-1.7-1.4.1-2.7-.9-2.9-2.3-.2-1.8.5-1.2 1.7-6.1.4-1.8.2-3.8-.9-5.4-.8-1.3-2.2-2-3.4-1.2-1.2.8-2 1.9-2.5 3.2-1.9 5 .9 8.8 3.5 10.9 1.1.9 1.6 2.4 1.3 3.9-.2 1.2.4 2.1 1.3 3 1.4-1.2 1.4-2.8.7-4.5l.2-.2c1.3 1.5 3.2 1.5 4.5.4zm-7.5-12.8c-.4.2-.9.1-1.2-.3-.2-.4-.1-.9.3-1.3.4-.2.9-.1 1.3.3.1.6 0 1.1-.4 1.3z"/><path fill="currentColor" d="M32.3 2.5h-.7c-1.5.2-3 .5-4.4 1-1.5.4-11.3-7-20.6-1.4C1.2 5.5-.6 12.6 2.8 18c.4.7.9 1.3 1.5 1.9 1.6 1.9 2.4 4.4 2.1 6.8-.7 5.2 2.3 9.1 7 9.1 2.1.1 4.1-.3 6.1-1.1.6-.3 1.1-.9 1.3-1.6.2-.9-.2-1.9-.9-2.5-4.2-3.6-5.6-8-3.9-12.5.5-1.6 1.6-3 3-3.9.5-.4 1.3-.5 1.9-.5 1.5.1 2.8.9 3.5 2.2 1.2 2 1.5 4.2 1 6.4-.3 1.5-.9 3-1.5 4.5-.6 1.4.2 2 1.3 2.2 1 .2 2.1.1 3-.2 3.7-1.3 8-.3 9.4 6.4.5 3.2-.2 6.6-3.4 7.7 0 0-6.3 2.2-5-8.4v-.4c0-.2-.2-.3-.4-.3-.1 0-.2.1-.2.1-.6.4-1.3.6-2 .5-.4 0-.7.3-.8.7-.2 1-.8 2-1.6 2.7l-.5.4c-.2.2-.3.5-.3.7 1.8 13.1 12 11 12 11 5.8-.4 13.5-7 13.5-30.7 0-8.3-7.4-16.7-16.6-16.7zm8.1 20.1c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>`
+
+const FLAVOR_CARDS = [
+  { value: 'vanilla', label: 'PostgreSQL Community', logo: VANILLA_LOGO },
+  { value: 'babelfish', label: 'Babelfish (Experimental)', logo: BABELFISH_LOGO },
+]
 
 // Per-step section headings and intro copy, verbatim from the Vue fieldset
 // headers.
@@ -148,8 +179,8 @@ const STEP_HEADINGS = {
 function StepHeader({ title, intro, tooltip }) {
   return (
     <header className="flex flex-col gap-1 border-b pb-2">
-      <h2 className="text-lg font-semibold">{title}{renderTooltip(tooltip)}</h2>
-      {intro && <p>{intro}</p>}
+      <h2 className="text-sm font-semibold">{title}{renderTooltip(tooltip)}</h2>
+      {intro && <p className="text-[hsl(var(--muted-foreground))]">{intro}</p>}
     </header>
   )
 }
@@ -291,7 +322,7 @@ export default function SGClusterForm({ isEdit = false }) {
   }, [flavor, postgresVersion, state === null])
 
   if (isEdit && state === null) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   const patch = (updater) =>
@@ -712,40 +743,60 @@ export default function SGClusterForm({ isEdit = false }) {
 
   // --- render helpers --------------------------------------------------------
 
+  const identityGroups = (
+    <>
+      <FieldGroup>
+        <FieldRow>
+          <Field label="Cluster Name" required tooltip="sgcluster.metadata.name">
+            <TextInput required disabled={isEdit} value={state.name}
+              onChange={(value) => patch((draft) => { draft.name = value })} />
+          </Field>
+          {formTemplate !== 'minimal' && (
+            <Field label="Profile" tooltip="sgcluster.spec.profile">
+              <Select value={state.profile} options={CLUSTER_PROFILES}
+                onChange={(value) => patch((draft) => { draft.profile = value })} />
+            </Field>
+          )}
+        </FieldRow>
+        {nameCollision && (
+          <p role="alert" className="text-sm text-red-500">A cluster named &quot;{state.name}&quot; already exists in this namespace</p>
+        )}
+      </FieldGroup>
+      <FieldGroup title="Instances">
+        <FieldRow>
+          <Field label="Number of Instances" required tooltip="sgcluster.spec.instances">
+            <TextInput type="number" min="0" required value={state.instances}
+              onChange={(value) => patch((draft) => { draft.instances = value === '' ? '' : Number(value) })} />
+          </Field>
+          {formTemplate !== 'minimal' && (
+            <Field label="Instance Profile" tooltip="sgcluster.spec.sgInstanceProfile">
+              <Select value={state.resourceProfile}
+                options={[{ value: '', label: 'Default (Cores: 1, RAM: 2GiB)' }, ...profileOptions]}
+                onChange={(value) => patch((draft) => { draft.resourceProfile = value })} />
+            </Field>
+          )}
+        </FieldRow>
+      </FieldGroup>
+    </>
+  )
+
   const informationFields = (full) => (
-    <div className="flex flex-col gap-3">
-      <Field label="Cluster Name" required tooltip="sgcluster.metadata.name">
-        <TextInput required disabled={isEdit} value={state.name}
-          onChange={(value) => patch((draft) => { draft.name = value })} />
-      </Field>
-      {nameCollision && (
-        <p role="alert">A cluster named &quot;{state.name}&quot; already exists in this namespace</p>
-      )}
-      {formTemplate !== 'minimal' && (
-        <Field label="Profile" tooltip="sgcluster.spec.profile">
-          <Select value={state.profile} options={CLUSTER_PROFILES}
-            onChange={(value) => patch((draft) => { draft.profile = value })} />
-        </Field>
-      )}
-      <Field label="Number of Instances" required tooltip="sgcluster.spec.instances">
-        <TextInput type="number" min="0" required value={state.instances}
-          onChange={(value) => patch((draft) => { draft.instances = value === '' ? '' : Number(value) })} />
-      </Field>
-      {formTemplate !== 'minimal' && (
-        <Field label="Instance Profile" tooltip="sgcluster.spec.sgInstanceProfile">
-          <Select value={state.resourceProfile}
-            options={[{ value: '', label: 'Default (Cores: 1, RAM: 2GiB)' }, ...profileOptions]}
-            onChange={(value) => patch((draft) => { draft.resourceProfile = value })} />
-        </Field>
-      )}
-      {postgresVersionPicker}
+    <div className="flex flex-col gap-4">
+      {identityGroups}
+      <FieldGroup title="Postgres">
+        <FieldRow>{postgresVersionPicker}</FieldRow>
+      </FieldGroup>
       {full && (
         <>
-          {volumeFields}
-          <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={changeEnableMonitoring}
-            tooltip={<HelpTooltip text={MONITORING_TOOLTIP} />} />
-          <Toggle label="Distributed Logs" checked={enableDistributedLogs}
-            onChange={setEnableDistributedLogs} tooltip={<HelpTooltip text={DISTRIBUTED_LOGS_TOOLTIP} />} />
+          <FieldGroup title="Pods Storage">
+            <FieldRow>{volumeFields}</FieldRow>
+          </FieldGroup>
+          <FieldGroup title="Sidecars">
+            <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={changeEnableMonitoring}
+              tooltip={<HelpTooltip text={MONITORING_TOOLTIP} />} />
+            <Toggle label="Distributed Logs" checked={enableDistributedLogs}
+              onChange={setEnableDistributedLogs} tooltip={<HelpTooltip text={DISTRIBUTED_LOGS_TOOLTIP} />} />
+          </FieldGroup>
         </>
       )}
     </div>
@@ -753,7 +804,7 @@ export default function SGClusterForm({ isEdit = false }) {
 
   const postgresVersionPicker = (
     <Field label="Postgres Version" required tooltip="sgcluster.spec.postgres.version">
-      <select required className="border p-2" value={postgresVersion} aria-label="Postgres Version"
+      <select required className="border p-2 rounded bg-[hsl(var(--input-background))]" value={postgresVersion} aria-label="Postgres Version"
         onChange={(event) => validatePostgresSpecs(flavor, event.target.value)}>
         <option value="latest">Latest</option>
         {majors.map((major) => (
@@ -847,80 +898,117 @@ export default function SGClusterForm({ isEdit = false }) {
   )
 
   const clusterStep = (
-    <div className="flex flex-col gap-3">
-      {informationFields(false)}
+    <div className="flex flex-col gap-4">
+      {identityGroups}
       {state.profile !== 'production' && (
-        <p role="note">
+        <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">
           Non-production profiles relax resource requirements and anti-affinity; do not use them for
           production workloads.
         </p>
       )}
-      <Field label="Postgres Flavor" tooltip="sgcluster.spec.postgres.flavor">
-        <Select value={flavor} aria-label="Postgres Flavor"
-          options={[{ value: 'vanilla', label: 'Vanilla' }, { value: 'babelfish', label: 'Babelfish' }]}
-          onChange={(value) => validatePostgresSpecs(value, postgresVersion)} />
-      </Field>
-      {flavor === 'babelfish' && !isEdit && (
-        <Toggle label="Babelfish Experimental Feature" checked={state.babelfishFeatureGates}
-          tooltip={<HelpTooltip text={BABELFISH_TOOLTIP} />}
-          onChange={(value) => patch((draft) => { draft.babelfishFeatureGates = value })} />
-      )}
-      <Field label="Postgres Configuration" tooltip="sgcluster.spec.configurations.sgPostgresConfig">
-        <Select value={state.pgConfig ?? ''}
-          options={[{ value: '', label: 'Default' }, ...pgConfigOptions]}
-          onChange={(value) => patch((draft) => { draft.pgConfig = value === '' ? null : value })} />
-      </Field>
-      <Toggle label="SSL Connections" checked={state.ssl.enabled}
-        tooltip="sgcluster.spec.postgres.ssl.enabled"
-        onChange={(value) => patch((draft) => { draft.ssl.enabled = value })} />
-      {state.ssl.enabled && (
-        <div className="flex flex-wrap gap-2">
-          <Field label="Certificate Secret Name"
-            tooltip="sgcluster.spec.postgres.ssl.certificateSecretKeySelector.name">
-            <TextInput value={state.ssl.certificateSecretKeySelector.name}
-              onChange={(value) => patch((draft) => { draft.ssl.certificateSecretKeySelector.name = value })} />
-          </Field>
-          <Field label="Certificate Secret Key"
-            tooltip="sgcluster.spec.postgres.ssl.certificateSecretKeySelector.key">
-            <TextInput value={state.ssl.certificateSecretKeySelector.key}
-              onChange={(value) => patch((draft) => { draft.ssl.certificateSecretKeySelector.key = value })} />
-          </Field>
-          <Field label="Private Key Secret Name"
-            tooltip="sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.name">
-            <TextInput value={state.ssl.privateKeySecretKeySelector.name}
-              onChange={(value) => patch((draft) => { draft.ssl.privateKeySecretKeySelector.name = value })} />
-          </Field>
-          <Field label="Private Key Secret Key"
-            tooltip="sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.key">
-            <TextInput value={state.ssl.privateKeySecretKeySelector.key}
-              onChange={(value) => patch((draft) => { draft.ssl.privateKeySecretKeySelector.key = value })} />
-          </Field>
+      <FieldGroup title="Postgres">
+        <div className="flex flex-col gap-1 text-sm">
+          <span className="text-[hsl(var(--muted-foreground))]">
+            Postgres Flavor<span aria-hidden="true"> *</span>
+            <HelpTooltip field="sgcluster.spec.postgres.flavor" />
+          </span>
+          <div role="radiogroup" aria-label="Postgres Flavor" className="grid max-w-xl grid-cols-2 gap-3">
+            {FLAVOR_CARDS.map((card) => (
+              <button key={card.value} type="button" role="radio" aria-checked={flavor === card.value}
+                onClick={() => validatePostgresSpecs(card.value, postgresVersion)}
+                className={`flex flex-col items-center gap-4 rounded-lg border p-6 transition-colors ${
+                  flavor === card.value
+                    ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.05)] dark:bg-[hsl(var(--primary)/0.1)]'
+                    : 'border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.5)] hover:border-[hsl(var(--muted-foreground))]'
+                }`}>
+                <span aria-hidden="true" className="h-12 w-12 [&>svg]:h-full [&>svg]:w-full"
+                  dangerouslySetInnerHTML={{ __html: card.logo }} />
+                <span className="text-sm font-medium">{card.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      )}
-      {volumeFields}
-      <Field label="Storage Class" tooltip="sgcluster.spec.pods.persistentVolume.storageClass">
-        {storageClasses === null ? (
-          <TextInput value={state.storageClass}
-            onChange={(value) => patch((draft) => { draft.storageClass = value })} />
-        ) : (
-          <Select value={state.storageClass} disabled={!storageClasses.length}
-            options={[{ value: '', label: 'Select Storage Class' }, ...storageClasses]}
-            onChange={(value) => patch((draft) => { draft.storageClass = value })} />
+        {flavor === 'babelfish' && !isEdit && (
+          <Toggle label="Babelfish Experimental Feature" checked={state.babelfishFeatureGates}
+            tooltip={<HelpTooltip text={BABELFISH_TOOLTIP} />}
+            onChange={(value) => patch((draft) => { draft.babelfishFeatureGates = value })} />
         )}
-      </Field>
-      <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={changeEnableMonitoring}
-        tooltip={<HelpTooltip text={MONITORING_TOOLTIP} />} />
-      <Field label="Logs Cluster" tooltip="sgcluster.spec.distributedLogs.sgDistributedLogs">
-        <Select value={state.distributedLogs}
-          options={[{ value: '', label: 'Select Logs Cluster' }, ...logsClusterOptions]}
-          onChange={(value) => patch((draft) => { draft.distributedLogs = value })} />
-      </Field>
-      {Boolean(state.distributedLogs.length) && (
-        <Field label="Retention" tooltip="sgcluster.spec.distributedLogs.retention">
-          <TextInput value={state.retention}
-            onChange={(value) => patch((draft) => { draft.retention = value })} />
-        </Field>
-      )}
+        <FieldRow>
+          {postgresVersionPicker}
+          <Field label="Postgres Configuration" tooltip="sgcluster.spec.configurations.sgPostgresConfig">
+            <Select value={state.pgConfig ?? ''}
+              options={[{ value: '', label: 'Default' }, ...pgConfigOptions]}
+              onChange={(value) => patch((draft) => { draft.pgConfig = value === '' ? null : value })} />
+          </Field>
+        </FieldRow>
+      </FieldGroup>
+      <FieldGroup title="SSL Connections">
+        <Toggle label="SSL Connections" checked={state.ssl.enabled}
+          tooltip="sgcluster.spec.postgres.ssl.enabled"
+          onChange={(value) => patch((draft) => { draft.ssl.enabled = value })} />
+        {state.ssl.enabled && (
+          <>
+            <FieldRow>
+              <Field label="Certificate Secret Name"
+                tooltip="sgcluster.spec.postgres.ssl.certificateSecretKeySelector.name">
+                <TextInput value={state.ssl.certificateSecretKeySelector.name}
+                  onChange={(value) => patch((draft) => { draft.ssl.certificateSecretKeySelector.name = value })} />
+              </Field>
+              <Field label="Certificate Secret Key"
+                tooltip="sgcluster.spec.postgres.ssl.certificateSecretKeySelector.key">
+                <TextInput value={state.ssl.certificateSecretKeySelector.key}
+                  onChange={(value) => patch((draft) => { draft.ssl.certificateSecretKeySelector.key = value })} />
+              </Field>
+            </FieldRow>
+            <FieldRow>
+              <Field label="Private Key Secret Name"
+                tooltip="sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.name">
+                <TextInput value={state.ssl.privateKeySecretKeySelector.name}
+                  onChange={(value) => patch((draft) => { draft.ssl.privateKeySecretKeySelector.name = value })} />
+              </Field>
+              <Field label="Private Key Secret Key"
+                tooltip="sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.key">
+                <TextInput value={state.ssl.privateKeySecretKeySelector.key}
+                  onChange={(value) => patch((draft) => { draft.ssl.privateKeySecretKeySelector.key = value })} />
+              </Field>
+            </FieldRow>
+          </>
+        )}
+      </FieldGroup>
+      <FieldGroup title="Pods Storage">
+        <FieldRow>
+          {volumeFields}
+          <Field label="Storage Class" tooltip="sgcluster.spec.pods.persistentVolume.storageClass">
+            {storageClasses === null ? (
+              <TextInput value={state.storageClass}
+                onChange={(value) => patch((draft) => { draft.storageClass = value })} />
+            ) : (
+              <Select value={state.storageClass} disabled={!storageClasses.length}
+                options={[{ value: '', label: 'Select Storage Class' }, ...storageClasses]}
+                onChange={(value) => patch((draft) => { draft.storageClass = value })} />
+            )}
+          </Field>
+        </FieldRow>
+      </FieldGroup>
+      <FieldGroup title="Monitoring">
+        <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={changeEnableMonitoring}
+          tooltip={<HelpTooltip text={MONITORING_TOOLTIP} />} />
+      </FieldGroup>
+      <FieldGroup title="Distributed Logs">
+        <FieldRow>
+          <Field label="Logs Cluster" tooltip="sgcluster.spec.distributedLogs.sgDistributedLogs">
+            <Select value={state.distributedLogs}
+              options={[{ value: '', label: 'Select Logs Cluster' }, ...logsClusterOptions]}
+              onChange={(value) => patch((draft) => { draft.distributedLogs = value })} />
+          </Field>
+          {Boolean(state.distributedLogs.length) && (
+            <Field label="Retention" tooltip="sgcluster.spec.distributedLogs.retention">
+              <TextInput value={state.retention}
+                onChange={(value) => patch((draft) => { draft.retention = value })} />
+            </Field>
+          )}
+        </FieldRow>
+      </FieldGroup>
     </div>
   )
 
@@ -1078,7 +1166,7 @@ export default function SGClusterForm({ isEdit = false }) {
           <>
             <Field label="Restore To Timestamp"
               tooltip="sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">
-              <input type="datetime-local" step="1" className="border p-2" disabled={isEdit}
+              <input type="datetime-local" step="1" className="border p-2 rounded bg-[hsl(var(--input-background))]" disabled={isEdit}
                 aria-label="Restore To Timestamp" value={pitrDisplayValue}
                 min={selectedPitrBackup ? toInputFrame(selectedPitrBackup.x) : undefined}
                 max={toInputFrame(nextPitrBackup ? nextPitrBackup.x : new Date().toISOString())}
@@ -1167,8 +1255,8 @@ export default function SGClusterForm({ isEdit = false }) {
       {['external', 'storage', 'external-storage'].includes(state.replicateFromSource) &&
         state.replicateFrom.users &&
         ['superuser', 'replication', 'authenticator'].map((role) => (
-          <fieldset key={role} className="flex flex-wrap gap-2 border p-3">
-            <legend className="px-1 font-semibold capitalize">
+          <fieldset key={role} className="flex flex-wrap gap-2 rounded-lg border p-4">
+            <legend className="px-2 text-sm font-medium capitalize">
               {role}{renderTooltip(`sgcluster.spec.replicateFrom.users.${role}`)}
             </legend>
             {['username', 'password'].map((credential) =>
@@ -1206,7 +1294,7 @@ export default function SGClusterForm({ isEdit = false }) {
 
   const sidecarsStep = (
     <div className="flex flex-col gap-3">
-      <h3 className="font-semibold">Connection Pooling</h3>
+      <h3 className="text-sm font-semibold">Connection Pooling</h3>
       <p>
         To solve the Postgres connection fan-in problem (handling large number of incoming
         connections) StackGres includes by default a connection pooler fronting every Postgres
@@ -1229,7 +1317,7 @@ export default function SGClusterForm({ isEdit = false }) {
               patch((draft) => { draft.connectionPoolingConfig = value === '' ? null : value })} />
         </Field>
       )}
-      <h3 className="font-semibold">Postgres Utils</h3>
+      <h3 className="text-sm font-semibold">Postgres Utils</h3>
       <p>
         Sidecar container with Postgres administration tools. Optional (on by default; recommended
         for troubleshooting).
@@ -1238,11 +1326,11 @@ export default function SGClusterForm({ isEdit = false }) {
         tooltip={<HelpTooltip field="sgcluster.spec.pods.disablePostgresUtil"
           transform={(text) => text.replace('If set to `true`', 'If disabled')} />}
         onChange={(value) => patch((draft) => { draft.postgresUtil = value })} />
-      <h3 className="font-semibold">Monitoring</h3>
+      <h3 className="text-sm font-semibold">Monitoring</h3>
       <p>
         Enable Prometheus metrics scraping via service monitors. Check the{' '}
         <a href="https://stackgres.io/doc/latest/install/prerequisites/monitoring/" target="_blank"
-          rel="noreferrer" className="underline">
+          rel="noreferrer" className="text-[hsl(var(--primary))] hover:underline">
           Installation -&gt; Monitoring
         </a>{' '}
         section for information on how to enable in StackGres Grafana dashboard integration.
@@ -1256,11 +1344,11 @@ export default function SGClusterForm({ isEdit = false }) {
         tooltip="sgcluster.spec.configurations.observability.prometheusAutobind"
         onChange={changePrometheusAutobind} />
       {!state.enableMonitoring && (
-        <p role="note">
+        <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">
           Both Metrics Exporter and Prometheus Autobind should be enabled for monitoring to work.
         </p>
       )}
-      <h2 className="text-lg font-semibold">User-Supplied Pods Sidecars</h2>
+      <h2 className="text-sm font-semibold">User-Supplied Pods Sidecars</h2>
       <CustomVolumesEditor tooltipPrefix="sgcluster.spec.pods.customVolumes"
         volumes={state.pods.customVolumes} types={state.customVolumesType}
         onChange={(volumes, types) =>
@@ -1297,8 +1385,8 @@ export default function SGClusterForm({ isEdit = false }) {
               })} />
         </Field>
       )}
-      <fieldset className="flex flex-col gap-2 border p-3">
-        <legend className="px-1 font-semibold">
+      <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+        <legend className="px-2 text-sm font-medium">
           Replication Groups{renderTooltip('sgcluster.spec.replication.groups')}
         </legend>
         {(state.replication.groups || []).map((group, index) => (
@@ -1325,14 +1413,14 @@ export default function SGClusterForm({ isEdit = false }) {
                     draft.replication.groups[index].instances = value === '' ? '' : Number(value)
                   })} />
             </Field>
-            <button type="button" aria-label={`Delete group ${index + 1}`}
+            <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete group ${index + 1}`}
               onClick={() =>
                 patch((draft) => { draft.replication.groups.splice(index, 1) })}>
               <Trash2 size={16} />
             </button>
           </div>
         ))}
-        <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+        <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
           onClick={() =>
             patch((draft) => {
               if (!draft.replication.groups) {
@@ -1349,8 +1437,8 @@ export default function SGClusterForm({ isEdit = false }) {
   const servicesStep = (
     <div className="flex flex-col gap-4">
       {['primary', 'replicas'].map((service) => (
-        <fieldset key={service} className="flex flex-col gap-2 border p-3">
-          <legend className="px-1 font-semibold capitalize">
+        <fieldset key={service} className="flex flex-col gap-2 rounded-lg border p-4">
+          <legend className="px-2 text-sm font-medium capitalize">
             {service} Service{renderTooltip(`sgcluster.spec.postgresServices.${service}`)}
           </legend>
           <Toggle label="Enabled" checked={state.postgresServices[service].enabled}
@@ -1411,7 +1499,7 @@ export default function SGClusterForm({ isEdit = false }) {
   const schedulingStep = (
     <div className="flex flex-col gap-3">
       {isEdit && (
-        <p role="note">Changing scheduling settings on a running cluster may trigger pod restarts.</p>
+        <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">Changing scheduling settings on a running cluster may trigger pod restarts.</p>
       )}
       <KeyValueRows legend="Node Selectors" keyName="label" rows={state.nodeSelector}
         tooltip="sgcluster.spec.pods.scheduling.nodeSelector"
@@ -1473,19 +1561,25 @@ export default function SGClusterForm({ isEdit = false }) {
 
   if (!formTemplate) {
     return (
-      <section className="flex max-w-4xl flex-col gap-4 p-8 text-sm">
-        <h1 className="text-2xl font-semibold">Create Cluster</h1>
-        <p>Choose a template to start from:<HelpTooltip text={TEMPLATE_PICKER_TOOLTIP} /></p>
-        <div className="flex flex-wrap gap-3">
+      <section className="flex max-w-4xl flex-col gap-4 px-6 pb-6 text-sm">
+        <h1 className="text-lg font-semibold">Create Cluster</h1>
+        <p>
+          To create your cluster easily, you can choose a template from our predefined express
+          setups or select <strong>&quot;Custom&quot;</strong> for personalized and advanced
+          settings.
+          <HelpTooltip text={TEMPLATE_PICKER_TOOLTIP} />
+        </p>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {TEMPLATES.map((template) => (
-            <button key={template.id} type="button" className="flex flex-col border p-4 text-left"
+            <button key={template.id} type="button"
+              className="flex flex-col items-center gap-6 rounded-lg border bg-[hsl(var(--muted)/0.5)] px-4 py-10 transition-colors hover:border-[hsl(var(--primary))]"
               onClick={() => setupTemplate(template.id)}>
-              <span className="font-semibold">{template.label}</span>
-              <span>{template.description}</span>
+              <TemplateIcon bars={template.bars} />
+              <span className="text-sm">{template.label}</span>
             </button>
           ))}
         </div>
-        <Link to={`/${namespace}/sgclusters`} className="underline">
+        <Link to={`/${namespace}/sgclusters`} className="text-[hsl(var(--primary))] hover:underline">
           Cancel
         </Link>
       </section>
@@ -1497,9 +1591,9 @@ export default function SGClusterForm({ isEdit = false }) {
     (formTemplate === 'custom' && !advancedMode && currentStepIndex === 2)
 
   return (
-    <section className="flex max-w-5xl flex-col gap-4 p-8 text-sm">
+    <section className="flex max-w-5xl flex-col gap-4 px-6 pb-6 text-sm">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-lg font-semibold">
           {isEdit ? `Edit Cluster: ${state.name}` : 'Create Cluster'}
         </h1>
         {formTemplate === 'custom' && (
@@ -1513,10 +1607,10 @@ export default function SGClusterForm({ isEdit = false }) {
         )}
       </header>
       {formTemplate !== 'minimal' && (
-        <nav aria-label="Form steps" className="flex flex-wrap gap-3 border-b pb-2">
+        <nav aria-label="Form steps" className="flex flex-wrap gap-1 border-b pb-2 text-sm">
           {visibleSteps.map((step) => (
             <button key={step} type="button" onClick={() => setCurrentStep(step)}
-              className={currentStep === step ? 'font-semibold underline' : ''}>
+              className={`px-2.5 py-1 rounded-md transition-colors ${currentStep === step ? 'bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))] font-medium' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
               {STEP_LABELS[step]}
             </button>
           ))}
@@ -1530,31 +1624,31 @@ export default function SGClusterForm({ isEdit = false }) {
         className="flex flex-col gap-4">
         {STEP_HEADINGS[currentStep] && <StepHeader {...STEP_HEADINGS[currentStep]} />}
         {stepContent[currentStep]?.()}
-        <div className="flex items-center gap-3 border-t pt-3">
+        <div className="flex items-center justify-end gap-2 border-t pt-4 mt-4">
           {formTemplate !== 'minimal' && (
             <>
-              <button type="button" className="border p-2" disabled={currentStepIndex === 0}
+              <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" disabled={currentStepIndex === 0}
                 onClick={() => stepBy(-1)}>
                 Previous
               </button>
-              <button type="button" className="border p-2" disabled={nextDisabled}
+              <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" disabled={nextDisabled}
                 onClick={() => stepBy(1)}>
                 Next
               </button>
             </>
           )}
-          <button type="submit" disabled={submitting} className="border p-2 font-semibold">
+          <button type="submit" disabled={submitting} className="px-4 py-2 bg-[hsl(var(--primary))] text-white rounded text-sm font-medium hover:bg-[hsl(var(--primary)/0.85)]">
             {isEdit ? 'Update Cluster' : 'Create Cluster'}
           </button>
-          <button type="button" className="border p-2" disabled={submitting}
+          <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" disabled={submitting}
             onClick={() => createCluster({ previewOnly: true })}>
             View Summary
           </button>
-          <button type="button" className="border p-2" disabled={submitting}
+          <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" disabled={submitting}
             onClick={() => createCluster({ dryRunFlag: true })}>
             Dry Run
           </button>
-          <button type="button" className="border p-2"
+          <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]"
             onClick={() =>
               isEdit ? navigate(`/${namespace}/sgcluster/${state.name}`) : setupTemplate(null, true)}>
             Cancel
@@ -1562,15 +1656,18 @@ export default function SGClusterForm({ isEdit = false }) {
         </div>
       </form>
       {preview && (
-        <section className="border p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold uppercase">{preview.dryRun ? 'Dry Run Summary' : 'Summary'}</h2>
-            <button type="button" onClick={() => setPreview(null)} className="underline">
-              Close
-            </button>
-          </div>
-          <SpecTree value={preview.cluster} />
-        </section>
+        <SummaryDialog
+          title={preview.dryRun ? 'Dry Run Summary' : 'Summary'}
+          value={preview.cluster}
+          onClose={() => setPreview(null)}
+          defaults={
+            preview.dryRun
+              ? null
+              : buildSGCluster(
+                  initialSGClusterState(namespace, { timezone, postgresVersion: 'latest' })
+                )
+          }
+        />
       )}
     </section>
   )

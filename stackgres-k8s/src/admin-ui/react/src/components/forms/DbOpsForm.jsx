@@ -12,7 +12,7 @@ import { prefix } from '../../lib/format'
 import CrdFormShell from './CrdFormShell'
 import { HelpTooltip } from '../HelpTooltip'
 import { TolerationsEditor } from './clusterEditors'
-import { Field, Select, TextInput, Toggle, renderTooltip } from './fields'
+import { Field, FieldGroup, FieldRow, Select, TextInput, Toggle, renderTooltip } from './fields'
 
 const OPS = [
   'benchmark',
@@ -76,7 +76,7 @@ function DurationSelects({ label, value, onChange, tooltip }) {
       <select
         value={String(value[key])}
         onChange={(event) => onChange({ ...value, [key]: event.target.value })}
-        className="border p-1"
+        className="px-2 py-1.5 text-sm border border-[hsl(var(--border))] rounded bg-[hsl(var(--input-background))]"
         aria-label={`${label} ${unit}`}
       >
         {Array.from({ length: max + 1 }, (_, i) => (
@@ -218,25 +218,29 @@ export default function DbOpsForm() {
 
   return (
     <CrdFormShell title="Create Database Operation" form={form}>
-      <Field label="Operation Name" required error={form.errors.name} tooltip="sgdbops.metadata.name">
-        <TextInput value={name} onChange={setName} required error={form.errors.name} />
-      </Field>
-      {nameCollision && (
-        <p role="alert">
-          There&apos;s already a <strong>SGDbOps</strong> with the same name on this namespace.
-          Please specify a different name or create the operation on another namespace.
-        </p>
-      )}
-      <Field label="Target Cluster" required error={form.errors.sgCluster} tooltip="sgdbops.spec.sgCluster">
-        <Select value={sgCluster} onChange={setSgCluster} required placeholder="Choose a Cluster"
-          options={clusters.map((c) => c.metadata.name)} />
-      </Field>
-      <fieldset className="flex flex-col gap-2 border p-3">
-        <legend className="px-1 font-semibold">Database Operation *{renderTooltip('sgdbops.spec.op')}</legend>
-        {form.errors.op && <p role="alert">{form.errors.op}</p>}
+      <FieldGroup>
+        <FieldRow>
+          <Field label="Operation Name" required error={form.errors.name} tooltip="sgdbops.metadata.name">
+            <TextInput value={name} onChange={setName} required error={form.errors.name} />
+          </Field>
+          <Field label="Target Cluster" required error={form.errors.sgCluster} tooltip="sgdbops.spec.sgCluster">
+            <Select value={sgCluster} onChange={setSgCluster} required placeholder="Choose a Cluster"
+              options={clusters.map((c) => c.metadata.name)} />
+          </Field>
+        </FieldRow>
+        {nameCollision && (
+          <p role="alert" className="text-sm text-red-500">
+            There&apos;s already a <strong>SGDbOps</strong> with the same name on this namespace.
+            Please specify a different name or create the operation on another namespace.
+          </p>
+        )}
+      </FieldGroup>
+      <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+        <legend className="px-2 text-sm font-medium">Database Operation *{renderTooltip('sgdbops.spec.op')}</legend>
+        {form.errors.op && <p role="alert" className="text-sm text-red-500">{form.errors.op}</p>}
         <div className="flex flex-wrap gap-3">
           {OPS.map((candidate) => (
-            <label key={candidate} className="flex items-center gap-2 border p-2">
+            <label key={candidate} className={`flex items-start gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${op === candidate ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.05)] dark:bg-[hsl(var(--primary)/0.1)]' : 'border-[hsl(var(--border))] hover:border-[hsl(var(--muted-foreground))]'}`}>
               <input type="radio" name="op" value={candidate} checked={op === candidate}
                 onChange={() => setOp(candidate)} />
               {opLabel(candidate)}
@@ -245,64 +249,67 @@ export default function DbOpsForm() {
         </div>
       </fieldset>
 
-      <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">General Operation Details</legend>
-        <Field label={`Run At (${timezone === 'local' ? 'local time' : 'UTC'})`} help="Leave empty to run as soon as possible"
-          tooltip={
-            <HelpTooltip field="sgdbops.spec.runAt"
-              transform={(t) => (timezone === 'local' ? t.replace('UTC ', '') : t)} />
-          }>
-          <input type="datetime-local" step="1" value={runAtLocal}
-            onChange={(event) => setRunAtLocal(event.target.value)} className="border p-2" />
-        </Field>
+      <FieldGroup title="General Operation Details">
+        <FieldRow>
+          <Field label={`Run At (${timezone === 'local' ? 'local time' : 'UTC'})`} help="Leave empty to run as soon as possible"
+            tooltip={
+              <HelpTooltip field="sgdbops.spec.runAt"
+                transform={(t) => (timezone === 'local' ? t.replace('UTC ', '') : t)} />
+            }>
+            <input type="datetime-local" step="1" value={runAtLocal}
+              onChange={(event) => setRunAtLocal(event.target.value)} className="w-full border p-2 rounded bg-[hsl(var(--input-background))]" />
+          </Field>
+          <DurationSelects label="Timeout" value={timeout} onChange={setTimeoutValue} tooltip="sgdbops.spec.timeout" />
+        </FieldRow>
         {timezone === 'utc' && runAtLocal.length > 0 && (
-          <p role="note">
+          <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">
             Bear in mind &quot;Run At&quot; times are expressed in UTC (Coordinated Universal Time).
           </p>
         )}
-        <DurationSelects label="Timeout" value={timeout} onChange={setTimeoutValue} tooltip="sgdbops.spec.timeout" />
-        <Field label="Max Retries" tooltip="sgdbops.spec.maxRetries">
-          <Select value={maxRetries} onChange={setMaxRetries} options={Array.from({ length: 11 }, (_, i) => String(i))} />
-        </Field>
-      </fieldset>
+        <FieldRow>
+          <Field label="Max Retries" tooltip="sgdbops.spec.maxRetries">
+            <Select value={maxRetries} onChange={setMaxRetries} options={Array.from({ length: 11 }, (_, i) => String(i))} />
+          </Field>
+        </FieldRow>
+      </FieldGroup>
 
-      <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">Node Tolerations</legend>
+      <FieldGroup title="Node Tolerations">
         <TolerationsEditor tolerations={tolerations} onChange={setTolerations}
           tooltipPrefix="sgdbops.spec.scheduling.tolerations" />
-      </fieldset>
+      </FieldGroup>
 
       {op === 'restart' && (
-        <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Restart Details</legend>
-          <Field label="Method" tooltip="sgdbops.spec.restart.method">
-            <Select value={restart.method} onChange={(method) => setRestart({ ...restart, method })} options={METHODS} />
-          </Field>
-          <Field label="Pods to Restart" tooltip="sgdbops.spec.restart.onlyPendingRestart">
-            <Toggle label="Pending Pods Only" checked={restart.onlyPendingRestart}
-              onChange={(onlyPendingRestart) => setRestart({ ...restart, onlyPendingRestart })} />
-          </Field>
-        </fieldset>
+        <FieldGroup title="Restart Details">
+          <FieldRow>
+            <Field label="Method" tooltip="sgdbops.spec.restart.method">
+              <Select value={restart.method} onChange={(method) => setRestart({ ...restart, method })} options={METHODS} />
+            </Field>
+            <Field label="Pods to Restart" tooltip="sgdbops.spec.restart.onlyPendingRestart">
+              <Toggle label="Pending Pods Only" checked={restart.onlyPendingRestart}
+                onChange={(onlyPendingRestart) => setRestart({ ...restart, onlyPendingRestart })} />
+            </Field>
+          </FieldRow>
+        </FieldGroup>
       )}
 
       {op === 'securityUpgrade' && (
-        <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Security Upgrade Details</legend>
-          <Field label="Method" tooltip="sgdbops.spec.securityUpgrade.method">
-            <Select value={securityUpgrade.method} onChange={(method) => setSecurityUpgrade({ method })} options={METHODS} />
-          </Field>
-        </fieldset>
+        <FieldGroup title="Security Upgrade Details">
+          <FieldRow>
+            <Field label="Method" tooltip="sgdbops.spec.securityUpgrade.method">
+              <Select value={securityUpgrade.method} onChange={(method) => setSecurityUpgrade({ method })} options={METHODS} />
+            </Field>
+          </FieldRow>
+        </FieldGroup>
       )}
 
       {op === 'minorVersionUpgrade' && (
-        <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Minor Version Upgrade Details</legend>
+        <FieldGroup title="Minor Version Upgrade Details">
           {!sgCluster ? (
             <p className="text-sm">
               You must first choose a target cluster to be able to set the upgrade details
             </p>
           ) : minorTargets.length ? (
-            <>
+            <FieldRow>
               <Field label="Method" tooltip="sgdbops.spec.minorVersionUpgrade.method">
                 <Select value={minorVersionUpgrade.method}
                   onChange={(method) => setMinorVersionUpgrade({ ...minorVersionUpgrade, method })} options={METHODS} />
@@ -313,7 +320,7 @@ export default function DbOpsForm() {
                   onChange={(postgresVersion) => setMinorVersionUpgrade({ ...minorVersionUpgrade, postgresVersion })}
                   options={minorTargets} placeholder="Choose version..." required />
               </Field>
-            </>
+            </FieldRow>
           ) : (
             <p className="text-sm">
               Your cluster is already set to use Postgres {currentVersion} which is the latest minor
@@ -321,18 +328,17 @@ export default function DbOpsForm() {
               Version Upgrade to Postgres {Number(currentMajor) + 1}.
             </p>
           )}
-        </fieldset>
+        </FieldGroup>
       )}
 
       {op === 'majorVersionUpgrade' && (
-        <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Major Version Upgrade Details</legend>
+        <FieldGroup title="Major Version Upgrade Details">
           {!sgCluster ? (
             <p className="text-sm">
               You must first choose a target cluster to be able to set the upgrade details
             </p>
           ) : majorTargets.length ? (
-            <>
+            <FieldRow>
               <Toggle label="Hard Link Files" checked={majorVersionUpgrade.link}
                 onChange={(link) => setMajorVersionUpgrade({ ...majorVersionUpgrade, link })}
                 tooltip="sgdbops.spec.majorVersionUpgrade.link" />
@@ -363,42 +369,43 @@ export default function DbOpsForm() {
                     options={pgConfigs.map((c) => c.metadata.name)} placeholder="Choose config..." required />
                 </Field>
               )}
-            </>
+            </FieldRow>
           ) : (
             <p className="text-sm">
               Your cluster is already set to use Postgres {currentMajor} which is the latest major
               version available.
             </p>
           )}
-        </fieldset>
+        </FieldGroup>
       )}
 
       {op === 'vacuum' && (
-        <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Vacuum Details</legend>
-          <Toggle label="Full Vacuum" checked={vacuum.full} onChange={(full) => setVacuum({ ...vacuum, full })}
-            tooltip="sgdbops.spec.vacuum.full" />
-          <Toggle label="Freeze" checked={vacuum.freeze} onChange={(freeze) => setVacuum({ ...vacuum, freeze })}
-            tooltip="sgdbops.spec.vacuum.freeze" />
-          <Toggle label="Analyze" checked={vacuum.analyze} onChange={(analyze) => setVacuum({ ...vacuum, analyze })}
-            tooltip="sgdbops.spec.vacuum.analyze" />
-          <Toggle label="Page Skipping" checked={!vacuum.disablePageSkipping}
-            onChange={(enabled) => setVacuum({ ...vacuum, disablePageSkipping: !enabled })}
-            tooltip={
-              <HelpTooltip field="sgdbops.spec.vacuum.disablePageSkipping" transform={PAGE_SKIPPING_TRANSFORM} />
-            } />
-          <Toggle label="Database Specific Options" checked={vacuumPerDbs}
-            tooltip="sgdbops.spec.vacuum.databases"
-            onChange={(enabled) => {
-              setVacuumPerDbs(enabled)
-              if (enabled && !vacuumDbs.length)
-                setVacuumDbs([{ name: '', full: 'inherit', freeze: 'inherit', analyze: 'inherit', disablePageSkipping: 'inherit' }])
-            }} />
-          {vacuumPerDbs && <h4 className="font-semibold">Databases{renderTooltip('sgdbops.spec.vacuum.databases')}</h4>}
+        <FieldGroup title="Vacuum Details">
+          <FieldRow>
+            <Toggle label="Full Vacuum" checked={vacuum.full} onChange={(full) => setVacuum({ ...vacuum, full })}
+              tooltip="sgdbops.spec.vacuum.full" />
+            <Toggle label="Freeze" checked={vacuum.freeze} onChange={(freeze) => setVacuum({ ...vacuum, freeze })}
+              tooltip="sgdbops.spec.vacuum.freeze" />
+            <Toggle label="Analyze" checked={vacuum.analyze} onChange={(analyze) => setVacuum({ ...vacuum, analyze })}
+              tooltip="sgdbops.spec.vacuum.analyze" />
+            <Toggle label="Page Skipping" checked={!vacuum.disablePageSkipping}
+              onChange={(enabled) => setVacuum({ ...vacuum, disablePageSkipping: !enabled })}
+              tooltip={
+                <HelpTooltip field="sgdbops.spec.vacuum.disablePageSkipping" transform={PAGE_SKIPPING_TRANSFORM} />
+              } />
+            <Toggle label="Database Specific Options" checked={vacuumPerDbs}
+              tooltip="sgdbops.spec.vacuum.databases"
+              onChange={(enabled) => {
+                setVacuumPerDbs(enabled)
+                if (enabled && !vacuumDbs.length)
+                  setVacuumDbs([{ name: '', full: 'inherit', freeze: 'inherit', analyze: 'inherit', disablePageSkipping: 'inherit' }])
+              }} />
+          </FieldRow>
+          {vacuumPerDbs && <h4 className="text-sm font-semibold">Databases{renderTooltip('sgdbops.spec.vacuum.databases')}</h4>}
           {vacuumPerDbs &&
             vacuumDbs.map((db, index) => (
-              <div key={index} className="flex flex-col gap-2 border p-2">
-                <h5 className="font-semibold">
+              <div key={index} className="flex flex-col gap-2 rounded-lg border p-4">
+                <h5 className="text-sm font-semibold">
                   Database #{index + 1}{db.name ? ` – ${db.name}` : ''}
                 </h5>
                 <div className="flex flex-wrap items-end gap-2">
@@ -413,7 +420,7 @@ export default function DbOpsForm() {
                           i === index ? { ...d, [key]: value === 'inherit' ? 'inherit' : value === 'true' } : d)))}
                     </Field>
                   ))}
-                  <button type="button" aria-label={`Delete database ${index + 1}`}
+                  <button type="button" aria-label={`Delete database ${index + 1}`} className="p-1.5 rounded text-red-500 hover:bg-red-500/10"
                     onClick={() => setVacuumDbs(vacuumDbs.filter((_, i) => i !== index))}>
                     <Trash2 size={16} />
                   </button>
@@ -421,42 +428,43 @@ export default function DbOpsForm() {
               </div>
             ))}
           {vacuumPerDbs && (
-            <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+            <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
               onClick={() =>
                 setVacuumDbs([...vacuumDbs, { name: '', full: 'inherit', freeze: 'inherit', analyze: 'inherit', disablePageSkipping: 'inherit' }])}>
               <Plus size={14} /> Add Database
             </button>
           )}
-        </fieldset>
+        </FieldGroup>
       )}
 
       {op === 'repack' && (
-        <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Repack Details</legend>
-          <Toggle label="Order" checked={!repack.noOrder} onChange={(enabled) => setRepack({ ...repack, noOrder: !enabled })}
-            tooltip={<HelpTooltip field="sgdbops.spec.repack.noOrder" transform={NO_ORDER_TRANSFORM} />} />
-          <Toggle label="Kill Backend" checked={!repack.noKillBackend} onChange={(enabled) => setRepack({ ...repack, noKillBackend: !enabled })}
-            tooltip={<HelpTooltip field="sgdbops.spec.repack.noKillBackend" transform={NO_KILL_BACKEND_TRANSFORM} />} />
-          <Toggle label="Analyze" checked={!repack.noAnalyze} onChange={(enabled) => setRepack({ ...repack, noAnalyze: !enabled })}
-            tooltip={<HelpTooltip field="sgdbops.spec.repack.noAnalyze" transform={NO_KILL_BACKEND_TRANSFORM} />} />
-          <Toggle label="Exclude Extension" checked={repack.excludeExtension}
-            onChange={(excludeExtension) => setRepack({ ...repack, excludeExtension })}
-            tooltip="sgdbops.spec.repack.excludeExtension" />
-          <DurationSelects label="Wait Timeout" value={repack.waitTimeout}
-            onChange={(waitTimeout) => setRepack({ ...repack, waitTimeout })}
-            tooltip="sgdbops.spec.repack.waitTimeout" />
-          <Toggle label="Database Specific Options" checked={repackPerDbs}
-            tooltip="sgdbops.spec.repack.databases"
-            onChange={(enabled) => {
-              setRepackPerDbs(enabled)
-              if (enabled && !repackDbs.length)
-                setRepackDbs([{ name: '', noOrder: 'inherit', inheritTimeout: true, waitTimeout: { d: 0, h: 0, m: 0, s: 0 }, noKillBackend: 'inherit', noAnalyze: 'inherit', excludeExtension: 'inherit' }])
-            }} />
-          {repackPerDbs && <h3 className="font-semibold">Databases{renderTooltip('sgdbops.spec.repack.databases')}</h3>}
+        <FieldGroup title="Repack Details">
+          <FieldRow>
+            <Toggle label="Order" checked={!repack.noOrder} onChange={(enabled) => setRepack({ ...repack, noOrder: !enabled })}
+              tooltip={<HelpTooltip field="sgdbops.spec.repack.noOrder" transform={NO_ORDER_TRANSFORM} />} />
+            <Toggle label="Kill Backend" checked={!repack.noKillBackend} onChange={(enabled) => setRepack({ ...repack, noKillBackend: !enabled })}
+              tooltip={<HelpTooltip field="sgdbops.spec.repack.noKillBackend" transform={NO_KILL_BACKEND_TRANSFORM} />} />
+            <Toggle label="Analyze" checked={!repack.noAnalyze} onChange={(enabled) => setRepack({ ...repack, noAnalyze: !enabled })}
+              tooltip={<HelpTooltip field="sgdbops.spec.repack.noAnalyze" transform={NO_KILL_BACKEND_TRANSFORM} />} />
+            <Toggle label="Exclude Extension" checked={repack.excludeExtension}
+              onChange={(excludeExtension) => setRepack({ ...repack, excludeExtension })}
+              tooltip="sgdbops.spec.repack.excludeExtension" />
+            <DurationSelects label="Wait Timeout" value={repack.waitTimeout}
+              onChange={(waitTimeout) => setRepack({ ...repack, waitTimeout })}
+              tooltip="sgdbops.spec.repack.waitTimeout" />
+            <Toggle label="Database Specific Options" checked={repackPerDbs}
+              tooltip="sgdbops.spec.repack.databases"
+              onChange={(enabled) => {
+                setRepackPerDbs(enabled)
+                if (enabled && !repackDbs.length)
+                  setRepackDbs([{ name: '', noOrder: 'inherit', inheritTimeout: true, waitTimeout: { d: 0, h: 0, m: 0, s: 0 }, noKillBackend: 'inherit', noAnalyze: 'inherit', excludeExtension: 'inherit' }])
+              }} />
+          </FieldRow>
+          {repackPerDbs && <h3 className="text-sm font-semibold">Databases{renderTooltip('sgdbops.spec.repack.databases')}</h3>}
           {repackPerDbs &&
             repackDbs.map((db, index) => (
-              <div key={index} className="flex flex-col gap-2 border p-2">
-                <h3 className="font-semibold">
+              <div key={index} className="flex flex-col gap-2 rounded-lg border p-4">
+                <h3 className="text-sm font-semibold">
                   Database #{index + 1}{db.name ? ` – ${db.name}` : ''}
                 </h3>
                 <div className="flex flex-wrap items-end gap-2">
@@ -471,7 +479,7 @@ export default function DbOpsForm() {
                           i === index ? { ...d, [key]: value === 'inherit' ? 'inherit' : value === 'true' } : d)))}
                     </Field>
                   ))}
-                  <button type="button" aria-label={`Delete database ${index + 1}`}
+                  <button type="button" aria-label={`Delete database ${index + 1}`} className="p-1.5 rounded text-red-500 hover:bg-red-500/10"
                     onClick={() => setRepackDbs(repackDbs.filter((_, i) => i !== index))}>
                     <Trash2 size={16} />
                   </button>
@@ -495,7 +503,7 @@ export default function DbOpsForm() {
               </div>
             ))}
           {repackPerDbs && (
-            <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+            <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
               onClick={() =>
                 setRepackDbs([
                   ...repackDbs,
@@ -512,54 +520,57 @@ export default function DbOpsForm() {
               <Plus size={14} /> Add Database
             </button>
           )}
-        </fieldset>
+        </FieldGroup>
       )}
 
       {op === 'benchmark' && (
-        <fieldset className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">Benchmark Details</legend>
-          <Field label="Type" tooltip="sgdbops.spec.benchmark.type">
-            <Select value={benchmark.type} onChange={() => {}} options={['pgbench']} />
-          </Field>
-          <Field label="Connection Type" tooltip="sgdbops.spec.benchmark.connectionType">
-            <Select value={benchmark.connectionType}
-              onChange={(connectionType) => setBenchmark({ ...benchmark, connectionType })}
-              options={[
-                { value: 'primary-service', label: 'Connect to the Primary Service' },
-                { value: 'replicas-service', label: 'Connect to the Replicas Service' },
-              ]} />
-          </Field>
-          <Field label="Database Size" required error={form.errors.databaseSize} tooltip="sgdbops.spec.benchmark.pgbench.databaseSize">
-            <div className="flex gap-2">
-              <TextInput type="number" min="1" value={benchmark.pgbench.databaseSize.size} required
-                onChange={(size) =>
-                  setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, databaseSize: { ...benchmark.pgbench.databaseSize, size } } })} />
-              <Select value={benchmark.pgbench.databaseSize.unit}
-                onChange={(unit) =>
-                  setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, databaseSize: { ...benchmark.pgbench.databaseSize, unit } } })}
-                options={['Mi', 'Gi', 'Ti']} />
-            </div>
-          </Field>
-          <Toggle label="Prepared Statements" checked={benchmark.pgbench.usePreparedStatements}
-            onChange={(usePreparedStatements) =>
-              setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, usePreparedStatements } })}
-            tooltip="sgdbops.spec.benchmark.pgbench.usePreparedStatements" />
-          <Field label="Concurrent Clients" tooltip="sgdbops.spec.benchmark.pgbench.concurrentClients">
-            <TextInput type="number" min="1" value={benchmark.pgbench.concurrentClients}
-              onChange={(concurrentClients) =>
-                setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, concurrentClients } })} />
-          </Field>
-          <Field label="Threads" tooltip="sgdbops.spec.benchmark.pgbench.threads">
-            <TextInput type="number" min="1" value={benchmark.pgbench.threads}
-              onChange={(threads) => setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, threads } })} />
-          </Field>
-          <DurationSelects label="Duration" tooltip="sgdbops.spec.benchmark.pgbench.duration" value={benchmark.pgbench.duration}
-            onChange={(duration) => setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, duration } })} />
-          <p role="note">
+        <FieldGroup title="Benchmark Details">
+          <FieldRow>
+            <Field label="Type" tooltip="sgdbops.spec.benchmark.type">
+              <Select value={benchmark.type} onChange={() => {}} options={['pgbench']} />
+            </Field>
+            <Field label="Connection Type" tooltip="sgdbops.spec.benchmark.connectionType">
+              <Select value={benchmark.connectionType}
+                onChange={(connectionType) => setBenchmark({ ...benchmark, connectionType })}
+                options={[
+                  { value: 'primary-service', label: 'Connect to the Primary Service' },
+                  { value: 'replicas-service', label: 'Connect to the Replicas Service' },
+                ]} />
+            </Field>
+          </FieldRow>
+          <FieldRow>
+            <Field label="Database Size" required error={form.errors.databaseSize} tooltip="sgdbops.spec.benchmark.pgbench.databaseSize">
+              <div className="flex gap-2">
+                <TextInput type="number" min="1" value={benchmark.pgbench.databaseSize.size} required
+                  onChange={(size) =>
+                    setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, databaseSize: { ...benchmark.pgbench.databaseSize, size } } })} />
+                <Select value={benchmark.pgbench.databaseSize.unit}
+                  onChange={(unit) =>
+                    setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, databaseSize: { ...benchmark.pgbench.databaseSize, unit } } })}
+                  options={['Mi', 'Gi', 'Ti']} />
+              </div>
+            </Field>
+            <Toggle label="Prepared Statements" checked={benchmark.pgbench.usePreparedStatements}
+              onChange={(usePreparedStatements) =>
+                setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, usePreparedStatements } })}
+              tooltip="sgdbops.spec.benchmark.pgbench.usePreparedStatements" />
+            <Field label="Concurrent Clients" tooltip="sgdbops.spec.benchmark.pgbench.concurrentClients">
+              <TextInput type="number" min="1" value={benchmark.pgbench.concurrentClients}
+                onChange={(concurrentClients) =>
+                  setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, concurrentClients } })} />
+            </Field>
+            <Field label="Threads" tooltip="sgdbops.spec.benchmark.pgbench.threads">
+              <TextInput type="number" min="1" value={benchmark.pgbench.threads}
+                onChange={(threads) => setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, threads } })} />
+            </Field>
+            <DurationSelects label="Duration" tooltip="sgdbops.spec.benchmark.pgbench.duration" value={benchmark.pgbench.duration}
+              onChange={(duration) => setBenchmark({ ...benchmark, pgbench: { ...benchmark.pgbench, duration } })} />
+          </FieldRow>
+          <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">
             The pgbench Benchmark Duration does not include database preparation that, depending on
             the selected size and environment, may take from some seconds to hours.
           </p>
-        </fieldset>
+        </FieldGroup>
       )}
     </CrdFormShell>
   )

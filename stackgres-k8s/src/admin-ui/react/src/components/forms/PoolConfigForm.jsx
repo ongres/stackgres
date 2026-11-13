@@ -7,7 +7,7 @@ import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildPoolConfig } from '../../lib/payloads'
 import { nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
-import { DefaultParametersTable, Field, TextArea, TextInput } from './fields'
+import { DefaultParametersTable, Field, FieldGroup, FieldRow, TextArea, TextInput } from './fields'
 
 function nonDefaultParams(status) {
   const defaults = status?.pgBouncer?.defaultParameters || {}
@@ -77,7 +77,7 @@ export default function PoolConfigForm({ isEdit }) {
   })
 
   if (isEdit && !loaded) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   return (
@@ -90,25 +90,29 @@ export default function PoolConfigForm({ isEdit }) {
       form={form}
     >
       {isEdit && clusters.length > 0 && (
-        <p role="note" className="border p-2 text-sm">
+        <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">
           Please, be aware that some changes made to this configuration might require a{' '}
           <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank" rel="noreferrer"
-            className="underline">
+            className="text-[hsl(var(--primary))] hover:underline">
             restart operation
           </a>{' '}
           on every instance on the following cluster(s):{' '}
           {clusters.map((cluster) => cluster.metadata.name).join(', ')}
         </p>
       )}
-      <Field label="Configuration Name" required error={form.errors.name} tooltip="sgpoolingconfig.metadata.name">
-        <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
-      </Field>
-      {nameCollision && (
-        <p role="alert">
-          There&apos;s already a <strong>SGPoolingConfig</strong> with the same name on this
-          namespace. Please specify a different name or create the configuration on another namespace
-        </p>
-      )}
+      <FieldGroup>
+        <FieldRow>
+          <Field label="Configuration Name" required error={form.errors.name} tooltip="sgpoolingconfig.metadata.name">
+            <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
+          </Field>
+        </FieldRow>
+        {nameCollision && (
+          <p role="alert" className="text-sm text-red-500">
+            There&apos;s already a <strong>SGPoolingConfig</strong> with the same name on this
+            namespace. Please specify a different name or create the configuration on another namespace
+          </p>
+        )}
+      </FieldGroup>
       <Field label="PgBouncer Parameters" help="One parameter per line: parameter=value" tooltip="sgpoolingconfig.spec.pgBouncer.pgbouncer.ini">
         <TextArea value={params} onChange={setParams} placeholder={'parameter = value'} rows={12} />
       </Field>

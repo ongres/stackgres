@@ -8,7 +8,7 @@ import { buildScript } from '../../lib/payloads'
 import { nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
 import { HelpTooltip } from '../HelpTooltip'
-import { Field, Select, TextArea, TextInput, Toggle, renderTooltip } from './fields'
+import { Field, FieldGroup, FieldRow, Select, TextArea, TextInput, Toggle, renderTooltip } from './fields'
 
 const SOURCES = [
   { value: 'raw', label: 'Raw script' },
@@ -115,7 +115,7 @@ export default function ScriptForm({ isEdit }) {
   })
 
   if (isEdit && !loaded) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   const nameCollision =
@@ -134,59 +134,68 @@ export default function ScriptForm({ isEdit }) {
   return (
     <CrdFormShell title={isEdit ? `Edit Script: ${routeName}` : 'Create Script'} form={form}>
       {isEdit && usedByClusters.length > 0 && (
-        <p role="note" className="border p-2 text-sm">
+        <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">
           Please, be aware that some changes made to this script might affect every instance on the
           following cluster(s): {usedByClusters.join(', ')}
         </p>
       )}
-      <Field label="Script Name" required error={form.errors.name} tooltip="sgscript.metadata.name">
-        <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
-      </Field>
-      {nameCollision && (
-        <p role="alert">
-          There&apos;s already an <strong>SGScript</strong> with the same name on this namespace.
-          Please specify a different name or create the resource on another namespace
-        </p>
-      )}
-      <h3 className="font-semibold">Scripts{renderTooltip('sgscript.spec.scripts')}</h3>
-      <Toggle label="Continue on Error" checked={continueOnError} onChange={setContinueOnError}
-        tooltip={
-          <HelpTooltip field="sgscript.spec.continueOnError"
-            transform={(t) => t.replace(/true/g, 'Enabled').replace('false', 'Disabled')} />
-        } />
-      <Toggle label="Managed Versions" checked={managedVersions} onChange={setManagedVersions}
-        tooltip={
-          <HelpTooltip field="sgscript.spec.managedVersions"
-            transform={(t) => t.replace(/true/g, 'Enabled')} />
-        } />
+      <FieldGroup>
+        <FieldRow>
+          <Field label="Script Name" required error={form.errors.name} tooltip="sgscript.metadata.name">
+            <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
+          </Field>
+        </FieldRow>
+        {nameCollision && (
+          <p role="alert" className="text-sm text-red-500">
+            There&apos;s already an <strong>SGScript</strong> with the same name on this namespace.
+            Please specify a different name or create the resource on another namespace
+          </p>
+        )}
+      </FieldGroup>
+      <FieldGroup title={<>Scripts{renderTooltip('sgscript.spec.scripts')}</>}>
+        <FieldRow>
+          <Toggle label="Continue on Error" checked={continueOnError} onChange={setContinueOnError}
+            tooltip={
+              <HelpTooltip field="sgscript.spec.continueOnError"
+                transform={(t) => t.replace(/true/g, 'Enabled').replace('false', 'Disabled')} />
+            } />
+          <Toggle label="Managed Versions" checked={managedVersions} onChange={setManagedVersions}
+            tooltip={
+              <HelpTooltip field="sgscript.spec.managedVersions"
+                transform={(t) => t.replace(/true/g, 'Enabled')} />
+            } />
+        </FieldRow>
+      </FieldGroup>
       {form.errors.scripts && (
-        <p role="alert" className="text-sm" data-invalid>
+        <p role="alert" className="text-sm text-red-500" data-invalid>
           {form.errors.scripts}
         </p>
       )}
       {scripts.map((entry, index) => (
-        <fieldset key={index} className="flex flex-col gap-3 border p-3">
-          <legend className="px-1 font-semibold">
+        <fieldset key={index} className="flex flex-col gap-3 rounded-lg border p-4">
+          <legend className="px-2 text-sm font-medium">
             Script Entry #{index + 1}
             {entry.name ? ` – ${entry.name}` : ''}
           </legend>
           <div className="flex gap-2">
-            <button type="button" className="text-sm underline" disabled={index === 0}
+            <button type="button" className="text-sm text-[hsl(var(--primary))] hover:underline" disabled={index === 0}
               onClick={() => moveEntry(index, -1)}>
               Move Up
             </button>
-            <button type="button" className="text-sm underline" disabled={index === scripts.length - 1}
+            <button type="button" className="text-sm text-[hsl(var(--primary))] hover:underline" disabled={index === scripts.length - 1}
               onClick={() => moveEntry(index, 1)}>
               Move Down
             </button>
           </div>
           {isEdit && Object.hasOwn(entry, 'version') && (
-            <Field label="Version" tooltip="sgscript.spec.scripts.version">
-              <TextInput type="number" value={entry.version}
-                onChange={(value) => updateEntry(index, { version: value === '' ? '' : Number(value) })} />
-            </Field>
+            <FieldRow>
+              <Field label="Version" tooltip="sgscript.spec.scripts.version">
+                <TextInput type="number" value={entry.version}
+                  onChange={(value) => updateEntry(index, { version: value === '' ? '' : Number(value) })} />
+              </Field>
+            </FieldRow>
           )}
-          <div className="flex flex-wrap gap-3">
+          <FieldRow>
             <Field label="Name" tooltip="sgscript.spec.scripts.name">
               <TextInput value={entry.name} placeholder="Type a name..." onChange={(value) => updateEntry(index, { name: value })} />
             </Field>
@@ -203,15 +212,13 @@ export default function ScriptForm({ isEdit }) {
                 options={TRANSACTION_MODES}
               />
             </Field>
-          </div>
-          <div className="flex flex-wrap gap-4">
             <Toggle label="Store Status in Databases" checked={entry.storeStatusInDatabase}
               onChange={(value) => updateEntry(index, { storeStatusInDatabase: value })}
               tooltip="sgscript.spec.scripts.storeStatusInDatabase" />
             <Toggle label="Retry on Error" checked={entry.retryOnError}
               onChange={(value) => updateEntry(index, { retryOnError: value })}
               tooltip="sgscript.spec.scripts.retryOnError" />
-          </div>
+          </FieldRow>
           <Field label="Script Source" required
             tooltip={
               <HelpTooltip text={'Determine the source from which the script should be loaded. Possible values are: \n* Raw Script \n* From Secret \n* From ConfigMap.'} />
@@ -224,12 +231,15 @@ export default function ScriptForm({ isEdit }) {
               <input type="file" onChange={uploadScript(index)} aria-label={`Upload script file for entry ${index + 1}`} />
             </Field>
           ) : (
-            <div className="flex flex-col gap-2">
-            <h3 className="font-semibold">
-              {scriptSource[index] === 'secretKeyRef' ? 'Secret Key Ref' : 'Config Map Key Ref'}
-              {renderTooltip('sgscript.spec.scripts.scriptFrom.properties.' + scriptSource[index])}
-            </h3>
-            <div className="flex flex-wrap gap-3">
+            <FieldGroup
+              title={
+                <>
+                  {scriptSource[index] === 'secretKeyRef' ? 'Secret Key Ref' : 'Config Map Key Ref'}
+                  {renderTooltip('sgscript.spec.scripts.scriptFrom.properties.' + scriptSource[index])}
+                </>
+              }
+            >
+            <FieldRow>
               <Field label="Name" required
                 tooltip={'sgscript.spec.scripts.scriptFrom.properties.' + scriptSource[index] + '.properties.name'}>
                 <TextInput
@@ -260,7 +270,7 @@ export default function ScriptForm({ isEdit }) {
                   required
                 />
               </Field>
-            </div>
+            </FieldRow>
             {isEdit && entry.scriptFrom?.configMapScript !== undefined && (
               <Field label="ConfigMap Script">
                 <TextArea value={entry.scriptFrom.configMapScript || ''} rows={8}
@@ -270,7 +280,7 @@ export default function ScriptForm({ isEdit }) {
                     })} />
               </Field>
             )}
-            </div>
+            </FieldGroup>
           )}
           <button
             type="button"
@@ -278,7 +288,7 @@ export default function ScriptForm({ isEdit }) {
               setScripts(scripts.filter((_, i) => i !== index))
               setScriptSource(scriptSource.filter((_, i) => i !== index))
             }}
-            className="flex items-center gap-1 self-start text-sm underline"
+            className="flex items-center gap-1 self-start text-sm text-red-500 hover:underline"
           >
             <Trash2 size={14} /> Delete Entry
           </button>
@@ -290,7 +300,7 @@ export default function ScriptForm({ isEdit }) {
           setScripts([...scripts, blankEntry()])
           setScriptSource([...scriptSource, 'raw'])
         }}
-        className="flex items-center gap-1 self-start text-sm underline"
+        className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
       >
         <Plus size={14} /> Add Entry
       </button>

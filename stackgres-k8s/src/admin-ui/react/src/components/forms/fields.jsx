@@ -16,15 +16,15 @@ export function renderTooltip(tooltip) {
 export function Field({ label, required, error, children, help, tooltip }) {
   return (
     <label className="flex flex-col gap-1 text-sm">
-      <span>
+      <span className="text-[hsl(var(--muted-foreground))]">
         {label}
         {required && <span aria-hidden="true"> *</span>}
         {renderTooltip(tooltip)}
       </span>
       {children}
-      {help && <span className="text-xs">{help}</span>}
+      {help && <span className="text-xs text-[hsl(var(--muted-foreground))]">{help}</span>}
       {error && (
-        <span role="alert" className="text-xs" data-invalid>
+        <span role="alert" className="text-xs text-red-500" data-invalid>
           {error}
         </span>
       )}
@@ -37,7 +37,7 @@ export function TextInput({ value, onChange, error, ...rest }) {
     <input
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className={cn('border p-2', error && 'border-2')}
+      className={cn('border p-2 rounded bg-[hsl(var(--input-background))]', error && 'border-red-500')}
       aria-invalid={error ? 'true' : undefined}
       {...rest}
     />
@@ -50,7 +50,7 @@ export function TextArea({ value, onChange, rows = 6, ...rest }) {
       value={value}
       onChange={(event) => onChange(event.target.value)}
       rows={rows}
-      className="border p-2 font-mono"
+      className="border p-2 rounded bg-[hsl(var(--input-background))] font-mono"
       {...rest}
     />
   )
@@ -61,7 +61,7 @@ export function Select({ value, onChange, options, placeholder, ...rest }) {
     <select
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="border p-2"
+      className="border p-2 rounded bg-[hsl(var(--input-background))]"
       {...rest}
     >
       {placeholder && <option value="">{placeholder}</option>}
@@ -104,7 +104,7 @@ export function DefaultParametersTable({ intro, defaults, resolved, loading }) {
   }
   return (
     <section className="flex flex-col gap-2">
-      <h2 className="text-lg font-semibold">Default Parameters</h2>
+      <h2 className="text-sm font-semibold">Default Parameters</h2>
       <p>{intro}</p>
       {loading ? (
         <p>Loading default parameters…</p>
@@ -116,7 +116,7 @@ export function DefaultParametersTable({ intro, defaults, resolved, loading }) {
                 <td className="pr-4 font-mono">
                   {parameter.documentationLink ? (
                     <a href={parameter.documentationLink} target="_blank" rel="noreferrer"
-                      className="underline"
+                      className="text-[hsl(var(--primary))] hover:underline"
                       title={`Read documentation about ${parameter.parameter}`}>
                       {parameter.parameter}
                     </a>
@@ -134,6 +134,21 @@ export function DefaultParametersTable({ intro, defaults, resolved, loading }) {
   )
 }
 
+// Vue's deliberate two-column field layout: each group is an optional small
+// heading plus 50/50 rows, separated from the next group by a rule.
+export function FieldGroup({ title, children }) {
+  return (
+    <div className="flex flex-col gap-3 border-b pb-4">
+      {title && <h3 className="text-sm font-semibold">{title}</h3>}
+      {children}
+    </div>
+  )
+}
+
+export function FieldRow({ children }) {
+  return <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{children}</div>
+}
+
 export function FormActions({ onSubmit, onCancel, submitting, submitLabel }) {
   return (
     <div className="flex gap-3">
@@ -141,11 +156,12 @@ export function FormActions({ onSubmit, onCancel, submitting, submitLabel }) {
         type="submit"
         disabled={submitting}
         onClick={onSubmit}
-        className="border p-2 font-semibold"
+        className="px-4 py-2 bg-[hsl(var(--primary))] text-white rounded text-sm font-medium hover:bg-[hsl(var(--primary)/0.85)]"
       >
         {submitLabel}
       </button>
-      <button type="button" onClick={onCancel} className="border p-2">
+      <button type="button" onClick={onCancel}
+        className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]">
         Cancel
       </button>
     </div>

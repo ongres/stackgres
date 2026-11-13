@@ -19,7 +19,6 @@ import {
   hydrateSGShardedCluster,
   initialSGShardedClusterState,
 } from '../../lib/sgshardedcluster'
-import SpecTree from '../SpecTree'
 import {
   ContainersEditor,
   CustomPortsEditor,
@@ -30,7 +29,8 @@ import {
   NodeAffinityTerms,
   TolerationsEditor,
 } from './clusterEditors'
-import { Field, renderTooltip, Select, TextInput, Toggle } from './fields'
+import SummaryDialog from './SummaryDialog'
+import { Field, FieldGroup, FieldRow, renderTooltip, Select, TextInput, Toggle } from './fields'
 import { HelpTooltip } from '../HelpTooltip'
 
 const deep = (value) => JSON.parse(JSON.stringify(value))
@@ -121,8 +121,8 @@ const REPLICATION_MODES = ['async', 'sync', 'strict-sync', 'sync-all', 'strict-s
 function StepHeader({ title, intro, tooltip }) {
   return (
     <header className="flex flex-col gap-1 border-b pb-2">
-      <h2 className="text-lg font-semibold">{title}{renderTooltip(tooltip)}</h2>
-      {intro && <p>{intro}</p>}
+      <h2 className="text-sm font-semibold">{title}{renderTooltip(tooltip)}</h2>
+      {intro && <p className="text-[hsl(var(--muted-foreground))]">{intro}</p>}
     </header>
   )
 }
@@ -132,7 +132,7 @@ function StepHeader({ title, intro, tooltip }) {
 // syncInstances key like the Vue @change handler did.
 function ReplicationFields({ replication, maxSyncInstances, onChange, tooltipPrefix }) {
   return (
-    <div className="flex flex-wrap gap-3">
+    <FieldRow>
       <Field label="Mode" required tooltip={tooltipPrefix ? `${tooltipPrefix}.mode` : undefined}>
         <Select required value={replication.mode} options={REPLICATION_MODES}
           onChange={(mode) => {
@@ -156,7 +156,7 @@ function ReplicationFields({ replication, maxSyncInstances, onChange, tooltipPre
               onChange({ ...replication, syncInstances: value === '' ? '' : Number(value) })} />
         </Field>
       )}
-    </div>
+    </FieldRow>
   )
 }
 
@@ -203,7 +203,7 @@ function SectionScheduling({ scheduling, onChange, isEdit, tooltipPrefix }) {
   return (
     <div className="flex flex-col gap-3">
       {isEdit && (
-        <p role="note">Changing scheduling settings on a running cluster may trigger pod restarts.</p>
+        <p role="note" className="flex items-center gap-3 border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">Changing scheduling settings on a running cluster may trigger pod restarts.</p>
       )}
       <KeyValueRows legend="Node Selectors" keyName="label" rows={scheduling.nodeSelector}
         tooltip={`${tooltipPrefix}.nodeSelector`}
@@ -331,7 +331,7 @@ export default function SGShardedClusterForm({ isEdit = false }) {
   }, [flavor, postgresVersion, state === null])
 
   if (isEdit && state === null) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   const patch = (updater) =>
@@ -538,133 +538,158 @@ export default function SGShardedClusterForm({ isEdit = false }) {
   // --- step renderers ----------------------------------------------------------
 
   const generalClusterStep = (
-    <div className="flex flex-col gap-3">
-      <Field label="Sharded Cluster Name" required tooltip="sgshardedcluster.metadata.name">
-        <TextInput required disabled={isEdit} value={state.name}
-          onChange={(value) => patch((draft) => { draft.name = value })} />
-      </Field>
-      {nameCollision && (
-        <p role="alert">
-          A sharded cluster named &quot;{state.name}&quot; already exists in this namespace
-        </p>
-      )}
-      <Field label="Profile" tooltip="sgshardedcluster.spec.profile">
-        <Select value={state.profile} options={['production', 'testing', 'development']}
-          onChange={(value) => patch((draft) => { draft.profile = value })} />
-      </Field>
-      {state.profile !== 'production' && (
-        <div role="note">
-          <p>By choosing this Profile, the following defaults are overwritten:</p>
-          <ul className="list-disc pl-6">
-            <li>Cluster Pod Anti Affinity is set to Disable.</li>
-            {state.profile === 'development' && (
-              <>
-                <li>Patroni Resource Requirements is set to Disable.</li>
-                <li>Cluster Resource Requirements is set to Disable.</li>
-              </>
-            )}
-          </ul>
-        </div>
-      )}
-      <h3 className="font-semibold">Sharding</h3>
-      <Field label="Database" required tooltip="sgshardedcluster.spec.database">
-        <TextInput required disabled={isEdit} value={state.database}
-          onChange={(value) => patch((draft) => { draft.database = value })} />
-      </Field>
-      <Field label="Type" required tooltip="sgshardedcluster.spec.type">
-        <Select required disabled value={state.shardingType} options={['citus']}
-          placeholder="Choose one…" onChange={() => {}} />
-      </Field>
-      <h3 className="font-semibold">Postgres</h3>
-      <Field label="Postgres Version" required tooltip="sgshardedcluster.spec.postgres.version">
-        <select required className="border p-2" value={postgresVersion} aria-label="Postgres Version"
-          onChange={(event) => patch((draft) => { draft.postgresVersion = event.target.value })}>
-          <option value="latest">Latest</option>
-          {majors.map((major) => (
-            <optgroup key={major} label={`Postgres ${major}`}>
-              {versionsList[flavor][major].map((version) => (
-                <option key={version} value={version}>
-                  {version}
-                </option>
+    <div className="flex flex-col gap-4">
+      <FieldGroup>
+        <FieldRow>
+          <Field label="Sharded Cluster Name" required tooltip="sgshardedcluster.metadata.name">
+            <TextInput required disabled={isEdit} value={state.name}
+              onChange={(value) => patch((draft) => { draft.name = value })} />
+          </Field>
+          <Field label="Profile" tooltip="sgshardedcluster.spec.profile">
+            <Select value={state.profile} options={['production', 'testing', 'development']}
+              onChange={(value) => patch((draft) => { draft.profile = value })} />
+          </Field>
+        </FieldRow>
+        {nameCollision && (
+          <p role="alert" className="text-sm text-red-500">
+            A sharded cluster named &quot;{state.name}&quot; already exists in this namespace
+          </p>
+        )}
+        {state.profile !== 'production' && (
+          <div role="note" className="border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded px-3 py-2 text-sm">
+            <p>By choosing this Profile, the following defaults are overwritten:</p>
+            <ul className="list-disc pl-6">
+              <li>Cluster Pod Anti Affinity is set to Disable.</li>
+              {state.profile === 'development' && (
+                <>
+                  <li>Patroni Resource Requirements is set to Disable.</li>
+                  <li>Cluster Resource Requirements is set to Disable.</li>
+                </>
+              )}
+            </ul>
+          </div>
+        )}
+      </FieldGroup>
+      <FieldGroup title="Sharding">
+        <FieldRow>
+          <Field label="Database" required tooltip="sgshardedcluster.spec.database">
+            <TextInput required disabled={isEdit} value={state.database}
+              onChange={(value) => patch((draft) => { draft.database = value })} />
+          </Field>
+          <Field label="Type" required tooltip="sgshardedcluster.spec.type">
+            <Select required disabled value={state.shardingType} options={['citus']}
+              placeholder="Choose one…" onChange={() => {}} />
+          </Field>
+        </FieldRow>
+      </FieldGroup>
+      <FieldGroup title="Postgres">
+        <FieldRow>
+          <Field label="Postgres Version" required tooltip="sgshardedcluster.spec.postgres.version">
+            <select required className="border p-2 rounded bg-[hsl(var(--input-background))]" value={postgresVersion} aria-label="Postgres Version"
+              onChange={(event) => patch((draft) => { draft.postgresVersion = event.target.value })}>
+              <option value="latest">Latest</option>
+              {majors.map((major) => (
+                <optgroup key={major} label={`Postgres ${major}`}>
+                  {versionsList[flavor][major].map((version) => (
+                    <option key={version} value={version}>
+                      {version}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
-            </optgroup>
-          ))}
-        </select>
-      </Field>
-      <h3 className="font-semibold">SSL Connections</h3>
-      <Toggle label="SSL Connections" checked={state.ssl.enabled}
-        tooltip="sgshardedcluster.spec.postgres.ssl.enabled"
-        onChange={(value) => patch((draft) => { draft.ssl.enabled = value })} />
-      {state.ssl.enabled && (
-        <div className="flex flex-wrap gap-2">
-          <Field label="Certificate Secret Name"
-            tooltip="sgshardedcluster.spec.postgres.ssl.certificateSecretKeySelector.name">
-            <TextInput value={state.ssl.certificateSecretKeySelector.name}
-              onChange={(value) =>
-                patch((draft) => { draft.ssl.certificateSecretKeySelector.name = value })} />
+            </select>
           </Field>
-          <Field label="Certificate Secret Key"
-            tooltip="sgshardedcluster.spec.postgres.ssl.certificateSecretKeySelector.key">
-            <TextInput value={state.ssl.certificateSecretKeySelector.key}
-              onChange={(value) =>
-                patch((draft) => { draft.ssl.certificateSecretKeySelector.key = value })} />
+        </FieldRow>
+      </FieldGroup>
+      <FieldGroup title="SSL Connections">
+        <Toggle label="SSL Connections" checked={state.ssl.enabled}
+          tooltip="sgshardedcluster.spec.postgres.ssl.enabled"
+          onChange={(value) => patch((draft) => { draft.ssl.enabled = value })} />
+        {state.ssl.enabled && (
+          <>
+            <FieldRow>
+              <Field label="Certificate Secret Name"
+                tooltip="sgshardedcluster.spec.postgres.ssl.certificateSecretKeySelector.name">
+                <TextInput value={state.ssl.certificateSecretKeySelector.name}
+                  onChange={(value) =>
+                    patch((draft) => { draft.ssl.certificateSecretKeySelector.name = value })} />
+              </Field>
+              <Field label="Certificate Secret Key"
+                tooltip="sgshardedcluster.spec.postgres.ssl.certificateSecretKeySelector.key">
+                <TextInput value={state.ssl.certificateSecretKeySelector.key}
+                  onChange={(value) =>
+                    patch((draft) => { draft.ssl.certificateSecretKeySelector.key = value })} />
+              </Field>
+            </FieldRow>
+            <FieldRow>
+              <Field label="Private Key Secret Name"
+                tooltip="sgshardedcluster.spec.postgres.ssl.privateKeySecretKeySelector.name">
+                <TextInput value={state.ssl.privateKeySecretKeySelector.name}
+                  onChange={(value) =>
+                    patch((draft) => { draft.ssl.privateKeySecretKeySelector.name = value })} />
+              </Field>
+              <Field label="Private Key Secret Key"
+                tooltip="sgshardedcluster.spec.postgres.ssl.privateKeySecretKeySelector.key">
+                <TextInput value={state.ssl.privateKeySecretKeySelector.key}
+                  onChange={(value) =>
+                    patch((draft) => { draft.ssl.privateKeySecretKeySelector.key = value })} />
+              </Field>
+            </FieldRow>
+          </>
+        )}
+      </FieldGroup>
+      <FieldGroup title="Monitoring">
+        <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={toggleMonitoring}
+          tooltip={
+            <HelpTooltip text="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack." />
+          } />
+      </FieldGroup>
+      <FieldGroup title={<>Distributed Logs{renderTooltip('sgcluster.spec.distributedLogs')}</>}>
+        <FieldRow>
+          <Field label="Logs Cluster" tooltip="sgcluster.spec.distributedLogs.sgDistributedLogs">
+            <Select value={state.distributedLogs}
+              options={[{ value: '', label: 'Select Logs Cluster' }, ...logsClusterOptions]}
+              onChange={(value) => patch((draft) => { draft.distributedLogs = value })} />
           </Field>
-          <Field label="Private Key Secret Name"
-            tooltip="sgshardedcluster.spec.postgres.ssl.privateKeySecretKeySelector.name">
-            <TextInput value={state.ssl.privateKeySecretKeySelector.name}
-              onChange={(value) =>
-                patch((draft) => { draft.ssl.privateKeySecretKeySelector.name = value })} />
-          </Field>
-          <Field label="Private Key Secret Key"
-            tooltip="sgshardedcluster.spec.postgres.ssl.privateKeySecretKeySelector.key">
-            <TextInput value={state.ssl.privateKeySecretKeySelector.key}
-              onChange={(value) =>
-                patch((draft) => { draft.ssl.privateKeySecretKeySelector.key = value })} />
-          </Field>
-        </div>
-      )}
-      <h3 className="font-semibold">Monitoring</h3>
-      <Toggle label="Monitoring" checked={state.enableMonitoring} onChange={toggleMonitoring}
-        tooltip={
-          <HelpTooltip text="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack." />
-        } />
-      <h3 className="font-semibold">Distributed Logs{renderTooltip('sgcluster.spec.distributedLogs')}</h3>
-      <Field label="Logs Cluster" tooltip="sgcluster.spec.distributedLogs.sgDistributedLogs">
-        <Select value={state.distributedLogs}
-          options={[{ value: '', label: 'Select Logs Cluster' }, ...logsClusterOptions]}
-          onChange={(value) => patch((draft) => { draft.distributedLogs = value })} />
-      </Field>
-      {Boolean(state.distributedLogs.length) && (
-        <Field label="Retention" tooltip="sgcluster.spec.distributedLogs.retention">
-          <TextInput value={state.retention}
-            onChange={(value) => patch((draft) => { draft.retention = value })} />
-        </Field>
-      )}
+          {Boolean(state.distributedLogs.length) && (
+            <Field label="Retention" tooltip="sgcluster.spec.distributedLogs.retention">
+              <TextInput value={state.retention}
+                onChange={(value) => patch((draft) => { draft.retention = value })} />
+            </Field>
+          )}
+        </FieldRow>
+      </FieldGroup>
     </div>
   )
 
   const generalBackupsStep = (
-    <div className="flex flex-col gap-3">
-      <Toggle label="Managed Backups" checked={state.managedBackups}
-        tooltip={
-          <HelpTooltip text="If enabled, allows specifying backup configurations to automate periodical backups" />
-        }
-        onChange={(value) => patch((draft) => { draft.managedBackups = value })} />
+    <div className="flex flex-col gap-4">
+      <FieldGroup>
+        <FieldRow>
+          <Toggle label="Managed Backups" checked={state.managedBackups}
+            tooltip={
+              <HelpTooltip text="If enabled, allows specifying backup configurations to automate periodical backups" />
+            }
+            onChange={(value) => patch((draft) => { draft.managedBackups = value })} />
+          {state.managedBackups && (
+            <Field label="Object Storage" required
+              tooltip="sgshardedcluster.spec.configurations.backups.sgObjectStorage">
+              <Select required value={state.backups[0].sgObjectStorage}
+                options={[
+                  {
+                    value: '',
+                    label: objectStorageOptions.length ? 'Select Storage' : 'No object storage available',
+                  },
+                  ...objectStorageOptions,
+                ]}
+                onChange={(value) => patch((draft) => { draft.backups[0].sgObjectStorage = value })} />
+            </Field>
+          )}
+        </FieldRow>
+      </FieldGroup>
       {state.managedBackups && (
         <>
-          <Field label="Object Storage" required
-            tooltip="sgshardedcluster.spec.configurations.backups.sgObjectStorage">
-            <Select required value={state.backups[0].sgObjectStorage}
-              options={[
-                {
-                  value: '',
-                  label: objectStorageOptions.length ? 'Select Storage' : 'No object storage available',
-                },
-                ...objectStorageOptions,
-              ]}
-              onChange={(value) => patch((draft) => { draft.backups[0].sgObjectStorage = value })} />
-          </Field>
-          <h4 className="font-semibold">
+          <h4 className="text-sm font-semibold">
             Backup Schedule{renderTooltip('sgshardedcluster.spec.configurations.backups.cronSchedule')}
           </h4>
           <div className="flex flex-wrap gap-2">
@@ -687,115 +712,122 @@ export default function SGShardedClusterForm({ isEdit = false }) {
               ? cronPreview(state.backups[0].cronSchedule, timezone)
               : 'never'}
           </p>
-          <h3 className="font-semibold">Base Backup Details</h3>
-          <div className="flex flex-wrap gap-2">
-            <Field label="Retention Window (max. number of base backups)"
-              tooltip="sgshardedcluster.spec.configurations.backups.retention">
-              <TextInput type="number" value={state.backups[0].retention}
-                onChange={(value) =>
-                  patch((draft) => { draft.backups[0].retention = value === '' ? '' : Number(value) })} />
-            </Field>
-            <Field label="Compression Method"
-              tooltip="sgshardedcluster.spec.configurations.backups.compression">
-              <Select value={state.backups[0].compression} placeholder="Select a method"
-                options={[
-                  { value: 'lz4', label: 'LZ4' },
-                  { value: 'lzma', label: 'LZMA' },
-                  { value: 'brotli', label: 'Brotli' },
-                ]}
-                onChange={(value) => patch((draft) => { draft.backups[0].compression = value })} />
-            </Field>
-          </div>
-          <h3 className="font-semibold">Performance Details</h3>
-          <div className="flex flex-wrap gap-2">
-            <Field label="Max Network Bandwidth"
-              tooltip="sgshardedcluster.spec.configurations.backups.performance.properties.maxNetworkBandwidth">
-              <TextInput type="number" min="0" value={state.backups[0].performance.maxNetworkBandwidth}
-                onChange={(value) =>
-                  patch((draft) => {
-                    draft.backups[0].performance.maxNetworkBandwidth = value === '' ? '' : Number(value)
-                  })} />
-            </Field>
-            <Field label="Max Disk Bandwidth"
-              tooltip="sgshardedcluster.spec.configurations.backups.performance.properties.maxDiskBandwidth">
-              <TextInput type="number" min="0" value={state.backups[0].performance.maxDiskBandwidth}
-                onChange={(value) =>
-                  patch((draft) => {
-                    draft.backups[0].performance.maxDiskBandwidth = value === '' ? '' : Number(value)
-                  })} />
-            </Field>
-            <Field label="Upload Disk Concurrency"
-              tooltip="sgshardedcluster.spec.configurations.backups.performance.properties.uploadDiskConcurrency">
-              <TextInput type="number" value={state.backups[0].performance.uploadDiskConcurrency}
-                onChange={(value) =>
-                  patch((draft) => {
-                    draft.backups[0].performance.uploadDiskConcurrency = value === '' ? '' : Number(value)
-                  })} />
-            </Field>
-          </div>
-          <h3 className="font-semibold">Snapshot Details</h3>
-          <Toggle label="Use Volume Snapshots" checked={state.backups[0].useVolumeSnapshot}
-            tooltip="sgshardedcluster.spec.configurations.backups.useVolumeSnapshot"
-            onChange={(value) => patch((draft) => { draft.backups[0].useVolumeSnapshot = value })} />
-          {state.backups[0].useVolumeSnapshot && (
-            <div className="flex flex-wrap items-end gap-2">
-              <Field label="Volume Snapshot Class"
-                tooltip="sgshardedcluster.spec.configurations.backups.volumeSnapshotClass">
-                <TextInput value={state.backups[0].volumeSnapshotClass ?? ''}
+          <FieldGroup title="Base Backup Details">
+            <FieldRow>
+              <Field label="Retention Window (max. number of base backups)"
+                tooltip="sgshardedcluster.spec.configurations.backups.retention">
+                <TextInput type="number" value={state.backups[0].retention}
                   onChange={(value) =>
-                    patch((draft) => { draft.backups[0].volumeSnapshotClass = value || null })} />
+                    patch((draft) => { draft.backups[0].retention = value === '' ? '' : Number(value) })} />
               </Field>
-              <Toggle label="Fast Volume Snapshot" checked={state.backups[0].fastVolumeSnapshot}
-                tooltip="sgshardedcluster.spec.configurations.backups.fastVolumeSnapshot"
-                onChange={(value) =>
-                  patch((draft) => { draft.backups[0].fastVolumeSnapshot = value })} />
-            </div>
-          )}
-          <h3 className="font-semibold">Extra Details</h3>
-          <fieldset className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">Paths (leave empty if unsure)</legend>
-            {state.backups[0].paths.map((path, index) => (
-              <div key={index} className="flex items-end gap-2">
-                <Field label={`${index === 0 ? 'Coordinator Path' : `Shard Path #${index}`} (leave empty if unsure)`}
-                  tooltip="sgshardedcluster.spec.configurations.backups.paths">
-                  <TextInput value={path ?? ''}
+              <Field label="Compression Method"
+                tooltip="sgshardedcluster.spec.configurations.backups.compression">
+                <Select value={state.backups[0].compression} placeholder="Select a method"
+                  options={[
+                    { value: 'lz4', label: 'LZ4' },
+                    { value: 'lzma', label: 'LZMA' },
+                    { value: 'brotli', label: 'Brotli' },
+                  ]}
+                  onChange={(value) => patch((draft) => { draft.backups[0].compression = value })} />
+              </Field>
+            </FieldRow>
+          </FieldGroup>
+          <FieldGroup title="Performance Details">
+            <FieldRow>
+              <Field label="Max Network Bandwidth"
+                tooltip="sgshardedcluster.spec.configurations.backups.performance.properties.maxNetworkBandwidth">
+                <TextInput type="number" min="0" value={state.backups[0].performance.maxNetworkBandwidth}
+                  onChange={(value) =>
+                    patch((draft) => {
+                      draft.backups[0].performance.maxNetworkBandwidth = value === '' ? '' : Number(value)
+                    })} />
+              </Field>
+              <Field label="Max Disk Bandwidth"
+                tooltip="sgshardedcluster.spec.configurations.backups.performance.properties.maxDiskBandwidth">
+                <TextInput type="number" min="0" value={state.backups[0].performance.maxDiskBandwidth}
+                  onChange={(value) =>
+                    patch((draft) => {
+                      draft.backups[0].performance.maxDiskBandwidth = value === '' ? '' : Number(value)
+                    })} />
+              </Field>
+              <Field label="Upload Disk Concurrency"
+                tooltip="sgshardedcluster.spec.configurations.backups.performance.properties.uploadDiskConcurrency">
+                <TextInput type="number" value={state.backups[0].performance.uploadDiskConcurrency}
+                  onChange={(value) =>
+                    patch((draft) => {
+                      draft.backups[0].performance.uploadDiskConcurrency = value === '' ? '' : Number(value)
+                    })} />
+              </Field>
+            </FieldRow>
+          </FieldGroup>
+          <FieldGroup title="Snapshot Details">
+            <FieldRow>
+              <Toggle label="Use Volume Snapshots" checked={state.backups[0].useVolumeSnapshot}
+                tooltip="sgshardedcluster.spec.configurations.backups.useVolumeSnapshot"
+                onChange={(value) => patch((draft) => { draft.backups[0].useVolumeSnapshot = value })} />
+              {state.backups[0].useVolumeSnapshot && (
+                <>
+                  <Field label="Volume Snapshot Class"
+                    tooltip="sgshardedcluster.spec.configurations.backups.volumeSnapshotClass">
+                    <TextInput value={state.backups[0].volumeSnapshotClass ?? ''}
+                      onChange={(value) =>
+                        patch((draft) => { draft.backups[0].volumeSnapshotClass = value || null })} />
+                  </Field>
+                  <Toggle label="Fast Volume Snapshot" checked={state.backups[0].fastVolumeSnapshot}
+                    tooltip="sgshardedcluster.spec.configurations.backups.fastVolumeSnapshot"
                     onChange={(value) =>
-                      patch((draft) => { draft.backups[0].paths[index] = value })} />
-                </Field>
-                <button type="button" aria-label={`Delete path ${index + 1}`}
-                  onClick={() => patch((draft) => { draft.backups[0].paths.splice(index, 1) })}>
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
-            <button type="button" className="flex items-center gap-1 self-start text-sm underline"
-              onClick={() => patch((draft) => { draft.backups[0].paths.push(null) })}>
-              <Plus size={14} /> Add Path
-            </button>
-          </fieldset>
+                      patch((draft) => { draft.backups[0].fastVolumeSnapshot = value })} />
+                </>
+              )}
+            </FieldRow>
+          </FieldGroup>
+          <FieldGroup title="Extra Details">
+            <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+              <legend className="px-2 text-sm font-medium">Paths (leave empty if unsure)</legend>
+              {state.backups[0].paths.map((path, index) => (
+                <div key={index} className="flex items-end gap-2">
+                  <Field label={`${index === 0 ? 'Coordinator Path' : `Shard Path #${index}`} (leave empty if unsure)`}
+                    tooltip="sgshardedcluster.spec.configurations.backups.paths">
+                    <TextInput value={path ?? ''}
+                      onChange={(value) =>
+                        patch((draft) => { draft.backups[0].paths[index] = value })} />
+                  </Field>
+                  <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete path ${index + 1}`}
+                    onClick={() => patch((draft) => { draft.backups[0].paths.splice(index, 1) })}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+              <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
+                onClick={() => patch((draft) => { draft.backups[0].paths.push(null) })}>
+                <Plus size={14} /> Add Path
+              </button>
+            </fieldset>
+          </FieldGroup>
         </>
       )}
     </div>
   )
 
   const generalSidecarsStep = (
-    <div className="flex flex-col gap-3">
-      <h3 className="font-semibold">Monitoring</h3>
-      <p>
-        Enable Prometheus metrics scraping via service monitors. Check the{' '}
-        <a href="https://stackgres.io/doc/latest/install/prerequisites/monitoring/" target="_blank"
-          rel="noreferrer" className="underline">
-          Installation -&gt; Monitoring
-        </a>{' '}
-        section for information on how to enable in StackGres Grafana dashboard integration.
-      </p>
-      <Toggle label="Prometheus Autobind" checked={state.prometheusAutobind}
-        tooltip="sgcluster.spec.configurations.observability.prometheusAutobind"
-        onChange={(value) =>
-          patch((draft) => {
-            draft.prometheusAutobind = value
-            checkEnableMonitoring(draft)
-          })} />
+    <div className="flex flex-col gap-4">
+      <FieldGroup title="Monitoring">
+        <p>
+          Enable Prometheus metrics scraping via service monitors. Check the{' '}
+          <a href="https://stackgres.io/doc/latest/install/prerequisites/monitoring/" target="_blank"
+            rel="noreferrer" className="text-[hsl(var(--primary))] hover:underline">
+            Installation -&gt; Monitoring
+          </a>{' '}
+          section for information on how to enable in StackGres Grafana dashboard integration.
+        </p>
+        <Toggle label="Prometheus Autobind" checked={state.prometheusAutobind}
+          tooltip="sgcluster.spec.configurations.observability.prometheusAutobind"
+          onChange={(value) =>
+            patch((draft) => {
+              draft.prometheusAutobind = value
+              checkEnableMonitoring(draft)
+            })} />
+      </FieldGroup>
     </div>
   )
 
@@ -827,7 +859,7 @@ export default function SGShardedClusterForm({ isEdit = false }) {
   const nonProductionValue = (value) => (value === null ? '' : String(value))
   const parseNonProduction = (value) => (value === '' ? null : value === 'true')
   const generalNonProductionStep = (
-    <div className="flex flex-col gap-3">
+    <FieldRow>
       {[
         ['Cluster Pod Anti Affinity', 'clusterPodAntiAffinity', 'disableClusterPodAntiAffinity'],
         ['Patroni Resource Requirements', 'patroniResourceRequirements', 'disablePatroniResourceRequirements'],
@@ -847,7 +879,7 @@ export default function SGShardedClusterForm({ isEdit = false }) {
             onChange={(value) => patch((draft) => { draft[key] = parseNonProduction(value) })} />
         </Field>
       ))}
-    </div>
+    </FieldRow>
   )
 
   const sectionInfoStep = () => {
@@ -855,170 +887,193 @@ export default function SGShardedClusterForm({ isEdit = false }) {
     const workers = currentSection !== 'coordinator'
     const volume = section.pods.persistentVolume
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         {override && (
-          <Field label="Cluster Identifier" required
-            tooltip="sgshardedcluster.spec.workers.overrides.index">
-            <Select required value={section.index === null ? '' : String(section.index)}
-              placeholder="Choose one…"
-              options={Array.from({ length: parseInt(state.workers.clusters, 10) || 0 }, (_, i) => ({
-                value: String(i),
-                label: String(i),
-                disabled: takenOverrideIndexes.includes(i) && section.index !== i,
-              })).map(({ value, label }) => ({ value, label }))}
-              onChange={(value) =>
-                patchSection((target) => { target.index = value === '' ? null : Number(value) })} />
-          </Field>
-        )}
-        {!workers && (
-          <Field label="Number of Instances" required
-            tooltip="sgshardedcluster.spec.coordinator.instances">
-            <TextInput type="number" min="0" required value={section.instances}
-              onChange={(value) =>
-                patchSection((target) => { target.instances = value === '' ? '' : Number(value) })} />
-          </Field>
+          <FieldGroup>
+            <FieldRow>
+              <Field label="Cluster Identifier" required
+                tooltip="sgshardedcluster.spec.workers.overrides.index">
+                <Select required value={section.index === null ? '' : String(section.index)}
+                  placeholder="Choose one…"
+                  options={Array.from({ length: parseInt(state.workers.clusters, 10) || 0 }, (_, i) => ({
+                    value: String(i),
+                    label: String(i),
+                    disabled: takenOverrideIndexes.includes(i) && section.index !== i,
+                  })).map(({ value, label }) => ({ value, label }))}
+                  onChange={(value) =>
+                    patchSection((target) => { target.index = value === '' ? null : Number(value) })} />
+              </Field>
+            </FieldRow>
+          </FieldGroup>
         )}
         {workers && !override && (
-          <>
-            <Field label="Number of Clusters" required
-              tooltip="sgshardedcluster.spec.workers.clusters">
-              <TextInput type="number" min="1" max="16" required value={section.clusters}
-                onChange={(value) =>
-                  patchSection((target) => { target.clusters = value === '' ? '' : Number(value) })} />
-            </Field>
+          <FieldGroup title="Clusters">
+            <FieldRow>
+              <Field label="Number of Clusters" required
+                tooltip="sgshardedcluster.spec.workers.clusters">
+                <TextInput type="number" min="1" max="16" required value={section.clusters}
+                  onChange={(value) =>
+                    patchSection((target) => { target.clusters = value === '' ? '' : Number(value) })} />
+              </Field>
+            </FieldRow>
             {state.workers.clusters < state.workers.overrides.length && (
-              <p role="alert">
+              <p role="alert" className="text-sm text-red-500">
                 There are more shard overrides than clusters; remove the extra overrides in the
                 Overrides section.
               </p>
             )}
-          </>
+          </FieldGroup>
         )}
-        {workers && (
-          <Field label="Number of Instances per Cluster" required={!override}
-            tooltip={`${sectionTooltipPrefix}.instancesPerCluster`}>
-            <TextInput type="number" min="1" max="16" required={!override}
-              value={section.instancesPerCluster ?? ''}
-              onChange={(value) =>
-                patchSection((target) => {
-                  target.instancesPerCluster = value === '' ? (override ? null : '') : Number(value)
-                })} />
-          </Field>
-        )}
-        <Field label="Instance Profile" tooltip={`${sectionTooltipPrefix}.sgInstanceProfile`}>
-          <Select value={section.sgInstanceProfile}
-            options={[
-              { value: '', label: override ? 'Select profile' : 'Default (Cores: 1, RAM: 2GiB)' },
-              ...profileOptions,
-            ]}
-            onChange={(value) => patchSection((target) => { target.sgInstanceProfile = value })} />
-        </Field>
-        <Field label="Postgres Configuration"
-          tooltip={`${sectionTooltipPrefix}.configurations.sgPostgresConfig`}>
-          <Select value={section.configurations.sgPostgresConfig}
-            options={[
-              { value: '', label: override ? 'Select configuration' : 'Default' },
-              ...pgConfigOptions,
-            ]}
-            onChange={(value) =>
-              patchSection((target) => { target.configurations.sgPostgresConfig = value })} />
-        </Field>
-        <div className="flex items-end gap-2">
-          <Field label="Volume Size" required={!override}
-            tooltip={`${sectionTooltipPrefix}.pods.persistentVolume.size`}>
-            <TextInput type="number" min="0" required={!override} value={volume.size.size}
-              onChange={(value) =>
-                patchSection((target) => { target.pods.persistentVolume.size.size = value })} />
-          </Field>
-          <Field label="Volume Unit" required={!override}>
-            <Select required={!override || volume.size.size !== ''} value={volume.size.unit}
-              placeholder={override ? 'Select Unit' : undefined}
-              options={['Mi', 'Gi', 'Ti']}
-              onChange={(value) =>
-                patchSection((target) => { target.pods.persistentVolume.size.unit = value })} />
-          </Field>
-        </div>
-        <Field label="Storage Class"
-          tooltip={`${sectionTooltipPrefix}.pods.persistentVolume.storageClass`}>
-          {storageClasses === null ? (
-            <TextInput value={volume.storageClass}
-              onChange={(value) =>
-                patchSection((target) => { target.pods.persistentVolume.storageClass = value })} />
-          ) : (
-            <Select value={volume.storageClass} disabled={!storageClasses.length}
-              options={[
-                {
-                  value: '',
-                  label: storageClasses.length ? 'Select Storage Class' : 'No storage classes available',
-                },
-                ...storageClasses,
-              ]}
-              onChange={(value) =>
-                patchSection((target) => { target.pods.persistentVolume.storageClass = value })} />
-          )}
-        </Field>
+        <FieldGroup title="Instances">
+          <FieldRow>
+            {!workers && (
+              <Field label="Number of Instances" required
+                tooltip="sgshardedcluster.spec.coordinator.instances">
+                <TextInput type="number" min="0" required value={section.instances}
+                  onChange={(value) =>
+                    patchSection((target) => { target.instances = value === '' ? '' : Number(value) })} />
+              </Field>
+            )}
+            {workers && (
+              <Field label="Number of Instances per Cluster" required={!override}
+                tooltip={`${sectionTooltipPrefix}.instancesPerCluster`}>
+                <TextInput type="number" min="1" max="16" required={!override}
+                  value={section.instancesPerCluster ?? ''}
+                  onChange={(value) =>
+                    patchSection((target) => {
+                      target.instancesPerCluster = value === '' ? (override ? null : '') : Number(value)
+                    })} />
+              </Field>
+            )}
+            <Field label="Instance Profile" tooltip={`${sectionTooltipPrefix}.sgInstanceProfile`}>
+              <Select value={section.sgInstanceProfile}
+                options={[
+                  { value: '', label: override ? 'Select profile' : 'Default (Cores: 1, RAM: 2GiB)' },
+                  ...profileOptions,
+                ]}
+                onChange={(value) => patchSection((target) => { target.sgInstanceProfile = value })} />
+            </Field>
+          </FieldRow>
+        </FieldGroup>
+        <FieldGroup title="Postgres">
+          <FieldRow>
+            <Field label="Postgres Configuration"
+              tooltip={`${sectionTooltipPrefix}.configurations.sgPostgresConfig`}>
+              <Select value={section.configurations.sgPostgresConfig}
+                options={[
+                  { value: '', label: override ? 'Select configuration' : 'Default' },
+                  ...pgConfigOptions,
+                ]}
+                onChange={(value) =>
+                  patchSection((target) => { target.configurations.sgPostgresConfig = value })} />
+            </Field>
+          </FieldRow>
+        </FieldGroup>
+        <FieldGroup title="Pods Storage">
+          <FieldRow>
+            <div className="flex items-end gap-2">
+              <Field label="Volume Size" required={!override}
+                tooltip={`${sectionTooltipPrefix}.pods.persistentVolume.size`}>
+                <TextInput type="number" min="0" required={!override} value={volume.size.size}
+                  onChange={(value) =>
+                    patchSection((target) => { target.pods.persistentVolume.size.size = value })} />
+              </Field>
+              <Field label="Volume Unit" required={!override}>
+                <Select required={!override || volume.size.size !== ''} value={volume.size.unit}
+                  placeholder={override ? 'Select Unit' : undefined}
+                  options={['Mi', 'Gi', 'Ti']}
+                  onChange={(value) =>
+                    patchSection((target) => { target.pods.persistentVolume.size.unit = value })} />
+              </Field>
+            </div>
+            <Field label="Storage Class"
+              tooltip={`${sectionTooltipPrefix}.pods.persistentVolume.storageClass`}>
+              {storageClasses === null ? (
+                <TextInput value={volume.storageClass}
+                  onChange={(value) =>
+                    patchSection((target) => { target.pods.persistentVolume.storageClass = value })} />
+              ) : (
+                <Select value={volume.storageClass} disabled={!storageClasses.length}
+                  options={[
+                    {
+                      value: '',
+                      label: storageClasses.length ? 'Select Storage Class' : 'No storage classes available',
+                    },
+                    ...storageClasses,
+                  ]}
+                  onChange={(value) =>
+                    patchSection((target) => { target.pods.persistentVolume.storageClass = value })} />
+              )}
+            </Field>
+          </FieldRow>
+        </FieldGroup>
       </div>
     )
   }
 
   const sectionSidecarsStep = () => (
-    <div className="flex flex-col gap-3">
-      <h3 className="font-semibold">Connection Pooling</h3>
-      <p>
-        To solve the Postgres connection fan-in problem (handling large number of incoming
-        connections) StackGres includes by default a connection pooler fronting every Postgres
-        instance. It is deployed as a sidecar. You may opt-out as well as tune the connection
-        pooler configuration.
-      </p>
-      <Toggle label="Connection Pooling" checked={!section.pods.disableConnectionPooling}
-        tooltip={`${sectionTooltipPrefix}.configurations.sgPoolingConfig`}
-        onChange={(value) =>
-          patchSection((target) => { target.pods.disableConnectionPooling = !value })} />
-      {!section.pods.disableConnectionPooling && (
-        <Field label="Connection Pooling Configuration"
-          tooltip={`${sectionTooltipPrefix}.configurations.sgPoolingConfig`}>
-          <Select value={section.configurations.sgPoolingConfig}
-            options={[
-              { value: '', label: currentSection === 'overrides' ? 'Select configuration' : 'Default' },
-              ...poolConfigOptions,
-            ]}
+    <div className="flex flex-col gap-4">
+      <FieldGroup title="Connection Pooling">
+        <p>
+          To solve the Postgres connection fan-in problem (handling large number of incoming
+          connections) StackGres includes by default a connection pooler fronting every Postgres
+          instance. It is deployed as a sidecar. You may opt-out as well as tune the connection
+          pooler configuration.
+        </p>
+        <FieldRow>
+          <Toggle label="Connection Pooling" checked={!section.pods.disableConnectionPooling}
+            tooltip={`${sectionTooltipPrefix}.configurations.sgPoolingConfig`}
             onChange={(value) =>
-              patchSection((target) => { target.configurations.sgPoolingConfig = value })} />
-        </Field>
-      )}
-      <h3 className="font-semibold">Postgres Utils</h3>
-      <p>
-        Sidecar container with Postgres administration tools. Optional (on by default; recommended
-        for troubleshooting).
-      </p>
-      <Toggle label="Postgres Utils" checked={!section.pods.disablePostgresUtil}
-        tooltip={
-          <HelpTooltip field={`${sectionTooltipPrefix}.pods.disablePostgresUtil`}
-            transform={(t) => t.replace('If set to `true`', 'If disabled')} />
-        }
-        onChange={(value) =>
-          patchSection((target) => { target.pods.disablePostgresUtil = !value })} />
-      <h3 className="font-semibold">Monitoring</h3>
-      <p>
-        Enable Prometheus metrics scraping via service monitors. Check the{' '}
-        <a href="https://stackgres.io/doc/latest/install/prerequisites/monitoring/" target="_blank"
-          rel="noreferrer" className="underline">
-          Installation -&gt; Monitoring
-        </a>{' '}
-        section for information on how to enable in StackGres Grafana dashboard integration.
-      </p>
-      <Toggle label="Metrics Exporter" checked={!section.pods.disableMetricsExporter}
-        tooltip={
-          <HelpTooltip field={`${sectionTooltipPrefix}.pods.disableMetricsExporter`}
-            transform={(t) =>
-              t.replace('If set to `true`', 'If disabled').replace('Recommended', 'Recommended to be disabled')} />
-        }
-        onChange={(value) =>
-          patchSection((target, draft) => {
-            target.pods.disableMetricsExporter = !value
-            checkEnableMonitoring(draft)
-          })} />
-      <h2 className="text-lg font-semibold">User-Supplied Pods Sidecars</h2>
+              patchSection((target) => { target.pods.disableConnectionPooling = !value })} />
+          {!section.pods.disableConnectionPooling && (
+            <Field label="Connection Pooling Configuration"
+              tooltip={`${sectionTooltipPrefix}.configurations.sgPoolingConfig`}>
+              <Select value={section.configurations.sgPoolingConfig}
+                options={[
+                  { value: '', label: currentSection === 'overrides' ? 'Select configuration' : 'Default' },
+                  ...poolConfigOptions,
+                ]}
+                onChange={(value) =>
+                  patchSection((target) => { target.configurations.sgPoolingConfig = value })} />
+            </Field>
+          )}
+        </FieldRow>
+      </FieldGroup>
+      <FieldGroup title="Postgres Utils">
+        <p>
+          Sidecar container with Postgres administration tools. Optional (on by default; recommended
+          for troubleshooting).
+        </p>
+        <Toggle label="Postgres Utils" checked={!section.pods.disablePostgresUtil}
+          tooltip={
+            <HelpTooltip field={`${sectionTooltipPrefix}.pods.disablePostgresUtil`}
+              transform={(t) => t.replace('If set to `true`', 'If disabled')} />
+          }
+          onChange={(value) =>
+            patchSection((target) => { target.pods.disablePostgresUtil = !value })} />
+      </FieldGroup>
+      <FieldGroup title="Monitoring">
+        <p>
+          Enable Prometheus metrics scraping via service monitors. Check the{' '}
+          <a href="https://stackgres.io/doc/latest/install/prerequisites/monitoring/" target="_blank"
+            rel="noreferrer" className="text-[hsl(var(--primary))] hover:underline">
+            Installation -&gt; Monitoring
+          </a>{' '}
+          section for information on how to enable in StackGres Grafana dashboard integration.
+        </p>
+        <Toggle label="Metrics Exporter" checked={!section.pods.disableMetricsExporter}
+          tooltip={
+            <HelpTooltip field={`${sectionTooltipPrefix}.pods.disableMetricsExporter`}
+              transform={(t) =>
+                t.replace('If set to `true`', 'If disabled').replace('Recommended', 'Recommended to be disabled')} />
+          }
+          onChange={(value) =>
+            patchSection((target, draft) => {
+              target.pods.disableMetricsExporter = !value
+              checkEnableMonitoring(draft)
+            })} />
+      </FieldGroup>
+      <h2 className="text-sm font-semibold">User-Supplied Pods Sidecars</h2>
       <CustomVolumesEditor volumes={section.pods.customVolumes} types={sectionVolumeTypes}
         tooltipPrefix={`${sectionTooltipPrefix}.pods.customVolumes`}
         onChange={(volumes, types) =>
@@ -1088,27 +1143,29 @@ export default function SGShardedClusterForm({ isEdit = false }) {
     return (
       <div className="flex flex-col gap-4">
         {services.map(([key, label]) => (
-          <fieldset key={key} className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">
+          <fieldset key={key} className="flex flex-col gap-2 rounded-lg border p-4">
+            <legend className="px-2 text-sm font-medium">
               {label}{renderTooltip(`${servicesPrefix}.${key}`)}
             </legend>
-            <Toggle label="Enabled" checked={group[key].enabled}
-              tooltip={`${servicesPrefix}.${key}.enabled`}
-              onChange={(value) =>
-                patch((draft) => { draft.postgresServices[currentSection][key].enabled = value })} />
-            <Field label="Type" required tooltip={`${servicesPrefix}.${key}.type`}>
-              <Select required value={group[key].type} aria-label={`${label} type`}
-                options={['ClusterIP', 'LoadBalancer', 'NodePort']}
+            <FieldRow>
+              <Toggle label="Enabled" checked={group[key].enabled}
+                tooltip={`${servicesPrefix}.${key}.enabled`}
                 onChange={(value) =>
-                  patch((draft) => { draft.postgresServices[currentSection][key].type = value })} />
-            </Field>
-            <Field label="Load Balancer IP" tooltip={`${servicesPrefix}.${key}.loadBalancerIP`}>
-              <TextInput value={group[key].loadBalancerIP || ''} aria-label={`${label} load balancer IP`}
-                onChange={(value) =>
-                  patch((draft) => {
-                    draft.postgresServices[currentSection][key].loadBalancerIP = value
-                  })} />
-            </Field>
+                  patch((draft) => { draft.postgresServices[currentSection][key].enabled = value })} />
+              <Field label="Type" required tooltip={`${servicesPrefix}.${key}.type`}>
+                <Select required value={group[key].type} aria-label={`${label} type`}
+                  options={['ClusterIP', 'LoadBalancer', 'NodePort']}
+                  onChange={(value) =>
+                    patch((draft) => { draft.postgresServices[currentSection][key].type = value })} />
+              </Field>
+              <Field label="Load Balancer IP" tooltip={`${servicesPrefix}.${key}.loadBalancerIP`}>
+                <TextInput value={group[key].loadBalancerIP || ''} aria-label={`${label} load balancer IP`}
+                  onChange={(value) =>
+                    patch((draft) => {
+                      draft.postgresServices[currentSection][key].loadBalancerIP = value
+                    })} />
+              </Field>
+            </FieldRow>
           </fieldset>
         ))}
         <CustomPortsEditor legend="Custom Ports" ports={group.customPorts || []}
@@ -1187,9 +1244,9 @@ export default function SGShardedClusterForm({ isEdit = false }) {
   const heading = STEP_HEADINGS[`${currentSection}.${activeStep}`]
 
   return (
-    <section className="flex max-w-5xl flex-col gap-4 p-8 text-sm">
+    <section className="flex max-w-5xl flex-col gap-4 px-6 pb-6 text-sm">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-lg font-semibold">
           {isEdit ? 'Edit' : 'Create'} Sharded Cluster{isEdit ? `: ${state.name}` : ''}
         </h1>
         <Toggle label="Advanced options" checked={advancedMode}
@@ -1200,29 +1257,29 @@ export default function SGShardedClusterForm({ isEdit = false }) {
             }
           }} />
       </header>
-      <nav aria-label="Form sections" className="flex gap-3 border-b pb-2">
+      <nav aria-label="Form sections" className="flex gap-1 border-b pb-2 text-sm">
         {FORM_SECTIONS.map((candidate) => (
           <button key={candidate} type="button" onClick={() => setCurrentSection(candidate)}
-            className={currentSection === candidate ? 'font-semibold underline' : ''}>
+            className={`px-2.5 py-1 rounded-md transition-colors ${currentSection === candidate ? 'bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))] font-medium' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
             {SECTION_LABELS[candidate]}
           </button>
         ))}
       </nav>
       {currentSection === 'overrides' && state.workers.overrides.length > 0 && (
-        <nav aria-label="Overrides" className="flex items-center gap-3 border-b pb-2">
+        <nav aria-label="Overrides" className="flex items-center gap-1 border-b pb-2 text-sm">
           {state.workers.overrides.map((override, index) => (
             <span key={index} className="flex items-center gap-1">
               <button type="button" onClick={() => setOverrideIndex(index)}
-                className={index === overrideIndex ? 'font-semibold underline' : ''}>
+                className={`px-2.5 py-1 rounded-md transition-colors ${index === overrideIndex ? 'bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))] font-medium' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
                 Override #{index}
               </button>
-              <button type="button" aria-label={`Delete override ${index}`}
+              <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete override ${index}`}
                 onClick={() => deleteOverride(index)}>
                 <Trash2 size={14} />
               </button>
             </span>
           ))}
-          <button type="button" className="flex items-center gap-1 underline"
+          <button type="button" className="flex items-center gap-1 rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
             disabled={state.workers.overrides.length >= state.workers.clusters}
             onClick={pushOverride}>
             <Plus size={14} /> Add Override
@@ -1230,10 +1287,10 @@ export default function SGShardedClusterForm({ isEdit = false }) {
         </nav>
       )}
       {!showEmptyOverrides && (
-        <nav aria-label="Form steps" className="flex flex-wrap gap-3 border-b pb-2">
+        <nav aria-label="Form steps" className="flex flex-wrap gap-1 border-b pb-2 text-sm">
           {visibleSteps.map((step) => (
             <button key={step} type="button" onClick={() => setStep(step)}
-              className={activeStep === step ? 'font-semibold underline' : ''}>
+              className={`px-2.5 py-1 rounded-md transition-colors ${activeStep === step ? 'bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))] font-medium' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
               {STEP_LABELS[step]}
             </button>
           ))}
@@ -1242,7 +1299,7 @@ export default function SGShardedClusterForm({ isEdit = false }) {
       {showEmptyOverrides ? (
         <div className="flex flex-col items-start gap-3">
           <p>No shard overrides defined yet.</p>
-          <button type="button" className="flex items-center gap-1 border p-2"
+          <button type="button" className="flex items-center gap-1 rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
             disabled={state.workers.overrides.length >= state.workers.clusters}
             onClick={pushOverride}>
             <Plus size={14} /> Add Override
@@ -1257,12 +1314,12 @@ export default function SGShardedClusterForm({ isEdit = false }) {
           className="flex flex-col gap-4">
           {heading && <StepHeader {...heading} />}
           {stepContent()}
-          <div className="flex items-center gap-3 border-t pt-3">
-            <button type="button" className="border p-2" disabled={activeStepIndex === 0}
+          <div className="flex items-center justify-end gap-2 border-t pt-4 mt-4">
+            <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" disabled={activeStepIndex === 0}
               onClick={() => setStep(steps[activeStepIndex - 1])}>
               Previous
             </button>
-            <button type="button" className="border p-2"
+            <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]"
               disabled={
                 activeStepIndex === steps.length - 1 ||
                 (!advancedMode && activeStepIndex === BASIC_STEPS[currentSection] - 1)
@@ -1270,18 +1327,18 @@ export default function SGShardedClusterForm({ isEdit = false }) {
               onClick={() => setStep(steps[activeStepIndex + 1])}>
               Next
             </button>
-            <button type="submit" disabled={submitting} className="border p-2 font-semibold">
+            <button type="submit" disabled={submitting} className="px-4 py-2 bg-[hsl(var(--primary))] text-white rounded text-sm font-medium hover:bg-[hsl(var(--primary)/0.85)]">
               {isEdit ? 'Update Cluster' : 'Create Cluster'}
             </button>
-            <button type="button" className="border p-2" disabled={submitting}
+            <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" disabled={submitting}
               onClick={() => createCluster({ previewOnly: true })}>
               View Summary
             </button>
-            <button type="button" className="border p-2" disabled={submitting}
+            <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" disabled={submitting}
               onClick={() => createCluster({ dryRunFlag: true })}>
               Dry Run
             </button>
-            <button type="button" className="border p-2"
+            <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]"
               onClick={() =>
                 navigate(
                   isEdit
@@ -1294,15 +1351,16 @@ export default function SGShardedClusterForm({ isEdit = false }) {
         </form>
       )}
       {preview && (
-        <section className="border p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold uppercase">{preview.dryRun ? 'Dry Run Summary' : 'Summary'}</h2>
-            <button type="button" onClick={() => setPreview(null)} className="underline">
-              Close
-            </button>
-          </div>
-          <SpecTree value={preview.cluster} />
-        </section>
+        <SummaryDialog
+          title={preview.dryRun ? 'Dry Run Summary' : 'Summary'}
+          value={preview.cluster}
+          onClose={() => setPreview(null)}
+          defaults={
+            preview.dryRun
+              ? null
+              : buildSGShardedCluster(initialSGShardedClusterState(namespace, { timezone }))
+          }
+        />
       )}
     </section>
   )

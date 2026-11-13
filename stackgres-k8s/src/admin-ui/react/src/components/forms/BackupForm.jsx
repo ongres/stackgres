@@ -7,7 +7,7 @@ import { useExistingResource } from '../../hooks/useExistingResource'
 import { buildBackup } from '../../lib/payloads'
 import { generatedName, nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
-import { Field, Select, TextInput, Toggle } from './fields'
+import { Field, FieldGroup, FieldRow, Select, TextInput, Toggle } from './fields'
 
 export default function BackupForm({ isEdit }) {
   const { namespace, backupname, name: clusterParam } = useParams()
@@ -59,31 +59,35 @@ export default function BackupForm({ isEdit }) {
   })
 
   if (isEdit && !loaded) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   return (
     <CrdFormShell title={isEdit ? `Edit Backup: ${backupname}` : 'Create Backup'} form={form}>
       {nameCollision && (
-        <p role="alert">
+        <p role="alert" className="text-sm text-red-500">
           There&apos;s already a <strong>SGBackup</strong> with the same name on this namespace.
           Please specify a different name or create the backup on another namespace
         </p>
       )}
-      <Field label="Backup Name" required error={form.errors.name} tooltip="sgbackup.metadata.name">
-        <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
-      </Field>
-      <Field label="Backup Cluster" required error={form.errors.sgCluster} tooltip="sgbackup.spec.sgCluster">
-        <Select
-          value={sgCluster}
-          onChange={setSgCluster}
-          options={clusters}
-          placeholder="Choose a Cluster"
-          disabled={isEdit}
-          required
-        />
-      </Field>
-      <Toggle label="Managed Lifecycle" checked={managedLifecycle} onChange={setManagedLifecycle} tooltip="sgbackup.spec.managedLifecycle" />
+      <FieldGroup>
+        <FieldRow>
+          <Field label="Backup Name" required error={form.errors.name} tooltip="sgbackup.metadata.name">
+            <TextInput value={name} onChange={setName} disabled={isEdit} required error={form.errors.name} />
+          </Field>
+          <Field label="Backup Cluster" required error={form.errors.sgCluster} tooltip="sgbackup.spec.sgCluster">
+            <Select
+              value={sgCluster}
+              onChange={setSgCluster}
+              options={clusters}
+              placeholder="Choose a Cluster"
+              disabled={isEdit}
+              required
+            />
+          </Field>
+          <Toggle label="Managed Lifecycle" checked={managedLifecycle} onChange={setManagedLifecycle} tooltip="sgbackup.spec.managedLifecycle" />
+        </FieldRow>
+      </FieldGroup>
     </CrdFormShell>
   )
 }

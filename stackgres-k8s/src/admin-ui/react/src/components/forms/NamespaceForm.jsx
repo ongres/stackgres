@@ -6,7 +6,7 @@ import { useData } from '../../contexts/DataContext'
 import { useNamespaces } from '../../hooks/useNamespaces'
 import { nameValidationMessage } from '../../lib/names'
 import { HelpTooltip } from '../HelpTooltip'
-import { Field, TextInput } from './fields'
+import { Field, FieldGroup, FieldRow, TextInput } from './fields'
 
 // Namespace creation (Vue CreateNamespaces): a single name field POSTed to
 // /namespaces/{name} with no body. The Vue collision check only warned; here
@@ -44,31 +44,35 @@ export default function NamespaceForm() {
   }
 
   return (
-    <section className="flex max-w-xl flex-col gap-4 p-8 text-sm">
-      <h1 className="text-2xl font-semibold">Create Namespace</h1>
+    <section className="flex max-w-xl flex-col gap-4 px-6 pb-6 text-sm">
+      <h1 className="text-lg font-semibold">Create Namespace</h1>
       <form onSubmit={submit} className="flex flex-col gap-3">
-        <Field
-          label="Namespace Name"
-          required
-          error={error}
-          help="An alphanumeric (and '-') string of up to 63 characters, not starting or ending with '-'"
-          tooltip={
-            <HelpTooltip text={'Namespace name. Following Kubernetes naming conventions, it must be an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the - character allowed anywhere except the first or last character.'} />
-          }
-        >
-          <TextInput value={name} onChange={setName} required autoComplete="off" error={error} />
-        </Field>
-        {nameCollision && (
-          <p role="alert">
-            There&apos;s already a <strong>Namespace</strong> with the same name. Creating it again
-            has no effect.
-          </p>
-        )}
+        <FieldGroup>
+          <FieldRow>
+            <Field
+              label="Namespace Name"
+              required
+              error={error}
+              help="An alphanumeric (and '-') string of up to 63 characters, not starting or ending with '-'"
+              tooltip={
+                <HelpTooltip text={'Namespace name. Following Kubernetes naming conventions, it must be an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the - character allowed anywhere except the first or last character.'} />
+              }
+            >
+              <TextInput value={name} onChange={setName} required autoComplete="off" error={error} />
+            </Field>
+          </FieldRow>
+          {nameCollision && (
+            <p role="alert" className="text-sm text-red-500">
+              There&apos;s already a <strong>Namespace</strong> with the same name. Creating it again
+              has no effect.
+            </p>
+          )}
+        </FieldGroup>
         <div className="flex gap-3">
-          <button type="submit" disabled={submitting} className="border p-2 font-semibold">
+          <button type="submit" disabled={submitting} className="px-4 py-2 bg-[hsl(var(--primary))] text-white rounded text-sm font-medium hover:bg-[hsl(var(--primary)/0.85)]">
             Create Namespace
           </button>
-          <button type="button" className="border p-2" onClick={() => navigate('/')}>
+          <button type="button" className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]" onClick={() => navigate('/')}>
             Cancel
           </button>
         </div>

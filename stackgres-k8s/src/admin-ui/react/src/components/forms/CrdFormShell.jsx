@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import SpecTree from '../SpecTree'
+import SummaryDialog from './SummaryDialog'
 import { FormActions } from './fields'
 
 // Common chrome for the CRD forms: heading, the form element, submit /
@@ -18,8 +18,8 @@ export default function CrdFormShell({ title, form, children }) {
   }
 
   return (
-    <section className="flex max-w-3xl flex-col gap-4 p-8">
-      <h1 className="text-2xl font-semibold">{title}</h1>
+    <section className="flex max-w-3xl flex-col gap-4 px-6 pb-6 text-sm">
+      <h1 className="text-lg font-semibold">{title}</h1>
       <form
         className="flex flex-col gap-4"
         onSubmit={(event) => {
@@ -39,22 +39,14 @@ export default function CrdFormShell({ title, form, children }) {
             onClick={dryRun}
             disabled={submitting}
             title="Dry run evaluates the request against the API without persisting it"
-            className="border p-2"
+            className="text-sm border rounded px-3 py-1.5 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]"
           >
             Dry Run
           </button>
         </div>
       </form>
       {preview && (
-        <section className="border p-4 text-sm">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="font-semibold uppercase">Dry Run Summary</h2>
-            <button type="button" onClick={() => setPreview(null)} className="underline">
-              Close
-            </button>
-          </div>
-          <SpecTree value={preview} />
-        </section>
+        <SummaryDialog title="Dry Run Summary" value={preview} onClose={() => setPreview(null)} />
       )}
     </section>
   )

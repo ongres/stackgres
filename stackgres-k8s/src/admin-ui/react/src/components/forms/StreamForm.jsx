@@ -10,7 +10,7 @@ import { nameValidationMessage } from '../../lib/names'
 import CrdFormShell from './CrdFormShell'
 import { HelpTooltip } from '../HelpTooltip'
 import { NodeAffinityTerms, TolerationsEditor } from './clusterEditors'
-import { Field, Select, TextArea, TextInput, Toggle, renderTooltip } from './fields'
+import { Field, FieldGroup, FieldRow, Select, TextArea, TextInput, Toggle, renderTooltip } from './fields'
 
 const FORM_STEPS = ['stream', 'source', 'target', 'pods']
 const SOURCE_TYPES = ['SGCluster', 'Postgres']
@@ -60,14 +60,16 @@ function SecretSelector({ title, value, onChange, tooltipPrefix }) {
   const current = value || selector()
   const tooltip = (suffix) => (tooltipPrefix ? `${tooltipPrefix}.${suffix}` : undefined)
   return (
-    <fieldset className="flex flex-wrap gap-3 border p-3">
-      <legend className="px-1 font-semibold">{title}</legend>
-      <Field label="Secret Name" tooltip={tooltip('name')}>
-        <TextInput value={current.name || ''} onChange={(name) => onChange({ ...current, name: name || null })} />
-      </Field>
-      <Field label="Secret Key" tooltip={tooltip('key')}>
-        <TextInput value={current.key || ''} onChange={(key) => onChange({ ...current, key: key || null })} />
-      </Field>
+    <fieldset className="flex flex-col gap-3 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{title}</legend>
+      <FieldRow>
+        <Field label="Secret Name" tooltip={tooltip('name')}>
+          <TextInput value={current.name || ''} onChange={(name) => onChange({ ...current, name: name || null })} />
+        </Field>
+        <Field label="Secret Key" tooltip={tooltip('key')}>
+          <TextInput value={current.key || ''} onChange={(key) => onChange({ ...current, key: key || null })} />
+        </Field>
+      </FieldRow>
     </fieldset>
   )
 }
@@ -75,13 +77,13 @@ function SecretSelector({ title, value, onChange, tooltipPrefix }) {
 function StringListEditor({ title, values, onChange, tooltip }) {
   const list = values || []
   return (
-    <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{title}{renderTooltip(tooltip)}</legend>
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{title}{renderTooltip(tooltip)}</legend>
       {list.map((entry, index) => (
         <div key={index} className="flex items-center gap-2">
           <TextInput value={entry} onChange={(value) => onChange(list.map((e, i) => (i === index ? value : e)))}
             aria-label={`${title} ${index + 1}`} />
-          <button type="button" aria-label={`Delete ${title} ${index + 1}`}
+          <button type="button" aria-label={`Delete ${title} ${index + 1}`} className="p-1.5 rounded text-red-500 hover:bg-red-500/10"
             onClick={() => {
               const next = list.filter((_, i) => i !== index)
               onChange(next.length ? next : null)
@@ -90,7 +92,7 @@ function StringListEditor({ title, values, onChange, tooltip }) {
           </button>
         </div>
       ))}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => onChange([...list, ''])}>
         <Plus size={14} /> Add New
       </button>
@@ -101,8 +103,8 @@ function StringListEditor({ title, values, onChange, tooltip }) {
 function HeadersEditor({ title, headers, onChange, rowLabel = 'Header', addLabel = 'Add Header', tooltip }) {
   const rows = headers || []
   return (
-    <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{title}{renderTooltip(tooltip)}</legend>
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{title}{renderTooltip(tooltip)}</legend>
       {rows.map((row, index) => (
         <div key={index} className="flex items-end gap-2">
           <Field label={rowLabel}>
@@ -111,13 +113,13 @@ function HeadersEditor({ title, headers, onChange, rowLabel = 'Header', addLabel
           <Field label="Value">
             <TextInput value={row.value} onChange={(value) => onChange(rows.map((r, i) => (i === index ? { ...r, value } : r)))} />
           </Field>
-          <button type="button" aria-label={`Delete ${rowLabel.toLowerCase()} ${index + 1}`}
+          <button type="button" aria-label={`Delete ${rowLabel.toLowerCase()} ${index + 1}`} className="p-1.5 rounded text-red-500 hover:bg-red-500/10"
             onClick={() => onChange(rows.filter((_, i) => i !== index))}>
             <Trash2 size={16} />
           </button>
         </div>
       ))}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => onChange([...rows, { label: '', value: '' }])}>
         <Plus size={14} /> {addLabel}
       </button>
@@ -130,10 +132,10 @@ function HttpFields({ http, onChange, urlRequired, urlError, tooltipPrefix }) {
   const tooltip = (suffix) => (tooltipPrefix ? `${tooltipPrefix}.${suffix}` : undefined)
   return (
     <>
-      <Field label="URL" required={urlRequired} error={urlError} tooltip={tooltip('url')}>
-        <TextInput value={http.url || ''} onChange={(url) => patch('url', url || null)} required={urlRequired} />
-      </Field>
-      <div className="flex flex-wrap gap-3">
+      <FieldRow>
+        <Field label="URL" required={urlRequired} error={urlError} tooltip={tooltip('url')}>
+          <TextInput value={http.url || ''} onChange={(url) => patch('url', url || null)} required={urlRequired} />
+        </Field>
         <Field label="Connect Timeout" help="ISO 8601 duration" tooltip={tooltip('connectTimeout')}>
           <TextInput value={http.connectTimeout || ''} onChange={(value) => patch('connectTimeout', value || null)} />
         </Field>
@@ -148,10 +150,10 @@ function HttpFields({ http, onChange, urlRequired, urlError, tooltipPrefix }) {
           <TextInput type="number" min="0" value={http.retryLimit ?? ''}
             onChange={(value) => patch('retryLimit', value === '' ? null : Number(value))} />
         </Field>
-      </div>
-      <Toggle label="Skip Hostname Verification" checked={http.skipHostnameVerification || false}
-        onChange={(value) => patch('skipHostnameVerification', value)}
-        tooltip={tooltip('skipHostnameVerification')} />
+        <Toggle label="Skip Hostname Verification" checked={http.skipHostnameVerification || false}
+          onChange={(value) => patch('skipHostnameVerification', value)}
+          tooltip={tooltip('skipHostnameVerification')} />
+      </FieldRow>
       <HeadersEditor title="Headers" headers={http.headers} onChange={(headers) => onChange({ ...http, headers })}
         tooltip={tooltip('headers')} />
     </>
@@ -294,101 +296,112 @@ export default function StreamForm({ isEdit }) {
   })
 
   if (isEdit && !loaded) {
-    return <p className="p-8 text-sm">Loading data…</p>
+    return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
   }
 
   return (
     <CrdFormShell title={isEdit ? `Edit Stream: ${routeName}` : 'Create Stream'} form={form}>
-      <nav aria-label="Form steps" className="flex flex-wrap gap-3 border-b pb-2 text-sm">
+      <nav aria-label="Form steps" className="flex flex-wrap gap-1 border-b pb-2 text-sm">
         {FORM_STEPS.map((step) => (
           <button key={step} type="button" onClick={() => setCurrentStep(step)}
-            className={currentStep === step ? 'font-semibold underline' : ''}>
+            className={`px-2.5 py-1 rounded-md transition-colors ${currentStep === step ? 'bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))] font-medium' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}>
             {step}
           </button>
         ))}
       </nav>
       {currentStep === 'stream' && (
       <>
-      <h2 className="text-lg font-semibold">Stream Information</h2>
-      <Field label="Stream Name" required error={form.errors.name} tooltip="sgstream.metadata.name">
-        <TextInput value={crd.metadata.name} disabled={isEdit} required error={form.errors.name}
-          onChange={(name) => setCrd({ ...crd, metadata: { ...crd.metadata, name } })} />
-      </Field>
-      {nameCollision && (
-        <p role="alert">
-          There&apos;s already a <strong>SGStream</strong> with the same name on this namespace.
-          Please specify a different name or create the stream on another namespace
-        </p>
-      )}
-      <Field label="Maximum Retries" help="-1 retries forever" tooltip="sgstream.spec.maxRetries">
-        <TextInput type="number" min="-1" placeholder="-1" value={crd.spec.maxRetries ?? ''}
-          onChange={(value) => setSpec((spec) => { spec.maxRetries = value === '' ? null : Number(value) })} />
-      </Field>
-      <h3 className="font-semibold">Persistent Volume{renderTooltip('sgstream.spec.persistentVolume')}</h3>
-      <Field label="Volume Size" required tooltip="sgstream.spec.pods.persistentVolume.size">
-        <div className="flex gap-2">
-          <TextInput type="number" min="1" required value={crd.spec.pods.persistentVolume.size.size}
-            onChange={(value) => setSpec((spec) => { spec.pods.persistentVolume.size.size = Number(value) })} />
-          <Select value={crd.spec.pods.persistentVolume.size.unit} options={['Mi', 'Gi', 'Ti']}
-            onChange={(unit) => setSpec((spec) => { spec.pods.persistentVolume.size.unit = unit })} />
-        </div>
-      </Field>
-      <Field label="Storage Class" tooltip="sgstream.spec.pods.persistentVolume.storageClass">
-        {storageClasses === null ? (
-          <TextInput value={crd.spec.pods.persistentVolume.storageClass || ''}
-            onChange={(value) => setSpec((spec) => { spec.pods.persistentVolume.storageClass = value || null })} />
-        ) : (
-          <Select value={crd.spec.pods.persistentVolume.storageClass || ''}
-            disabled={!storageClasses.length}
-            options={[
-              {
-                value: '',
-                label: storageClasses.length ? 'Select Storage Class' : 'No storage classes available',
-              },
-              ...storageClasses,
-            ]}
-            onChange={(value) => setSpec((spec) => { spec.pods.persistentVolume.storageClass = value || null })} />
+      <h2 className="text-sm font-semibold">Stream Information</h2>
+      <FieldGroup>
+        <FieldRow>
+          <Field label="Stream Name" required error={form.errors.name} tooltip="sgstream.metadata.name">
+            <TextInput value={crd.metadata.name} disabled={isEdit} required error={form.errors.name}
+              onChange={(name) => setCrd({ ...crd, metadata: { ...crd.metadata, name } })} />
+          </Field>
+          <Field label="Maximum Retries" help="-1 retries forever" tooltip="sgstream.spec.maxRetries">
+            <TextInput type="number" min="-1" placeholder="-1" value={crd.spec.maxRetries ?? ''}
+              onChange={(value) => setSpec((spec) => { spec.maxRetries = value === '' ? null : Number(value) })} />
+          </Field>
+        </FieldRow>
+        {nameCollision && (
+          <p role="alert" className="text-sm text-red-500">
+            There&apos;s already a <strong>SGStream</strong> with the same name on this namespace.
+            Please specify a different name or create the stream on another namespace
+          </p>
         )}
-      </Field>
+      </FieldGroup>
+      <FieldGroup title={<>Persistent Volume{renderTooltip('sgstream.spec.persistentVolume')}</>}>
+        <FieldRow>
+          <Field label="Volume Size" required tooltip="sgstream.spec.pods.persistentVolume.size">
+            <div className="flex gap-2">
+              <TextInput type="number" min="1" required value={crd.spec.pods.persistentVolume.size.size}
+                onChange={(value) => setSpec((spec) => { spec.pods.persistentVolume.size.size = Number(value) })} />
+              <Select value={crd.spec.pods.persistentVolume.size.unit} options={['Mi', 'Gi', 'Ti']}
+                onChange={(unit) => setSpec((spec) => { spec.pods.persistentVolume.size.unit = unit })} />
+            </div>
+          </Field>
+          <Field label="Storage Class" tooltip="sgstream.spec.pods.persistentVolume.storageClass">
+            {storageClasses === null ? (
+              <TextInput value={crd.spec.pods.persistentVolume.storageClass || ''}
+                onChange={(value) => setSpec((spec) => { spec.pods.persistentVolume.storageClass = value || null })} />
+            ) : (
+              <Select value={crd.spec.pods.persistentVolume.storageClass || ''}
+                disabled={!storageClasses.length}
+                options={[
+                  {
+                    value: '',
+                    label: storageClasses.length ? 'Select Storage Class' : 'No storage classes available',
+                  },
+                  ...storageClasses,
+                ]}
+                onChange={(value) => setSpec((spec) => { spec.pods.persistentVolume.storageClass = value || null })} />
+            )}
+          </Field>
+        </FieldRow>
+      </FieldGroup>
 
       </>
       )}
 
       {currentStep === 'source' && (
-      <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">Source Information{renderTooltip('sgstream.spec.source')}</legend>
-        <Field label="Source Type" required error={form.errors.sourceType} tooltip="sgstream.spec.source.type">
-          <Select value={crd.spec.source.type || ''} onChange={setSourceType} options={SOURCE_TYPES}
-            placeholder="Select type" disabled={isEdit} required />
-        </Field>
+      <fieldset className="flex flex-col gap-3 rounded-lg border p-4">
+        <legend className="px-2 text-sm font-medium">Source Information{renderTooltip('sgstream.spec.source')}</legend>
+        <FieldRow>
+          <Field label="Source Type" required error={form.errors.sourceType} tooltip="sgstream.spec.source.type">
+            <Select value={crd.spec.source.type || ''} onChange={setSourceType} options={SOURCE_TYPES}
+              placeholder="Select type" disabled={isEdit} required />
+          </Field>
+        </FieldRow>
         {source && (
           <>
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-sm font-semibold">
               {crd.spec.source.type} Configuration{renderTooltip('sgstream.spec.source.' + sKey)}
             </h2>
-            {crd.spec.source.type === 'SGCluster' ? (
-              <Field label="SGCluster Name" required error={form.errors.sourceName}
-                tooltip="sgstream.spec.source.sgCluster.name">
-                <Select value={source.name || ''} options={clusters} placeholder="Select a cluster…" required
-                  onChange={(value) => setSpec((spec) => { spec.source[sKey].name = value || null })} />
+            <FieldRow>
+              {crd.spec.source.type === 'SGCluster' ? (
+                <Field label="SGCluster Name" required error={form.errors.sourceName}
+                  tooltip="sgstream.spec.source.sgCluster.name">
+                  <Select value={source.name || ''} options={clusters} placeholder="Select a cluster…" required
+                    onChange={(value) => setSpec((spec) => { spec.source[sKey].name = value || null })} />
+                </Field>
+              ) : (
+                <>
+                  <Field label="Host" required error={form.errors.sourceHost}
+                    tooltip="sgstream.spec.source.postgres.host">
+                    <TextInput value={source.host || ''} required
+                      onChange={(value) => setSpec((spec) => { spec.source[sKey].host = value || null })} />
+                  </Field>
+                  <Field label="Port" tooltip="sgstream.spec.source.postgres.port">
+                    <TextInput type="number" min="1" value={source.port ?? ''}
+                      onChange={(value) => setSpec((spec) => { spec.source[sKey].port = value === '' ? null : Number(value) })} />
+                  </Field>
+                </>
+              )}
+              <Field label="Database" tooltip={'sgstream.spec.source.' + sKey + '.database'}>
+                <TextInput value={source.database || ''}
+                  onChange={(value) => setSpec((spec) => { spec.source[sKey].database = value || null })} />
               </Field>
-            ) : (
-              <div className="flex flex-wrap gap-3">
-                <Field label="Host" required error={form.errors.sourceHost}
-                  tooltip="sgstream.spec.source.postgres.host">
-                  <TextInput value={source.host || ''} required
-                    onChange={(value) => setSpec((spec) => { spec.source[sKey].host = value || null })} />
-                </Field>
-                <Field label="Port" tooltip="sgstream.spec.source.postgres.port">
-                  <TextInput type="number" min="1" value={source.port ?? ''}
-                    onChange={(value) => setSpec((spec) => { spec.source[sKey].port = value === '' ? null : Number(value) })} />
-                </Field>
-              </div>
-            )}
-            <Field label="Database" tooltip={'sgstream.spec.source.' + sKey + '.database'}>
-              <TextInput value={source.database || ''}
-                onChange={(value) => setSpec((spec) => { spec.source[sKey].database = value || null })} />
-            </Field>
+            </FieldRow>
             <SecretSelector title="Username" value={source.username}
               tooltipPrefix={'sgstream.spec.source.' + sKey + '.username'}
               onChange={(value) => setSpec((spec) => { spec.source[sKey].username = value })} />
@@ -396,12 +409,14 @@ export default function StreamForm({ isEdit }) {
               tooltipPrefix={'sgstream.spec.source.' + sKey + '.password'}
               onChange={(value) => setSpec((spec) => { spec.source[sKey].password = value })} />
             {/* The Vue template drops the sgstream prefix in these loop keys; fixed deliberately. */}
-            <StringListEditor title="Includes" values={source.includes}
-              tooltip={'sgstream.spec.source.' + sKey + '.includes'}
-              onChange={(values) => setSpec((spec) => { spec.source[sKey].includes = values })} />
-            <StringListEditor title="Excludes" values={source.excludes}
-              tooltip={'sgstream.spec.source.' + sKey + '.excludes'}
-              onChange={(values) => setSpec((spec) => { spec.source[sKey].excludes = values })} />
+            <FieldRow>
+              <StringListEditor title="Includes" values={source.includes}
+                tooltip={'sgstream.spec.source.' + sKey + '.includes'}
+                onChange={(values) => setSpec((spec) => { spec.source[sKey].includes = values })} />
+              <StringListEditor title="Excludes" values={source.excludes}
+                tooltip={'sgstream.spec.source.' + sKey + '.excludes'}
+                onChange={(values) => setSpec((spec) => { spec.source[sKey].excludes = values })} />
+            </FieldRow>
           </>
         )}
       </fieldset>
@@ -409,46 +424,52 @@ export default function StreamForm({ isEdit }) {
       )}
 
       {currentStep === 'target' && (
-      <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">Target Information{renderTooltip('sgstream.spec.target')}</legend>
-        <Field label="Target Type" required error={form.errors.targetType} tooltip="sgstream.spec.target.type">
-          <Select value={crd.spec.target.type || ''} onChange={setTargetType} options={TARGET_TYPES}
-            placeholder="Select type" disabled={isEdit} required />
-        </Field>
+      <fieldset className="flex flex-col gap-3 rounded-lg border p-4">
+        <legend className="px-2 text-sm font-medium">Target Information{renderTooltip('sgstream.spec.target')}</legend>
+        <FieldRow>
+          <Field label="Target Type" required error={form.errors.targetType} tooltip="sgstream.spec.target.type">
+            <Select value={crd.spec.target.type || ''} onChange={setTargetType} options={TARGET_TYPES}
+              placeholder="Select type" disabled={isEdit} required />
+          </Field>
+        </FieldRow>
         {target && (
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-sm font-semibold">
             {crd.spec.target.type} Configuration{renderTooltip('sgstream.spec.target.' + tKey)}
           </h2>
         )}
         {target && crd.spec.target.type === 'SGCluster' && (
           <>
-            <Field label="SGCluster Name" required error={form.errors.targetName}
-              tooltip="sgstream.spec.target.sgCluster.name">
-              <Select value={target.name || ''} options={clusters} placeholder="Select cluster" required
-                onChange={(value) => setSpec((spec) => { spec.target.sgCluster.name = value || null })} />
-            </Field>
-            <Field label="Database" tooltip="sgstream.spec.target.sgCluster.database">
-              <TextInput value={target.database || ''}
-                onChange={(value) => setSpec((spec) => { spec.target.sgCluster.database = value || null })} />
-            </Field>
+            <FieldRow>
+              <Field label="SGCluster Name" required error={form.errors.targetName}
+                tooltip="sgstream.spec.target.sgCluster.name">
+                <Select value={target.name || ''} options={clusters} placeholder="Select cluster" required
+                  onChange={(value) => setSpec((spec) => { spec.target.sgCluster.name = value || null })} />
+              </Field>
+              <Field label="Database" tooltip="sgstream.spec.target.sgCluster.database">
+                <TextInput value={target.database || ''}
+                  onChange={(value) => setSpec((spec) => { spec.target.sgCluster.database = value || null })} />
+              </Field>
+            </FieldRow>
             <SecretSelector title="Username" value={target.username}
               tooltipPrefix="sgstream.spec.target.sgCluster.username"
               onChange={(value) => setSpec((spec) => { spec.target.sgCluster.username = value })} />
             <SecretSelector title="Password" value={target.password}
               tooltipPrefix="sgstream.spec.target.sgCluster.password"
               onChange={(value) => setSpec((spec) => { spec.target.sgCluster.password = value })} />
-            <Toggle label="Skip DDL Import" checked={target.skipDdlImport || false}
-              onChange={(value) => setSpec((spec) => { spec.target.sgCluster.skipDdlImport = value })}
-              tooltip="sgstream.spec.target.sgCluster.skipDdlImport" />
-            <Field label="DDL Import Role Skip Filter" tooltip="sgstream.spec.target.sgCluster.ddlImportRoleSkipFilter">
-              <TextInput value={target.ddlImportRoleSkipFilter || ''}
-                onChange={(value) => setSpec((spec) => { spec.target.sgCluster.ddlImportRoleSkipFilter = value || null })} />
-            </Field>
+            <FieldRow>
+              <Toggle label="Skip DDL Import" checked={target.skipDdlImport || false}
+                onChange={(value) => setSpec((spec) => { spec.target.sgCluster.skipDdlImport = value })}
+                tooltip="sgstream.spec.target.sgCluster.skipDdlImport" />
+              <Field label="DDL Import Role Skip Filter" tooltip="sgstream.spec.target.sgCluster.ddlImportRoleSkipFilter">
+                <TextInput value={target.ddlImportRoleSkipFilter || ''}
+                  onChange={(value) => setSpec((spec) => { spec.target.sgCluster.ddlImportRoleSkipFilter = value || null })} />
+              </Field>
+            </FieldRow>
           </>
         )}
         {target && crd.spec.target.type === 'CloudEvent' && (
           <>
-            <div className="flex flex-wrap gap-3">
+            <FieldRow>
               <Field label="Binding" tooltip="sgstream.spec.target.cloudEvent.binding">
                 <Select value={target.binding || ''} options={['http']} placeholder="Default"
                   onChange={(value) => setSpec((spec) => { spec.target.cloudEvent.binding = value || null })} />
@@ -457,48 +478,49 @@ export default function StreamForm({ isEdit }) {
                 <Select value={target.format || ''} options={['json']} placeholder="Default"
                   onChange={(value) => setSpec((spec) => { spec.target.cloudEvent.format = value || null })} />
               </Field>
-            </div>
+            </FieldRow>
             {target.binding === 'http' && (
-              <>
-                <h3 className="font-semibold">HTTP Configuration{renderTooltip('sgstream.spec.target.cloudEvent.http')}</h3>
+              <FieldGroup title={<>HTTP Configuration{renderTooltip('sgstream.spec.target.cloudEvent.http')}</>}>
                 <HttpFields http={target.http} urlRequired urlError={form.errors.targetUrl}
                   tooltipPrefix="sgstream.spec.target.cloudEvent.http"
                   onChange={(http) => setSpec((spec) => { spec.target.cloudEvent.http = http })} />
-              </>
+              </FieldGroup>
             )}
           </>
         )}
         {target && crd.spec.target.type === 'PgLambda' && (
           <>
-            <h3 className="font-semibold">Script{renderTooltip('sgstream.spec.target.pgLambda.script')}</h3>
-            <Field label="Script Source" required
-              tooltip={<HelpTooltip text={'Determine the source from which the script should be loaded.'} />}>
-              <Select value={scriptSource || ''} required placeholder="Select script source..."
-                options={[
-                  { value: 'createNewScript', label: 'Custom script' },
-                  { value: '', label: '– OR –', disabled: true },
-                  { value: 'secretKeyRef', label: 'From Secret' },
-                  { value: 'configMapKeyRef', label: 'From ConfigMap' },
-                ]}
-                onChange={(value) => {
-                  setScriptSource(value || null)
-                  setSpec((spec) => {
-                    if (value === 'secretKeyRef' || value === 'configMapKeyRef') {
-                      delete spec.target.pgLambda.script
-                      spec.target.pgLambda.scriptFrom = { [value]: { key: '', name: '' } }
-                    } else {
-                      delete spec.target.pgLambda.scriptFrom
-                      spec.target.pgLambda.script = spec.target.pgLambda.script ?? null
-                    }
-                  })
-                }} />
-            </Field>
-            {scriptSource && (
-              <Field label="Script Type" tooltip="sgstream.spec.target.pgLambda.scriptType">
-                <Select value={target.scriptType || ''} options={['javascript']} placeholder="Select script type..."
-                  onChange={(value) => setSpec((spec) => { spec.target.pgLambda.scriptType = value || null })} />
+            <FieldGroup title={<>Script{renderTooltip('sgstream.spec.target.pgLambda.script')}</>}>
+            <FieldRow>
+              <Field label="Script Source" required
+                tooltip={<HelpTooltip text={'Determine the source from which the script should be loaded.'} />}>
+                <Select value={scriptSource || ''} required placeholder="Select script source..."
+                  options={[
+                    { value: 'createNewScript', label: 'Custom script' },
+                    { value: '', label: '– OR –', disabled: true },
+                    { value: 'secretKeyRef', label: 'From Secret' },
+                    { value: 'configMapKeyRef', label: 'From ConfigMap' },
+                  ]}
+                  onChange={(value) => {
+                    setScriptSource(value || null)
+                    setSpec((spec) => {
+                      if (value === 'secretKeyRef' || value === 'configMapKeyRef') {
+                        delete spec.target.pgLambda.script
+                        spec.target.pgLambda.scriptFrom = { [value]: { key: '', name: '' } }
+                      } else {
+                        delete spec.target.pgLambda.scriptFrom
+                        spec.target.pgLambda.script = spec.target.pgLambda.script ?? null
+                      }
+                    })
+                  }} />
               </Field>
-            )}
+              {scriptSource && (
+                <Field label="Script Type" tooltip="sgstream.spec.target.pgLambda.scriptType">
+                  <Select value={target.scriptType || ''} options={['javascript']} placeholder="Select script type..."
+                    onChange={(value) => setSpec((spec) => { spec.target.pgLambda.scriptType = value || null })} />
+                </Field>
+              )}
+            </FieldRow>
             {scriptSource === 'createNewScript' && (
               <Field label="Script" required error={form.errors.script}>
                 <TextArea value={target.script || ''} required rows={8} placeholder="Type a script..."
@@ -513,7 +535,7 @@ export default function StreamForm({ isEdit }) {
                     reader.readAsText(file)
                     event.target.value = ''
                   }} />
-                <button type="button" className="self-start text-sm underline"
+                <button type="button" className="self-start text-sm text-[hsl(var(--primary))] hover:underline"
                   onClick={() => scriptFileInput.current?.click()}>
                   …or upload a file
                 </button>
@@ -521,11 +543,11 @@ export default function StreamForm({ isEdit }) {
             )}
             {(scriptSource === 'secretKeyRef' || scriptSource === 'configMapKeyRef') && (
               <>
-                <h3 className="font-semibold">
+                <h3 className="text-sm font-semibold">
                   {scriptSource === 'secretKeyRef' ? 'Secret Key Ref' : 'Config Map Key Ref'}
                   {renderTooltip('sgscript.spec.scripts.scriptFrom.properties.' + scriptSource)}
                 </h3>
-                <div className="flex flex-wrap gap-3">
+                <FieldRow>
                   <Field label="Name" required
                     tooltip={'sgscript.spec.scripts.scriptFrom.properties.' + scriptSource + '.properties.name'}>
                     <TextInput value={target.scriptFrom?.[scriptSource]?.name || ''} required
@@ -538,7 +560,7 @@ export default function StreamForm({ isEdit }) {
                       placeholder="Type a key.."
                       onChange={(value) => setSpec((spec) => { spec.target.pgLambda.scriptFrom[scriptSource].key = value })} />
                   </Field>
-                </div>
+                </FieldRow>
                 {isEdit && target.scriptFrom?.configMapScript !== undefined && (
                   <Field label="ConfigMap Script">
                     <TextArea value={target.scriptFrom.configMapScript || ''} rows={8}
@@ -548,12 +570,12 @@ export default function StreamForm({ isEdit }) {
                 )}
               </>
             )}
-            <fieldset className="flex flex-col gap-3 border p-3">
-              <legend className="px-1 font-semibold">Knative Configuration{renderTooltip('sgstream.spec.target.pgLambda.knative')}</legend>
+            </FieldGroup>
+            <FieldGroup title={<>Knative Configuration{renderTooltip('sgstream.spec.target.pgLambda.knative')}</>}>
               <HttpFields http={target.knative.http} urlRequired urlError={form.errors.knativeUrl}
                 tooltipPrefix="sgstream.spec.target.pgLambda.knative.http"
                 onChange={(http) => setSpec((spec) => { spec.target.pgLambda.knative.http = http })} />
-            </fieldset>
+            </FieldGroup>
           </>
         )}
       </fieldset>
@@ -562,8 +584,8 @@ export default function StreamForm({ isEdit }) {
 
       {currentStep === 'pods' && (
       <>
-      <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">Pods&apos; Resources Information{renderTooltip('sgstream.spec.pods.resources')}</legend>
+      <fieldset className="flex flex-col gap-3 rounded-lg border p-4">
+        <legend className="px-2 text-sm font-medium">Pods&apos; Resources Information{renderTooltip('sgstream.spec.pods.resources')}</legend>
         <StringListEditor title="Claims" values={crd.spec.pods.resources.claims?.map((claim) => claim.name)}
           tooltip="sgstream.spec.pods.resources.claims"
           onChange={(values) =>
@@ -578,13 +600,15 @@ export default function StreamForm({ isEdit }) {
           onChange={(rows) => setSpec((spec) => { spec.pods.resources.requests = rows })} />
       </fieldset>
 
-      <fieldset className="flex flex-col gap-3 border p-3">
-        <legend className="px-1 font-semibold">Pods&apos; Scheduling</legend>
-        <Field label="Priority Class Name" tooltip="sgstream.spec.pods.resources.scheduling.priorityClassName">
-          <TextInput value={crd.spec.pods.resources.scheduling?.priorityClassName || ''}
-            onChange={(value) =>
-              setSpec((spec) => { spec.pods.resources.scheduling.priorityClassName = value || null })} />
-        </Field>
+      <fieldset className="flex flex-col gap-3 rounded-lg border p-4">
+        <legend className="px-2 text-sm font-medium">Pods&apos; Scheduling</legend>
+        <FieldRow>
+          <Field label="Priority Class Name" tooltip="sgstream.spec.pods.resources.scheduling.priorityClassName">
+            <TextInput value={crd.spec.pods.resources.scheduling?.priorityClassName || ''}
+              onChange={(value) =>
+                setSpec((spec) => { spec.pods.resources.scheduling.priorityClassName = value || null })} />
+          </Field>
+        </FieldRow>
         <HeadersEditor title="Node Selectors" rowLabel="Label" addLabel="Add Node Selector"
           tooltip="sgstream.spec.pods.resources.scheduling.nodeSelector"
           headers={crd.spec.pods.resources.scheduling?.nodeSelector || []}

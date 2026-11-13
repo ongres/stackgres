@@ -29,8 +29,8 @@ export const AFFINITY_OPERATORS = [
 export function KeyValueRows({ legend, rows, keyName, onChange, tooltip }) {
   const list = rows || []
   return (
-    <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltip)}</legend>
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{legend}{renderTooltip(tooltip)}</legend>
       {list.map((row, index) => (
         <div key={index} className="flex items-end gap-2">
           <Field label="Key">
@@ -41,13 +41,13 @@ export function KeyValueRows({ legend, rows, keyName, onChange, tooltip }) {
             <TextInput value={row.value}
               onChange={(value) => onChange(list.map((r, i) => (i === index ? { ...r, value } : r)))} />
           </Field>
-          <button type="button" aria-label={`Delete ${legend} ${index + 1}`}
+          <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete ${legend} ${index + 1}`}
             onClick={() => onChange(list.filter((_, i) => i !== index))}>
             <Trash2 size={16} />
           </button>
         </div>
       ))}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => onChange([...list, { [keyName]: '', value: '' }])}>
         <Plus size={14} /> Add {legend}
       </button>
@@ -58,19 +58,19 @@ export function KeyValueRows({ legend, rows, keyName, onChange, tooltip }) {
 export function StringRows({ legend, values, onChange, addLabel = 'Add', tooltip }) {
   const list = values || []
   return (
-    <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltip)}</legend>
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{legend}{renderTooltip(tooltip)}</legend>
       {list.map((entry, index) => (
         <div key={index} className="flex items-center gap-2">
           <TextInput value={entry ?? ''} aria-label={`${legend} ${index + 1}`}
             onChange={(value) => onChange(list.map((e, i) => (i === index ? value : e)))} />
-          <button type="button" aria-label={`Delete ${legend} ${index + 1}`}
+          <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete ${legend} ${index + 1}`}
             onClick={() => onChange(list.filter((_, i) => i !== index))}>
             <Trash2 size={16} />
           </button>
         </div>
       ))}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => onChange([...list, ''])}>
         <Plus size={14} /> {addLabel}
       </button>
@@ -86,8 +86,8 @@ export function ExpressionsEditor({ legend, expressions, onChange, preferred, to
   const itemTooltip = (suffix) =>
     tooltipPrefix ? `${tooltipPrefix}.items.properties.${suffix}` : undefined
   return (
-    <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltipPrefix)}</legend>
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{legend}{renderTooltip(tooltipPrefix)}</legend>
       {list.map((expression, index) => (
         <div key={index} className="flex flex-wrap items-end gap-2">
           <Field label="Key" tooltip={itemTooltip('key')}>
@@ -125,7 +125,7 @@ export function ExpressionsEditor({ legend, expressions, onChange, preferred, to
                         onChange={(next) =>
                           update(index, { values: expression.values.map((v, i) => (i === valueIndex ? next : v)) })} />
                       {['In', 'NotIn'].includes(expression.operator) && (
-                        <button type="button" aria-label="Delete value"
+                        <button type="button" className="p-1 rounded text-red-500 hover:bg-red-500/10" aria-label="Delete value"
                           onClick={() =>
                             update(index, { values: expression.values.filter((_, i) => i !== valueIndex) })}>
                           <Trash2 size={14} />
@@ -134,7 +134,7 @@ export function ExpressionsEditor({ legend, expressions, onChange, preferred, to
                     </div>
                   ))}
                   {['In', 'NotIn'].includes(expression.operator) && (
-                    <button type="button" className="self-start text-sm underline"
+                    <button type="button" className="self-start text-sm text-[hsl(var(--primary))] hover:underline"
                       onClick={() => update(index, { values: [...expression.values, ''] })}>
                       Add Value
                     </button>
@@ -142,13 +142,13 @@ export function ExpressionsEditor({ legend, expressions, onChange, preferred, to
                 </div>
               </Field>
             )}
-          <button type="button" aria-label={`Delete ${legend} ${index + 1}`}
+          <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete ${legend} ${index + 1}`}
             onClick={() => onChange(list.filter((_, i) => i !== index))}>
             <Trash2 size={16} />
           </button>
         </div>
       ))}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => onChange([...list, blankExpression()])}>
         <Plus size={14} /> Add Expression
       </button>
@@ -173,15 +173,15 @@ export function NodeAffinityTerms({ legend, terms, onChange, preferred, tooltipP
         : `${tooltipPrefix}.nodeSelectorTerms.items.properties.${suffix}`
       : undefined
   return (
-    <fieldset className="flex flex-col gap-3 border p-3">
-      <legend className="px-1 font-semibold">{legend}{renderTooltip(termsKey)}</legend>
+    <fieldset className="flex flex-col gap-3 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{legend}{renderTooltip(termsKey)}</legend>
       {list.map((term, index) => {
         const body = preferred ? term.preference : term
         const patchBody = (patch) =>
           updateTerm(index, preferred ? { ...term, preference: { ...body, ...patch } } : { ...term, ...patch })
         return (
-          <fieldset key={index} className="flex flex-col gap-2 border p-3">
-            <legend className="px-1">Term #{index + 1}</legend>
+          <fieldset key={index} className="flex flex-col gap-2 rounded-lg border p-4">
+            <legend className="px-2 text-sm">Term #{index + 1}</legend>
             <ExpressionsEditor legend="Match Expressions" preferred={preferred}
               expressions={body.matchExpressions}
               tooltipPrefix={expressionsPrefix('matchExpressions')}
@@ -196,14 +196,14 @@ export function NodeAffinityTerms({ legend, terms, onChange, preferred, tooltipP
                   onChange={(weight) => updateTerm(index, { ...term, weight: Number(weight) })} />
               </Field>
             )}
-            <button type="button" className="self-start text-sm underline"
+            <button type="button" className="self-start text-sm text-red-500 hover:underline"
               onClick={() => onChange(list.filter((_, i) => i !== index))}>
               Delete Term
             </button>
           </fieldset>
         )
       })}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() =>
           onChange([...list, preferred ? blankPreferredAffinityTerm() : blankRequiredAffinityTerm()])}>
         <Plus size={14} /> Add Term
@@ -217,8 +217,8 @@ export function TolerationsEditor({ tolerations, onChange, tooltipPrefix }) {
   const update = (index, patch) => onChange(list.map((t, i) => (i === index ? { ...t, ...patch } : t)))
   const tooltip = (suffix) => (tooltipPrefix ? `${tooltipPrefix}.${suffix}` : undefined)
   return (
-    <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">Tolerations{renderTooltip(tooltipPrefix)}</legend>
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">Tolerations{renderTooltip(tooltipPrefix)}</legend>
       {list.map((toleration, index) => (
         <div key={index} className="flex flex-wrap items-end gap-2">
           <Field label="Key" tooltip={tooltip('key')}>
@@ -253,13 +253,13 @@ export function TolerationsEditor({ tolerations, onChange, tooltipPrefix }) {
                   update(index, { tolerationSeconds: value === '' ? null : Number(value) })} />
             </Field>
           )}
-          <button type="button" aria-label={`Delete toleration ${index + 1}`}
+          <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete toleration ${index + 1}`}
             onClick={() => onChange(list.filter((_, i) => i !== index))}>
             <Trash2 size={16} />
           </button>
         </div>
       ))}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => onChange([...list, blankToleration()])}>
         <Plus size={14} /> Add Toleration
       </button>
@@ -274,8 +274,8 @@ export function CustomPortsEditor({ legend, ports, onChange, tooltipPrefix }) {
   const requiredPort = (port) =>
     Object.entries(port).some(([key, value]) => key !== 'port' && value !== null && value !== '')
   return (
-    <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltipPrefix)}</legend>
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{legend}{renderTooltip(tooltipPrefix)}</legend>
       {list.map((port, index) => (
         <div key={index} className="flex flex-wrap items-end gap-2">
           <Field label="Application Protocol" tooltip={tooltip('appProtocol')}>
@@ -301,13 +301,13 @@ export function CustomPortsEditor({ legend, ports, onChange, tooltipPrefix }) {
             <TextInput value={port.targetPort ?? ''}
               onChange={(value) => update(index, { targetPort: value || null })} />
           </Field>
-          <button type="button" aria-label={`Delete ${legend} ${index + 1}`}
+          <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete ${legend} ${index + 1}`}
             onClick={() => onChange(list.filter((_, i) => i !== index))}>
             <Trash2 size={16} />
           </button>
         </div>
       ))}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => onChange([...list, blankCustomPort()])}>
         <Plus size={14} /> Add Port
       </button>
@@ -322,11 +322,11 @@ export function ContainersEditor({ legend, containers, onChange, tooltipPrefix }
   const nameRequired = (container) =>
     Boolean(container.image || container.imagePullPolicy || container.workingDir)
   return (
-    <fieldset className="flex flex-col gap-3 border p-3">
-      <legend className="px-1 font-semibold">{legend}{renderTooltip(tooltipPrefix)}</legend>
+    <fieldset className="flex flex-col gap-3 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">{legend}{renderTooltip(tooltipPrefix)}</legend>
       {list.map((container, index) => (
-        <fieldset key={index} className="flex flex-col gap-2 border p-3">
-          <legend className="px-1">{legend} #{index + 1}</legend>
+        <fieldset key={index} className="flex flex-col gap-2 rounded-lg border p-4">
+          <legend className="px-2 text-sm">{legend} #{index + 1}</legend>
           <div className="flex flex-wrap gap-2">
             <Field label="Name" required={nameRequired(container)} tooltip={tooltip('name')}>
               <TextInput required={nameRequired(container)} value={container.name ?? ''}
@@ -351,8 +351,8 @@ export function ContainersEditor({ legend, containers, onChange, tooltipPrefix }
           <StringRows legend="Command" values={(container.command || []).map((c) => c ?? '')}
             addLabel="Add Command" tooltip={tooltip('command')}
             onChange={(values) => update(index, { command: values.map((v) => (v === '' ? null : v)) })} />
-          <fieldset className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">Environment Variables{renderTooltip(tooltip('env'))}</legend>
+          <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+            <legend className="px-2 text-sm font-medium">Environment Variables{renderTooltip(tooltip('env'))}</legend>
             {(container.env || []).map((entry, envIndex) => (
               <div key={envIndex} className="flex items-end gap-2">
                 <Field label="Name" required={Boolean(entry.value)}>
@@ -369,19 +369,19 @@ export function ContainersEditor({ legend, containers, onChange, tooltipPrefix }
                         env: container.env.map((e, i) => (i === envIndex ? { ...e, value: value || null } : e)),
                       })} />
                 </Field>
-                <button type="button" aria-label={`Delete environment variable ${envIndex + 1}`}
+                <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete environment variable ${envIndex + 1}`}
                   onClick={() => update(index, { env: container.env.filter((_, i) => i !== envIndex) })}>
                   <Trash2 size={16} />
                 </button>
               </div>
             ))}
-            <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+            <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
               onClick={() => update(index, { env: [...(container.env || []), { name: null, value: null }] })}>
               <Plus size={14} /> Add Variable
             </button>
           </fieldset>
-          <fieldset className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">Ports{renderTooltip(tooltip('ports'))}</legend>
+          <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+            <legend className="px-2 text-sm font-medium">Ports{renderTooltip(tooltip('ports'))}</legend>
             {(container.ports || []).map((port, portIndex) => (
               <div key={portIndex} className="flex flex-wrap items-end gap-2">
                 <Field label="Name" tooltip={tooltip('ports.items.properties.name')}>
@@ -425,13 +425,13 @@ export function ContainersEditor({ legend, containers, onChange, tooltipPrefix }
                         ),
                       })} />
                 </Field>
-                <button type="button" aria-label={`Delete port ${portIndex + 1}`}
+                <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete port ${portIndex + 1}`}
                   onClick={() => update(index, { ports: container.ports.filter((_, i) => i !== portIndex) })}>
                   <Trash2 size={16} />
                 </button>
               </div>
             ))}
-            <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+            <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
               onClick={() =>
                 update(index, {
                   ports: [
@@ -442,8 +442,8 @@ export function ContainersEditor({ legend, containers, onChange, tooltipPrefix }
               <Plus size={14} /> Add Port
             </button>
           </fieldset>
-          <fieldset className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">Volume Mounts{renderTooltip(tooltip('volumeMounts'))}</legend>
+          <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+            <legend className="px-2 text-sm font-medium">Volume Mounts{renderTooltip(tooltip('volumeMounts'))}</legend>
             {(container.volumeMounts || []).map((mount, mountIndex) => {
               const patchMount = (patch) =>
                 update(index, {
@@ -480,7 +480,7 @@ export function ContainersEditor({ legend, containers, onChange, tooltipPrefix }
                     <TextInput disabled={Boolean(mount.subPath)} value={mount.subPathExpr ?? ''}
                       onChange={(value) => patchMount({ subPathExpr: value || null })} />
                   </Field>
-                  <button type="button" aria-label={`Delete volume mount ${mountIndex + 1}`}
+                  <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete volume mount ${mountIndex + 1}`}
                     onClick={() =>
                       update(index, {
                         volumeMounts: container.volumeMounts.filter((_, i) => i !== mountIndex),
@@ -490,7 +490,7 @@ export function ContainersEditor({ legend, containers, onChange, tooltipPrefix }
                 </div>
               )
             })}
-            <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+            <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
               onClick={() =>
                 update(index, {
                   volumeMounts: [
@@ -508,13 +508,13 @@ export function ContainersEditor({ legend, containers, onChange, tooltipPrefix }
               <Plus size={14} /> Add Volume Mount
             </button>
           </fieldset>
-          <button type="button" className="self-start text-sm underline"
+          <button type="button" className="self-start text-sm text-red-500 hover:underline"
             onClick={() => onChange(list.filter((_, i) => i !== index))}>
             Delete {legend} #{index + 1}
           </button>
         </fieldset>
       ))}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => onChange([...list, blankContainer()])}>
         <Plus size={14} /> Add {legend}
       </button>
@@ -639,14 +639,14 @@ export function CustomVolumesEditor({ volumes, types, onChange, tooltipPrefix })
   const tooltip = (suffix) => (tooltipPrefix ? `${tooltipPrefix}.${suffix}` : undefined)
 
   return (
-    <fieldset className="flex flex-col gap-2 border p-3">
-      <legend className="px-1 font-semibold">Custom Volumes{renderTooltip(tooltipPrefix)}</legend>
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-4">
+      <legend className="px-2 text-sm font-medium">Custom Volumes{renderTooltip(tooltipPrefix)}</legend>
       <p>List of volumes that can be mounted by custom containers belonging to the pod</p>
       {list.map((volume, index) => {
         const type = types[index]
         return (
-          <fieldset key={index} className="flex flex-col gap-2 border p-3">
-            <legend className="px-1">Volume #{index + 1}</legend>
+          <fieldset key={index} className="flex flex-col gap-2 rounded-lg border p-4">
+            <legend className="px-2 text-sm">Volume #{index + 1}</legend>
             <div className="flex items-end gap-2">
               <Field label="Name" required={type !== null} tooltip={tooltip('name')}>
                 <TextInput required={type !== null} value={volume.name ?? ''}
@@ -682,7 +682,7 @@ export function CustomVolumesEditor({ volumes, types, onChange, tooltipPrefix })
                     )
                   }} />
               </Field>
-              <button type="button" aria-label={`Delete volume ${index + 1}`}
+              <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete volume ${index + 1}`}
                 onClick={() =>
                   change(list.filter((_, i) => i !== index), types.filter((_, i) => i !== index))}>
                 <Trash2 size={16} />
@@ -777,7 +777,7 @@ export function CustomVolumesEditor({ volumes, types, onChange, tooltipPrefix })
                             },
                           })} />
                     </Field>
-                    <button type="button" aria-label={`Delete item ${itemIndex + 1}`}
+                    <button type="button" className="p-1.5 rounded text-red-500 hover:bg-red-500/10" aria-label={`Delete item ${itemIndex + 1}`}
                       onClick={() =>
                         updateVolume(index, {
                           ...volume,
@@ -790,7 +790,7 @@ export function CustomVolumesEditor({ volumes, types, onChange, tooltipPrefix })
                     </button>
                   </div>
                 ))}
-                <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+                <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
                   onClick={() =>
                     updateVolume(index, {
                       ...volume,
@@ -806,7 +806,7 @@ export function CustomVolumesEditor({ volumes, types, onChange, tooltipPrefix })
           </fieldset>
         )
       })}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() => change([...list, { name: null }], [...types, null])}>
         <Plus size={14} /> Add Volume
       </button>
@@ -859,11 +859,11 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
         const showBody =
           (!isEdit && source.base === 'createNewScript') || (isEdit && Object.hasOwn(base, 'scriptSpec'))
         return (
-          <fieldset key={baseIndex} className="flex flex-col gap-2 border p-3">
-            <legend className="px-1 font-semibold">Script #{baseIndex + 1}</legend>
+          <fieldset key={baseIndex} className="flex flex-col gap-2 rounded-lg border p-4">
+            <legend className="px-2 text-sm font-medium">Script #{baseIndex + 1}</legend>
             <div className="flex gap-2">
               {!defaultScript && (
-                <button type="button" className="text-sm underline"
+                <button type="button" className="text-sm text-red-500 hover:underline"
                   onClick={() =>
                     commit((next, nextSources) => {
                       next.scripts.splice(baseIndex, 1)
@@ -872,7 +872,7 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                   Delete Script
                 </button>
               )}
-              <button type="button" className="text-sm underline" disabled={baseIndex === 0}
+              <button type="button" className="text-sm text-[hsl(var(--primary))] hover:underline" disabled={baseIndex === 0}
                 onClick={() =>
                   commit((next, nextSources) => {
                     ;[next.scripts[baseIndex - 1], next.scripts[baseIndex]] = [
@@ -886,7 +886,7 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                   })}>
                 Move Up
               </button>
-              <button type="button" className="text-sm underline"
+              <button type="button" className="text-sm text-[hsl(var(--primary))] hover:underline"
                 disabled={baseIndex === scripts.length - 1}
                 onClick={() =>
                   commit((next, nextSources) => {
@@ -947,10 +947,10 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                       mutate(next.scripts[baseIndex].scriptSpec.scripts[entryIndex])
                     })
                   return (
-                    <fieldset key={entryIndex} className="flex flex-col gap-2 border p-3">
-                      <legend className="px-1">Entry #{entryIndex + 1}</legend>
+                    <fieldset key={entryIndex} className="flex flex-col gap-2 rounded-lg border p-4">
+                      <legend className="px-2 text-sm">Entry #{entryIndex + 1}</legend>
                       <div className="flex gap-2">
-                        <button type="button" className="text-sm underline" disabled={defaultScript}
+                        <button type="button" className="text-sm text-red-500 hover:underline" disabled={defaultScript}
                           onClick={() =>
                             commit((next, nextSources) => {
                               next.scripts[baseIndex].scriptSpec.scripts.splice(entryIndex, 1)
@@ -1037,7 +1037,7 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                             aria-label={`Script ${baseIndex + 1} entry ${entryIndex + 1} body`}
                             onChange={(input) => patchEntry((draft) => { draft.script = input })} />
                           {!isEdit && (
-                            <button type="button" className="self-start text-sm underline"
+                            <button type="button" className="self-start text-sm text-[hsl(var(--primary))] hover:underline"
                               onClick={() => {
                                 fileTarget.current = { base: baseIndex, entry: entryIndex }
                                 fileInput.current?.click()
@@ -1095,7 +1095,7 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
                     </fieldset>
                   )
                 })}
-                <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+                <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
                   disabled={defaultScript}
                   onClick={() =>
                     commit((next, nextSources) => {
@@ -1109,7 +1109,7 @@ export function ManagedSqlEditor({ value, sources, onChange, scriptOptions, isEd
           </fieldset>
         )
       })}
-      <button type="button" className="flex items-center gap-1 self-start text-sm underline"
+      <button type="button" className="flex items-center gap-1 self-start rounded-md px-1.5 py-1 text-sm text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]"
         onClick={() =>
           commit((next, nextSources) => {
             next.scripts.push({
