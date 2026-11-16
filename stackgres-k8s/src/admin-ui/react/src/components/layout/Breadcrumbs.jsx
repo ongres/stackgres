@@ -3,19 +3,23 @@ import { ChevronRight, Home } from 'lucide-react'
 import { RESOURCE_ICONS } from './resourceIcons'
 
 // Detail routes use the singular kind segment (/:namespace/sgcluster/:name);
-// map those to the same icons as their plural list segments.
+// render those crumbs as their plural list kind, linking to the list route.
+// (sgconfig stays singular: it has no list route.)
+const SINGULAR_TO_PLURAL = {
+  sgcluster: 'sgclusters',
+  sgshardedcluster: 'sgshardedclusters',
+  sgstream: 'sgstreams',
+  sginstanceprofile: 'sginstanceprofiles',
+  sgpgconfig: 'sgpgconfigs',
+  sgpoolconfig: 'sgpoolconfigs',
+  sgobjectstorage: 'sgobjectstorages',
+  sgscript: 'sgscripts',
+  sgdistributedlog: 'sgdistributedlogs',
+  sgbackup: 'sgbackups',
+}
+
 const SEGMENT_ICONS = {
   ...RESOURCE_ICONS,
-  sgcluster: RESOURCE_ICONS.sgclusters,
-  sgshardedcluster: RESOURCE_ICONS.sgshardedclusters,
-  sgstream: RESOURCE_ICONS.sgstreams,
-  sginstanceprofile: RESOURCE_ICONS.sginstanceprofiles,
-  sgpgconfig: RESOURCE_ICONS.sgpgconfigs,
-  sgpoolconfig: RESOURCE_ICONS.sgpoolconfigs,
-  sgobjectstorage: RESOURCE_ICONS.sgobjectstorages,
-  sgscript: RESOURCE_ICONS.sgscripts,
-  sgdistributedlog: RESOURCE_ICONS.sgdistributedlogs,
-  sgbackup: RESOURCE_ICONS.sgbackups,
   sgconfig: RESOURCE_ICONS.configurations,
 }
 
@@ -28,11 +32,16 @@ export default function Breadcrumbs() {
     return null
   }
 
-  const crumbs = segments.map((segment, index) => ({
-    label: segment,
-    to: '/' + segments.slice(0, index + 1).join('/'),
-    Icon: SEGMENT_ICONS[segment],
-  }))
+  const crumbs = segments.map((segment, index) => {
+    const plural = SINGULAR_TO_PLURAL[segment]
+    return {
+      label: plural || segment,
+      to: plural
+        ? '/' + [...segments.slice(0, index), plural].join('/')
+        : '/' + segments.slice(0, index + 1).join('/'),
+      Icon: SEGMENT_ICONS[plural || segment],
+    }
+  })
 
   return (
     <nav
