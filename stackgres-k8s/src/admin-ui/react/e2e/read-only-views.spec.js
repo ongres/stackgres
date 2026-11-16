@@ -22,7 +22,7 @@ test('cluster list renders stats columns and navigates to the tabs', async ({ pa
   await expect(page.getByRole('heading', { name: 'StackGres Clusters' })).toBeVisible()
   await expect(page.getByRole('columnheader', { name: 'Instances' })).toBeVisible()
 
-  await page.getByRole('link', { name: 'uptodate' }).first().click()
+  await page.getByRole('link', { name: 'uptodate', exact: true }).first().click()
   await expect(page).toHaveURL(/\/admin\/default\/sgcluster\/uptodate$/)
   await expect(page.getByRole('cell', { name: 'primary' }).first()).toBeVisible()
 
@@ -47,6 +47,8 @@ test('sidebar shows per-item submenus', async ({ page }) => {
   await login(page)
   await page.goto('/admin/default/sgclusters')
   const sidebar = page.getByRole('navigation', { name: 'Resources' })
+  // Rail-only by default: the tree panel opens via the expand toggle.
+  await sidebar.getByRole('button', { name: 'Expand sidebar' }).click()
   await expect(sidebar.getByRole('link', { name: 'uptodate', exact: true })).toBeVisible()
 })
 

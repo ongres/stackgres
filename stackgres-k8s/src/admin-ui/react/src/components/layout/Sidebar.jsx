@@ -170,9 +170,10 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(() => {
     try {
       if (window.matchMedia('(max-width: 1023px)').matches) return true
-      return localStorage.getItem(COLLAPSED_KEY) === 'true'
+      // Rail-only by default; the tree panel is opt-in and persisted.
+      return localStorage.getItem(COLLAPSED_KEY) !== 'false'
     } catch {
-      return false
+      return true
     }
   })
   const [flyout, setFlyout] = useState(null)
