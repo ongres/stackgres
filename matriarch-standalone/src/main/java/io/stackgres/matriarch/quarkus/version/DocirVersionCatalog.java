@@ -38,7 +38,7 @@ public class DocirVersionCatalog implements VersionCatalog {
     private final Map<DatabaseEngine, List<Version>> cache = new ConcurrentHashMap<>();
 
     public DocirVersionCatalog() {
-        String base = env("STACKGRES_DOCIR_API_URL", "https://sgcr.dev:1443/api/stackgres/v1/");
+        String base = env("STACKGRES_DOCIR_API_URL", "https://sgcr.dev/api/stackgres/v1/");
         this.versionsUri = URI.create(base + "versions");
     }
 

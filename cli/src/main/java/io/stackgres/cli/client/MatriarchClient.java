@@ -112,9 +112,10 @@ public class MatriarchClient {
         return resourceStub;
     }
 
-    // The cloud (skvorets) serves only api.v1; commands still on the old cli.proto services (psql, tunnel,
-    // exec, node writes/logs/events, checkpoints, diagnostics, slon) come back UNIMPLEMENTED — or, behind
-    // Cloudflare, an HTTP 500 with no gRPC content-type. Recognise that so we say so cleanly, not a raw 500.
+    // The cloud (skvorets) serves api.v1 (+ control.v1 uplink for cluster/node writes & log tails); the
+    // commands still on the old cli.proto services — the PgWire data plane (psql, tunnel, exec) plus
+    // checkpoints, diagnostics and slon — come back UNIMPLEMENTED, or behind Cloudflare an HTTP 500 with no
+    // gRPC content-type. Recognise that so we say so cleanly, not a raw 500.
     private static final String CLOUD_UNSUPPORTED =
             "This command isn't available over the cloud connection yet — it needs a direct connection to a local "
             + "matriarch (point STACKGRES_ENDPOINT_URL at the matriarch, or use a local context).";

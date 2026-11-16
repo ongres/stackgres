@@ -40,7 +40,7 @@ public class DocirExtensionCatalog implements ExtensionCatalog {
     private final Map<String, Map<String, List<ExtVersion>>> cache = new ConcurrentHashMap<>();
 
     public DocirExtensionCatalog() {
-        String base = env("STACKGRES_DOCIR_API_URL", "https://sgcr.dev:1443/api/stackgres/v1/");
+        String base = env("STACKGRES_DOCIR_API_URL", "https://sgcr.dev/api/stackgres/v1/");
         this.extensionsUri = URI.create(base + "extensions");
     }
 

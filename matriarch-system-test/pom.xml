@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.stackgres</groupId>
+    <artifactId>stackgres-parent</artifactId>
+    <version>1.20.0-SNAPSHOT</version>
+    <relativePath>../stackgres-k8s/src/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>stackgres-matriarch-system-test</artifactId>
+  <packaging>jar</packaging>
+
+  <!--
+    Black-box system tests for the matriarch (CLI + api.v1), driven as a process against a RUNNING
+    environment. Standalone on purpose (NOT in the aggregator reactor): the env is long-lived and
+    tests are run by hand (`mvn test`) against it. One scenario set runs against a config-resolved
+    target (direct matriarch / cloud) — see TestConfig.
+  -->
+  <properties>
+    <grpc.version>1.75.0</grpc.version>
+    <maven.deploy.skip>true</maven.deploy.skip>
+    <!-- Extra JVM args for the forked test JVM; override e.g. with
+         -Dsystemtest.argLine=-Djava.net.preferIPv4Stack=true when the cloud endpoint resolves to an
+         IPv6 address the host can't route. -->
+    <systemtest.argLine></systemtest.argLine>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-bom</artifactId>
+        <version>${grpc.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- api.v1 / slon / slony gRPC stubs (no local codegen) -->
+    <dependency>
+      <groupId>io.stackgres</groupId>
+      <artifactId>stackgres-proto</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.13.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.20.2</version>
+    </dependency>
+    <!-- awaitility is added with the create→HEALTHY slice (polling for convergence); not needed yet. -->
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>${systemtest.argLine}</argLine>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 public abstract class ClusterInstance {
 
-    protected static final String SLON_VERSION_REV = "slon--0.1--10608";
-    protected static final String VECTOR_AGENT_VERSION_REV = "vector-agent--0.55.0--10603";
+    protected static final String SLON_VERSION_REV = "slon--0.1--16657";
+    protected static final String VECTOR_AGENT_VERSION_REV = "vector-agent--0.55.0--16655";
 
     private UUID id;
     private String name;
@@ -54,7 +54,7 @@ public abstract class ClusterInstance {
                               }
                               return e.name();
                           }).collect(Collectors.joining("/"));
-        return "sgcr.dev:1443/stackgres/" + flavor.id() + "--" + version + extension + "/a/" + SLON_VERSION_REV + "/a/" + VECTOR_AGENT_VERSION_REV;
+        return "sgcr.dev/stackgres/" + flavor.id() + "--" + version + extension + "/a/" + SLON_VERSION_REV + "/a/" + VECTOR_AGENT_VERSION_REV;
     }
 
     public boolean hasAllPorts(Flavor flavor) {

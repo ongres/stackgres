@@ -32,7 +32,7 @@ public class SlonyLinuxHAInstance extends SlonyLinuxInstance {
                               }
                               return e.name();
                           }).collect(Collectors.joining("/"));
-        return "sgcr.dev:1443/stackgres/" + flavor.id() + "--" + getVersion() + extension + "/a/" + SLON_VERSION_REV + "/a/" + PATRONI_ADDON_REF + "/a/" + VECTOR_AGENT_VERSION_REV;
+        return "sgcr.dev/stackgres/" + flavor.id() + "--" + getVersion() + extension + "/a/" + SLON_VERSION_REV + "/a/" + PATRONI_ADDON_REF + "/a/" + VECTOR_AGENT_VERSION_REV;
     }
 
     @Override
