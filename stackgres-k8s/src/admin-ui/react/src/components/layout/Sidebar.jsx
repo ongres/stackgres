@@ -80,7 +80,7 @@ function sectionForPath(pathname, namespace) {
   return null
 }
 
-function KindTree({ namespace, kind, submenu }) {
+function KindTree({ namespace, kind, submenu, className = '' }) {
   const canI = useCanI()
   const items = useKindList(kind, namespace)
   const canCreate = canI('create', kind, namespace)
@@ -90,7 +90,7 @@ function KindTree({ namespace, kind, submenu }) {
   }
 
   return (
-    <ul className="ml-2 border-l border-[hsl(var(--border))]">
+    <ul className={`ml-2 border-l border-[hsl(var(--border))] ${className}`}>
       {canCreate && (
         <li className={treeItemClasses(!submenu || !items || items.length === 0)}>
           <Link to={`/${namespace}/${kind}/new`}
@@ -128,9 +128,9 @@ function SectionPanel({ namespace, section, applications }) {
           </Link>
         )}
       </div>
-      <div className="relative flex-1 overflow-auto px-3 pb-3 pt-2">
+      <div className="relative flex-1 overflow-auto px-3 pb-3">
         {section.id === 'applications' ? (
-          <ul className="flex flex-col gap-0.5">
+          <ul className="flex flex-col gap-0.5 pt-2">
             {(applications || []).map((application) => (
               <li key={application.name}>
                 <NavLink to={`/${namespace}/application/${application.name}`} className={subItemClasses}>
@@ -141,7 +141,7 @@ function SectionPanel({ namespace, section, applications }) {
             ))}
           </ul>
         ) : section.children ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 pt-2">
             {section.children
               .filter((child) => canI('any', child.kind, namespace))
               .map((child) => (
@@ -156,7 +156,7 @@ function SectionPanel({ namespace, section, applications }) {
               ))}
           </div>
         ) : (
-          <KindTree namespace={namespace} kind={section.kind} submenu={section.submenu} />
+          <KindTree namespace={namespace} kind={section.kind} submenu={section.submenu} className="pt-2" />
         )}
       </div>
     </div>
