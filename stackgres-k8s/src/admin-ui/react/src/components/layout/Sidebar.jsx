@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useParams } from 'react-router-dom'
 import {
   BookOpen,
+  Home,
   LifeBuoy,
   PanelLeftClose,
   PanelLeftOpen,
@@ -236,6 +237,12 @@ export default function Sidebar() {
     >
       <div className="w-14 border-r flex flex-col items-center bg-[hsl(var(--surface-nav))] text-[hsl(var(--surface-nav-foreground))]">
         <div className="flex flex-col items-center gap-1 py-3">
+          <NavLink to="/" end title="Home" aria-label="Home"
+            className={({ isActive }) => railButtonClasses(isActive)}
+            onMouseEnter={() => setFlyout(null)}>
+            <Home className="h-5 w-5" strokeWidth={1.5} />
+          </NavLink>
+          <hr className="w-6 my-1 border-t border-[hsl(var(--border))]" />
           {visibleSections.map((section) => (
             <NavLink
               key={section.id}
