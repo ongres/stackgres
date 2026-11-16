@@ -12,7 +12,7 @@ test('namespace overview lists resources per kind', async ({ page }) => {
   await login(page)
   await page.getByTestId('namespaces').getByRole('link', { name: 'default', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Namespace Overview: default' })).toBeVisible()
-  const clustersCard = page.locator('article', { hasText: 'SGCluster (' }).first()
+  const clustersCard = page.locator('article', { hasText: 'SGCluster' }).first()
   await expect(clustersCard.getByRole('link', { name: 'uptodate', exact: true })).toBeVisible()
 })
 

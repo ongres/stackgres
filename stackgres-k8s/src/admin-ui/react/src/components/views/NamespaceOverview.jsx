@@ -28,7 +28,7 @@ function KindCard({ plural, namespace }) {
     <article className="bg-[hsl(var(--card))] rounded shadow border">
       <header className="flex items-center justify-between gap-2 border-b p-3">
         <Link to={listPath(plural, namespace)} className="font-semibold text-[hsl(var(--primary))] hover:underline">
-          {kind.crd} <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border bg-[hsl(var(--muted))]">({items ? items.length : '-'})</span>
+          {kind.crd} <span className="inline-flex items-center justify-center rounded-full min-w-[22px] h-[22px] px-1.5 text-xs font-medium border bg-[hsl(var(--muted))]">{items ? items.length : '-'}</span>
         </Link>
         {canI('create', plural, namespace) && (
           <Link
