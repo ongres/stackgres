@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useParams } from 'react-router-dom'
 import {
   BookOpen,
-  ChevronDown,
   LifeBuoy,
   PanelLeftClose,
   PanelLeftOpen,
@@ -12,7 +11,6 @@ import { RESOURCE_ICONS } from './resourceIcons'
 import { api } from '../../lib/api'
 import { useKindList } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
-import { useNamespaces } from '../../hooks/useNamespaces'
 import { detailPath } from '../../lib/kinds'
 
 // Cloud-console sidebar: a 56px icon rail plus a 256px contextual tree panel
@@ -78,59 +76,7 @@ function sectionForPath(pathname, namespace) {
   if (pathname.startsWith(`/${namespace}/application/`)) {
     return 'applications'
   }
-  if (pathname === `/${namespace}` || pathname.startsWith('/namespaces/')) {
-    return 'namespaces'
-  }
   return null
-}
-
-function NamespaceSelector({ namespace }) {
-  const namespaces = useNamespaces()
-  const canI = useCanI()
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div className="border-b px-3 py-2 min-h-[60px] flex flex-col justify-center">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-2 rounded-md border px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-[hsl(var(--foreground)/0.06)]"
-      >
-        <span className="flex min-w-0 items-baseline gap-1">
-          <span className="shrink-0 text-[hsl(var(--muted-foreground))]">Namespace:</span>
-          <strong className="truncate font-semibold">{namespace}</strong>
-        </span>
-        <ChevronDown className="h-4 w-4 shrink-0 text-[hsl(var(--muted-foreground))]" strokeWidth={1.5} />
-      </button>
-      {open && (
-        <ul className="mt-1 rounded-md border bg-[hsl(var(--card))] p-1 text-sm shadow-lg">
-          <li>
-            <Link to="/" onClick={() => setOpen(false)}
-              className="block rounded-md px-1.5 py-1 font-semibold transition-colors hover:bg-[hsl(var(--foreground)/0.06)]">
-              All namespaces
-            </Link>
-          </li>
-          {namespaces.map((candidate) => (
-            <li key={candidate}>
-              <Link to={`/${candidate}`} onClick={() => setOpen(false)}
-                className="block truncate rounded-md px-1.5 py-1 transition-colors hover:bg-[hsl(var(--foreground)/0.06)]">
-                {candidate}
-              </Link>
-            </li>
-          ))}
-          {canI('create', 'namespaces') && (
-            <li>
-              <Link to="/namespaces/new" onClick={() => setOpen(false)}
-                className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]">
-                <Plus className="h-3.5 w-3.5" strokeWidth={1.5} /> New namespace
-              </Link>
-            </li>
-          )}
-        </ul>
-      )}
-    </div>
-  )
 }
 
 function KindTree({ namespace, kind, submenu }) {
@@ -164,44 +110,13 @@ function KindTree({ namespace, kind, submenu }) {
   )
 }
 
-function NamespacesTree() {
-  const namespaces = useNamespaces()
-  const canI = useCanI()
-
-  return (
-    <ul className="ml-2 border-l border-[hsl(var(--border))]">
-      {canI('create', 'namespaces') && (
-        <li className={treeItemClasses(namespaces.length === 0)}>
-          <Link to="/namespaces/new"
-            className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs text-[hsl(var(--primary))] transition-colors hover:bg-[hsl(var(--primary)/0.1)]">
-            <Plus className="h-3 w-3 shrink-0" strokeWidth={1.5} /> Add New
-          </Link>
-        </li>
-      )}
-      {namespaces.map((candidate, index) => (
-        <li key={candidate} className={treeItemClasses(index === namespaces.length - 1)}>
-          <NavLink to={`/${candidate}`} end className={subItemClasses}>
-            <span className="truncate">{candidate}</span>
-          </NavLink>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
 function SectionPanel({ namespace, section, applications }) {
   const canI = useCanI()
 
   return (
     <div className="w-64 border-r flex flex-col h-full bg-[hsl(var(--surface-nav))] text-[hsl(var(--surface-nav-foreground))]">
-      <NamespaceSelector namespace={namespace} />
-      <div className="min-h-[44px] border-b px-4 py-2 flex items-center gap-1">
-        {section.id === 'namespaces' ? (
-          <Link to="/"
-            className="flex-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors hover:bg-[hsl(var(--foreground)/0.06)]">
-            Namespaces
-          </Link>
-        ) : section.id === 'applications' ? (
+      <div className="min-h-[60px] border-b px-4 py-2 flex items-center gap-1">
+        {section.id === 'applications' ? (
           <span className="flex-1 px-1 py-0.5 text-sm font-semibold">Applications</span>
         ) : section.children ? (
           <span className="flex-1 px-1 py-0.5 text-sm font-semibold">{section.label}</span>
@@ -213,9 +128,7 @@ function SectionPanel({ namespace, section, applications }) {
         )}
       </div>
       <div className="relative flex-1 overflow-auto px-3 pb-3 pt-2">
-        {section.id === 'namespaces' ? (
-          <NamespacesTree />
-        ) : section.id === 'applications' ? (
+        {section.id === 'applications' ? (
           <ul className="flex flex-col gap-0.5">
             {(applications || []).map((application) => (
               <li key={application.name}>
@@ -305,11 +218,11 @@ export default function Sidebar() {
   )
   const hasApplications = Boolean(applications && applications.length)
   const activeSection =
-    activeId === 'applications' || activeId === 'namespaces'
+    activeId === 'applications'
       ? { id: activeId }
       : visibleSections.find((section) => section.id === activeId) || visibleSections[0]
   const flyoutSection =
-    flyout === 'applications' || flyout === 'namespaces'
+    flyout === 'applications'
       ? { id: flyout }
       : SECTIONS.find((section) => section.id === flyout)
 
@@ -321,20 +234,6 @@ export default function Sidebar() {
       onMouseLeave={() => setFlyout(null)}
     >
       <div className="w-14 border-r flex flex-col items-center bg-[hsl(var(--surface-nav))] text-[hsl(var(--surface-nav-foreground))]">
-        {/* Top block mirrors the panel's namespace-selector header so the
-            bottom border runs continuously across rail and panel. */}
-        <div className="min-h-[60px] w-full border-b flex items-center justify-center">
-          <NavLink
-            to={`/${namespace}`}
-            end
-            title="Namespaces"
-            aria-label="Namespaces"
-            className={() => railButtonClasses(activeId === 'namespaces')}
-            onMouseEnter={() => (collapsed ? setFlyout('namespaces') : null)}
-          >
-            <RESOURCE_ICONS.namespaces className="h-5 w-5" />
-          </NavLink>
-        </div>
         <div className="flex flex-col items-center gap-1 py-3">
           {visibleSections.map((section) => (
             <NavLink

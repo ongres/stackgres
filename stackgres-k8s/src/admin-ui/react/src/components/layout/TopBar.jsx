@@ -8,6 +8,7 @@ import { useCanI } from '../../contexts/PermissionsContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { userManagementPermissions } from '../../lib/permissions'
+import NamespaceSelector from './NamespaceSelector'
 
 const ICON_BUTTON =
   'p-2 rounded-md hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] transition-colors'
@@ -48,6 +49,9 @@ export default function TopBar() {
           )}
         </span>
       </Link>
+      <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 sm:block">
+        <NamespaceSelector />
+      </div>
       <div className="flex-1" />
       <div className="flex items-center gap-1">
         {userManagementPermissions(canI).get && (
