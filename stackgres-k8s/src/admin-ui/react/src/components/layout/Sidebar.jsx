@@ -34,8 +34,8 @@ const SECTIONS = [
     ],
   },
   { id: 'sgdistributedlogs', label: 'Logs Servers', kind: 'sgdistributedlogs', submenu: true, icon: RESOURCE_ICONS.sgdistributedlogs },
-  { id: 'sgbackups', label: 'Cluster Backups', kind: 'sgbackups', submenu: false, icon: RESOURCE_ICONS.sgbackups },
-  { id: 'sgdbops', label: 'Database Operations', kind: 'sgdbops', submenu: false, icon: RESOURCE_ICONS.sgdbops },
+  { id: 'sgbackups', label: 'Cluster Backups', kind: 'sgbackups', submenu: true, icon: RESOURCE_ICONS.sgbackups },
+  { id: 'sgdbops', label: 'Database Operations', kind: 'sgdbops', submenu: true, icon: RESOURCE_ICONS.sgdbops },
 ]
 
 const COLLAPSED_KEY = 'sgSidebarCollapsed'
