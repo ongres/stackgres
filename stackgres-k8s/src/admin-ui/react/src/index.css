@@ -168,3 +168,9 @@ table thead th {
   color: hsl(var(--primary));
   text-decoration: underline;
 }
+
+/* Heading-first pages get breathing room below the breadcrumb border; the
+   tabbed detail shells render a div root and deliberately sit flush under it. */
+main[aria-label='Page content'] > section {
+  padding-top: 1.2rem;
+}
