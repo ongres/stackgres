@@ -46,7 +46,19 @@ export default function Breadcrumbs() {
     return null
   }
 
-  const crumbs = segments.map((segment, index) => {
+  // Detail pages end at the tab name: monitoring picks (pod, dashboard,
+  // range) are view state, not locations, and the implicit Status tab gets a
+  // synthesized crumb on the bare detail path.
+  const detailKind = SINGULAR_TO_PLURAL[segments[1]]
+  let shown = segments
+  let syntheticTab = null
+  if (detailKind && segments.length === 3) {
+    syntheticTab = 'status'
+  } else if (detailKind && segments[3] === 'monitor') {
+    shown = segments.slice(0, 4)
+  }
+
+  const crumbs = shown.map((segment, index) => {
     const plural = SINGULAR_TO_PLURAL[segment]
     return {
       label: plural || segment,
@@ -56,6 +68,10 @@ export default function Breadcrumbs() {
       Icon: SEGMENT_ICONS[plural || segment],
     }
   })
+
+  if (syntheticTab) {
+    crumbs.push({ label: syntheticTab, to: '/' + segments.join('/') + '#' + syntheticTab })
+  }
 
   return (
     <nav
