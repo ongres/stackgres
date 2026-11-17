@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useData } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
 import { useNamespaces } from '../../hooks/useNamespaces'
@@ -8,7 +8,6 @@ export default function GlobalDashboard() {
   const namespaces = useNamespaces()
   const data = useData()
   const canI = useCanI()
-  const navigate = useNavigate()
 
   const countIn = (plural, namespace) => {
     const items = data[plural]
@@ -56,21 +55,6 @@ export default function GlobalDashboard() {
           </article>
         ))}
       </div>
-      <label className="flex max-w-xs flex-col gap-1 text-sm">
-        Go to namespace
-        <select
-          value=""
-          onChange={(event) => event.target.value && navigate(`/${event.target.value}`)}
-          className="w-full border p-2 rounded bg-[hsl(var(--input-background))]"
-        >
-          <option value="">Select a namespace…</option>
-          {namespaces.map((namespace) => (
-            <option key={namespace} value={namespace}>
-              {namespace}
-            </option>
-          ))}
-        </select>
-      </label>
     </section>
   )
 }
