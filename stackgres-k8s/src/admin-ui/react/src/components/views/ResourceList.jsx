@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import { useKindList } from '../../contexts/DataContext'
+import { useCanI } from '../../contexts/PermissionsContext'
 import { useSettings } from '../../contexts/SettingsContext'
 import { fromDateTimeLocal, toDateTimeLocal } from '../../lib/datetime'
 import { activeCondition, detailPath, KINDS } from '../../lib/kinds'
@@ -23,6 +25,7 @@ const DBOPS_OPS = [
 // rows narrowed to that cluster, PG and Source Cluster columns hidden.
 export default function ResourceList({ plural, clusterScoped = false }) {
   const { namespace, name: clusterName } = useParams()
+  const canI = useCanI()
   const { timezone } = useSettings()
   const allItems = useKindList(plural, namespace)
   const items =
@@ -149,6 +152,16 @@ export default function ResourceList({ plural, clusterScoped = false }) {
         defaultSort={defaultSort}
         rowLink={(item) => detailPath(plural, namespace, item.metadata.name)}
         emptyMessage={`No ${KINDS[plural].crd}s have been found`}
+        emptyAction={
+          !clusterScoped && canI('create', plural, namespace) ? (
+            <Link
+              to={`/${namespace}/${plural}/new`}
+              className="mt-1 flex items-center gap-1 text-[hsl(var(--primary))] hover:underline"
+            >
+              <Plus className="h-4 w-4" strokeWidth={1.5} /> Create a new {KINDS[plural].crd}
+            </Link>
+          ) : null
+        }
       />
     </section>
   )

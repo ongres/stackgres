@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowDown, ArrowUp } from 'lucide-react'
+import { ArrowDown, ArrowUp, Inbox } from 'lucide-react'
 import { renderTooltip } from './forms/fields'
 
 // Generic read-only table: client-side sorting, text filtering and paging.
@@ -14,6 +14,7 @@ export default function DataTable({
   defaultSort = null,
   pageSize = 20,
   emptyMessage = 'No resources found',
+  emptyAction = null,
 }) {
   const [sort, setSort] = useState(defaultSort)
   const [page, setPage] = useState(0)
@@ -56,7 +57,13 @@ export default function DataTable({
   }
 
   if (!sorted.length) {
-    return <p className="p-4 text-sm text-[hsl(var(--muted-foreground))] italic">{emptyMessage}</p>
+    return (
+      <div className="flex flex-col items-center gap-2 rounded border bg-[hsl(var(--card))] px-6 py-12 text-center shadow-sm">
+        <Inbox className="h-8 w-8 text-[hsl(var(--muted-foreground))]" strokeWidth={1.25} aria-hidden="true" />
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">{emptyMessage}</p>
+        {emptyAction}
+      </div>
+    )
   }
 
   return (
