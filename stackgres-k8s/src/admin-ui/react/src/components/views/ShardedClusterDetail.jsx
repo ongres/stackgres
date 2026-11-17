@@ -5,6 +5,7 @@ import { useCanI } from '../../contexts/PermissionsContext'
 import CloneResourceDialog from '../CloneResourceDialog'
 import DeleteResourceDialog from '../DeleteResourceDialog'
 import { BreadcrumbActions } from '../layout/Breadcrumbs'
+import ConnectionInfoDialog from '../ConnectionInfoDialog'
 
 // Condition alerts shared by the sharded Status and Configuration tabs: a
 // pending-restart notice and a components-updated warning.
@@ -39,55 +40,32 @@ export function ShardedConnectionInfo({ cluster }) {
   const coordinator = (cluster.status?.clusters || [])[0]
 
   if (!podsReady) {
-    return <p className="text-sm text-[hsl(var(--muted-foreground))] italic">No pods are available yet</p>
+    return <ConnectionInfoDialog rows={[]} disabledReason="No pods are available yet" />
   }
 
-  return (
-    <details className="text-sm">
-      <summary className="cursor-pointer text-sm font-semibold">Connection Information</summary>
-      <ul className="flex flex-col gap-1 p-2">
-        <li>
-          <strong>Read Write DNS:</strong> <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">{info.primaryDns}</code>
-        </li>
-        <li>
-          <strong>Read Only DNS:</strong> <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">{info.readsDns}</code>
-        </li>
-        {coordinator && (
-          <li>
-            <strong>Local psql:</strong>{' '}
-            <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
-              kubectl exec -ti {coordinator} -c postgres-util --{' '}
-              {info.superuserUsername && info.superuserUsername !== 'postgres'
-                ? `psql -U ${info.superuserUsername}`
-                : 'psql'}
-            </code>
-          </li>
-        )}
-        <li>
-          <strong>External psql:</strong>{' '}
-          <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
-            psql -h {info.primaryDns} -U {info.superuserUsername || 'postgres'}
-          </code>
-        </li>
-        {info.superuserSecretName && (
-          <li>
-            <strong>Password secret:</strong>{' '}
-            <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
-              {info.superuserSecretName} / {info.superuserPasswordKey}
-            </code>
-          </li>
-        )}
-        {cluster.spec?.postgres?.flavor === 'babelfish' && (
-          <li>
-            <strong>Babelfish (port 1433) password secret:</strong>{' '}
-            <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
-              {cluster.metadata.name} / babelfish-password
-            </code>
-          </li>
-        )}
-      </ul>
-    </details>
-  )
+  const rows = [
+    { label: 'Read Write DNS', value: info.primaryDns },
+    { label: 'Read Only DNS', value: info.readsDns },
+    ...(coordinator
+      ? [{
+          label: 'Local psql',
+          value: `kubectl exec -ti ${coordinator} -c postgres-util -- ${
+            info.superuserUsername && info.superuserUsername !== 'postgres'
+              ? `psql -U ${info.superuserUsername}`
+              : 'psql'
+          }`,
+        }]
+      : []),
+    { label: 'External psql', value: `psql -h ${info.primaryDns} -U ${info.superuserUsername || 'postgres'}` },
+    ...(info.superuserSecretName
+      ? [{ label: 'Password secret', value: `${info.superuserSecretName} / ${info.superuserPasswordKey}` }]
+      : []),
+    ...(cluster.spec?.postgres?.flavor === 'babelfish'
+      ? [{ label: 'Babelfish (port 1433) password secret', value: `${cluster.metadata.name} / babelfish-password` }]
+      : []),
+  ]
+
+  return <ConnectionInfoDialog rows={rows} />
 }
 
 // Tab chrome for /:namespace/sgshardedcluster/:name/* — the Vue HeaderSection

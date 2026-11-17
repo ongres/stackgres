@@ -1,6 +1,7 @@
 import { useOutletContext } from 'react-router-dom'
 import { useTooltips } from '../../contexts/TooltipsContext'
 import { HelpTooltip } from '../HelpTooltip'
+import ConnectionInfoDialog from '../ConnectionInfoDialog'
 
 // Composed header tooltips from the Vue ClusterStatus template; the
 // .slice(0, -2) strips the descriptions' trailing ".\n".
@@ -88,37 +89,24 @@ function ConnectionInfo({ cluster }) {
   const primary = (cluster.stats?.pods || []).find((pod) => pod.role === 'primary')
 
   if (!primary) {
-    return <p className="text-sm text-[hsl(var(--muted-foreground))] italic">No pods are available yet</p>
+    return <ConnectionInfoDialog rows={[]} disabledReason="No pods are available yet" />
   }
 
-  return (
-    <details className="text-sm">
-      <summary className="cursor-pointer text-sm font-semibold">Connection Information</summary>
-      <ul className="flex flex-col gap-1 p-2">
-        <li>
-          <strong>Read Write DNS:</strong> <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">{info.primaryDns}</code>
-        </li>
-        <li>
-          <strong>Read Only DNS:</strong> <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">{info.replicasDns}</code>
-        </li>
-        <li>
-          <strong>Local psql:</strong>{' '}
-          <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
-            kubectl exec -ti {primary.name} -c postgres-util --{' '}
-            {info.superuserUsername ? `psql -U ${info.superuserUsername}` : 'psql'}
-          </code>
-        </li>
-        {info.superuserSecretName && (
-          <li>
-            <strong>Password secret:</strong>{' '}
-            <code className="rounded bg-[hsl(var(--secondary))] px-1.5 py-0.5">
-              {info.superuserSecretName} / {info.superuserPasswordKey}
-            </code>
-          </li>
-        )}
-      </ul>
-    </details>
-  )
+  const rows = [
+    { label: 'Read Write DNS', value: info.primaryDns },
+    { label: 'Read Only DNS', value: info.replicasDns },
+    {
+      label: 'Local psql',
+      value: `kubectl exec -ti ${primary.name} -c postgres-util -- ${
+        info.superuserUsername ? `psql -U ${info.superuserUsername}` : 'psql'
+      }`,
+    },
+    ...(info.superuserSecretName
+      ? [{ label: 'Password secret', value: `${info.superuserSecretName} / ${info.superuserPasswordKey}` }]
+      : []),
+  ]
+
+  return <ConnectionInfoDialog rows={rows} />
 }
 
 export default function ClusterStatus() {
@@ -129,8 +117,10 @@ export default function ClusterStatus() {
 
   return (
     <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
-      <h2 className="text-lg font-semibold">Cluster</h2>
-      <ConnectionInfo cluster={cluster} />
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-lg font-semibold">Cluster</h2>
+        <ConnectionInfo cluster={cluster} />
+      </div>
       <Totals cluster={cluster} />
       {pods.length ? (
         <div className="rounded border overflow-auto">
