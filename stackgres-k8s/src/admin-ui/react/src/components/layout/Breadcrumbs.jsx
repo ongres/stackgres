@@ -48,11 +48,14 @@ export default function Breadcrumbs() {
 
   // Detail pages end at the tab name: monitoring picks (pod, dashboard,
   // range) are view state, not locations, and the implicit Status tab gets a
-  // synthesized crumb on the bare detail path.
+  // synthesized crumb on the bare detail path. The namespace home likewise
+  // synthesizes an overview crumb so the trail is never a lone name.
   const detailKind = SINGULAR_TO_PLURAL[segments[1]]
   let shown = segments
   let syntheticTab = null
-  if (detailKind && segments.length === 3) {
+  if (segments.length === 1) {
+    syntheticTab = 'overview'
+  } else if (detailKind && segments.length === 3) {
     syntheticTab = 'status'
   } else if (detailKind && segments[3] === 'monitor') {
     shown = segments.slice(0, 4)
