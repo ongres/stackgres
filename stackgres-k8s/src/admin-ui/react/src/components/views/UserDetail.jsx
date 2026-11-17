@@ -4,6 +4,7 @@ import { useCanI } from '../../contexts/PermissionsContext'
 import { userManagementPermissions } from '../../lib/permissions'
 import { useFlatList } from '../../hooks/useFlatList'
 import SpecTree from '../SpecTree'
+import { BreadcrumbActions } from '../layout/Breadcrumbs'
 
 export default function UserDetail() {
   const { name } = useParams()
@@ -21,14 +22,14 @@ export default function UserDetail() {
 
   return (
     <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
-      <header className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">User: {name}</h1>
+      <h1 className="text-lg font-semibold">User: {name}</h1>
+      <BreadcrumbActions>
         {permissions.patch && (
           <Link to={`/manage/user/${name}/edit`} className="flex items-center gap-1 text-[hsl(var(--primary))] hover:underline">
             <Pencil size={14} /> Edit
           </Link>
         )}
-      </header>
+      </BreadcrumbActions>
       <SpecTree value={user} />
     </section>
   )

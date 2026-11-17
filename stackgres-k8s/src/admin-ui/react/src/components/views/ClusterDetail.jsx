@@ -7,6 +7,7 @@ import { useCanI } from '../../contexts/PermissionsContext'
 import CloneResourceDialog from '../CloneResourceDialog'
 import DeleteResourceDialog from '../DeleteResourceDialog'
 import RestartClusterDialog from '../RestartClusterDialog'
+import { BreadcrumbActions } from '../layout/Breadcrumbs'
 
 // Promote action for standby clusters (the Vue HeaderSection promoteCluster):
 // a PUT of the cluster with spec.replicateFrom nulled; the link shows only
@@ -85,7 +86,9 @@ export default function ClusterDetail() {
             {tab.label}
           </NavLink>
         ))}
-        <div className="ml-auto flex items-center gap-3 text-sm">
+        </div>
+      </nav>
+      <BreadcrumbActions>
           {canI('patch', 'sgclusters', namespace) && (
             <Link to={`${base}/edit`} className="flex items-center gap-1 text-[hsl(var(--primary))] hover:underline">
               <Pencil size={14} /> Edit
@@ -108,9 +111,7 @@ export default function ClusterDetail() {
               redirect={`/${namespace}/sgclusters`}
             />
           )}
-        </div>
-        </div>
-      </nav>
+      </BreadcrumbActions>
       <div className="pt-4">
         <Outlet context={{ cluster }} />
       </div>

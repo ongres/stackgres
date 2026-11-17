@@ -1,6 +1,20 @@
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { RESOURCE_ICONS } from './resourceIcons'
+
+// Views portal their page actions (Edit, Clone, Delete…) into the right side
+// of the breadcrumb row through this slot.
+export function BreadcrumbActions({ children }) {
+  const [target, setTarget] = useState(null)
+
+  useEffect(() => {
+    setTarget(document.getElementById('breadcrumb-actions'))
+  }, [])
+
+  return target ? createPortal(children, target) : null
+}
 
 // Detail routes use the singular kind segment (/:namespace/sgcluster/:name);
 // render those crumbs as their plural list kind, linking to the list route.
@@ -46,7 +60,7 @@ export default function Breadcrumbs() {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="min-h-[60px] flex items-center overflow-x-auto whitespace-nowrap px-6 py-2 text-sm"
+      className="min-h-[60px] border-b flex items-center overflow-x-auto whitespace-nowrap px-6 py-2 text-sm"
     >
       <ol className="flex items-center gap-1.5">
         {crumbs.map((crumb, index) => (
@@ -68,6 +82,7 @@ export default function Breadcrumbs() {
           </li>
         ))}
       </ol>
+      <div id="breadcrumb-actions" className="ml-auto flex items-center gap-3 pl-4 text-sm" />
     </nav>
   )
 }

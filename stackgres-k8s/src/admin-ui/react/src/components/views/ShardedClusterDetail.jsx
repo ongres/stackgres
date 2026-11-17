@@ -4,6 +4,7 @@ import { useKindList, useResource } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
 import CloneResourceDialog from '../CloneResourceDialog'
 import DeleteResourceDialog from '../DeleteResourceDialog'
+import { BreadcrumbActions } from '../layout/Breadcrumbs'
 
 // Condition alerts shared by the sharded Status and Configuration tabs: a
 // pending-restart notice and a components-updated warning.
@@ -138,7 +139,9 @@ export default function ShardedClusterDetail() {
             {tab.label}
           </NavLink>
         ))}
-        <div className="ml-auto flex items-center gap-3 text-sm">
+        </div>
+      </nav>
+      <BreadcrumbActions>
           {canI('patch', 'sgshardedclusters', namespace) && (
             <Link to={`${base}/edit`} className="flex items-center gap-1 text-[hsl(var(--primary))] hover:underline">
               <Pencil size={14} /> Edit
@@ -155,9 +158,7 @@ export default function ShardedClusterDetail() {
               redirect={`/${namespace}/sgshardedclusters`}
             />
           )}
-        </div>
-        </div>
-      </nav>
+      </BreadcrumbActions>
       <div className="pt-4">
         <Outlet context={{ cluster }} />
       </div>

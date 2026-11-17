@@ -4,6 +4,7 @@ import { useCanI } from '../../contexts/PermissionsContext'
 import { KINDS, listPath } from '../../lib/kinds'
 import CloneResourceDialog from '../CloneResourceDialog'
 import DeleteResourceDialog from '../DeleteResourceDialog'
+import { BreadcrumbActions } from '../layout/Breadcrumbs'
 import SpecTree from '../SpecTree'
 import BenchmarkResults from './BenchmarkResults'
 import DbOpsEvents from './DbOpsEvents'
@@ -47,9 +48,8 @@ export default function ResourceDetail({ plural }) {
 
   return (
     <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-lg font-semibold">{HEADINGS[plural] || `${KINDS[plural].crd} Details`}</h1>
-        <div className="flex gap-3 text-sm">
+      <h1 className="text-lg font-semibold">{HEADINGS[plural] || `${KINDS[plural].crd} Details`}</h1>
+      <BreadcrumbActions>
           {plural !== 'sgdbops' && canI('patch', plural, namespace) && (
             <Link to={`/${namespace}/${KINDS[plural].singular}/${resourceName}/edit`} className="text-[hsl(var(--primary))] hover:underline">
               Edit
@@ -66,8 +66,7 @@ export default function ResourceDetail({ plural }) {
               redirect={listPath(plural, namespace)}
             />
           )}
-        </div>
-      </div>
+      </BreadcrumbActions>
       <div className="grid grid-cols-1 gap-6 text-sm lg:grid-cols-2">
         <div className="flex flex-col gap-4">
           <section>
