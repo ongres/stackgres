@@ -245,13 +245,16 @@ export default function Sidebar() {
       onMouseLeave={() => setFlyout(null)}
     >
       <div className="w-14 border-r flex flex-col items-center bg-[hsl(var(--surface-nav))] text-[hsl(var(--surface-nav-foreground))]">
-        <div className="flex flex-col items-center gap-1 py-3">
+        {/* Header-height home block: its full-width bottom border lines up
+            with the panel and flyout header borders. */}
+        <div className="min-h-[60px] w-full border-b flex items-center justify-center">
           <NavLink to="/" end title="Home" aria-label="Home"
             className={({ isActive }) => railButtonClasses(isActive)}
             onMouseEnter={() => setFlyout(null)}>
             <Home className="h-5 w-5" strokeWidth={1.5} />
           </NavLink>
-          <hr className="w-6 my-1 border-t border-[hsl(var(--border))]" />
+        </div>
+        <div className="flex flex-col items-center gap-1 py-3">
           {visibleSections.map((section) => (
             <NavLink
               key={section.id}
