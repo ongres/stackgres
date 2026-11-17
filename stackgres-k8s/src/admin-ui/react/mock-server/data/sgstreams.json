@@ -8,5 +8,47 @@
       "target": { "type": "CloudEvent", "cloudEvent": { "format": "json", "http": { "url": "https://events.demo.svc/ingest" } } }
     },
     "status": { "snapshot": { "totalNumberOfEventsSeen": 1240 } }
+  },
+  {
+    "apiVersion": "stackgres.io/v1alpha1",
+    "kind": "SGStream",
+    "metadata": { "name": "inventory-cdc", "namespace": "default", "uid": "aaaa0000-0000-0000-0000-000000000002", "creationTimestamp": "2026-05-12T09:30:00Z" },
+    "spec": {
+      "maxRetries": 5,
+      "source": {
+        "type": "SGCluster",
+        "sgCluster": {
+          "name": "uptodate",
+          "database": "inventory",
+          "username": { "name": "stream-creds", "key": "username" },
+          "password": { "name": "stream-creds", "key": "password" },
+          "includes": ["public.items", "public.stock_movements"]
+        }
+      },
+      "target": {
+        "type": "SGCluster",
+        "sgCluster": { "name": "minor-and-ext", "database": "inventory_replica" }
+      },
+      "pods": {
+        "persistentVolume": { "size": "1Gi" },
+        "resources": { "requests": { "cpu": "500m", "memory": "512Mi" } }
+      }
+    },
+    "status": {
+      "conditions": [
+        { "type": "StreamStreaming", "status": "True", "reason": "Streaming", "lastTransitionTime": "2026-05-12T09:35:00Z" }
+      ],
+      "snapshot": {
+        "totalNumberOfEventsSeen": 48230,
+        "totalNumberOfTablesScanned": 2,
+        "snapshotCompleted": true
+      },
+      "streaming": {
+        "totalNumberOfCreateEventsSeen": 31500,
+        "totalNumberOfUpdateEventsSeen": 15200,
+        "totalNumberOfDeleteEventsSeen": 1530,
+        "lastEvent": "2026-06-20T17:12:41Z"
+      }
+    }
   }
 ]
