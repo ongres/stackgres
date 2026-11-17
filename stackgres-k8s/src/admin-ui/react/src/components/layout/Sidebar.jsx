@@ -8,7 +8,7 @@ import {
   PanelLeftOpen,
   Plus,
 } from 'lucide-react'
-import { RESOURCE_ICONS } from './resourceIcons'
+import { APPLICATION_ICONS, RESOURCE_ICONS } from './resourceIcons'
 import { api } from '../../lib/api'
 import { useKindList } from '../../contexts/DataContext'
 import { useCanI } from '../../contexts/PermissionsContext'
@@ -131,14 +131,17 @@ function SectionPanel({ namespace, section, applications }) {
       <div className="relative flex-1 overflow-auto px-3 pb-3">
         {section.id === 'applications' ? (
           <ul className="flex flex-col gap-0.5 pt-2">
-            {(applications || []).map((application) => (
-              <li key={application.name}>
-                <NavLink to={`/${namespace}/application/${application.name}`} className={subItemClasses}>
-                  <RESOURCE_ICONS.applications className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{application.name}</span>
-                </NavLink>
-              </li>
-            ))}
+            {(applications || []).map((application) => {
+              const AppIcon = APPLICATION_ICONS[application.name] || RESOURCE_ICONS.applications
+              return (
+                <li key={application.name}>
+                  <NavLink to={`/${namespace}/application/${application.name}`} className={subItemClasses}>
+                    <AppIcon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{application.name}</span>
+                  </NavLink>
+                </li>
+              )
+            })}
           </ul>
         ) : section.children ? (
           <div className="flex flex-col gap-3 pt-2">
