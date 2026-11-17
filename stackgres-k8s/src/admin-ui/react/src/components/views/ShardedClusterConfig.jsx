@@ -12,7 +12,7 @@ export default function ShardedClusterConfig() {
         <ShardedConnectionInfo cluster={cluster} />
       </div>
       <ShardedConditionAlerts cluster={cluster} />
-      <SpecTree value={{ metadata: cluster.metadata, spec: cluster.spec }} />
+      <SpecTree value={{ metadata: cluster.metadata, spec: cluster.spec }} tooltipPath="sgshardedcluster" />
     </section>
   )
 }

@@ -1,5 +1,6 @@
 import { useOutletContext } from 'react-router-dom'
 import SpecTree from '../SpecTree'
+import { HelpTooltip } from '../HelpTooltip'
 
 export default function ClusterConfig() {
   const { cluster } = useOutletContext()
@@ -11,16 +12,20 @@ export default function ClusterConfig() {
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Metadata</h3>
         <ul className="flex flex-col gap-1">
           <li>
-            <strong>Namespace:</strong> {cluster.metadata.namespace}
+            <strong>Namespace</strong>
+            <HelpTooltip field="sgcluster.metadata.namespace" />
+            <strong>:</strong> {cluster.metadata.namespace}
           </li>
           <li>
-            <strong>Name:</strong> {cluster.metadata.name}
+            <strong>Name</strong>
+            <HelpTooltip field="sgcluster.metadata.name" />
+            <strong>:</strong> {cluster.metadata.name}
           </li>
         </ul>
       </section>
       <section>
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Specs</h3>
-        <SpecTree value={cluster.spec} />
+        <SpecTree value={cluster.spec} tooltipPath="sgcluster.spec" />
       </section>
     </section>
   )

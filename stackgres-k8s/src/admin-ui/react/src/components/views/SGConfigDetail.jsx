@@ -31,7 +31,7 @@ export default function SGConfigDetail() {
           </Link>
         )}
       </BreadcrumbActions>
-      <SpecTree value={{ metadata: config.metadata, spec: config.spec }} />
+      <SpecTree value={{ metadata: config.metadata, spec: config.spec }} tooltipPath="sgconfig" />
     </section>
   )
 }

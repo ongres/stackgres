@@ -6,6 +6,7 @@ import CloneResourceDialog from '../CloneResourceDialog'
 import DeleteResourceDialog from '../DeleteResourceDialog'
 import { BreadcrumbActions } from '../layout/Breadcrumbs'
 import SpecTree from '../SpecTree'
+import { HelpTooltip } from '../HelpTooltip'
 import BenchmarkResults from './BenchmarkResults'
 import DbOpsEvents from './DbOpsEvents'
 import MinorVersionUpgradeOverview from './MinorVersionUpgradeOverview'
@@ -28,6 +29,9 @@ export default function ResourceDetail({ plural }) {
   const canI = useCanI()
   const items = useKindList(plural, namespace)
   const resource = useResource(plural, namespace, resourceName)
+  // sg-tooltips index key: the CRD name lowercased (SGPostgresConfig →
+  // sgpostgresconfig), matching the Vue templates' getTooltip() roots.
+  const tooltipRoot = KINDS[plural].crd.toLowerCase()
 
   if (items === null) {
     return <p className="p-6 text-sm text-[hsl(var(--muted-foreground))] italic">Loading data…</p>
@@ -73,13 +77,17 @@ export default function ResourceDetail({ plural }) {
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Metadata</h2>
             <ul className="flex flex-col gap-1">
               <li>
-                <strong>Namespace:</strong>{' '}
+                <strong>Namespace</strong>
+                <HelpTooltip field={`${tooltipRoot}.metadata.namespace`} />
+                <strong>:</strong>{' '}
                 <Link to={`/${namespace}`} className="text-[hsl(var(--primary))] hover:underline">
                   {namespace}
                 </Link>
               </li>
               <li>
-                <strong>Name:</strong> {resource.metadata.name}
+                <strong>Name</strong>
+                <HelpTooltip field={`${tooltipRoot}.metadata.name`} />
+                <strong>:</strong> {resource.metadata.name}
               </li>
               {resource.metadata.uid && (
                 <li>
@@ -90,14 +98,14 @@ export default function ResourceDetail({ plural }) {
           </section>
           <section>
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Specs</h2>
-            <SpecTree value={resource.spec} />
+            <SpecTree value={resource.spec} tooltipPath={`${tooltipRoot}.spec`} />
           </section>
         </div>
         <div className="flex flex-col gap-4">
           {resource.status && (
             <section>
               <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[hsl(var(--muted-foreground))]">Status</h2>
-              <SpecTree value={resource.status} />
+              <SpecTree value={resource.status} tooltipPath={`${tooltipRoot}.status`} />
             </section>
           )}
           {plural === 'sgdbops' && (
