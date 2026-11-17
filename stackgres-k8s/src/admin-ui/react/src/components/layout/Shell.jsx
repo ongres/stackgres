@@ -15,7 +15,10 @@ export default function Shell() {
 
   return (
     <>
-      <Toaster theme={theme} position="top-right" richColors />
+      {/* offset clears the fixed 56px top bar with the same 16px gap the
+          toasts keep from the right edge; the close button is moved to the
+          toast's top-right corner in index.css */}
+      <Toaster theme={theme} position="top-right" richColors closeButton offset={{ top: 72, right: 16 }} />
       {isLoggedIn ? (
         <div className="min-h-screen flex flex-col">
           <CommandPalette />

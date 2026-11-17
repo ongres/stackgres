@@ -174,3 +174,26 @@ table thead th {
 main[aria-label='Page content'] > section {
   padding-top: 1.2rem;
 }
+
+/* Sonner toasts: the close button sits inside the toast's top-right corner
+   (the library defaults it to hang over the top-left one). */
+[data-sonner-toast] [data-close-button] {
+  left: auto;
+  right: 8px;
+  top: 8px;
+  transform: none;
+}
+
+/* Toasts must read as floating in both themes: popover surface, visible
+   border and a real drop shadow (the dark page otherwise swallows them). */
+[data-sonner-toaster] {
+  --normal-bg: hsl(var(--popover));
+  --normal-border: hsl(var(--border));
+  --normal-text: hsl(var(--popover-foreground));
+}
+[data-sonner-toast] {
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+.dark [data-sonner-toast] {
+  box-shadow: 0 0 0 1px hsl(var(--border)), 0 8px 24px rgb(0 0 0 / 0.6);
+}
