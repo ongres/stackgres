@@ -29,7 +29,7 @@ export default function GlobalDashboard() {
       <h1 className="text-lg font-semibold">
         {usedNamespaces.length ? 'Used Namespaces' : 'Select a namespace'}
       </h1>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="namespaces">
+      <div className="flex flex-wrap justify-center gap-4 [&>article]:w-full md:[&>article]:w-[calc(50%-0.5rem)] xl:[&>article]:w-[calc(25%-0.75rem)]" data-testid="namespaces">
         {usedNamespaces.map((namespace) => (
           <article key={namespace} className="bg-[hsl(var(--card))] rounded shadow border">
             <header className="flex items-center justify-between border-b p-3">

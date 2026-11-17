@@ -75,7 +75,7 @@ export default function NamespaceOverview() {
   return (
     <section className="flex flex-col gap-4 px-6 pb-6 text-sm">
       <h1 className="text-lg font-semibold">Namespace Overview: {namespace}</h1>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="flex flex-wrap justify-center gap-4 [&>article]:w-full md:[&>article]:w-[calc(50%-0.5rem)] xl:[&>article]:w-[calc(25%-0.75rem)]">
         {Object.keys(KINDS).map((plural) => (
           <KindCard key={plural} plural={plural} namespace={namespace} />
         ))}
