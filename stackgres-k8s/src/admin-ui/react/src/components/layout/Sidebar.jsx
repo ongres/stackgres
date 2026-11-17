@@ -64,6 +64,9 @@ const treeItemClasses = (isLast) =>
 
 function sectionForPath(pathname, namespace) {
   for (const section of SECTIONS) {
+    if (section.children && pathname === `/${namespace}/${section.id}`) {
+      return section.id
+    }
     const kinds = section.children ? section.children.map((child) => child.kind) : [section.kind]
     for (const kind of kinds) {
       if (
@@ -120,7 +123,10 @@ function SectionPanel({ namespace, section, applications }) {
         {section.id === 'applications' ? (
           <span className="flex-1 px-1 py-0.5 text-sm font-semibold">Applications</span>
         ) : section.children ? (
-          <span className="flex-1 px-1 py-0.5 text-sm font-semibold">{section.label}</span>
+          <Link to={`/${namespace}/${section.id}`}
+            className="flex-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors hover:bg-[hsl(var(--foreground)/0.06)]">
+            {section.label}
+          </Link>
         ) : (
           <Link to={`/${namespace}/${section.kind}`}
             className="flex-1 rounded-md px-1 py-0.5 text-sm font-semibold transition-colors hover:bg-[hsl(var(--foreground)/0.06)]">
@@ -249,7 +255,7 @@ export default function Sidebar() {
           {visibleSections.map((section) => (
             <NavLink
               key={section.id}
-              to={`/${namespace}/${section.children ? section.children[0].kind : section.kind}`}
+              to={`/${namespace}/${section.children ? section.id : section.kind}`}
               title={section.label}
               aria-label={section.label}
               className={() => railButtonClasses(activeId === section.id)}

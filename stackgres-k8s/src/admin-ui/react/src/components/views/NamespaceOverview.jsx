@@ -5,7 +5,7 @@ import { useCanI } from '../../contexts/PermissionsContext'
 import { activeCondition, detailPath, KINDS, listPath } from '../../lib/kinds'
 import StatusDot from '../StatusDot'
 
-function KindCard({ plural, namespace }) {
+export function KindCard({ plural, namespace }) {
   const canI = useCanI()
   const items = useKindList(plural, namespace)
   const kind = KINDS[plural]

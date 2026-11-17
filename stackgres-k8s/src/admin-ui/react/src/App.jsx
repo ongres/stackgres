@@ -15,6 +15,7 @@ import ClusterStatus from './components/views/ClusterStatus'
 import GlobalDashboard from './components/views/GlobalDashboard'
 import ClusterMonitoring from './components/views/ClusterMonitoring'
 import NamespaceOverview from './components/views/NamespaceOverview'
+import ConfigurationsOverview from './components/views/ConfigurationsOverview'
 import PendingView from './components/views/PendingView'
 import BabelfishCompass from './components/views/BabelfishCompass'
 import ResourceDetail from './components/views/ResourceDetail'
@@ -63,6 +64,7 @@ export default function App() {
                   <Route index element={<GlobalDashboard />} />
                   <Route path="index.html" element={<Navigate to="/" replace />} />
                   <Route path=":namespace" element={<NamespaceOverview />} />
+                  <Route path=":namespace/configurations" element={<ConfigurationsOverview />} />
 
                   <Route path=":namespace/sgclusters" element={<ResourceList plural="sgclusters" />} />
                   <Route path=":namespace/sgcluster/:name" element={<ClusterDetail />}>
