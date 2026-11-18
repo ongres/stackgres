@@ -8,7 +8,7 @@ description: Details about how Patroni is used to handle the database replicas a
 
 A StackGres cluster has a full high-availability PostgreSQL configuration managed by [Patroni](https://github.com/zalando/patroni).
 
-![Patroni Management](patroni-management.png "Patroni Management")
+{{< svg "patroni-management.svg" "Patroni Management" >}}
 
 The replicas correspond to pods in the StackGres cluster, and can be listed using `kubectl`:
 
