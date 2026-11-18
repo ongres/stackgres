@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1143 564" role="img" aria-labelledby="patroniTitle" style="width:100%;max-width:1143px;height:auto">
+  <title id="patroniTitle">Patroni management: the primary database replicates to N replicas</title>
+  <defs>
+    <linearGradient id="pmBox" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#42f0cf"/>
+      <stop offset="1" stop-color="#36a8ff"/>
+    </linearGradient>
+    <linearGradient id="pmFrame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#42f0cf"/>
+      <stop offset="0.5" stop-color="#1ce8ff"/>
+      <stop offset="1" stop-color="#36a8ff"/>
+    </linearGradient>
+    <marker id="pmArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 L8 5 L1 9" fill="none" stroke="#36a8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <style>
+    .pmLabel { font-size: 27px; font-weight: 600; fill: currentColor; text-anchor: middle; }
+    .pmTitle { font-size: 29px; font-weight: 700; fill: currentColor; }
+  </style>
+  <text class="pmTitle" x="4" y="28">Postgres StackGres Cluster</text>
+  <rect x="6" y="46" width="1131" height="512" rx="14" fill="none" stroke="url(#pmFrame)" stroke-width="4"/>
+  <rect x="415" y="88" width="315" height="162" rx="14" fill="none" stroke="url(#pmBox)" stroke-width="4"/>
+  <text class="pmLabel" x="572" y="160">Primary</text>
+  <text class="pmLabel" x="572" y="198">Database</text>
+  <rect x="42" y="396" width="312" height="122" rx="14" fill="none" stroke="url(#pmBox)" stroke-width="4"/>
+  <text class="pmLabel" x="198" y="466">DB Replica 1</text>
+  <rect x="415" y="396" width="315" height="122" rx="14" fill="none" stroke="url(#pmBox)" stroke-width="4"/>
+  <text class="pmLabel" x="572" y="466">DB Replica 2</text>
+  <rect x="789" y="396" width="312" height="122" rx="14" fill="none" stroke="url(#pmBox)" stroke-width="4"/>
+  <text class="pmLabel" x="945" y="466">DB Replica&#8230;<tspan font-style="italic">N</tspan></text>
+  <g fill="none" stroke="#5cc8f7" stroke-width="4" stroke-dasharray="14 12" stroke-linecap="round">
+    <path d="M500 266 C 420 310, 290 330, 210 382" marker-end="url(#pmArrow)"/>
+    <path d="M572 268 C 568 306, 574 340, 572 380" marker-end="url(#pmArrow)"/>
+    <path d="M645 266 C 725 310, 860 330, 936 382" marker-end="url(#pmArrow)"/>
+  </g>
+</svg>

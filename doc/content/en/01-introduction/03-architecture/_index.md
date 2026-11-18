@@ -14,7 +14,7 @@ A StackGres cluster is basically a StatefulSet where each pod is a database inst
 
 ### StackGres Cluster Architecture diagram
 
-![SG Architecture](SG_StackGres_Architecture.png "StackGres-General_Architecture")
+{{< svg "SG_StackGres_Architecture.svg" "StackGres-General_Architecture" >}}
 
 ### StackGres Pod Architecture diagram
 
@@ -22,7 +22,7 @@ We use a pattern called sidecar where a main application runs in a container and
  are providing side functionalities like connection pooling, export of stats, edge proxying,
  logging dispatcher or database utilities.
  
-![Pod Architecture](SG_Diagram-Anatomy_of_the_Pod.png "Pod Architecture")
+{{< svg "SG_Diagram-Anatomy_of_the_Pod.svg" "Pod Architecture" >}}
 
 > **UDS:** [Unix Domain Socket](https://en.wikipedia.org/wiki/Unix_domain_socket)
 

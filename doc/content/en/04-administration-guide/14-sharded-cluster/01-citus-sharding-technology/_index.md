@@ -325,7 +325,7 @@ By default the coordinator node has a synchronous replica to avoid losing any me
 
 The workers are where sharded data lives and have a replica in order to provide high availability to the cluster.
 
-![SG Sharded Cluster](SG_Sharded_Cluster.png "StackGres-Sharded_Cluster")
+{{< svg "SG_Sharded_Cluster.svg" "StackGres-Sharded_Cluster" >}}
 
 After all the Pods are Ready you can view the topology of the newly created sharded cluster by issuing the following command:
 
