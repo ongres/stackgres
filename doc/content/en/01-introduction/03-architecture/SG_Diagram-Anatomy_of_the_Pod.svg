@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2020 1455" role="img" aria-labelledby="sgpTitle" style="width:100%;max-width:2020px;height:auto">
+  <title id="sgpTitle">Anatomy of the pod: Envoy, PgBouncer, Patroni and Postgres with their sidecars, linked over Unix domain sockets</title>
+  <defs>
+    <linearGradient id="sgpBox" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#42f0cf"/>
+      <stop offset="1" stop-color="#36a8ff"/>
+    </linearGradient>
+    <linearGradient id="sgpFrame" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#42f0cf"/>
+      <stop offset="1" stop-color="#36a8ff"/>
+    </linearGradient>
+    <linearGradient id="sgpUds" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd84d"/>
+      <stop offset="1" stop-color="#f2a130"/>
+    </linearGradient>
+    <marker id="sgpB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 L8 5 L1 9" fill="none" stroke="#36a8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <style>
+    .sgpT { font-size: 36px; font-weight: 500; fill: currentColor; text-anchor: middle; }
+    .sgpS { font-size: 30px; font-weight: 500; fill: currentColor; }
+    .sgpP { font-size: 34px; font-weight: 500; fill: currentColor; text-anchor: middle; }
+    .sgpH { font-size: 40px; font-weight: 700; fill: currentColor; text-anchor: middle; }
+  </style>
+
+  <rect x="305" y="155" width="1335" height="1290" rx="10" fill="none" stroke="url(#sgpFrame)" stroke-width="5" stroke-dasharray="30 22"/>
+
+  <text class="sgpT" x="440" y="70">To</text>
+  <text class="sgpT" x="440" y="112">Replicas</text>
+  <path d="M1045 205 C 900 60, 700 48, 538 80" fill="none" stroke="#42f0cf" stroke-width="4" stroke-linecap="round"/>
+  <text class="sgpP" transform="translate(800 42) rotate(-7)">Postgres repl. port 5433</text>
+  <path d="M1125 205 C 1185 90, 1300 68, 1415 84" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round"/>
+  <text class="sgpP" transform="translate(1280 40) rotate(-6)">Postgres port 5432</text>
+  <text class="sgpT" x="1525" y="70">To</text>
+  <text class="sgpT" x="1525" y="112">Clients</text>
+
+  <rect x="975" y="210" width="230" height="210" rx="16" fill="none" stroke="url(#sgpBox)" stroke-width="5"/>
+  <text class="sgpT" x="1105" y="300">Envoy</text>
+  <text class="sgpT" x="1105" y="344">Proxy</text>
+  <rect x="992" y="286" width="24" height="24" rx="5" fill="url(#sgpUds)"/>
+  <text class="sgpS" transform="rotate(-90 1012 390)" x="1012" y="390">UDS</text>
+  <rect x="1078" y="372" width="24" height="24" rx="5" fill="url(#sgpUds)"/>
+  <text class="sgpS" x="1114" y="394">UDS</text>
+  <path d="M1208 295 C 1430 258, 1580 262, 1760 298" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sgpB)"/>
+  <text class="sgpT" x="1898" y="278">To</text>
+  <text class="sgpT" x="1898" y="320">Prometheus</text>
+
+  <rect x="975" y="480" width="230" height="180" rx="16" fill="none" stroke="url(#sgpBox)" stroke-width="5"/>
+  <rect x="1078" y="466" width="24" height="24" rx="5" fill="url(#sgpUds)"/>
+  <text class="sgpS" x="1114" y="488">UDS</text>
+  <text class="sgpT" x="1090" y="585">PgBouncer</text>
+  <rect x="1078" y="646" width="24" height="24" rx="5" fill="url(#sgpUds)"/>
+  <text class="sgpS" x="1114" y="668">UDS</text>
+  <path d="M1090 398 C 1095 420, 1095 442, 1090 464" fill="none" stroke="#ffd84d" stroke-width="4" stroke-linecap="round"/>
+
+  <rect x="735" y="745" width="470" height="330" rx="16" fill="none" stroke="url(#sgpBox)" stroke-width="5"/>
+  <text class="sgpH" x="975" y="880">Patroni</text>
+  <text class="sgpH" x="975" y="928">+</text>
+  <text class="sgpH" x="975" y="976">Postgres</text>
+  <rect x="1058" y="790" width="24" height="24" rx="5" fill="url(#sgpUds)"/>
+  <text class="sgpS" x="1094" y="812">UDS</text>
+  <path d="M1090 672 C 1095 712, 1085 758, 1072 788" fill="none" stroke="#ffd84d" stroke-width="4" stroke-linecap="round"/>
+  <path d="M996 312 C 780 400, 758 625, 1056 800" fill="none" stroke="#ffd84d" stroke-width="4" stroke-linecap="round"/>
+  <text class="sgpP" transform="translate(745 545) rotate(-68)">Replication</text>
+  <g stroke="#36a8ff" stroke-width="5" stroke-linecap="round">
+    <line x1="820" y1="940" x2="880" y2="940"/>
+    <line x1="820" y1="972" x2="880" y2="972"/>
+    <line x1="820" y1="1004" x2="880" y2="1004"/>
+  </g>
+  <g fill="#36a8ff">
+    <circle cx="800" cy="940" r="5"/>
+    <circle cx="800" cy="972" r="5"/>
+    <circle cx="800" cy="1004" r="5"/>
+  </g>
+  <text class="sgpP" x="845" y="1050">Logs</text>
+
+  <rect x="355" y="605" width="235" height="135" rx="12" fill="none" stroke="url(#sgpBox)" stroke-width="4"/>
+  <text class="sgpP" x="472" y="662">Backup</text>
+  <text class="sgpP" x="472" y="702">Agent (Job)</text>
+  <text class="sgpP" x="160" y="650">To S3, GCS,</text>
+  <text class="sgpP" x="160" y="690">Azure Blob,</text>
+  <text class="sgpP" x="160" y="730">MinIO, &#8230;</text>
+  <path d="M350 672 C 320 662, 300 660, 278 666" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sgpB)"/>
+
+  <rect x="355" y="825" width="235" height="165" rx="12" fill="none" stroke="url(#sgpBox)" stroke-width="4"/>
+  <text class="sgpP" x="472" y="893">Local Pod</text>
+  <text class="sgpP" x="472" y="936">Controller</text>
+
+  <rect x="355" y="1080" width="235" height="135" rx="12" fill="none" stroke="url(#sgpBox)" stroke-width="4"/>
+  <text class="sgpP" x="472" y="1158">Fluent-bit</text>
+  <text class="sgpP" x="122" y="1125">Send logs</text>
+  <text class="sgpP" x="122" y="1165">to Fluentd</text>
+  <path d="M350 1145 C 320 1135, 300 1133, 278 1139" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sgpB)"/>
+
+  <g fill="none" stroke="#5cc8f7" stroke-width="3.5" stroke-linecap="round">
+    <path d="M592 690 C 662 710, 700 748, 733 792"/>
+    <path d="M592 900 C 652 906, 692 906, 733 902"/>
+    <path d="M592 1130 C 682 1096, 732 1042, 790 1006"/>
+  </g>
+
+  <rect x="1305" y="715" width="270" height="165" rx="12" fill="none" stroke="url(#sgpBox)" stroke-width="4"/>
+  <rect x="1293" y="782" width="24" height="24" rx="5" fill="url(#sgpUds)"/>
+  <text class="sgpS" transform="rotate(-90 1313 885)" x="1313" y="885">UDS</text>
+  <text class="sgpP" x="1452" y="785">Postgres</text>
+  <text class="sgpP" x="1452" y="828">Util</text>
+  <rect x="1305" y="945" width="270" height="165" rx="12" fill="none" stroke="url(#sgpBox)" stroke-width="4"/>
+  <rect x="1293" y="1012" width="24" height="24" rx="5" fill="url(#sgpUds)"/>
+  <text class="sgpS" transform="rotate(-90 1313 1115)" x="1313" y="1115">UDS</text>
+  <text class="sgpP" x="1452" y="1015">Postgres</text>
+  <text class="sgpP" x="1452" y="1058">Exporter</text>
+  <g fill="none" stroke="#ffd84d" stroke-width="4" stroke-linecap="round">
+    <path d="M1084 806 C 1180 812, 1240 800, 1290 794"/>
+    <path d="M1082 816 C 1130 900, 1200 990, 1290 1022"/>
+  </g>
+  <path d="M1578 1010 C 1660 990, 1710 990, 1758 1008" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sgpB)"/>
+  <text class="sgpT" x="1898" y="992">To</text>
+  <text class="sgpT" x="1898" y="1034">Prometheus</text>
+
+  <path d="M970 1078 C 958 1130, 958 1170, 967 1205" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round"/>
+  <text class="sgpS" transform="rotate(-75 1008 1150)" x="1008" y="1150">PVC</text>
+  <g fill="none" stroke="#36a8ff" stroke-width="6" stroke-linecap="round">
+    <path d="M936 1245 v62 a34 13 0 0 0 68 0 v-62"/>
+    <ellipse cx="970" cy="1245" rx="34" ry="13"/>
+    <path d="M936 1268 a34 13 0 0 0 68 0"/>
+    <path d="M936 1290 a34 13 0 0 0 68 0"/>
+  </g>
+  <text class="sgpT" x="970" y="1382">PV</text>
+  <text class="sgpP" x="970" y="1432">(EBS, PD, &#8230;)</text>
+</svg>
