@@ -4,12 +4,17 @@ import io.stackgres.matriarch.event.ClusterEvent;
 import io.stackgres.matriarch.event.Event;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
+import io.stackgres.matriarch.model.InstanceId;
 import io.stackgres.matriarch.model.spec.ClusterSpec;
 import io.stackgres.matriarch.model.spec.CredentialSpec;
 import io.stackgres.matriarch.model.spec.DatabaseEngine;
 import io.stackgres.matriarch.model.spec.Extension;
+import io.stackgres.matriarch.model.spec.InstanceRole;
+import io.stackgres.matriarch.model.spec.InstanceSpec;
 import io.stackgres.matriarch.model.spec.TlsMode;
 import io.stackgres.matriarch.model.status.ClusterStatus;
+import io.stackgres.matriarch.model.status.InstanceStatus;
+import io.stackgres.matriarch.model.status.ReplicationStatus;
 import io.stackgres.matriarch.model.status.RunStatus;
 import io.stackgres.matriarch.spi.Executor;
 import io.stackgres.matriarch.spi.ExtensionCatalog;
@@ -95,6 +100,42 @@ class MatriarchReconcileObservedTest {
         assertEquals(0, countEvents(ClusterEvent.ClusterHealthy.class));
         assertEquals(0, countEvents(ClusterEvent.ClusterFailed.class));
         assertEquals(0, countEvents(ClusterEvent.ClusterStarting.class));
+        assertEquals(0, countEvents(ClusterEvent.ClusterUpdated.class));
+    }
+
+    @Test
+    void emitsUpdatedWhenInstancesJoinWithoutStatusTransition() {
+        // An HA cluster goes HEALTHY as soon as its primary is elected; the replicas join afterwards.
+        matriarch.reconcileObserved(List.of(cluster("a", "alpha", RunStatus.HEALTHY, 1)));
+        events.clear();
+
+        matriarch.reconcileObserved(List.of(cluster("a", "alpha", RunStatus.HEALTHY, 3)));
+
+        assertEquals(1, countEvents(ClusterEvent.ClusterUpdated.class));
+        assertEquals(0, countEvents(ClusterEvent.ClusterHealthy.class));
+        assertEquals(3, matriarch.getCluster(new ClusterId("a")).status().instances().size());
+    }
+
+    @Test
+    void emitsUpdatedOnFailoverWithoutStatusTransition() {
+        matriarch.reconcileObserved(List.of(cluster("a", "alpha", RunStatus.HEALTHY, 2, 0)));
+        events.clear();
+
+        matriarch.reconcileObserved(List.of(cluster("a", "alpha", RunStatus.HEALTHY, 2, 1)));
+
+        assertEquals(1, countEvents(ClusterEvent.ClusterUpdated.class));
+    }
+
+    @Test
+    void statusTransitionIsNotDoubledByUpdated() {
+        matriarch.reconcileObserved(List.of(cluster("a", "alpha", RunStatus.STARTING, 1)));
+        events.clear();
+
+        // Status AND shape change in one refresh: the transition event alone announces it.
+        matriarch.reconcileObserved(List.of(cluster("a", "alpha", RunStatus.HEALTHY, 3)));
+
+        assertEquals(1, countEvents(ClusterEvent.ClusterHealthy.class));
+        assertEquals(0, countEvents(ClusterEvent.ClusterUpdated.class));
     }
 
     @Test
@@ -112,10 +153,28 @@ class MatriarchReconcileObservedTest {
     }
 
     private static Cluster cluster(String id, String name, RunStatus status) {
+        return cluster(id, name, status, 0);
+    }
+
+    private static Cluster cluster(String id, String name, RunStatus status, int instances) {
+        return cluster(id, name, status, instances, 0);
+    }
+
+    /** A cluster with {@code instances} instances, the one at index {@code primary} being the primary. */
+    private static Cluster cluster(String id, String name, RunStatus status, int instances, int primary) {
         ClusterId cid = new ClusterId(id);
+        List<InstanceSpec> specs = new ArrayList<>();
+        List<InstanceStatus> statuses = new ArrayList<>();
+        for (int i = 0; i < instances; i++) {
+            InstanceId iid = new InstanceId(name + "-" + i);
+            boolean isPrimary = i == primary;
+            specs.add(new InstanceSpec(iid, isPrimary ? InstanceRole.PRIMARY : InstanceRole.REPLICA, 5432, "0.0.0.0", null));
+            statuses.add(new InstanceStatus(iid, status,
+                    isPrimary ? ReplicationStatus.PRIMARY : ReplicationStatus.REPLICA, "", 5432, 1, 1024, 0));
+        }
         ClusterSpec spec = new ClusterSpec(cid, name, DatabaseEngine.POSTGRES, "18",
-                List.of(), new CredentialSpec("postgres", false), TlsMode.SELF_SIGNED, null, Map.of());
-        return new Cluster(spec, new ClusterStatus(cid, status, List.of()));
+                specs, new CredentialSpec("postgres", false), TlsMode.SELF_SIGNED, null, Map.of());
+        return new Cluster(spec, new ClusterStatus(cid, status, statuses));
     }
 
     private Set<String> observedNames() {

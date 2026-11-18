@@ -136,6 +136,7 @@ final class ClusterProtoMapper {
         b.setType("cluster.observed");
         b.putData("name", o.name());
       }
+      case ClusterEvent.ClusterUpdated u -> b.setType("cluster.updated");
     }
     return b.build();
   }

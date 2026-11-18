@@ -549,10 +549,16 @@ public final class Matriarch {
                 statusCache.put(cluster.status());
                 events.accept(new ClusterEvent.ClusterObserved(Instant.now(), id, cluster.spec().name()));
             } else {
-                ClusterStatus previous = statusCache.get(id);   // read before overwriting
+                ClusterSpec previousSpec = store.getDesired(id);   // read both before overwriting
+                ClusterStatus previous = statusCache.get(id);
                 store.updateDesired(cluster.spec());   // spec may have changed (version, instances, tags)
                 statusCache.put(cluster.status());
-                emitStatusTransition(id, previous, cluster.status());
+                // A change that is not a run-status transition (a replica joined, a failover, new tags…)
+                // still has to be announced, or event-driven consumers never learn about it.
+                if (!emitStatusTransition(id, previous, cluster.status())
+                        && !(cluster.spec().equals(previousSpec) && cluster.status().equals(previous))) {
+                    events.accept(new ClusterEvent.ClusterUpdated(Instant.now(), id));
+                }
             }
         }
         // listDesired() returns a copy, so removing while iterating is safe.
@@ -568,12 +574,14 @@ public final class Matriarch {
     /**
      * Emit the lifecycle event matching a <em>change</em> in observed run status, so an authoritative
      * observer's refresh produces a real event timeline (nothing on an unchanged status).
+     *
+     * @return whether an event was emitted
      */
-    private void emitStatusTransition(ClusterId id, ClusterStatus previous, ClusterStatus current) {
+    private boolean emitStatusTransition(ClusterId id, ClusterStatus previous, ClusterStatus current) {
         RunStatus before = previous != null ? previous.runStatus() : null;
         RunStatus after = current.runStatus();
         if (after == before) {
-            return;
+            return false;
         }
         Instant now = Instant.now();
         switch (after) {
@@ -581,8 +589,11 @@ public final class Matriarch {
             case FAILED -> events.accept(new ClusterEvent.ClusterFailed(now, id, current.reason()));
             case STARTING, INITIALIZING -> events.accept(new ClusterEvent.ClusterStarting(now, id));
             case STOPPED -> events.accept(new ClusterEvent.ClusterStopping(now, id));
-            default -> { /* PENDING / UNKNOWN — no transition event */ }
+            default -> {
+                return false;   // PENDING / UNKNOWN — no transition event
+            }
         }
+        return true;
     }
 
     /**

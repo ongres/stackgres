@@ -40,7 +40,7 @@ final class ClusterEventCodec {
             case ClusterEvent.ClusterFailed f -> putString(b, "reason", f.reason());
             case ClusterEvent.ClusterRecovered r -> putString(b, "name", r.name());
             case ClusterEvent.ClusterObserved o -> putString(b, "name", o.name());
-            default -> { /* Healthy/Starting/Stopping/Restarting/Deleting/Deleted carry no extra fields */ }
+            default -> { /* Healthy/Starting/Stopping/Restarting/Deleting/Deleted/Updated carry no extra fields */ }
         }
         return b.build().toString();
     }
@@ -65,6 +65,7 @@ final class ClusterEventCodec {
             case "ClusterDeleted" -> new ClusterEvent.ClusterDeleted(ts, id);
             case "ClusterRecovered" -> new ClusterEvent.ClusterRecovered(ts, id, getString(o, "name"));
             case "ClusterObserved" -> new ClusterEvent.ClusterObserved(ts, id, getString(o, "name"));
+            case "ClusterUpdated" -> new ClusterEvent.ClusterUpdated(ts, id);
             default -> throw new IllegalArgumentException("unknown cluster event type: " + type);
         };
     }

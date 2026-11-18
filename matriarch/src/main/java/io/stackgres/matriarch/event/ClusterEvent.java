@@ -44,4 +44,12 @@ public sealed interface ClusterEvent extends Event {
     record ClusterObserved(Instant timestamp, ClusterId clusterId, String name) implements ClusterEvent {
     }
 
+    /**
+     * An authoritative observer saw a known cluster change (instances joined/left, a failover, version,
+     * tags, extensions) <em>without</em> a run-status transition. Without it such changes are silent, and
+     * event-driven consumers (the cloud uplink's upserts) keep serving the previous shape.
+     */
+    record ClusterUpdated(Instant timestamp, ClusterId clusterId) implements ClusterEvent {
+    }
+
 }
