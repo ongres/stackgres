@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3130 1817" role="img" aria-labelledby="scTitle" style="width:100%;max-width:3130px;height:auto">
+  <title id="scTitle">Sharded cluster: a coordinator pair replicating to four shards, each with a primary and a replica</title>
+  <defs>
+    <linearGradient id="scCyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1ce8ff"/>
+      <stop offset="1" stop-color="#36a8ff"/>
+    </linearGradient>
+    <linearGradient id="scBlue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#36a8ff"/>
+      <stop offset="1" stop-color="#1e6af8"/>
+    </linearGradient>
+    <linearGradient id="scGold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2a130"/>
+      <stop offset="1" stop-color="#ffd84d"/>
+    </linearGradient>
+    <linearGradient id="scOrange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7124"/>
+      <stop offset="1" stop-color="#f2a130"/>
+    </linearGradient>
+    <marker id="scPurple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1 1 L8 5 L1 9" fill="none" stroke="#c43bf0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="scGreen" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1 1 L8 5 L1 9" fill="none" stroke="#3ec965" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <g id="scCylC" fill="none" stroke="url(#scCyan)" stroke-width="9" stroke-linecap="round">
+      <path d="M-62 -58 v108 a62 24 0 0 0 124 0 v-108"/>
+      <ellipse cx="0" cy="-58" rx="62" ry="24"/>
+      <path d="M-62 -18 a62 24 0 0 0 124 0"/>
+      <path d="M-62 22 a62 24 0 0 0 124 0"/>
+    </g>
+    <g id="scCylB" fill="none" stroke="url(#scBlue)" stroke-width="9" stroke-linecap="round">
+      <path d="M-62 -58 v108 a62 24 0 0 0 124 0 v-108"/>
+      <ellipse cx="0" cy="-58" rx="62" ry="24"/>
+      <path d="M-62 -18 a62 24 0 0 0 124 0"/>
+      <path d="M-62 22 a62 24 0 0 0 124 0"/>
+    </g>
+  </defs>
+  <style>
+    .scName { font-size: 60px; font-weight: 700; fill: currentColor; text-anchor: middle; }
+    .scRole { font-size: 56px; font-weight: 600; fill: currentColor; text-anchor: middle; }
+  </style>
+  <rect x="685" y="22" width="1760" height="650" rx="44" fill="none" stroke="url(#scGold)" stroke-width="10" stroke-dasharray="52 40"/>
+  <text class="scName" x="1085" y="140">cluster-coord-0</text>
+  <text class="scName" x="2035" y="140">cluster-coord-1</text>
+  <rect x="770" y="190" width="630" height="370" rx="22" fill="none" stroke="url(#scCyan)" stroke-width="10"/>
+  <text class="scRole" x="1085" y="395">P</text>
+  <rect x="1715" y="190" width="640" height="370" rx="22" fill="none" stroke="url(#scBlue)" stroke-width="10"/>
+  <text class="scRole" x="2035" y="395">R</text>
+  <path d="M1425 345 C 1500 290, 1620 290, 1690 345" fill="none" stroke="#c43bf0" stroke-width="9" stroke-linecap="round" marker-end="url(#scPurple)"/>
+  <g fill="none" stroke="#3ec965" stroke-width="8" stroke-linecap="round">
+    <path d="M1555 705 C 1480 880, 850 1000, 330 1255" marker-end="url(#scGreen)"/>
+    <path d="M1560 710 C 1520 940, 1300 1070, 1155 1255" marker-end="url(#scGreen)"/>
+    <path d="M1570 710 C 1610 940, 1830 1070, 1975 1255" marker-end="url(#scGreen)"/>
+    <path d="M1575 705 C 1650 880, 2280 1000, 2800 1255" marker-end="url(#scGreen)"/>
+  </g>
+  <g id="scShard0">
+    <text class="scName" x="330" y="1390">cluster-shard0</text>
+    <rect x="10" y="1425" width="640" height="370" rx="22" fill="none" stroke="url(#scOrange)" stroke-width="10"/>
+    <use href="#scCylC" x="165" y="1595"/>
+    <text class="scRole" x="165" y="1770">P</text>
+    <path d="M250 1580 C 300 1545, 400 1545, 450 1580" fill="none" stroke="#c43bf0" stroke-width="8" stroke-linecap="round" marker-end="url(#scPurple)"/>
+    <use href="#scCylB" x="505" y="1595"/>
+    <text class="scRole" x="505" y="1770">R</text>
+  </g>
+  <g id="scShard1">
+    <text class="scName" x="1155" y="1390">cluster-shard1</text>
+    <rect x="835" y="1425" width="640" height="370" rx="22" fill="none" stroke="url(#scOrange)" stroke-width="10"/>
+    <use href="#scCylC" x="990" y="1595"/>
+    <text class="scRole" x="990" y="1770">P</text>
+    <path d="M1075 1580 C 1125 1545, 1225 1545, 1275 1580" fill="none" stroke="#c43bf0" stroke-width="8" stroke-linecap="round" marker-end="url(#scPurple)"/>
+    <use href="#scCylB" x="1330" y="1595"/>
+    <text class="scRole" x="1330" y="1770">R</text>
+  </g>
+  <g id="scShard2">
+    <text class="scName" x="1975" y="1390">cluster-shard2</text>
+    <rect x="1655" y="1425" width="640" height="370" rx="22" fill="none" stroke="url(#scOrange)" stroke-width="10"/>
+    <use href="#scCylC" x="1810" y="1595"/>
+    <text class="scRole" x="1810" y="1770">P</text>
+    <path d="M1895 1580 C 1945 1545, 2045 1545, 2095 1580" fill="none" stroke="#c43bf0" stroke-width="8" stroke-linecap="round" marker-end="url(#scPurple)"/>
+    <use href="#scCylB" x="2150" y="1595"/>
+    <text class="scRole" x="2150" y="1770">R</text>
+  </g>
+  <g id="scShard3">
+    <text class="scName" x="2800" y="1390">cluster-shard3</text>
+    <rect x="2480" y="1425" width="640" height="370" rx="22" fill="none" stroke="url(#scOrange)" stroke-width="10"/>
+    <use href="#scCylC" x="2635" y="1595"/>
+    <text class="scRole" x="2635" y="1770">P</text>
+    <path d="M2720 1580 C 2770 1545, 2870 1545, 2920 1580" fill="none" stroke="#c43bf0" stroke-width="8" stroke-linecap="round" marker-end="url(#scPurple)"/>
+    <use href="#scCylB" x="2975" y="1595"/>
+    <text class="scRole" x="2975" y="1770">R</text>
+  </g>
+</svg>
