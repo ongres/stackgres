@@ -190,6 +190,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     ```
     git merge "main-1.20"
     ```
+1. [ ] Do not copy the documentation of version `1.20.0-beta1` into `doc/previous`, only the documentation of GA and patch versions is published.
 1. [ ] Push `merge-1.20.0-beta1` to origin, create the merge request to merge it into `main` and wait for the pipeline to complete fixing any encountered issues:
     ```
     git push origin "merge-1.20.0-beta1"

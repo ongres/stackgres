@@ -265,6 +265,7 @@ $(
     git push origin add-version-${NEXT_MINOR_VERSION}
     ```
 1. [ ] Create a MR using the link provided by the previous command (against the `main` branch) and merge it when all checks pass.
+1. [ ] Do not copy the documentation of version `${VERSION}` into `doc/previous`, only the documentation of GA and patch versions is published.
 1. [ ] Change scheduled pipeline description and `STACKGRES_PREVIOUS_VERSION` environment variable to test upgrade from version `${TO_REMOVE_MINOR_VERSION}` to version `${MINOR_VERSION}`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/237754/edit?id=237754
 1. [ ] Change scheduled pipeline description and `STACKGRES_VERSION` environment variable to test from version `${TO_REMOVE_MINOR_VERSION}` to version `${MINOR_VERSION}`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/262456/edit?id=262456 or https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/235791/edit?id=235791
 EOF
@@ -288,6 +289,23 @@ EOF
     ```
     git merge "main-${MINOR_VERSION}"
     ```
+$(
+  if "$IS_GA_VERSION"
+  then
+    cat << DOC_EOF
+1. [ ] Copy the documentation of version `${VERSION}` into `doc/previous/${MINOR_VERSION}` (symbolic links are replaced by the files they point to and only the latest 6 minor versions are kept), then commit the changes:
+    ```
+    sh doc/copy-to-previous.sh "${VERSION}"
+    git add -A doc/previous
+    git commit -m "doc: add documentation of version ${VERSION} to previous versions"
+    ```
+DOC_EOF
+  else
+    cat << DOC_EOF
+1. [ ] Do not copy the documentation of version `${VERSION}` into `doc/previous`, only the documentation of GA and patch versions is published.
+DOC_EOF
+  fi
+)
 1. [ ] Push `merge-${VERSION}` to origin, create the merge request to merge it into `main` and wait for the pipeline to complete fixing any encountered issues:
     ```
     git push origin "merge-${VERSION}"

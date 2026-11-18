@@ -190,6 +190,12 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     ```
     git merge "main-1.20"
     ```
+1. [ ] Copy the documentation of version `1.20.0` into `doc/previous/1.20` (symbolic links are replaced by the files they point to and only the latest 6 minor versions are kept), then commit the changes:
+    ```
+    sh doc/copy-to-previous.sh "1.20.0"
+    git add -A doc/previous
+    git commit -m "doc: add documentation of version 1.20.0 to previous versions"
+    ```
 1. [ ] Push `merge-1.20.0` to origin, create the merge request to merge it into `main` and wait for the pipeline to complete fixing any encountered issues:
     ```
     git push origin "merge-1.20.0"

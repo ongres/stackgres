@@ -226,6 +226,7 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     git push origin add-version-1.21
     ```
 1. [ ] Create a MR using the link provided by the previous command (against the `main` branch) and merge it when all checks pass.
+1. [ ] Do not copy the documentation of version `1.20.0-rc1` into `doc/previous`, only the documentation of GA and patch versions is published.
 1. [ ] Change scheduled pipeline description and `STACKGRES_PREVIOUS_VERSION` environment variable to test upgrade from version `1.18` to version `1.20`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/237754/edit?id=237754
 1. [ ] Change scheduled pipeline description and `STACKGRES_VERSION` environment variable to test from version `1.18` to version `1.20`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/262456/edit?id=262456 or https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/235791/edit?id=235791
 

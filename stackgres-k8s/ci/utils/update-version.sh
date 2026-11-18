@@ -75,6 +75,11 @@ yq_update_file "^appVersion: .*$" "appVersion: \"$VERSION\"" stackgres-k8s/insta
 yq_update_file "^version: .*$" "version: \"$VERSION\"" stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
 yq_update_file "^appVersion: .*$" "appVersion: \"$VERSION\"" stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
 
+echo
+echo "Setting documentation version to $VERSION"
+
+yq_update_file "^current_version: .*$" "current_version: \"$VERSION\"" doc/data/versions.yml
+
 CURRENT_VERSION="$VERSION"
 IS_GA="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+$' && printf true || printf false)"
 IS_PATCH="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[1-9][0-9]\+$' && printf true || printf false)"
