@@ -1,0 +1,16 @@
+[
+  "archive_command",
+  "archive_mode",
+  "dynamic_library_path",
+  "lc_messages",
+  "listen_addresses",
+  "logging_collector",
+  "log_destination",
+  "log_directory",
+  "log_filename",
+  "log_rotation_age",
+  "log_rotation_size",
+  "log_truncate_on_rotation",
+  "port",
+  "wal_log_hints"
+]

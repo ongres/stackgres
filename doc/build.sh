@@ -21,14 +21,18 @@ POSTGRES_MAJOR_VERSIONS="$(awk '/^postgresql=/{flag=1; sub(/^postgresql=/,"")}
 echo "postgres_min_version: \"$(printf '%s\n' "$POSTGRES_MAJOR_VERSIONS" | head -n 1)\"" >> "data/versions.yml"
 echo "postgres_max_version: \"$(printf '%s\n' "$POSTGRES_MAJOR_VERSIONS" | tail -n 1)\"" >> "data/versions.yml"
 
+# Files that are plain copies of files in the repository are symbolic links
+# (relative to the folder that contains the link). Generated files are written
+# as regular files. Both are committed.
 find "$PROJECT_PATH/stackgres-k8s/src/common/src/main/resources/crds" -name '*.yaml' \
+  | sort \
   | while read -r FILE
     do
-      cp "$FILE" "data/crds"
+      ln -s "../../../stackgres-k8s/src/common/src/main/resources/crds/${FILE##*/}" "data/crds/${FILE##*/}"
     done
-cp "$PROJECT_PATH/stackgres-k8s/install/helm/stackgres-operator/Chart.yaml" \
+ln -sfn "../../stackgres-k8s/install/helm/stackgres-operator/Chart.yaml" \
   "data/stackgres_operator_Chart.yaml"
-cp "$PROJECT_PATH/stackgres-k8s/install/operator-sdk/stackgres-operator/openshift-operator-bundle/metadata/annotations.yaml" \
+ln -sfn "../../stackgres-k8s/install/operator-sdk/stackgres-operator/openshift-operator-bundle/metadata/annotations.yaml" \
   "data/stackgres_operator_openshift_annotations.yaml"
 sed -n 's#^ *RUN wget "https://get.helm.sh/helm-v\([^-]\+\)-.*$#version: \1#p' \
   "$PROJECT_PATH/stackgres-k8s/ci/build/Dockerfile-ci" \
@@ -55,17 +59,16 @@ sed -n 's#^ *RUN wget "https://get.helm.sh/helm-v\([^-]\+\)-.*$#version: \1#p' \
 ) \
   | yq 'split(" ")' > "data/pgbouncer_blocklist.yaml"
 
-if [ ! -f "$PROJECT_PATH/stackgres-k8s/src/restapi/target/swagger-merged.yaml" ]
+if [ -f "$PROJECT_PATH/stackgres-k8s/src/restapi/target/swagger-merged.yaml" ]
 then
-  echo "Please build Stackgres operator and swagger first:"
+  cp "$PROJECT_PATH/stackgres-k8s/src/restapi/target/swagger-merged.yaml" "themes/sg-doc/static/sg-swagger.yaml"
+else
+  echo "Keeping the committed themes/sg-doc/static/sg-swagger.yaml since the swagger was not built. To update it:"
   echo
-  echo "cd stackgres-k8s/src"
-  echo "./mvnw clean package -DskipTests"
-  echo "sh restapi/src/main/swagger/build.sh"
+  echo "sh stackgres-k8s/ci/build/build.sh restapi-java"
+  echo "sh stackgres-k8s/ci/build/build-functions.sh extract restapi-java stackgres-k8s/src/restapi/target/swagger-merged.yaml"
   echo
-  exit 1
 fi
-cp "$PROJECT_PATH/stackgres-k8s/src/restapi/target/swagger-merged.yaml" "themes/sg-doc/static/sg-swagger.yaml"
 
 mkdir -p "generated"
 CRD_PATH="$PROJECT_PATH/stackgres-k8s/src/common/src/main/resources/crds"
