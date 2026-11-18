@@ -1,0 +1,11 @@
+{{- /* Inline an SVG from the page bundle so its currentColor text and lines
+     follow the theme of the page, which an <img> cannot do. First argument:
+     the SVG file name; optional second argument: a title shown on hover. */ -}}
+{{- $name := .Get 0 -}}
+{{- with .Page.Resources.GetMatch $name -}}
+<figure class="svgDiagram"{{ with $.Get 1 }} title="{{ . }}"{{ end }}>
+{{ .Content | safeHTML }}
+</figure>
+{{- else -}}
+{{- errorf "svg shortcode: %q not found in the bundle of %s" $name .Page.File.Path -}}
+{{- end -}}
