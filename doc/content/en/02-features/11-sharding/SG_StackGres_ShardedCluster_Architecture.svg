@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1305 1025" role="img" aria-labelledby="sscTitle" style="width:100%;max-width:1305px;height:auto">
+  <title id="sscTitle">Sharded cluster architecture: services route clients to a coordinator pair and its worker shards</title>
+  <defs>
+    <linearGradient id="sscGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2a130"/>
+      <stop offset="1" stop-color="#ffd84d"/>
+    </linearGradient>
+    <linearGradient id="sscGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2fae63"/>
+      <stop offset="1" stop-color="#a8e063"/>
+    </linearGradient>
+    <linearGradient id="sscBlue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1ce8ff"/>
+      <stop offset="1" stop-color="#1e6af8"/>
+    </linearGradient>
+    <linearGradient id="sscFrame" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1ce8ff"/>
+      <stop offset="1" stop-color="#36a8ff"/>
+    </linearGradient>
+    <marker id="sscCyanArrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 L8 5 L1 9" fill="none" stroke="#36a8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <g id="sscCylG" fill="none" stroke="url(#sscGreen)" stroke-width="5" stroke-linecap="round">
+      <path d="M-28 -26 v48 a28 11 0 0 0 56 0 v-48"/>
+      <ellipse cx="0" cy="-26" rx="28" ry="11"/>
+      <path d="M-28 -8 a28 11 0 0 0 56 0"/>
+      <path d="M-28 10 a28 11 0 0 0 56 0"/>
+    </g>
+    <g id="sscCylB" fill="none" stroke="url(#sscBlue)" stroke-width="5" stroke-linecap="round">
+      <path d="M-28 -26 v48 a28 11 0 0 0 56 0 v-48"/>
+      <ellipse cx="0" cy="-26" rx="28" ry="11"/>
+      <path d="M-28 -8 a28 11 0 0 0 56 0"/>
+      <path d="M-28 10 a28 11 0 0 0 56 0"/>
+    </g>
+  </defs>
+  <style>
+    .sscT { font-size: 27px; font-weight: 500; fill: currentColor; text-anchor: middle; }
+    .sscS { font-size: 24px; font-weight: 500; fill: currentColor; text-anchor: middle; }
+    .sscL { font-size: 27px; font-weight: 500; fill: currentColor; text-anchor: middle; }
+  </style>
+  <rect x="181" y="8" width="920" height="1008" rx="4" fill="none" stroke="url(#sscFrame)" stroke-width="5" stroke-dasharray="26 20"/>
+
+  <text class="sscL" x="49" y="70">Clients</text>
+  <text class="sscL" x="49" y="102">RW</text>
+  <text class="sscS" x="148" y="52">5432</text>
+  <path d="M215 85 C 180 70, 140 70, 100 85" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sscCyanArrow)"/>
+  <rect x="220" y="27" width="163" height="103" rx="12" fill="none" stroke="url(#sscGold)" stroke-width="5"/>
+  <text class="sscT" x="301" y="71">Service</text>
+  <text class="sscT" x="301" y="104">Primary</text>
+
+  <text class="sscL" x="49" y="214">Clients</text>
+  <text class="sscL" x="49" y="246">RO</text>
+  <text class="sscS" x="148" y="196">5432</text>
+  <path d="M215 229 C 180 214, 140 214, 100 229" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sscCyanArrow)"/>
+  <rect x="220" y="170" width="163" height="103" rx="12" fill="none" stroke="url(#sscGold)" stroke-width="5"/>
+  <text class="sscT" x="301" y="214">Service</text>
+  <text class="sscT" x="301" y="247">Any</text>
+
+  <rect x="903" y="27" width="163" height="103" rx="12" fill="none" stroke="url(#sscGold)" stroke-width="5"/>
+  <text class="sscT" x="984" y="71">Service</text>
+  <text class="sscT" x="984" y="104">Primaries</text>
+  <text class="sscS" x="1137" y="52">5432</text>
+  <path d="M1071 85 C 1105 70, 1145 70, 1185 85" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sscCyanArrow)"/>
+  <text class="sscL" x="1231" y="70">Clients</text>
+  <text class="sscL" x="1231" y="102">RW</text>
+
+  <text class="sscL" x="86" y="483">Coordinator</text>
+  <rect x="396" y="385" width="44" height="22" rx="4" fill="url(#sscGreen)"/>
+  <rect x="396" y="543" width="44" height="22" rx="4" fill="url(#sscGreen)"/>
+  <rect x="267" y="405" width="196" height="140" rx="14" fill="none" stroke="url(#sscGreen)" stroke-width="5"/>
+  <text class="sscS" x="365" y="455">Pod- 0</text>
+  <text class="sscS" x="365" y="507">role = primary</text>
+  <path d="M468 475 C 485 456, 498 456, 510 468" fill="none" stroke="#a8e063" stroke-width="4" stroke-linecap="round"/>
+  <use href="#sscCylG" x="540" y="478"/>
+  <text class="sscS" x="540" y="535">PV</text>
+  <rect x="716" y="385" width="44" height="22" rx="4" fill="url(#sscGreen)"/>
+  <rect x="716" y="543" width="44" height="22" rx="4" fill="url(#sscGreen)"/>
+  <rect x="587" y="405" width="196" height="140" rx="14" fill="none" stroke="url(#sscGreen)" stroke-width="5"/>
+  <text class="sscS" x="685" y="455">Pod- 1</text>
+  <text class="sscS" x="685" y="507">role = replica</text>
+  <path d="M788 475 C 805 456, 818 456, 830 468" fill="none" stroke="#a8e063" stroke-width="4" stroke-linecap="round"/>
+  <use href="#sscCylG" x="858" y="478"/>
+  <text class="sscS" x="858" y="535">PV</text>
+
+  <g fill="none" stroke="#c6f531" stroke-width="5" stroke-linecap="round">
+    <path d="M385 80 C 580 120, 490 290, 422 383"/>
+    <path d="M385 221 C 600 268, 715 320, 736 383"/>
+    <path d="M940 132 C 700 420, 390 560, 310 723"/>
+    <path d="M985 132 C 930 450, 790 600, 752 723"/>
+  </g>
+  <g fill="none" stroke="#1ce8ff" stroke-width="3.5" stroke-linecap="round">
+    <path d="M400 567 C 370 640, 330 680, 305 725"/>
+    <path d="M425 567 C 540 660, 650 680, 738 725"/>
+    <path d="M722 567 C 560 660, 410 685, 315 725"/>
+    <path d="M740 567 C 752 640, 752 680, 750 725"/>
+  </g>
+
+  <text class="sscL" x="91" y="782">Shards</text>
+  <text class="sscL" x="91" y="814">(Workers)</text>
+  <g id="sscW0">
+    <rect x="280" y="712" width="44" height="22" rx="4" fill="url(#sscBlue)"/>
+    <rect x="203" y="733" width="196" height="132" rx="14" fill="none" stroke="url(#sscBlue)" stroke-width="5"/>
+    <text class="sscS" x="301" y="782">Pod-0-0</text>
+    <text class="sscS" x="301" y="832">role = primary</text>
+    <path d="M301 870 C 290 895, 295 905, 301 918" fill="none" stroke="#1ce8ff" stroke-width="4" stroke-linecap="round"/>
+    <use href="#sscCylB" x="301" y="962"/>
+    <text class="sscS" x="301" y="1016">PV</text>
+  </g>
+  <g id="sscW1">
+    <rect x="425" y="733" width="196" height="132" rx="14" fill="none" stroke="url(#sscBlue)" stroke-width="5"/>
+    <text class="sscS" x="523" y="782">Pod-0-0</text>
+    <text class="sscS" x="523" y="832">role = replica</text>
+    <path d="M523 870 C 512 895, 517 905, 523 918" fill="none" stroke="#1ce8ff" stroke-width="4" stroke-linecap="round"/>
+    <use href="#sscCylB" x="523" y="962"/>
+    <text class="sscS" x="523" y="1016">PV</text>
+  </g>
+  <g id="sscW2">
+    <rect x="728" y="712" width="44" height="22" rx="4" fill="url(#sscBlue)"/>
+    <rect x="650" y="733" width="196" height="132" rx="14" fill="none" stroke="url(#sscBlue)" stroke-width="5"/>
+    <text class="sscS" x="748" y="782">Pod-1-0</text>
+    <text class="sscS" x="748" y="832">role = primary</text>
+    <path d="M748 870 C 737 895, 742 905, 748 918" fill="none" stroke="#1ce8ff" stroke-width="4" stroke-linecap="round"/>
+    <use href="#sscCylB" x="748" y="962"/>
+    <text class="sscS" x="748" y="1016">PV</text>
+  </g>
+  <g id="sscW3">
+    <rect x="873" y="733" width="196" height="132" rx="14" fill="none" stroke="url(#sscBlue)" stroke-width="5"/>
+    <text class="sscS" x="971" y="782">Pod-1-0</text>
+    <text class="sscS" x="971" y="832">role = replica</text>
+    <path d="M971 870 C 960 895, 965 905, 971 918" fill="none" stroke="#1ce8ff" stroke-width="4" stroke-linecap="round"/>
+    <use href="#sscCylB" x="971" y="962"/>
+    <text class="sscS" x="971" y="1016">PV</text>
+  </g>
+</svg>
