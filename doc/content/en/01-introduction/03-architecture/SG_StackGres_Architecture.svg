@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2031 1590" role="img" aria-labelledby="sgaTitle" style="width:100%;max-width:2031px;height:auto">
+  <title id="sgaTitle">StackGres architecture: the controller and REST API, the web console, the distributed log server and the cluster pods</title>
+  <defs>
+    <linearGradient id="sgaGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2fae63"/>
+      <stop offset="1" stop-color="#a8e063"/>
+    </linearGradient>
+    <linearGradient id="sgaGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2a130"/>
+      <stop offset="1" stop-color="#ffd84d"/>
+    </linearGradient>
+    <linearGradient id="sgaBlue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1ce8ff"/>
+      <stop offset="1" stop-color="#1e6af8"/>
+    </linearGradient>
+    <linearGradient id="sgaFrame" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#42f0cf"/>
+      <stop offset="1" stop-color="#36a8ff"/>
+    </linearGradient>
+    <marker id="sgaB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 L8 5 L1 9" fill="none" stroke="#36a8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <g id="sgaCylB" fill="none" stroke="url(#sgaBlue)" stroke-width="6" stroke-linecap="round">
+      <path d="M-34 -30 v56 a34 13 0 0 0 68 0 v-56"/>
+      <ellipse cx="0" cy="-30" rx="34" ry="13"/>
+      <path d="M-34 -9 a34 13 0 0 0 68 0"/>
+      <path d="M-34 12 a34 13 0 0 0 68 0"/>
+    </g>
+    <g id="sgaCylG" fill="none" stroke="url(#sgaGreen)" stroke-width="6" stroke-linecap="round">
+      <path d="M-34 -30 v56 a34 13 0 0 0 68 0 v-56"/>
+      <ellipse cx="0" cy="-30" rx="34" ry="13"/>
+      <path d="M-34 -9 a34 13 0 0 0 68 0"/>
+      <path d="M-34 12 a34 13 0 0 0 68 0"/>
+    </g>
+  </defs>
+  <style>
+    .sgaT { font-size: 38px; font-weight: 500; fill: currentColor; text-anchor: middle; }
+    .sgaS { font-size: 34px; font-weight: 500; fill: currentColor; text-anchor: middle; }
+    .sgaI { font-size: 32px; font-weight: 500; font-style: italic; fill: currentColor; text-anchor: middle; }
+  </style>
+
+  <rect x="275" y="12" width="1415" height="1566" rx="10" fill="none" stroke="url(#sgaFrame)" stroke-width="5" stroke-dasharray="30 22"/>
+
+  <rect x="430" y="45" width="245" height="320" rx="16" fill="none" stroke="url(#sgaGreen)" stroke-width="5"/>
+  <line x1="430" y1="205" x2="675" y2="205" stroke="#2fae63" stroke-width="5"/>
+  <text class="sgaT" x="552" y="110">StackGres</text>
+  <text class="sgaT" x="552" y="155">Controller</text>
+  <text class="sgaT" x="552" y="270">REST</text>
+  <text class="sgaT" x="552" y="315">API</text>
+
+  <text class="sgaI" x="285" y="80">kubectl</text>
+  <path d="M425 125 C 340 100, 260 100, 160 125" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sgaB)"/>
+  <text class="sgaT" x="75" y="140">CRDs</text>
+  <path d="M425 280 C 350 262, 290 262, 215 288" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sgaB)"/>
+  <text class="sgaT" x="98" y="270" font-size="34">REST API</text>
+  <text class="sgaT" x="98" y="315" font-size="34">Users</text>
+
+  <rect x="1075" y="130" width="250" height="160" rx="16" fill="none" stroke="url(#sgaGreen)" stroke-width="5"/>
+  <text class="sgaT" x="1200" y="195">StackGres</text>
+  <text class="sgaT" x="1200" y="240">UI</text>
+
+  <rect x="1750" y="125" width="245" height="165" rx="16" fill="none" stroke="url(#sgaGold)" stroke-width="5"/>
+  <text class="sgaT" x="1872" y="190">Kubernetes</text>
+  <text class="sgaT" x="1872" y="235">API</text>
+  <path d="M680 115 C 1100 40, 1500 85, 1745 195" fill="none" stroke="#42f0cf" stroke-width="4" stroke-linecap="round" marker-end="url(#sgaB)"/>
+  <path d="M1070 225 C 900 250, 780 265, 680 278" fill="none" stroke="#42f0cf" stroke-width="4" stroke-linecap="round"/>
+
+  <rect x="925" y="520" width="495" height="320" rx="16" fill="none" stroke="url(#sgaGreen)" stroke-width="5"/>
+  <text class="sgaT" x="1172" y="595">Distributed</text>
+  <text class="sgaT" x="1172" y="640">Log Server</text>
+  <line x1="925" y1="680" x2="1420" y2="680" stroke="#2fae63" stroke-width="5"/>
+  <line x1="1172" y1="680" x2="1172" y2="840" stroke="#2fae63" stroke-width="5"/>
+  <text class="sgaS" x="1048" y="772">Fluentd</text>
+  <text class="sgaS" x="1296" y="745">Postgres</text>
+  <text class="sgaS" x="1296" y="782">+</text>
+  <text class="sgaS" x="1296" y="819">Timescale</text>
+  <path d="M1425 755 C 1480 740, 1520 740, 1560 755" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round"/>
+  <use href="#sgaCylG" x="1605" y="770"/>
+  <text class="sgaS" x="1605" y="855">PV</text>
+  <path d="M680 290 C 940 340, 1100 420, 1172 515" fill="none" stroke="#42f0cf" stroke-width="4" stroke-linecap="round"/>
+
+  <rect x="335" y="490" width="245" height="165" rx="16" fill="none" stroke="url(#sgaGold)" stroke-width="5"/>
+  <text class="sgaT" x="457" y="555">Service</text>
+  <text class="sgaT" x="457" y="600">Primary</text>
+  <text class="sgaS" x="235" y="520">5432</text>
+  <path d="M330 575 C 270 555, 215 555, 150 575" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sgaB)"/>
+  <text class="sgaT" x="70" y="550">Clients</text>
+  <text class="sgaT" x="70" y="595">RW</text>
+
+  <rect x="335" y="715" width="245" height="165" rx="16" fill="none" stroke="url(#sgaGold)" stroke-width="5"/>
+  <text class="sgaT" x="457" y="780">Service</text>
+  <text class="sgaT" x="457" y="825">Replicas</text>
+  <text class="sgaS" x="235" y="745">5432</text>
+  <path d="M330 800 C 270 780, 215 780, 150 800" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" marker-end="url(#sgaB)"/>
+  <text class="sgaT" x="70" y="775">Clients</text>
+  <text class="sgaT" x="70" y="820">RO</text>
+
+  <g id="sgaPod0">
+    <rect x="600" y="1053" width="60" height="26" rx="5" fill="url(#sgaBlue)"/>
+    <rect x="425" y="1075" width="260" height="200" rx="16" fill="none" stroke="url(#sgaBlue)" stroke-width="5"/>
+    <text class="sgaS" x="555" y="1150">Pod-0</text>
+    <text class="sgaS" x="555" y="1225">role = primary</text>
+    <path d="M555 1280 C 545 1310, 548 1330, 555 1355" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round"/>
+    <use href="#sgaCylB" x="555" y="1425"/>
+    <text class="sgaS" x="555" y="1510">PV</text>
+  </g>
+  <g id="sgaPod1">
+    <rect x="920" y="1053" width="60" height="26" rx="5" fill="url(#sgaBlue)"/>
+    <rect x="745" y="1075" width="260" height="200" rx="16" fill="none" stroke="url(#sgaBlue)" stroke-width="5"/>
+    <text class="sgaS" x="875" y="1150">Pod-1</text>
+    <text class="sgaS" x="875" y="1225">role = replica</text>
+    <path d="M875 1280 C 865 1310, 868 1330, 875 1355" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round"/>
+    <use href="#sgaCylB" x="875" y="1425"/>
+    <text class="sgaS" x="875" y="1510">PV</text>
+  </g>
+  <g id="sgaPod2">
+    <rect x="1240" y="1053" width="60" height="26" rx="5" fill="url(#sgaBlue)"/>
+    <rect x="1065" y="1075" width="260" height="200" rx="16" fill="none" stroke="url(#sgaBlue)" stroke-width="5"/>
+    <text class="sgaS" x="1195" y="1150">Pod-2</text>
+    <text class="sgaS" x="1195" y="1225">role = replica</text>
+    <path d="M1195 1280 C 1185 1310, 1188 1330, 1195 1355" fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round"/>
+    <use href="#sgaCylB" x="1195" y="1425"/>
+    <text class="sgaS" x="1195" y="1510">PV</text>
+  </g>
+
+  <g fill="none" stroke="#42f0cf" stroke-width="4" stroke-linecap="round">
+    <path d="M585 590 C 680 700, 650 920, 628 1048"/>
+    <path d="M585 800 C 760 880, 900 970, 948 1048"/>
+    <path d="M585 815 C 900 930, 1180 990, 1268 1048"/>
+  </g>
+  <g fill="none" stroke="#36a8ff" stroke-width="4" stroke-linecap="round" stroke-dasharray="16 14">
+    <path d="M665 1050 C 760 920, 870 870, 1000 845"/>
+    <path d="M985 1050 C 1030 960, 1060 900, 1080 845"/>
+    <path d="M1305 1050 C 1280 970, 1250 900, 1215 845"/>
+  </g>
+</svg>

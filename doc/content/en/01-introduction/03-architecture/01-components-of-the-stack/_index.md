@@ -18,7 +18,7 @@ that overlap in their functionalities or have pros and cons to take into account
 It is required to have a high understanding of all the components in order to choose the ones that fit together and provide a
 production-ready Postgres distribution.
 
-![Components of the Stack](stack.png "Components of the Stack")
+{{< svg "stack.svg" "Components of the Stack" >}}
 
 Our Postgres distribution is composed of a central core component (Postgres) and some other components that fulfill
 requirements in different areas required by the Postgres production distribution.
@@ -50,7 +50,7 @@ While a lot of enterprise application frameworks offer functionalities to pool t
 
 Configuring a very high number of allowed connections doesn't quite solve this issue, as we'll notice that the connection latency increases disproportionately to the load, as shown in the following graph (the green line):
 
-![Connection pooling](connection-pooling.png "Connection pooling (pg_bench, scale 2000, m4.large (2 vCPU, 8GB RAM, 1k IOPS))")
+{{< svg "connection-pooling.svg" "Connection pooling (pg_bench, scale 2000, m4.large (2 vCPU, 8GB RAM, 1k IOPS))" >}}
 
 This is due to the fact that PostgreSQL manages one process per connection, which for a high number of connections leads to contention on the CPU cores and operating system scheduling overhead.
 
