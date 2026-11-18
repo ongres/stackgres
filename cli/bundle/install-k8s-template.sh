@@ -24,6 +24,7 @@ STACKGRES_IMAGE_TAG="${STACKGRES_IMAGE_TAG:-%STACKGRES_IMAGE_TAG%}"
 STACKGRES_K8S_BRANCH="${STACKGRES_K8S_BRANCH:-wip-matriarch}"
 NAMESPACE="${NAMESPACE:-stackgres}"
 CHART_SUBPATH="stackgres-k8s/install/helm/stackgres-operator"
+CRD_SUBPATH="stackgres-k8s/src/common/src/main/resources/crds"
 
 # --- helper functions for logs ---
 info()  { echo "$@"; }
@@ -76,11 +77,33 @@ fetch_chart() {
     rm -f "${TMP_DIR}/chart.tar.gz"
     CHART_DIR="${TMP_DIR}/${CHART_SUBPATH}"
     [ -f "${CHART_DIR}/Chart.yaml" ] || fatal "chart not found at ${CHART_DIR} (branch ${STACKGRES_K8S_BRANCH})"
+
+    # The CRDs live outside the chart subdir and are copied into crds/ only at
+    # package time (see build-helm-packages.sh). The raw git chart has none, so
+    # fetch them here and populate crds/ exactly as packaging would.
+    crd_url="https://gitlab.com/ongresinc/stackgres/-/archive/${STACKGRES_K8S_BRANCH}/stackgres.tar.gz?path=${CRD_SUBPATH}"
+    info "Fetching CRDs (${STACKGRES_K8S_BRANCH}) ..."
+    curl -sfL "$crd_url" -o "${TMP_DIR}/crds.tar.gz" \
+        || fatal "Failed to download CRDs from ${crd_url}"
+    tar -xzf "${TMP_DIR}/crds.tar.gz" -C "$TMP_DIR" --strip-components=1 \
+        || fatal 'Failed to extract the CRDs archive'
+    rm -f "${TMP_DIR}/crds.tar.gz"
+    mkdir -p "${CHART_DIR}/crds"
+    cp "${TMP_DIR}/${CRD_SUBPATH}/"*.yaml "${CHART_DIR}/crds/." \
+        || fatal "no CRDs found at ${CRD_SUBPATH} (branch ${STACKGRES_K8S_BRANCH})"
 }
 
 # --- install/upgrade the operator, wired to the cloud ---
 install_operator() {
     [ -n "$STACKGRES_TOKEN" ] || fatal 'No install token - pass OTT=<token> (from the cloud UI)'
+    # Install CRDs before helm: the pre-install/pre-upgrade sgconfig hook applies
+    # an SGConfig CR before the operator ever starts, so the CRDs must already
+    # exist. Helm only reconciles crds/ on fresh installs (never on upgrade), and
+    # --server-side avoids the client-side apply annotation-size limit on these
+    # large CRDs.
+    info 'Installing StackGres CRDs ...'
+    kubectl apply --server-side -f "${CHART_DIR}/crds/" \
+        || fatal 'Failed to install the StackGres CRDs'
     info "Installing StackGres operator (${STACKGRES_IMAGE_NAME}:${STACKGRES_IMAGE_TAG}) ..."
     helm upgrade --install stackgres-operator "$CHART_DIR" \
         --create-namespace -n "$NAMESPACE" \
