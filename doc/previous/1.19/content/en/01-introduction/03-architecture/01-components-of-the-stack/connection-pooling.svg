@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2168 1217" role="img" aria-labelledby="cpTitle" style="width:100%;max-width:2168px;height:auto">
+  <title id="cpTitle">Connection pooling benchmark: transactions per second stay flat while concurrent connections grow</title>
+  <style>
+    .cpTick { font-size: 44px; fill: currentColor; }
+    .cpAxis { font-size: 48px; fill: currentColor; }
+  </style>
+  <g stroke="currentColor" stroke-opacity="0.18" stroke-width="2">
+    <line x1="300" y1="905" x2="1860" y2="905"/>
+    <line x1="300" y1="799" x2="1860" y2="799"/>
+    <line x1="300" y1="694" x2="1860" y2="694"/>
+    <line x1="300" y1="588" x2="1860" y2="588"/>
+    <line x1="300" y1="482" x2="1860" y2="482"/>
+    <line x1="300" y1="377" x2="1860" y2="377"/>
+    <line x1="300" y1="271" x2="1860" y2="271"/>
+    <line x1="300" y1="166" x2="1860" y2="166"/>
+    <line x1="300" y1="60" x2="1860" y2="60"/>
+  </g>
+  <g class="cpTick" text-anchor="end">
+    <text x="268" y="921">0</text>
+    <text x="268" y="815">50</text>
+    <text x="268" y="710">100</text>
+    <text x="268" y="604">150</text>
+    <text x="268" y="498">200</text>
+    <text x="268" y="393">250</text>
+    <text x="268" y="287">300</text>
+    <text x="268" y="182">350</text>
+    <text x="268" y="76">400</text>
+  </g>
+  <g class="cpTick" text-anchor="start">
+    <text x="1892" y="921">0</text>
+    <text x="1892" y="815">200</text>
+    <text x="1892" y="710">400</text>
+    <text x="1892" y="604">600</text>
+    <text x="1892" y="498">800</text>
+    <text x="1892" y="393">1,000</text>
+    <text x="1892" y="287">1,200</text>
+    <text x="1892" y="182">1,400</text>
+    <text x="1892" y="76">1,600</text>
+  </g>
+  <g fill="#36a8ff">
+    <rect x="365" y="261" width="130" height="644"/>
+    <rect x="625" y="208" width="130" height="697"/>
+    <rect x="885" y="185" width="130" height="720"/>
+    <rect x="1145" y="197" width="130" height="708"/>
+    <rect x="1405" y="174" width="130" height="731"/>
+    <rect x="1665" y="176" width="130" height="729"/>
+  </g>
+  <path d="M430 892 L690 810 L950 747 L1210 588 L1470 430 L1730 137" fill="none" stroke="#42f0cf" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#42f0cf">
+    <circle cx="430" cy="892" r="17"/>
+    <circle cx="690" cy="810" r="17"/>
+    <circle cx="950" cy="747" r="17"/>
+    <circle cx="1210" cy="588" r="17"/>
+    <circle cx="1470" cy="430" r="17"/>
+    <circle cx="1730" cy="137" r="17"/>
+  </g>
+  <g class="cpTick" text-anchor="middle">
+    <text x="430" y="985">10</text>
+    <text x="690" y="985">50</text>
+    <text x="950" y="985">100</text>
+    <text x="1210" y="985">200</text>
+    <text x="1470" y="985">300</text>
+    <text x="1730" y="985">500</text>
+  </g>
+  <text class="cpAxis" transform="translate(64 482) rotate(-90)" text-anchor="middle">tps (transactions per second)</text>
+  <text class="cpAxis" x="1080" y="1135" text-anchor="middle"># concurrent connections</text>
+</svg>

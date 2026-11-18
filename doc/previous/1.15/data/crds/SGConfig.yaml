@@ -1,0 +1,1326 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgconfigs.stackgres.io
+spec:
+  group: stackgres.io
+  names:
+    kind: SGConfig
+    listKind: SGConfigList
+    plural: sgconfigs 
+    singular: sgconfig
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - jsonPath: .metadata.annotations.stackgres\.io/lockPod
+      name: operator-pod
+      type: string
+    - jsonPath: .status.version
+      name: operator-version
+      type: string
+    schema:
+      openAPIV3Schema:
+        type: object
+        description: |
+          SGConfig stores the configuration of the StackGres Operator
+
+          > **WARNING**: Creating more than one SGConfig is forbidden.
+           The single SGConfig should be created automatically during installation.
+           More SGConfig may exists only when allowedNamespaces or allowedNamespaceLabelSelector is used.
+        properties:
+          spec:
+            description: Spec defines the desired state of SGConfig
+            type: object
+            properties:
+              containerRegistry:
+                type: string
+                default: quay.io
+                description: |
+                  The container registry host (and port) where the images will be pulled from.
+
+                  > This value can only be set in operator helm chart or with the environment variable `SG_CONTAINER_REGISTRY`.
+              imagePullPolicy:
+                type: string
+                default: "IfNotPresent"
+                description: Image pull policy used for images loaded by the Operator
+              imagePullSecrets:
+                type: array
+                description: |
+                  The list of references to secrets in the same namespace where a ServiceAccount is created by the operator to use for pulling any images in pods that reference such ServiceAccount. ImagePullSecrets are distinct from Secrets because Secrets can be mounted in the pod, but ImagePullSecrets are only accessed by the kubelet. More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
+                items:
+                  type: object
+                  description: A reference to a secrets in the same namespace where a ServiceAccount is created by the operator to use for pulling any images in pods that reference such ServiceAccount.
+                  properties:
+                    name:
+                      type: string
+                      description: The name of the referenced Secret.
+              allowedNamespaces:
+                type: array
+                description: |
+                  Section to configure allowed namespaces that the operator is allowed to use. If empty all namespaces will be allowed (default).
+
+                  > This value can only be set in operator helm chart or with the environment variable `ALLOWED_NAMESPACES`.
+                  >   It is set by OLM when [scoping the operator](https://olm.operatorframework.io/docs/advanced-tasks/operator-scoping-with-operatorgroups/).
+                items:
+                  type: string
+                  description: |
+                    A namespace that the operator is allowed to use.
+              allowedNamespaceLabelSelector:
+                type: object
+                description: |
+                  Section to configure namespaces that the operator is allowed to use. If allowedNamespaces is defined it will be used instead. If empty all namespaces will be allowed (default).
+                  
+                  See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#labelselector-v1-meta
+
+                  > This value can only be set in operator helm chart.
+                additionalProperties:
+                  type: string
+              disableClusterRole:
+                type: boolean
+                description: |
+                  When set to `true` the creation of the operator ClusterRole and ClusterRoleBinding is disabled.
+                   Also, when `true`, some features that rely on unnamespaced resources premissions will be disabled:
+                  
+                  * Creation and upgrade of CustomResourceDefinitions
+                  * Set CA bundle for Webhooks
+                  * Check existence of CustomResourceDefinition when listing custom resources
+                  * Validation of StorageClass
+                  * REST API endpoint `can-i/{verb}/{resource}` and `can-i` will always return the full list of permissions for any resource and verb since they rely on creation of subjectaccessreviews unnamespaced resource that requires a cluster role.
+                  * Other REST API endpoints will not work since they rely on impersonation that requires a cluster role.
+                    This point in particular breaks the Web Console completely. You may still enable this specific cluster role with `.allowImpersonationForRestApi`.
+                    If you do not need the Web Console you may still disable it completely by setting `.deploy.restapi` to `false`.
+                  
+                  When set to `true` and `allowedNamespaces` is not set or is empty then `allowedNamespaces` will be considered set and containing only the namespace of the operator.
+                  
+                  It is `false` by default.
+
+                  > This value can only be set in operator helm chart.
+              allowImpersonationForRestApi:
+                type: boolean
+                description: |
+                  When set to `true` the cluster role for impersonation will be created even if `disableClusterRole` is set to `true`.
+                  
+                  It is `false` by default.
+
+                  > This value can only be set in operator helm chart.
+              disableCrdsAndWebhooksUpdate:
+                type: boolean
+                description: |
+                  When set to `true` the cluster role to update or patch CRDs will be disabled.
+                  
+                  It is `false` by default.
+
+                  > This value can only be set in operator helm chart.
+              sgConfigNamespace:
+                type: string
+                description: |
+                  When set will indicate the namespace where the SGConfig used by the operator will be created.
+                  
+                  By default the SGConfig will be created in the same namespace as the operator.
+
+                  > This value can only be set in operator helm chart.
+              serviceAccount:
+                type: object
+                description: Section to configure Operator Installation ServiceAccount
+                properties:
+                  create:
+                    type: boolean
+                    default: true
+                    description: |
+                      If `true` the Operator Installation ServiceAccount will be created
+
+                      > This value can only be set in operator helm chart.
+                  annotations:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Section to configure Installation ServiceAccount annotations
+                  repoCredentials:
+                    type: array
+                    description: |
+                      Repositories credentials Secret names
+
+                      > This value can only be set in operator helm chart.
+                    items:
+                      type: string
+                      description: |
+                        Repository credentials Secret name
+
+                        > This value can only be set in operator helm chart.
+              operator:
+                type: object
+                description: Section to configure Operator Pod
+                properties:
+                  image:
+                    type: object
+                    description: Section to configure Operator image
+                    properties:
+                      name:
+                        type: string
+                        default: "stackgres/operator"
+                        description: |
+                          Operator image name
+
+                          > This value can only be set in operator helm chart.
+                      tag:
+                        type: string
+                        description: |
+                          Operator image tag
+
+                          > This value can only be set in operator helm chart.
+                      pullPolicy:
+                        type: string
+                        default: "IfNotPresent"
+                        description: |
+                          Operator image pull policy
+
+                          > This value can only be set in operator helm chart.
+                  annotations:
+                    type: object
+                    description: Operator Pod annotations
+                    x-kubernetes-preserve-unknown-fields: true
+                  resources:
+                    type: object
+                    description: |
+                      Operator Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+
+                      > This value can only be set in operator helm chart.
+                    x-kubernetes-preserve-unknown-fields: true
+                  nodeSelector:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: |
+                      Operator Pod node selector
+
+                      > This value can only be set in operator helm chart.
+                  tolerations:
+                    type: array
+                    description: |
+                      Operator Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
+
+                      > This value can only be set in operator helm chart.
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  affinity:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: |
+                      Operator Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+
+                      > This value can only be set in operator helm chart.
+                  serviceAccount:
+                    type: object
+                    description: Section to configure Operator ServiceAccount
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: |
+                          Section to configure Operator ServiceAccount annotations
+
+                          > This value can only be set in operator helm chart.
+                      repoCredentials:
+                        type: array
+                        description: |
+                          Repositories credentials Secret names
+
+                          > This value can only be set in operator helm chart.
+                        items:
+                          type: string
+                  service:
+                    type: object
+                    description: Section to configure Operator Service
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: |
+                          Section to configure Operator Service annotations
+
+                          > This value can only be set in operator helm chart.
+              restapi:
+                type: object
+                description: Section to configure REST API Pod
+                properties:
+                  name:
+                    type: string
+                    default: stackgres-restapi
+                    description: REST API Deployment name
+                  image:
+                    type: object
+                    description: Section to configure REST API image
+                    properties:
+                      name:
+                        type: string
+                        default: "stackgres/restapi"
+                        description: REST API image name
+                      tag:
+                        type: string
+                        description: REST API image tag
+                      pullPolicy:
+                        type: string
+                        default: "IfNotPresent"
+                        description: REST API image pull policy
+                  annotations:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: REST API Pod annotations
+                  resources:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: REST API Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+                  nodeSelector:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: REST API Pod node selector
+                  tolerations:
+                    type: array
+                    description: REST API Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  affinity:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: REST API Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+                  serviceAccount:
+                    type: object
+                    description: Section to configure REST API ServiceAccount
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: REST API ServiceAccount annotations
+                      repoCredentials:
+                        type: array
+                        description: Repositories credentials Secret names
+                        items:
+                          type: string
+                          description: Repository credentials Secret name
+                  service:
+                    type: object
+                    description: Section to configure REST API Service
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: REST API Service annotations
+              adminui:
+                type: object
+                description: Section to configure Web Console container
+                properties:
+                  image:
+                    type: object
+                    description: Section to configure Web Console image
+                    properties:
+                      name:
+                        type: string
+                        default: "stackgres/admin-ui"
+                        description: Web Console image name
+                      tag:
+                        type: string
+                        description: Web Console image tag
+                      pullPolicy:
+                        type: string
+                        default: "IfNotPresent"
+                        description: Web Console image pull policy
+                  resources:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Web Console resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+                  service:
+                    type: object
+                    description: Section to configure Web Console service.
+                    properties:
+                      exposeHTTP:
+                        type: boolean
+                        default: false
+                        description: When set to `true` the HTTP port will be exposed in the Web Console Service
+                      type:
+                        type: string
+                        default: ClusterIP
+                        description: |
+                          The type used for the service of the UI:
+                          * Set to LoadBalancer to create a load balancer (if supported by the kubernetes cluster)
+                            to allow connect from Internet to the UI. Note that enabling this feature will probably incurr in
+                            some fee that depend on the host of the kubernetes cluster (for example this is true for EKS, GKE
+                            and AKS).
+                          * Set to NodePort to expose admin UI from kubernetes nodes.
+                      loadBalancerIP:
+                        type: string
+                        description: |
+                          LoadBalancer will get created with the IP specified in
+                          this field. This feature depends on whether the underlying cloud-provider supports specifying
+                          the loadBalancerIP when a load balancer is created. This field will be ignored if the
+                          cloud-provider does not support the feature.
+                      loadBalancerSourceRanges:
+                        type: array
+                        description: |
+                          If specified and supported by the platform,
+                          this will restrict traffic through the cloud-provider load-balancer will be restricted to the
+                          specified client IPs. This field will be ignored if the cloud-provider does not support the
+                          feature.
+                          More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
+                        items:
+                          type: string
+                      nodePort:
+                        type: integer
+                        description: The HTTPS port used to expose the Service on Kubernetes nodes
+                      nodePortHTTP:
+                        type: integer
+                        description: The HTTP port used to expose the Service on Kubernetes nodes
+              collector:
+                type: object
+                description: |
+                  Section to configure OpenTelemetry Collector
+
+                  By default a single instance of OpenTelemetry Collector will receive metrics
+                   from all monitored Pods and will then exports those metrics to
+                   a configured target (by default will expose a Prometheus exporter).
+                  
+                  See receivers section to scale this architecture to a set of OpenTelemetry Collectors.
+                default:
+                  service:
+                    spec:
+                      type: ClusterIP
+                      ports:
+                        - name: prom-http
+                          protocol: TCP
+                          port: 9464
+                          targetPort: prom-http
+                  ports:
+                  - name: prom-http
+                    protocol: TCP
+                    containerPort: 9464    
+                  config:
+                    receivers:
+                      otlp:
+                        protocols:
+                          grpc:
+                            endpoint: "0.0.0.0:4317"
+                            tls:
+                              ca_file: "/etc/operator/certs/tls.crt"
+                              cert_file: "/etc/operator/certs/tls.crt"
+                              key_file: "/etc/operator/certs/tls.key"
+                    exporters:
+                      prometheus:
+                        endpoint: "0.0.0.0:9464"
+                        tls:
+                          ca_file: "/etc/operator/certs/tls.crt"
+                          cert_file: "/etc/operator/certs/tls.crt"
+                          key_file: "/etc/operator/certs/tls.key"
+                          reload_interval: 10m
+                        send_timestamps: true
+                        metric_expiration: 180m
+                        enable_open_metrics: false
+                        resource_to_telemetry_conversion:
+                          enabled: false
+                      otlp:
+                        endpoint: stackgres-collector:4317
+                        tls:
+                          ca_file: "/etc/operator/certs/tls.crt"
+                    service:
+                      pipelines:
+                        metrics:
+                          receivers:
+                          - prometheus
+                          exporters:
+                          - prometheus
+                  prometheusOperator:
+                    allowDiscovery: true
+                properties:
+                  name:
+                    type: string
+                    default: stackgres-collector
+                    description: OpenTelemetry Collector Deploymnet/Deamonset base name
+                  receivers:
+                    type: object
+                    description: |
+                      This section allow to configure a variable number of OpenTelemetry Collector
+                       receivers (by default equals to the number of Pod with metrics enabled)
+                       that will scrape the metrics separately and send them to a defined number
+                       of OpenTelemetry Collector exporters (by default 1) that exports those metrics
+                       to one or more configured targets (by default will expose a Prometheus exporter).
+                    properties:
+                      enabled:
+                        type: boolean
+                        description: |
+                          When set to `true` it enables the creation of a set of OpenTelemetry Collectors receivers
+                           that will be scraping from the SGCluster Pods and allow to scale the observability
+                           architecture and a set of OpenTelemetry Collectors exporters that exports those metrics
+                           to one or more configured targets.
+                        default: false
+                      exporters:
+                        type: integer
+                        description: |
+                          When receivers are enabled indicates the number of OpenTelemetry Collectors exporters that
+                           exports metrics to one or more configured targets.
+                        default: 1
+                      deployments:
+                        type: array
+                        description: |
+                          A set of separate Deployments of 1 instance each that allow to set the OpenTelemetry Collectors receivers to a specified number of instances.
+                          
+                          When not set the number of Deployment of OpenTelemetry Collectors receivers will match the number of instances of all the existing SGClusters
+                           that has the field `.spec.configurations.observability.enableMetrics` set to `true`. Also, when not set, each Deployment will include a pod
+                           affinity rule matching any of the SGClusters Pods set defined below. This will allow to create an OpenTelemetry Collector receiver instance
+                           dedicated to each SGCluster Pod running in the same Node.
+                          
+                          Each Deployment will use a configuration for the OpenTelemetry Collector that will scrape from a set of SGClusters Pods that has the field
+                           `.spec.configurations.observability.enableMetrics` set to `true`. The set of Pods of each of those OpenTelemetry Collector configuration
+                           will be a partition of the list of SGClusters Pods that has the field `.spec.configurations.observability.enableMetrics` set to `true`
+                           ordered by the field `Pod.metadata.creationTimestamp` (from the oldest to the newest) and ordered crescently alphabetically by the fields
+                           `Pod.metadata.namespace` and `Pod.metadata.name`.
+                          
+                          If is possible to override (even partially) the list of SGCluster Pods using the `sgClusters` section.
+                        items:
+                          type: object
+                          properties:
+                            sgClusters:
+                              type: array
+                              description: |
+                                List of SGCluster Pods to scrape from this Deployment's Pod that will be included to the OpenTelemetry Collector
+                                 configuration alongside the SGCluster Pods assigned as described in `SGConfig.spec.collector.receivers.deployments`.
+                              items:
+                                type: object
+                                properties:
+                                  namespace:
+                                    type: string
+                                    description: The namespace of the SGCluster
+                                  name:
+                                    type: string
+                                    description: The name of the SGCluster
+                                  indexes:
+                                    type: array
+                                    description: |
+                                      The indexes of the SGCluster's Pods that will be included to the OpenTelemetry Collector configuration alongside
+                                       the SGCluster Pods assigned as described in `SGConfig.spec.collector.receivers.deployments`.
+                                      
+                                      If not specified all the SGCluster's Pods will be included.
+                                    items:
+                                      type: integer
+                            annotations:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: OpenTelemetry Collector Pod annotations
+                            resources:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+                            nodeSelector:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: OpenTelemetry Collector Pod node selector
+                            tolerations:
+                              type: array
+                              description: OpenTelemetry Collector Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
+                              items:
+                                type: object
+                                x-kubernetes-preserve-unknown-fields: true
+                            affinity:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: OpenTelemetry Collector Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+                  annotations:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: OpenTelemetry Collector Pod annotations
+                  resources:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: OpenTelemetry Collector Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+                  nodeSelector:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: OpenTelemetry Collector Pod node selector
+                  tolerations:
+                    type: array
+                    description: OpenTelemetry Collector Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  affinity:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: OpenTelemetry Collector Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+                  serviceAccount:
+                    type: object
+                    description: Section to configure OpenTelemetry Collector ServiceAccount
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: OpenTelemetry Collector ServiceAccount annotations
+                      repoCredentials:
+                        type: array
+                        description: Repositories credentials Secret names
+                        items:
+                          type: string
+                          description: Repository credentials Secret name
+                  service:
+                    type: object
+                    description: Section to configure OpenTelemetry Collector Service
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: OpenTelemetry Collector Service annotations
+                      spec:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: Section to configure OpenTelemetry Collector Service specs. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#servicespec-v1-core
+                  ports:
+                    type: array
+                    description: Section to configure OpenTelemetry Collector ports. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#containerport-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  volumeMounts:
+                    type: array
+                    description: Section to configure OpenTelemetry Collector Volume Mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  volumes:
+                    type: array
+                    description: Section to configure OpenTelemetry Collector Volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  config:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Section to configure OpenTelemetry Collector Configuration. See https://opentelemetry.io/docs/collector/configuration
+                  prometheusOperator:
+                    type: object
+                    description: Section to configure OpenTelemetry Collector integration with Prometheus Operator.
+                    properties:
+                      allowDiscovery:
+                        type: boolean
+                        default: true
+                        description: |
+                          If set to false or monitors is set automatic bind to Prometheus
+                           created using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) will be disabled.
+                          
+                          If disabled the cluster will not be binded to Prometheus automatically and will require manual configuration.
+                          
+                          Will be ignored if monitors is set.
+                      monitors:
+                        type: array
+                        description: |
+                          Optional section to configure PodMonitors for specific Prometheus instances
+                          
+                          *WARNING*: resources created by this integration that does set
+                           the metadata namespace to the same as the operator will not
+                           be removed when removing the helm chart. Changing the namespace
+                           may require configure the Prometheus CR properly in order to
+                           discover PodMonitor in such namespace.
+                        items:
+                          type: object
+                          description: Section to configure a PodMonitor for a specific Prometheus instance that will scrape from the collector Pod pointing by default to the prometheus exporter
+                          properties:
+                            name:
+                              type: string
+                              description: The name of the Prometheus resource that will scrape from the collector Pod pointing by default to the prometheus exporter
+                            namespace:
+                              type: string
+                              description: The namespace of the Prometheus resource that will scrape from the collector Pod pointing by default to the prometheus exporter
+                            metadata:
+                              type: object
+                              description: Section to overwrite some PodMonitor metadata
+                              properties:
+                                name:
+                                  type: string
+                                  description: The name of the PodMonitor
+                                namespace:
+                                  type: string
+                                  description: The namespace of the PodMonitor. Changing the namespace may require configure the Prometheus CR properly in order to discover PodMonitor in such namespace.
+                                labels:
+                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
+                                  description: The labels to set for the PodMonitor
+                                annotations:
+                                  type: object
+                                  x-kubernetes-preserve-unknown-fields: true
+                                  description: The labels to set for the PodMonitor
+                                ownerReferences:
+                                  type: array
+                                  description: The ownerReferences to set for the PodMonitor in order to be garbage collected by the specified object.
+                                  items:
+                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
+                            spec:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                              description: The PodMonitor spec that will be overwritten by the operator. See https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.PodMonitorSpec
+              jobs:
+                type: object
+                description: Section to configure Operator Installation Jobs
+                properties:
+                  image:
+                    type: object
+                    description: Section to configure Operator Installation Jobs image
+                    properties:
+                      name:
+                        type: string
+                        default: "stackgres/jobs"
+                        description: Operator Installation Jobs image name
+                      tag:
+                        type: string
+                        description: Operator Installation Jobs image tag
+                      pullPolicy:
+                        type: string
+                        default: "IfNotPresent"
+                        description: Operator Installation Jobs image pull policy
+                  annotations:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Operator Installation Jobs annotations
+                  resources:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Operator Installation Jobs resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#resourcerequirements-v1-core
+                  nodeSelector:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Operator Installation Jobs node selector
+                  tolerations:
+                    type: array
+                    description: Operator Installation Jobs tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  affinity:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Operator Installation Jobs affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#affinity-v1-core
+                  serviceAccount:
+                    type: object
+                    description: Section to configure Jobs ServiceAccount
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: Jobs ServiceAccount annotations
+                      repoCredentials:
+                        type: array
+                        description: Repositories credentials Secret names
+                        items:
+                          type: string
+                          description: Repository credentials Secret name
+              deploy:
+                type: object
+                description: Section to configure deployment aspects.
+                properties:
+                  operator:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the Operator will be deployed.
+                  restapi:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the Web Console / REST API will be deployed.
+                  collector:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the OpenTelemetry Collector will be deployed.
+              cert:
+                type: object
+                description: Section to configure the Operator, REST API and Web Console certificates and JWT RSA key-pair.
+                properties:
+                  autoapprove:
+                    type: boolean
+                    default: true
+                    description: |
+                      If set to `true` the CertificateSigningRequest used to generate the certificate used by
+                       Webhooks will be approved by the Operator Installation Job.
+                  createForOperator:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the Operator certificate will be created.
+                  createForWebApi:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the Web Console / REST API certificate will be created.
+                  createForCollector:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the OpenTelemetry Collector certificate will be created.
+                  secretName:
+                    type: string
+                    description: |
+                      The Secret name with the Operator Webhooks certificate issued by the Kubernetes cluster CA
+                       of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+                  regenerateCert:
+                    type: boolean
+                    description: |
+                      When set to `true` the Operator certificates will be regenerated if `createForOperator` is set to `true`, and the certificate is expired or invalid.
+                    default: true
+                  certDuration:
+                    type: integer
+                    description: |
+                      The duration in days of the generated certificate for the Operator after which it will expire and be regenerated.
+                      If not specified it will be set to 730 (2 years) by default.
+                  webSecretName:
+                    type: string
+                    description: |
+                      The Secret name with the Web Console / REST API certificate
+                       of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+                  regenerateWebCert:
+                    type: boolean
+                    description: |
+                      When set to `true` the Web Console / REST API certificates will be regenerated if `createForWebApi` is set to `true`, and the certificate is expired or invalid.
+                    default: true
+                  regenerateWebRsa:
+                    type: boolean
+                    description: |
+                      When set to `true` the Web Console / REST API RSA key pair will be regenerated if `createForWebApi` is set to `true`, and the certificate is expired or invalid.
+                    default: true
+                  webCertDuration:
+                    type: integer
+                    description: |
+                      The duration in days of the generated certificate for the Web Console / REST API after which it will expire and be regenerated.
+                      If not specified it will be set to 730 (2 years) by default.
+                  webRsaDuration:
+                    type: integer
+                    description: |
+                      The duration in days of the generated RSA key pair for the Web Console / REST API after which it will expire and be regenerated.
+                      If not specified it will be set to 730 (2 years) by default.
+                  collectorSecretName:
+                    type: string
+                    description: |
+                      The Secret name with the OpenTelemetry Collector certificate
+                       of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+                  regenerateCollectorCert:
+                    type: boolean
+                    description: |
+                      When set to `true` the OpenTelemetry Collector certificates will be regenerated if `createForCollector` is set to `true`, and the certificate is expired or invalid.
+                    default: true
+                  collectorCertDuration:
+                    type: integer
+                    description: |
+                      The duration in days of the generated certificate for the OpenTelemetry Collector after which it will expire and be regenerated.
+                      If not specified it will be set to 730 (2 years) by default.
+                  certManager:
+                    type: object
+                    description: Section to configure cert-manager integration to generate Operator certificates
+                    properties:
+                      autoConfigure:
+                        type: boolean
+                        default: false
+                        description: |
+                          When set to `true` then Issuer and Certificate for Operator, Web Console / REST API and OpenTelemetry Collector
+                           Pods will be generated
+                      duration:
+                        type: string
+                        default: "2160h"
+                        description: The requested duration (i.e. lifetime) of the Certificates. See https://cert-manager.io/docs/reference/api-docs/#cert-manager.io%2fv1
+                      renewBefore:
+                        type: string
+                        default: "360h"
+                        description: How long before the currently issued certificate’s expiry cert-manager should renew the certificate. See https://cert-manager.io/docs/reference/api-docs/#cert-manager.io%2fv1
+                      encoding:
+                        type: string
+                        default: PKCS1
+                        description: The private key cryptography standards (PKCS) encoding for this certificate’s private key to be encoded in. See https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.CertificatePrivateKey
+                      size:
+                        type: integer
+                        default: 2048
+                        description: Size is the key bit size of the corresponding private key for this certificate. See https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.CertificatePrivateKey
+              rbac:
+                type: object
+                description: Section to configure RBAC for Web Console admin user
+                properties:
+                  create:
+                    type: boolean
+                    default: true
+                    description: |
+                      When set to `true` the admin user is assigned the `cluster-admin` ClusterRole by creating
+                       ClusterRoleBinding.
+              authentication:
+                type: object
+                description: Section to configure Web Console authentication
+                properties:
+                  type:
+                    type: string
+                    default: jwt
+                    description: |
+                      Specify the authentication mechanism to use. By default is `jwt`, see https://stackgres.io/doc/latest/api/rbac#local-secret-mechanism.
+                       If set to `oidc` then see https://stackgres.io/doc/latest/api/rbac/#openid-connect-provider-mechanism.
+                  createAdminSecret:
+                    type: boolean
+                    description: |
+                      When `true` will create the secret used to store the admin user credentials to access the UI.
+                    default: true
+                  user:
+                    type: string
+                    default: admin
+                    description: |
+                      The admin username that will be created for the Web Console
+                      
+                      Operator bundle installation can not change the default value of this field.
+                  password:
+                    type: string
+                    description: |
+                      The admin password that will be created for the Web Console.
+                      
+                      If not specified a random password will be generated.
+                  secretRef:
+                    type: object
+                    description: |
+                      Allow to specify a reference to a Secret with the admin user credentials for the Web Console.
+                      
+                      In order to assign properly permissions. Make sure the `user` field match the value of the `k8sUsername` key in the referenced Secret.
+                    properties:
+                      name:
+                        description: The name of the Secret.
+                        type: string
+                  oidc:
+                    type: object
+                    description: Section to configure Web Console OIDC authentication
+                    properties:
+                      tlsVerification:
+                        type: string
+                        description: Can be one of `required`, `certificate-validation` or `none`
+                      authServerUrl:
+                        type: string
+                      clientId:
+                        type: string
+                      credentialsSecret:
+                        type: string
+                      clientIdSecretRef:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          key:
+                            type: string
+                      credentialsSecretSecretRef:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          key:
+                            type: string
+              prometheus:
+                type: object
+                description: |
+                  **Deprecated** this section has been replaced by `.spec.collector.prometheusOperator`.
+                  
+                  Section to configure Prometheus integration.
+                properties: 
+                  allowAutobind:
+                    type: boolean
+                    default: true
+                    description: |
+                      **Deprecated** this field has been replaced by `.spec.collector.prometheusOperator.allowDiscovery`.
+  
+                      If set to false disable automatic bind to Prometheus
+                        created using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
+                      If disabled the cluster will not be binded to Prometheus automatically and will require manual
+                        intervention by the Kubernetes cluster administrator.
+              grafana:
+                type: object
+                description: Section to configure Grafana integration
+                properties:
+                  autoEmbed:
+                    type: boolean
+                    default: false
+                    description: |
+                      When set to `true` embed automatically Grafana into the Web Console by creating the
+                       StackGres dashboard and the read-only role used to read it from the Web Console 
+                  schema:
+                    type: string
+                    default: http
+                    description: |
+                      The schema to access Grafana. By default http. (used to embed manually and
+                       automatically grafana)
+                  webHost:
+                    type: string
+                    description: |
+                      The service host name to access grafana (used to embed manually and
+                       automatically Grafana). 
+                      The parameter value should point to the grafana service following the 
+                       [DNS reference](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/) `svc_name.namespace`
+                  datasourceName:
+                    type: string
+                    default: Prometheus
+                    description: The datasource name used to create the StackGres Dashboard into Grafana
+                  user:
+                    type: string
+                    default: admin
+                    description: |
+                      The username to access Grafana. By default admin. (used to embed automatically
+                       Grafana)
+                  password:
+                    type: string
+                    default: prom-operator
+                    description: |
+                      The password to access Grafana. By default prom-operator (the default in for
+                       kube-prometheus-stack helm chart). (used to embed automatically Grafana)
+                  secretNamespace:
+                    type: string
+                    description: |
+                      The namespace of secret with credentials to access Grafana. (used to
+                       embed automatically Grafana, alternative to use `user` and `password`)
+                  secretName:
+                    type: string
+                    description: |
+                      The name of secret with credentials to access Grafana. (used to embed
+                       automatically Grafana, alternative to use `user` and `password`)
+                  secretUserKey:
+                    type: string
+                    description: |
+                      The key of secret with username used to access Grafana. (used to embed
+                       automatically Grafana, alternative to use `user` and `password`)
+                  secretPasswordKey:
+                    type: string
+                    description: |
+                      The key of secret with password used to access Grafana. (used to
+                       embed automatically Grafana, alternative to use `user` and `password`)
+                  dashboardConfigMap:
+                    type: string
+                    description: |
+                      The ConfigMap name with the dashboard JSON in the key `grafana-dashboard.json`
+                       that will be created in Grafana. If not set the default
+                  dashboardId:
+                    type: string
+                    description: |
+                      The dashboard id that will be create in Grafana
+                       (see https://grafana.com/grafana/dashboards). By default 9628. (used to embed automatically
+                       Grafana)
+
+                      Manual Steps:
+                       
+                      Create grafana dashboard for postgres exporter and copy/paste share URL:
+                      - Grafana > Create > Import > Grafana.com Dashboard 9628
+                      Copy/paste grafana dashboard URL for postgres exporter:
+                      - Grafana > Dashboard > Manage > Select postgres exporter dashboard > Copy URL
+                  url:
+                    type: string
+                    description: |
+                      The URL of the PostgreSQL dashboard created in Grafana (used to embed manually
+                       Grafana)
+                  token:
+                    type: string
+                    description: |
+                      The Grafana API token to access the PostgreSQL dashboard created
+                       in Grafana (used to embed manually Grafana)
+
+                      Manual Steps:
+                       
+                      Create and copy/paste grafana API token:
+                      - Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
+              extensions:
+                type: object
+                description: Section to configure extensions
+                properties:
+                  repositoryUrls:
+                    type: array
+                    default:
+                    - https://extensions.stackgres.io/postgres/repository
+                    description: |
+                      A list of extensions repository URLs used to retrieve extensions
+                      
+                      To set a proxy for extensions repository add parameter proxyUrl to the URL:
+                          `https://extensions.stackgres.io/postgres/repository?proxyUrl=<proxy scheme>%3A%2F%2F<proxy host>[%3A<proxy port>]` (URL encoded)
+                      
+                      Other URL parameters are:
+                      
+                      * `skipHostnameVerification`: set it to `true` in order to use a server or a proxy with a self signed certificate
+                      * `retry`: set it to `<max retriex>[:<sleep before next retry>]` in order to retry a request on failure
+                      * `setHttpScheme`: set it to `true` in order to force using HTTP scheme
+                    items:
+                      type: string
+                  cache:
+                    type: object
+                    description: |
+                      Section to configure extensions cache (experimental).
+                      
+                      This feature is in beta and may cause failures, please use with caution and report any
+                       error to https://gitlab.com/ongresinc/stackgres/-/issues/new
+                    properties:
+                      enabled:
+                        type: boolean
+                        default: false
+                        description: |
+                          When set to `true` enable the extensions cache.
+                          
+                          This feature is in beta and may cause failures, please use with caution and report any
+                           error to https://gitlab.com/ongresinc/stackgres/-/issues/new
+                      preloadedExtensions:
+                        type: array
+                        default:
+                        - x86_64/linux/timescaledb-1\.7\.4-pg12
+                        description: An array of extensions pattern used to pre-loaded estensions into the extensions cache
+                        items:
+                          type: string
+                          description: An extension pattern used to pre-loaded estensions into the extensions cache
+                      persistentVolume:
+                        type: object
+                        description: Section to configure the extensions cache PersistentVolume
+                        properties:
+                          size:
+                            type: string
+                            default: 1Gi
+                            description: |
+                              The PersistentVolume size for the extensions cache
+                              
+                              Only use whole numbers (e.g. not 1e6) and K/Ki/M/Mi/G/Gi as units
+                          storageClass:
+                            type: string
+                            description: |
+                              If defined set storage class
+                              If set to "-" (equivalent to storageClass: "" in a PV spec) disables
+                               dynamic provisioning
+                              If undefined (the default) or set to null, no storageClass spec is
+                               set, choosing the default provisioner.  (gp2 on AWS, standard on
+                               GKE, AWS & OpenStack)
+                      hostPath:
+                        type: string
+                        description: |
+                          If set, will use a host path volume with the specified path for the extensions cache
+                           instead of a PersistentVolume
+              shardingSphere:
+                type: object
+                description: Section to configure integration with ShardingSphere operator
+                properties:
+                  serviceAccount:
+                    type: object
+                    description: |
+                      Section to configure ServiceAccount used by ShardingSphere operator.
+                      
+                      You may configure a specific value for a sharded cluster under section
+                       `SGShardedCluster.speccoordinator.configurations.shardingSphere.serviceAccount`.
+                    required: [namespace,name]
+                    properties:
+                      namespace:
+                        type: string
+                        description: The namespace of the ServiceAccount used by ShardingSphere operator
+                      name:
+                        type: string
+                        description: The name of the ServiceAccount used by ShardingSphere operator
+              developer:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+                description: |
+                  Section to configure developer options.
+                  
+                  Following options are for developers only, but can also be useful in some cases ;)
+                properties:
+                  version:
+                    type: string
+                    description: Set the operator version (used for testing)
+                  logLevel:
+                    type: string
+                    description: Set `quarkus.log.level`. See https://quarkus.io/guides/logging#root-logger-configuration
+                  showDebug:
+                    type: boolean
+                    default: false
+                    description: If set to `true` add extra debug to any script controlled by the reconciliation cycle of the operator configuration
+                  showStackTraces:
+                    type: boolean
+                    default: false
+                    description: Set `quarkus.log.console.format` to `%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n`. See https://quarkus.io/guides/logging#logging-format
+                  useJvmImages:
+                    type: boolean
+                    default: false
+                    description: |
+                      The operator will use JVM version of the images
+                  enableJvmDebug:
+                    type: boolean
+                    default: false
+                    description: |
+                      Only work with JVM version and allow connect
+                       on port 8000 of operator Pod with jdb or similar
+                  enableJvmDebugSuspend:
+                    type: boolean
+                    default: false
+                    description: |
+                      Only work with JVM version and if `enableJvmDebug` is `true`
+                       suspend the JVM until a debugger session is started
+                  externalOperatorIp:
+                    type: string
+                    description: Set the external Operator IP
+                  externalOperatorPort:
+                    type: integer
+                    description: Set the external Operator port
+                  externalRestApiIp:
+                    type: string
+                    description: Set the external REST API IP
+                  externalRestApiPort:
+                    type: integer
+                    description: Set the external REST API port
+                  allowPullExtensionsFromImageRepository:
+                    type: boolean
+                    default: false
+                    description: |
+                      If set to `true` and `extensions.cache.enabled` is also `true`
+                       it will try to download extensions from images (experimental)
+                  disableArbitraryUser:
+                    type: boolean
+                    default: false
+                    description: |
+                      It set to `true` disable arbitrary user that is set for OpenShift clusters
+                  patches:
+                    type: object
+                    description: |
+                      Section to define patches for some StackGres Pods
+                    properties:
+                      operator:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the operator container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      restapi:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the restapi container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      adminui:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the adminui container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      jobs:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the jobs container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      clusterController:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the cluster controller container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      stream:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the stream container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            description: Status defines the observed state of SGConfig
+            x-kubernetes-preserve-unknown-fields: true
+            properties:
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition transitioned from one status to another.
+                      type: string
+                    message:
+                      description: A human readable message indicating details about the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
+                    type:
+                      description: Type of deployment condition.
+                      type: string
+              version:
+                type: string
+                description: Latest version of the operator used to check for updates
+              removeOldOperatorBundleResources:
+                type: boolean
+                description: Indicate when the old operator bundle resources has been removed
+              grafana:
+                type: object
+                properties:
+                  urls:
+                    description: Grafana URLs to StackGres dashboards
+                    type: array
+                    items:
+                      type: string
+                      description: Grafana URL to StackGres dashboards preceded by the dashboard name and a semicolon `:`
+                  token:
+                    description: Grafana Token that allow to access dashboards
+                    type: string
+                  configHash:
+                    description: Grafana configuration hash
+                    type: string
+              existingCrUpdatedToVersion:
+                type: string
+                description: Indicate the version to which existing CRs have been updated to

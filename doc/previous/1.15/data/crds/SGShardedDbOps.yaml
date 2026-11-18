@@ -1,0 +1,377 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgshardeddbops.stackgres.io
+spec:
+  group: stackgres.io
+  scope: Namespaced
+  names:
+    kind: SGShardedDbOps
+    listKind: SGShardedDbOpsList
+    plural: sgshardeddbops
+    singular: sgshardeddbops
+    shortNames:
+      - sgsdo
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    additionalPrinterColumns:
+    - name: cluster
+      type: string
+      jsonPath: .spec.sgShardedCluster
+    - name: operation
+      type: string
+      jsonPath: .spec.op
+    - name: status
+      type: string
+      jsonPath: .status.conditions[?(@.status=="True")].reason
+    - name: started-at
+      type: string
+      jsonPath: .status.opStarted
+      priority: 1
+    - name: retries
+      type: string
+      jsonPath: .status.opRetries
+      priority: 1
+    schema:
+      openAPIV3Schema:
+        required: ["metadata", "spec"]
+        type: object
+        properties:
+          metadata:
+            type: object
+            properties:
+              name:
+                type: string
+                maxLength: 57
+                pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
+                description: |
+                  Name of the Sharded Database Operation. A database operation represents a ""kind"" of operation on a StackGres cluster, classified by a given name. The operation reference one SGCluster by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 `label`, an alphanumeric (a-z, and 0-9) string, with the '-' character allowed anywhere except the first or last character.
+
+                  The name must be unique across all database operations in the same namespace."
+          spec:
+            type: object
+            properties:
+              sgShardedCluster:
+                type: string
+                description: |
+                  The name of SGShardedCluster on which the operation will be performed.
+              scheduling:
+                type: object
+                description: Pod custom node scheduling and affinity configuration
+                properties:
+                  nodeSelector:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: |
+                      NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+                  tolerations: &tolerations #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.tolerations #toleration-v1-core
+                    {"description":"If specified, the pod's tolerations.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core","items":{"description":"The pod this Toleration is attached to tolerates any taint that matches the triple <key,value,effect> using the matching operator <operator>.","properties":{"effect":{"description":"Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.","type":"string"},"key":{"description":"Key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.","type":"string"},"operator":{"description":"Operator represents a key's relationship to the value. Valid operators are Exists and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category.","type":"string"},"tolerationSeconds":{"description":"TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.","format":"int64","type":"integer"},"value":{"description":"Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.","type":"string"}},"type":"object"},"type":"array"}
+                  nodeAffinity: &node-affinity #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.affinity.properties.nodeAffinity #nodeaffinity-v1-core
+                    {"description":"Node affinity is a group of node affinity scheduling rules.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#nodeaffinity-v1-core","properties":{"preferredDuringSchedulingIgnoredDuringExecution":{"description":"The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions. The node that is most preferred is the one with the greatest sum of weights, i.e. for each node that meets all of the scheduling requirements (resource request, requiredDuringScheduling affinity expressions, etc.), compute a sum by iterating through the elements of this field and adding \"weight\" to the sum if the node matches the corresponding matchExpressions; the node(s) with the highest sum are the most preferred.","items":{"description":"An empty preferred scheduling term matches all objects with implicit weight 0 (i.e. it's a no-op). A null preferred scheduling term matches no objects (i.e. is also a no-op).","properties":{"preference":{"description":"A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.","properties":{"matchExpressions":{"description":"A list of node selector requirements by node's labels.","items":{"description":"A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"The label key that the selector applies to.","type":"string"},"operator":{"description":"Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.","type":"string"},"values":{"description":"An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchFields":{"description":"A list of node selector requirements by node's fields.","items":{"description":"A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"The label key that the selector applies to.","type":"string"},"operator":{"description":"Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.","type":"string"},"values":{"description":"An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"}},"type":"object"},"weight":{"description":"Weight associated with matching the corresponding nodeSelectorTerm, in the range 1-100.","format":"int32","type":"integer"}},"required":["weight","preference"],"type":"object"},"type":"array"},"requiredDuringSchedulingIgnoredDuringExecution":{"description":"A node selector represents the union of the results of one or more label queries over a set of nodes; that is, it represents the OR of the selectors represented by the node selector terms.","properties":{"nodeSelectorTerms":{"description":"Required. A list of node selector terms. The terms are ORed.","items":{"description":"A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.","properties":{"matchExpressions":{"description":"A list of node selector requirements by node's labels.","items":{"description":"A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"The label key that the selector applies to.","type":"string"},"operator":{"description":"Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.","type":"string"},"values":{"description":"An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchFields":{"description":"A list of node selector requirements by node's fields.","items":{"description":"A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"The label key that the selector applies to.","type":"string"},"operator":{"description":"Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.","type":"string"},"values":{"description":"An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"}},"type":"object"},"type":"array"}},"required":["nodeSelectorTerms"],"type":"object"}},"type":"object"}
+                  priorityClassName: &priority-class-name #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.priorityClassName
+                    {"description":"If specified, indicates the pod's priority. \"system-node-critical\" and \"system-cluster-critical\" are two special keywords which indicate the highest priorities with the former being the highest priority. Any other name must be defined by creating a PriorityClass object with that name. If not specified, the pod priority will be default or zero if there is no default.","type":"string"}
+                  podAffinity: &pod-affinity #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.affinity.properties.podAffinity #podaffinity-v1-core
+                    {"description":"Pod affinity is a group of inter pod affinity scheduling rules.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#podaffinity-v1-core","properties":{"preferredDuringSchedulingIgnoredDuringExecution":{"description":"The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions. The node that is most preferred is the one with the greatest sum of weights, i.e. for each node that meets all of the scheduling requirements (resource request, requiredDuringScheduling affinity expressions, etc.), compute a sum by iterating through the elements of this field and adding \"weight\" to the sum if the node has pods which matches the corresponding podAffinityTerm; the node(s) with the highest sum are the most preferred.","items":{"description":"The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)","properties":{"podAffinityTerm":{"description":"Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running","properties":{"labelSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"matchLabelKeys":{"description":"MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MatchLabelKeys and LabelSelector. Also, MatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"mismatchLabelKeys":{"description":"MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MismatchLabelKeys and LabelSelector. Also, MismatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"namespaceSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"namespaces":{"description":"namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".","items":{"type":"string"},"type":"array"},"topologyKey":{"description":"This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.","type":"string"}},"required":["topologyKey"],"type":"object"},"weight":{"description":"weight associated with matching the corresponding podAffinityTerm, in the range 1-100.","format":"int32","type":"integer"}},"required":["weight","podAffinityTerm"],"type":"object"},"type":"array"},"requiredDuringSchedulingIgnoredDuringExecution":{"description":"If the affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node. If the affinity requirements specified by this field cease to be met at some point during pod execution (e.g. due to a pod label update), the system may or may not try to eventually evict the pod from its node. When there are multiple elements, the lists of nodes corresponding to each podAffinityTerm are intersected, i.e. all terms must be satisfied.","items":{"description":"Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running","properties":{"labelSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"matchLabelKeys":{"description":"MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MatchLabelKeys and LabelSelector. Also, MatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"mismatchLabelKeys":{"description":"MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MismatchLabelKeys and LabelSelector. Also, MismatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"namespaceSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"namespaces":{"description":"namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".","items":{"type":"string"},"type":"array"},"topologyKey":{"description":"This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.","type":"string"}},"required":["topologyKey"],"type":"object"},"type":"array"}},"type":"object"}
+                  podAntiAffinity: &pod-anti-affinity #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.affinity.properties.podAntiAffinity #podantiaffinity-v1-core
+                    {"description":"Pod anti affinity is a group of inter pod anti affinity scheduling rules.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#podantiaffinity-v1-core","properties":{"preferredDuringSchedulingIgnoredDuringExecution":{"description":"The scheduler will prefer to schedule pods to nodes that satisfy the anti-affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions. The node that is most preferred is the one with the greatest sum of weights, i.e. for each node that meets all of the scheduling requirements (resource request, requiredDuringScheduling anti-affinity expressions, etc.), compute a sum by iterating through the elements of this field and adding \"weight\" to the sum if the node has pods which matches the corresponding podAffinityTerm; the node(s) with the highest sum are the most preferred.","items":{"description":"The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)","properties":{"podAffinityTerm":{"description":"Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running","properties":{"labelSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"matchLabelKeys":{"description":"MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MatchLabelKeys and LabelSelector. Also, MatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"mismatchLabelKeys":{"description":"MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MismatchLabelKeys and LabelSelector. Also, MismatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"namespaceSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"namespaces":{"description":"namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".","items":{"type":"string"},"type":"array"},"topologyKey":{"description":"This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.","type":"string"}},"required":["topologyKey"],"type":"object"},"weight":{"description":"weight associated with matching the corresponding podAffinityTerm, in the range 1-100.","format":"int32","type":"integer"}},"required":["weight","podAffinityTerm"],"type":"object"},"type":"array"},"requiredDuringSchedulingIgnoredDuringExecution":{"description":"If the anti-affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node. If the anti-affinity requirements specified by this field cease to be met at some point during pod execution (e.g. due to a pod label update), the system may or may not try to eventually evict the pod from its node. When there are multiple elements, the lists of nodes corresponding to each podAffinityTerm are intersected, i.e. all terms must be satisfied.","items":{"description":"Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running","properties":{"labelSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"matchLabelKeys":{"description":"MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MatchLabelKeys and LabelSelector. Also, MatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"mismatchLabelKeys":{"description":"MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MismatchLabelKeys and LabelSelector. Also, MismatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"namespaceSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"namespaces":{"description":"namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".","items":{"type":"string"},"type":"array"},"topologyKey":{"description":"This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.","type":"string"}},"required":["topologyKey"],"type":"object"},"type":"array"}},"type":"object"}
+              op:
+                type: string
+                description: |
+                  The kind of operation that will be performed on the SGCluster. Available operations are:
+
+                  * `resharding`: perform a resharding of the cluster.
+                  * `restart`: perform a restart of the cluster.
+                  * `securityUpgrade`: perform a security upgrade of the cluster.
+                #  * `majorVersionUpgrade`: perform a major version upgrade of PostgreSQL.
+                #  * `minorVersionUpgrade`: perform a minor version upgrade of PostgreSQL.
+              runAt:
+                type: string
+                description: |
+                  An ISO 8601 date, that holds UTC scheduled date of the operation execution.
+
+                  If not specified or if the date it's in the past, it will be interpreted ASAP.
+              timeout:
+                type: string
+                description: |
+                  An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies a timeout after which the operation execution will be canceled.
+
+                  If the operation can not be performed due to timeout expiration, the condition `Failed` will have a status of `True` and the reason will be `OperationTimedOut`.
+
+                  If not specified the operation will never fail for timeout expiration.
+              maxRetries:
+                type: integer
+                description: |
+                  The maximum number of retries the operation is allowed to do after a failure.
+
+                  A value of `0` (zero) means no retries are made. Defaults to: `0`.
+              resharding:
+                type: object
+                description: |
+                  Configuration for resharding. Resharding a sharded cluster is the operation that moves the data among shards in order to try to
+                   balance the disk space used in each shard. See also https://docs.citusdata.com/en/stable/develop/api_udf.html#citus-rebalance-start
+                properties:
+                  citus:
+                    type: object
+                    description: |
+                      Citus specific resharding parameters
+                    properties:
+                      threshold:
+                        type: number
+                        description: |
+                          A float number between 0.0 and 1.0 which indicates the maximum difference ratio of node utilization from average utilization.
+                          See also https://docs.citusdata.com/en/stable/develop/api_udf.html#citus-rebalance-start
+                      drainOnly:
+                        type: boolean
+                        description: |
+                          A float number between 0.0 and 1.0 which indicates the maximum difference ratio of node utilization from average utilization.
+                          See also https://docs.citusdata.com/en/stable/develop/api_udf.html#citus-rebalance-start
+                      rebalanceStrategy:
+                        type: string
+                        description: |
+                          The name of a strategy in Rebalancer strategy table. Will pick a default one if not specified
+                          See also https://docs.citusdata.com/en/stable/develop/api_udf.html#citus-rebalance-start
+              # majorVersionUpgrade:
+              #   type: object
+              #   description: |
+              #     Configuration of major version upgrade (see also [`pg_upgrade`](https://www.postgresql.org/docs/current/pgupgrade.html) command)
+              #   properties:
+              #     postgresVersion:
+              #       type: string
+              #       description: |
+              #         The target postgres version that must have the same major version of the target SGShardedCluster.
+              #     sgPostgresConfig:
+              #       type: string
+              #       description: |
+              #         The postgres config that must have the same major version of the target postgres version.
+              #     backupPaths:
+              #       type: array
+              #       description: |
+              #         The paths were the backups for the coordinator and each shard are stored. If not set this field is filled up by the operator.
+              # 
+              #         When provided will indicate were the backups and WAL files will be stored.
+              # 
+              #         The path should be different from the current `.spec.configurations.backupPath` value for the target `SGCluster`
+              #           in order to avoid mixing WAL files of two distinct major versions of postgres.
+              #       items:
+              #         type: string
+              #         description: |
+              #           The path were the backup is stored. If not set this field is filled up by the operator.
+              # 
+              #           When provided will indicate were the backups and WAL files will be stored.
+              # 
+              #           The path should be different from the current `.spec.configurations.backups[].path` value for the target `SGCluster`
+              #             in order to avoid mixing WAL files of two distinct major versions of postgres.
+              #     link:
+              #       type: boolean
+              #       description: |
+              #         If true use hard links instead of copying files to the new cluster. This option is mutually exclusive with `clone`. Defaults to: `false`.
+              #     clone:
+              #       type: boolean
+              #       description: |
+              #         If true use efficient file cloning (also known as "reflinks" on some systems) instead of copying files to the new cluster.
+              #         This can result in near-instantaneous copying of the data files, giving the speed advantages of `link` while leaving the old
+              #           cluster untouched. This option is mutually exclusive with `link`. Defaults to: `false`.
+              # 
+              #         File cloning is only supported on some operating systems and file systems. If it is selected but not supported, the pg_upgrade
+              #           run will error. At present, it is supported on Linux (kernel 4.5 or later) with Btrfs and XFS (on file systems created with
+              #           reflink support), and on macOS with APFS.
+              #     check:
+              #       type: boolean
+              #       description: |
+              #         If true does some checks to see if the cluster can perform a major version upgrade without changing any data. Defaults to: `false`.
+              restart:
+                type: object
+                description: |
+                  Configuration of restart
+                properties:
+                  method:
+                    type: string
+                    description: |
+                      The method used to perform the restart operation. Available methods are:
+
+                      * `InPlace`: the in-place method does not require more resources than those that are available.
+                        In case only an instance of the StackGres cluster for the coordinator or any shard is present
+                        this mean the service disruption will last longer so we encourage use the reduced impact restart
+                         and especially for a production environment.
+                      * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+                        resources in order to spawn a new updated replica that will be removed when the procedure completes.
+                  onlyPendingRestart:
+                    type: boolean
+                    description: |
+                      By default all Pods are restarted. Setting this option to `true` allow to restart only those Pods which
+                        are in pending restart state as detected by the operation. Defaults to: `false`.
+              # minorVersionUpgrade:
+              #   type: object
+              #   description: |
+              #     Configuration of minor version upgrade
+              #   properties:
+              #     postgresVersion:
+              #       type: string
+              #       description: |
+              #         The target postgres version that must have the same major version of the target SGShardedCluster.
+              #     method:
+              #       type: string
+              #       description: |
+              #         The method used to perform the minor version upgrade operation. Available methods are:
+              # 
+              #         * `InPlace`: the in-place method does not require more resources than those that are available.
+              #           In case only an instance of the StackGres cluster is present this mean the service disruption will
+              #           last longer so we encourage use the reduced impact restart and especially for a production environment.
+              #         * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+              #           resources in order to spawn a new updated replica that will be removed when the procedure completes.
+              securityUpgrade:
+                type: object
+                description: |
+                  Configuration of security upgrade
+                properties:
+                  method:
+                    type: string
+                    description: |
+                      The method used to perform the security upgrade operation. Available methods are:
+              
+                      * `InPlace`: the in-place method does not require more resources than those that are available.
+                        In case only an instance of the StackGres cluster is present this mean the service disruption will
+                        last longer so we encourage use the reduced impact restart and especially for a production environment.
+                      * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+                        resources in order to spawn a new updated replica that will be removed when the procedure completes.
+            required: ["sgShardedCluster", "op"]
+          status:
+            type: object
+            properties:
+              conditions:
+                type: array
+                description: |
+                  Possible conditions are:
+
+                  * Running: to indicate when the operation is actually running
+                  * Completed: to indicate when the operation has completed successfully
+                  * Failed: to indicate when the operation has failed
+                items:
+                  type: object
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition transitioned from one status to another.
+                      type: string
+                    message:
+                      description: A human-readable message indicating details about the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of `True`, `False` or `Unknown`.
+                      type: string
+                    type:
+                      description: Type of deployment condition.
+                      type: string
+              opRetries:
+                type: integer
+                description: |
+                  The number of retries performed by the operation
+              opStarted:
+                type: string
+                description: |
+                  The ISO 8601 timestamp of when the operation started running
+              # majorVersionUpgrade:
+              #   type: object
+              #   description: |
+              #     The results of a major version upgrade
+              #   properties:
+              #     sourcePostgresVersion:
+              #       type: string
+              #       description: |
+              #         The postgres version currently used by the primary instance
+              #     targetPostgresVersion:
+              #       type: string
+              #       description: |
+              #         The postgres version that the cluster will be upgraded to
+              #     pendingToRestartSgClusters:
+              #       type: array
+              #       description: |
+              #         The SGClusters that are pending to be restarted
+              #       items:
+              #         type: string
+              #     restartedSgClusters:
+              #       type: array
+              #       description: |
+              #         The SGClusters that have been restarted
+              #       items:
+              #         type: string
+              #     failure:
+              #       type: string
+              #       description: |
+              #         A failure message (when available)
+              restart:
+                type: object
+                description: |
+                  The results of a restart
+                properties:
+                  pendingToRestartSgClusters:
+                    type: array
+                    description: |
+                      The SGClusters that are pending to be restarted
+                    items:
+                      type: string
+                  restartedSgClusters:
+                    type: array
+                    description: |
+                      The SGClusters that have been restarted
+                    items:
+                      type: string
+                  failure:
+                    type: string
+                    description: |
+                      A failure message (when available)
+              # minorVersionUpgrade:
+              #   type: object
+              #   description: |
+              #     The results of a minor version upgrade
+              #   properties:
+              #     sourcePostgresVersion:
+              #       type: string
+              #       description: |
+              #         The postgres version currently used by the primary instance
+              #     targetPostgresVersion:
+              #       type: string
+              #       description: |
+              #         The postgres version that the cluster will be upgraded (or downgraded) to
+              #     pendingToRestartSgClusters:
+              #       type: array
+              #       description: |
+              #         The SGClusters that are pending to be restarted
+              #       items:
+              #         type: string
+              #     restartedSgClusters:
+              #       type: array
+              #       description: |
+              #         The SGClusters that have been restarted
+              #       items:
+              #         type: string
+              #     failure:
+              #       type: string
+              #       description: |
+              #         A failure message (when available)
+              securityUpgrade:
+                type: object
+                description: |
+                  The results of a security upgrade
+                properties:
+                  pendingToRestartSgClusters:
+                    type: array
+                    description: |
+                      The SGClusters that are pending to be restarted
+                    items:
+                      type: string
+                  restartedSgClusters:
+                    type: array
+                    description: |
+                      The SGClusters that have been restarted
+                    items:
+                      type: string
+                  failure:
+                    type: string
+                    description: |
+                      A failure message (when available)

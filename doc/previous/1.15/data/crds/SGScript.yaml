@@ -1,0 +1,166 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgscripts.stackgres.io
+spec:
+  group: stackgres.io
+  scope: Namespaced
+  names:
+    kind: SGScript
+    listKind: SGScriptList
+    plural: sgscripts
+    singular: sgscript
+    shortNames:
+      - sgscr
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    additionalPrinterColumns:
+    - name: scripts
+      type: string
+      jsonPath: .spec.scripts.length
+    schema:
+      openAPIV3Schema:
+        type: object
+        required: ["metadata", "spec"]
+        properties:
+          metadata:
+            type: object
+            properties:
+              name:
+                type: string
+                maxLength: 52
+                pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
+                description: |
+                  Name of the StackGres script. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with the `-` character allowed anywhere except the first or last character.
+
+                  The name must be unique across all StackGres scripts in the same namespace. The full script name includes the namespace in which the script is created.
+          spec:
+            type: object
+            properties:
+              managedVersions:
+                type: boolean
+                description: |
+                  If `true` the versions will be managed by the operator automatically. The user will still be able to update them if needed. `true` by default.
+              continueOnError:
+                type: boolean
+                description: |
+                  If `true`, when any script entry fail will not prevent subsequent script entries from being executed. `false` by default.
+              scripts:
+                type: array
+                description: |
+                  A list of SQL scripts.
+                x-kubernetes-list-map-keys: [ id ]
+                x-kubernetes-list-type: map
+                items:
+                  type: object
+                  description: |
+                    Scripts are executed in auto-commit mode with the user `postgres` in the specified database (or in database `postgres` if not specified).
+
+                    Fields `script` and `scriptFrom` are mutually exclusive and only one of them is required.
+                  properties:
+                    name:
+                      type: string
+                      description: |
+                        Name of the script. Must be unique across this SGScript.
+                    id:
+                      type: integer
+                      default: -1
+                      description: |
+                        The id is immutable and must be unique across all the script entries. It is replaced by the operator and is used to identify the script for the whole life of the `SGScript` object.
+                    version:
+                      type: integer
+                      description: |
+                        Version of the script. It will allow to identify if this script entry has been changed.
+                    database:
+                      type: string
+                      description: |
+                        Database where the script is executed. Defaults to the `postgres` database, if not specified.
+                    user:
+                      type: string
+                      description: |
+                        User that will execute the script. Defaults to the superuser username when not set (that by default is `postgres`) user.
+                    wrapInTransaction:
+                      type: string
+                      description: |
+                        Wrap the script in a transaction using the specified transaction mode:
+
+                        * `read-committed`: The script will be wrapped in a transaction using [READ COMMITTED](https://www.postgresql.org/docs/current/transaction-iso.html#XACT-READ-COMMITTED) isolation level.
+                        * `repeatable-read`: The script will be wrapped in a transaction using [REPEATABLE READ](https://www.postgresql.org/docs/current/transaction-iso.html#XACT-REPEATABLE-READ) isolation level.
+                        * `serializable`: The script will be wrapped in a transaction using [SERIALIZABLE](https://www.postgresql.org/docs/current/transaction-iso.html#XACT-SERIALIZABLE) isolation level.
+
+                        If not set the script entry will not be wrapped in a transaction
+                    storeStatusInDatabase:
+                      type: boolean
+                      description: |
+                        When set to `true` the script entry execution will include storing the status of the execution of this
+                          script entry in the table `managed_sql.status` that will be created in the specified `database`. This
+                          will avoid an operation that fails partially to be unrecoverable requiring the intervention from the user
+                          if user in conjunction with `retryOnError`.
+
+                        If set to `true` then `wrapInTransaction` field must be set.
+
+                        This is `false` by default.
+                    retryOnError:
+                      type: boolean
+                      description: |
+                        If not set or set to `false` the script entry will not be retried if it fails.
+
+                        When set to `true` the script execution will be retried with an exponential backoff of 5 minutes,
+                          starting from 10 seconds and a standard deviation of 10 seconds.
+
+                        This is `false` by default.
+                    script:
+                      type: string
+                      description: |
+                        Raw SQL script to execute. This field is mutually exclusive with `scriptFrom` field.
+                    scriptFrom:
+                      type: object
+                      description: |
+                        Reference to either a Kubernetes [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) or a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) that contains the SQL script to execute. This field is mutually exclusive with `script` field.
+
+                        Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive, and one of them is required.
+                      properties:
+                        secretKeyRef:
+                          type: object
+                          description: |
+                            A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#secretkeyselector-v1-core) that contains the SQL script to execute. This field is mutually exclusive with `configMapKeyRef` field.
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                            key:
+                              type: string
+                              description: The key of the secret to select from. Must be a valid secret key.
+                        configMapKeyRef:
+                          type: object
+                          description: |
+                            A [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) reference that contains the SQL script to execute. This field is mutually exclusive with `secretKeyRef` field.
+                          properties:
+                            name:
+                              type: string
+                              description: |
+                                The name of the ConfigMap that contains the SQL script to execute.
+                            key:
+                              type: string
+                              description: |
+                                The key name within the ConfigMap that contains the SQL script to execute.
+          status:
+            type: object
+            properties:
+              scripts:
+                type: array
+                description: |
+                  A list of script entry statuses where a script entry under `.spec.scripts` is identified by the `id` field.
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: |
+                        The id that identifies a script entry.
+                    hash:
+                      type: string
+                      description: |
+                        The hash of a ConfigMap or Secret referenced with the associated script entry.

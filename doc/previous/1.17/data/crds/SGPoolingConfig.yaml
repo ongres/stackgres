@@ -1,0 +1,89 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgpoolconfigs.stackgres.io
+spec:
+  group: stackgres.io
+  scope: Namespaced
+  names:
+    kind: SGPoolingConfig
+    listKind: SGPoolingConfigList
+    plural: sgpoolconfigs
+    singular: sgpoolconfig
+    shortNames:
+      - sgpoc
+      - sgpoolingconfig
+      - sgpoolingconfigs
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        required: ["metadata", "spec"]
+        properties:
+          metadata:
+            type: object
+            properties:
+              name:
+                type: string
+                description: |
+                  Name of the Connection Pooling Configuration. The configuration may be referenced by zero or more SGClusters, and if so it would be referenced by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with the `-` character allowed anywhere except the first or last character.
+
+                  The name must be unique across all Connection Pooling configurations in the same namespace.
+          spec:
+            type: object
+            properties:
+              pgBouncer:
+                type: object
+                description: |
+                  Connection pooling configuration based on PgBouncer.
+                properties:
+                  pgbouncer.ini:
+                    type: object
+                    description: |
+                      The `pgbouncer.ini` parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
+
+                      Check [pgbouncer configuration](https://www.pgbouncer.org/config.html#generic-settings) for more information about supported parameters.
+                    properties:
+                      pgbouncer:
+                        type: object
+                        additionalProperties: true
+                        description: |
+                          The `pgbouncer.ini` (Section [pgbouncer]) parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
+
+                          Check [pgbouncer configuration](https://www.pgbouncer.org/config.html#generic-settings) for more information about supported parameters
+                      databases:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          additionalProperties: true
+                        description: |
+                          The `pgbouncer.ini` (Section [databases]) parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
+
+                          Check [pgbouncer configuration](https://www.pgbouncer.org/config.html#section-databases) for more information about supported parameters.
+                      users:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          additionalProperties: true
+                        description: |
+                          The `pgbouncer.ini` (Section [users]) parameters the configuration contains, represented as an object where the keys are valid names for the `pgbouncer.ini` configuration file parameters.
+
+                          Check [pgbouncer configuration](https://www.pgbouncer.org/config.html#section-users) for more information about supported parameters.
+          status:
+            type: object
+            properties:
+              pgBouncer:
+                type: object
+                description: |
+                  Connection pooling configuration status based on PgBouncer.
+                properties:
+                  defaultParameters:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: |
+                      The `pgbouncer.ini` default parameters parameters which are used if not set.
+                required: ["defaultParameters"]

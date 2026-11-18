@@ -1,0 +1,3 @@
+current_version: "1.19.5"
+postgres_min_version: "12"
+postgres_max_version: "18"

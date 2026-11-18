@@ -1,0 +1,271 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sginstanceprofiles.stackgres.io
+spec:
+  group: stackgres.io
+  scope: Namespaced
+  names:
+    kind: SGInstanceProfile
+    listKind: SGInstanceProfileList
+    plural: sginstanceprofiles
+    singular: sginstanceprofile
+    shortNames:
+      - sginp
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    additionalPrinterColumns:
+    - name: cpu
+      type: string
+      jsonPath: .spec.cpu
+    - name: memory
+      type: string
+      jsonPath: .spec.memory
+    schema:
+      openAPIV3Schema:
+        required: ["metadata", "spec"]
+        type: object
+        properties:
+          metadata:
+            type: object
+            properties:
+              name:
+                type: string
+                description: |
+                  Name of the Instance Profile. An instance profile represents a "kind" of
+                    server (CPU and RAM) where you may run StackGres Pods, classified by a given name.
+                    The profile may be referenced by zero or more SGClusters, and if so it would
+                    be referenced by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with the `-` character allowed anywhere except the first or last character.
+
+                  The name must be unique across all instance profiles in the same namespace.
+          spec:
+            type: object
+            properties:
+              cpu:
+                type: string
+                pattern: '^[1-9][0-9]*[m]?$'
+                description: |
+                  CPU(s) (cores) limits for every resource's Pod that reference this SGInstanceProfile. The suffix `m`
+                    specifies millicpus (where 1000m is equals to 1).
+
+                  The number of cpu limits is assigned to the patroni container (that runs both Patroni and PostgreSQL).
+                  
+                  A minimum of 2 cpu is recommended.
+              memory:
+                type: string
+                pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                description: |
+                  RAM limits for every resource's Pod that reference this SGInstanceProfile. The suffix `Mi` or `Gi`
+                    specifies Mebibytes or Gibibytes, respectively.
+
+                  The amount of RAM limits is assigned to the patroni container (that runs both Patroni and PostgreSQL).
+
+                  A minimum of 2Gi is recommended.
+              hugePages:
+                type: object
+                description: |
+                  RAM limits allocated for huge pages of the patroni container (that runs both Patroni and PostgreSQL).
+                properties:
+                  hugepages-2Mi:
+                    type: string
+                    pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                    description: |
+                      RAM limits allocated for huge pages of the patroni container (that runs both Patroni and PostgreSQL) with a size of 2Mi. The suffix `Mi` or `Gi`
+                        specifies Mebibytes or Gibibytes, respectively.
+                  hugepages-1Gi:
+                    type: string
+                    pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                    description: |
+                      RAM limits allocated for huge pages of the patroni container (that runs both Patroni and PostgreSQL) with a size of 1Gi. The suffix `Mi` or `Gi`
+                        specifies Mebibytes or Gibibytes, respectively.
+              containers:
+                type: object
+                description: |
+                  The CPU(s) (cores) and RAM limits assigned to containers other than patroni container.
+                additionalProperties:
+                  type: object
+                  description: |
+                    The CPU(s) (cores) and RAM limits assigned to a container.
+  
+                    This section, if left empty, will be filled automatically by the operator with
+                      some defaults that can be proportional to the resources limits assigned to patroni
+                      container (except for the huge pages that are always left untouched).
+                  properties:
+                    cpu:
+                      type: string
+                      pattern: '^[1-9][0-9]*[m]?$'
+                      description: |
+                        CPU(s) (cores) limits for the specified container. The suffix `m`
+                          specifies millicpus (where 1000m is equals to 1).
+                    memory:
+                      type: string
+                      pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                      description: |
+                        RAM limits for the specified container. The suffix `Mi` or `Gi`
+                          specifies Mebibytes or Gibibytes, respectively.
+                    hugePages:
+                      type: object
+                      description: |
+                        RAM limits for huge pages for the specified container.
+                      properties:
+                        hugepages-2Mi:
+                          type: string
+                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                          description: |
+                            RAM limits for huge pages of the specified container with a size of 2Mi. The suffix `Mi`
+                              or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                        hugepages-1Gi:
+                          type: string
+                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                          description: |
+                            RAM limits for huge pages of the specified container with a size of 1Gi. The suffix `Mi`
+                              or `Gi` specifies Mebibytes or Gibibytes, respectively.
+              initContainers:
+                type: object
+                description: The CPU(s) (cores) and RAM limits assigned to the init containers.
+                additionalProperties:
+                  type: object
+                  description: |
+                    The CPU(s) (cores) and RAM limits assigned to a init container.
+  
+                    This section will be filled automatically by the operator with
+                      the same values of the resources limits assigned to patroni
+                      container (except for the huge pages that are always left untouched).
+                  properties:
+                    cpu:
+                      type: string
+                      pattern: '^[1-9][0-9]*[m]?$'
+                      description: |
+                        CPU(s) (cores) limits for the specified init container. The suffix
+                          `m` specifies millicpus (where 1000m is equals to 1).
+                    memory:
+                      type: string
+                      pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                      description: |
+                        RAM limits for the specified init container. The suffix `Mi`
+                          or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                    hugePages:
+                      type: object
+                      description: |
+                        RAM limits for huge pages of the specified init container
+                      properties:
+                        hugepages-2Mi:
+                          type: string
+                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                          description: |
+                            RAM limits for huge pages of the specified init container with a size of 2Mi. The suffix `Mi`
+                              or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                        hugepages-1Gi:
+                          type: string
+                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                          description: |
+                            RAM limits for huge pages of the specified init container with a size of 1Gi. The suffix `Mi` or `Gi`
+                              specifies Mebibytes or Gibibytes, respectively.
+              requests:
+                type: object
+                description: |
+                  This section allow to configure the resources requests for each container and, if not specified, it is filled with some defaults based on the fields `.spec.cpu` and `.spec.memory` will be set.
+
+                  On containerized environments, when running production workloads, enforcing container's resources requirements requests to be equals to the limits in order to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                   the workload with less resources than it requires. It also allow to set [static CPU management policy](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy) that allows to guarantee a pod the usage exclusive CPUs on the node.
+                   There are cases where you may need to set cpu requests to the same value as cpu limits in order to achieve static CPU management policy.
+
+                  By default the resources requests values in fields `.spec.requests.cpu` and `.spec.requests.memory` represent the total resources requests assigned to each resource's Pod that reference this SGInstanceProfile.
+                   The resources requests of the patroni container (that runs both Patroni and PostgreSQL) is calculated by subtracting from the total resources requests the resources requests of other containers that are present in the Pod.
+                   To change this behavior and having the resources requests values in fields `.spec.requests.cpu` and `.spec.requests.memory` to represent the resources requests of the patroni container and the total resources requests
+                   calculated by adding the resources requests of all the containers (including the patroni container) you may set one or more of the following fields to `true`
+                   (depending on the resource's Pods you need this behaviour to be changed):
+                   
+                  * `SGCluster.spec.pods.resources.disableResourcesRequestsSplitFromTotal`
+                  * `SGShardedCluster.spec.coordinator.pods.resources.disableResourcesRequestsSplitFromTotal`
+                  * `SGShardedCluster.spec.shards.pods.resources.disableResourcesRequestsSplitFromTotal`
+                  * `SGShardedCluster.spec.shards.ovewrites.pods.resources.disableResourcesRequestsSplitFromTotal`
+                  * `SGDistributedLogs.spec.resources.disableResourcesRequestsSplitFromTotal`
+                properties:
+                  cpu:
+                    type: string
+                    pattern: '^[1-9][0-9]*[m]?$'
+                    description: |
+                      CPU(s) (cores) requests for every resource's Pod that reference this SGInstanceProfile. The suffix `m`
+                        specifies millicpus (where 1000m is equals to 1).
+
+                      By default the cpu requests values in field `.spec.requests.cpu` represent the total cpu requests assigned to each resource's Pod that reference this SGInstanceProfile.
+                       The cpu requests of the patroni container (that runs both Patroni and PostgreSQL) is calculated by subtracting from the total cpu requests the cpu requests of other containers that are present in the Pod.
+                       To change this behavior and having the cpu requests values in field `.spec.requests.cpu` to represent the cpu requests of the patroni container and the total cpu requests
+                       calculated by adding the cpu requests of all the containers (including the patroni container) you may set one or more of the following fields to `true`
+                       (depending on the resource's Pods you need this behaviour to be changed):
+                       
+                      * `SGCluster.spec.pods.resources.disableResourcesRequestsSplitFromTotal`
+                      * `SGShardedCluster.spec.coordinator.pods.resources.disableResourcesRequestsSplitFromTotal`
+                      * `SGShardedCluster.spec.shards.pods.resources.disableResourcesRequestsSplitFromTotal`
+                      * `SGShardedCluster.spec.shards.ovewrites.pods.resources.disableResourcesRequestsSplitFromTotal`
+                      * `SGDistributedLogs.spec.resources.disableResourcesRequestsSplitFromTotal`
+                  memory:
+                    type: string
+                    pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                    description: |
+                      RAM requests for every resource's Pod that reference this SGInstanceProfile. The suffix `Mi` or `Gi`
+                        specifies Mebibytes or Gibibytes, respectively.
+
+                      By default the memory requests values in field `.spec.requests.memory` represent the total memory requests assigned to each resource's Pod that reference this SGInstanceProfile.
+                       The memory requests of the patroni container (that runs both Patroni and PostgreSQL) is calculated by subtracting from the total memory requests the memory requests of other containers that are present in the Pod.
+                       To change this behavior and having the memory requests values in field `.spec.requests.memory` to represent the memory requests of the patroni container and the total memory requests
+                       calculated by adding the memory requests of all the containers (including the patroni container) you may set one or more of the following fields to `true`
+                       (depending on the resource's Pods you need this behaviour to be changed):
+                       
+                      * `SGCluster.spec.pods.resources.disableResourcesRequestsSplitFromTotal`
+                      * `SGShardedCluster.spec.coordinator.pods.resources.disableResourcesRequestsSplitFromTotal`
+                      * `SGShardedCluster.spec.shards.pods.resources.disableResourcesRequestsSplitFromTotal`
+                      * `SGShardedCluster.spec.shards.ovewrites.pods.resources.disableResourcesRequestsSplitFromTotal`
+                      * `SGDistributedLogs.spec.resources.disableResourcesRequestsSplitFromTotal`
+                  containers:
+                    type: object
+                    description: |
+                      The CPU(s) (cores) and RAM requests assigned to containers other than patroni container.
+                    additionalProperties:
+                      type: object
+                      description: |
+                        The CPU(s) (cores) and RAM requests assigned to a container.
+      
+                        This section, if left empty, will be filled automatically by the operator with
+                          some defaults that can be proportional to the resources assigned to patroni
+                          container (except for the huge pages that are always left untouched).
+                      properties:
+                        cpu:
+                          type: string
+                          pattern: '^[1-9][0-9]*[m]?$'
+                          description: |
+                            CPU(s) (cores) requests for the specified container. The suffix `m`
+                              specifies millicpus (where 1000m is equals to 1).
+                        memory:
+                          type: string
+                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                          description: |
+                            RAM requests for the specified container. The suffix `Mi` or `Gi`
+                              specifies Mebibytes or Gibibytes, respectively.
+                  initContainers:
+                    type: object
+                    description: The CPU(s) (cores) and RAM requests assigned to init containers.
+                    additionalProperties:
+                      type: object
+                      description: |
+                        The CPU(s) (cores) and RAM requests assigned to a init container.
+      
+                        This section will be filled automatically by the operator with
+                          the same values of the resources requests assigned to patroni
+                          container (except for the huge pages that are always left untouched).
+                      properties:
+                        cpu:
+                          type: string
+                          pattern: '^[1-9][0-9]*[m]?$'
+                          description: |
+                            CPU(s) (cores) requests for the specified init container. The suffix
+                              `m` specifies millicpus (where 1000m is equals to 1).
+                        memory:
+                          type: string
+                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                          description: |
+                            RAM requests for the specified init container. The suffix `Mi`
+                              or `Gi` specifies Mebibytes or Gibibytes, respectively.

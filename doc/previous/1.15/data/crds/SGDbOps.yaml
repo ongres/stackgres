@@ -1,0 +1,1045 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgdbops.stackgres.io
+spec:
+  group: stackgres.io
+  scope: Namespaced
+  names:
+    kind: SGDbOps
+    listKind: SGDbOpsList
+    plural: sgdbops
+    singular: sgdbops
+    shortNames:
+      - sgdo
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    additionalPrinterColumns:
+    - name: cluster
+      type: string
+      jsonPath: .spec.sgCluster
+    - name: operation
+      type: string
+      jsonPath: .spec.op
+    - name: status
+      type: string
+      jsonPath: .status.conditions[?(@.status=="True")].reason
+    - name: started-at
+      type: string
+      jsonPath: .status.opStarted
+      priority: 1
+    - name: retries
+      type: string
+      jsonPath: .status.opRetries
+      priority: 1
+    schema:
+      openAPIV3Schema:
+        required: ["metadata", "spec"]
+        type: object
+        properties:
+          metadata:
+            type: object
+            properties:
+              name:
+                type: string
+                maxLength: 57
+                pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
+                description: |
+                  Name of the Database Operation. A database operation represents a ""kind"" of operation on a StackGres cluster, classified by a given name. The operation reference one SGCluster by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 `label`, an alphanumeric (a-z, and 0-9) string, with the '-' character allowed anywhere except the first or last character.
+
+                  The name must be unique across all database operations in the same namespace."
+          spec:
+            type: object
+            properties:
+              sgCluster:
+                type: string
+                description: |
+                  The name of SGCluster on which the operation will be performed.
+              scheduling:
+                type: object
+                description: Pod custom node scheduling and affinity configuration
+                properties:
+                  nodeSelector:
+                    type: object
+                    additionalProperties:
+                      type: string
+                    description: |
+                      NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+                  tolerations: &tolerations #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.tolerations #toleration-v1-core
+                    {"description":"If specified, the pod's tolerations.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#toleration-v1-core","items":{"description":"The pod this Toleration is attached to tolerates any taint that matches the triple <key,value,effect> using the matching operator <operator>.","properties":{"effect":{"description":"Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.","type":"string"},"key":{"description":"Key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.","type":"string"},"operator":{"description":"Operator represents a key's relationship to the value. Valid operators are Exists and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category.","type":"string"},"tolerationSeconds":{"description":"TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.","format":"int64","type":"integer"},"value":{"description":"Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.","type":"string"}},"type":"object"},"type":"array"}
+                  nodeAffinity: &node-affinity #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.affinity.properties.nodeAffinity #nodeaffinity-v1-core
+                    {"description":"Node affinity is a group of node affinity scheduling rules.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#nodeaffinity-v1-core","properties":{"preferredDuringSchedulingIgnoredDuringExecution":{"description":"The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions. The node that is most preferred is the one with the greatest sum of weights, i.e. for each node that meets all of the scheduling requirements (resource request, requiredDuringScheduling affinity expressions, etc.), compute a sum by iterating through the elements of this field and adding \"weight\" to the sum if the node matches the corresponding matchExpressions; the node(s) with the highest sum are the most preferred.","items":{"description":"An empty preferred scheduling term matches all objects with implicit weight 0 (i.e. it's a no-op). A null preferred scheduling term matches no objects (i.e. is also a no-op).","properties":{"preference":{"description":"A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.","properties":{"matchExpressions":{"description":"A list of node selector requirements by node's labels.","items":{"description":"A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"The label key that the selector applies to.","type":"string"},"operator":{"description":"Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.","type":"string"},"values":{"description":"An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchFields":{"description":"A list of node selector requirements by node's fields.","items":{"description":"A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"The label key that the selector applies to.","type":"string"},"operator":{"description":"Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.","type":"string"},"values":{"description":"An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"}},"type":"object"},"weight":{"description":"Weight associated with matching the corresponding nodeSelectorTerm, in the range 1-100.","format":"int32","type":"integer"}},"required":["weight","preference"],"type":"object"},"type":"array"},"requiredDuringSchedulingIgnoredDuringExecution":{"description":"A node selector represents the union of the results of one or more label queries over a set of nodes; that is, it represents the OR of the selectors represented by the node selector terms.","properties":{"nodeSelectorTerms":{"description":"Required. A list of node selector terms. The terms are ORed.","items":{"description":"A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.","properties":{"matchExpressions":{"description":"A list of node selector requirements by node's labels.","items":{"description":"A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"The label key that the selector applies to.","type":"string"},"operator":{"description":"Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.","type":"string"},"values":{"description":"An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchFields":{"description":"A list of node selector requirements by node's fields.","items":{"description":"A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"The label key that the selector applies to.","type":"string"},"operator":{"description":"Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.","type":"string"},"values":{"description":"An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"}},"type":"object"},"type":"array"}},"required":["nodeSelectorTerms"],"type":"object"}},"type":"object"}
+                  priorityClassName: &priority-class-name #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.priorityClassName
+                    {"description":"If specified, indicates the pod's priority. \"system-node-critical\" and \"system-cluster-critical\" are two special keywords which indicate the highest priorities with the former being the highest priority. Any other name must be defined by creating a PriorityClass object with that name. If not specified, the pod priority will be default or zero if there is no default.","type":"string"}
+                  podAffinity: &pod-affinity #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.affinity.properties.podAffinity #podaffinity-v1-core
+                    {"description":"Pod affinity is a group of inter pod affinity scheduling rules.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#podaffinity-v1-core","properties":{"preferredDuringSchedulingIgnoredDuringExecution":{"description":"The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions. The node that is most preferred is the one with the greatest sum of weights, i.e. for each node that meets all of the scheduling requirements (resource request, requiredDuringScheduling affinity expressions, etc.), compute a sum by iterating through the elements of this field and adding \"weight\" to the sum if the node has pods which matches the corresponding podAffinityTerm; the node(s) with the highest sum are the most preferred.","items":{"description":"The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)","properties":{"podAffinityTerm":{"description":"Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running","properties":{"labelSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"matchLabelKeys":{"description":"MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MatchLabelKeys and LabelSelector. Also, MatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"mismatchLabelKeys":{"description":"MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MismatchLabelKeys and LabelSelector. Also, MismatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"namespaceSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"namespaces":{"description":"namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".","items":{"type":"string"},"type":"array"},"topologyKey":{"description":"This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.","type":"string"}},"required":["topologyKey"],"type":"object"},"weight":{"description":"weight associated with matching the corresponding podAffinityTerm, in the range 1-100.","format":"int32","type":"integer"}},"required":["weight","podAffinityTerm"],"type":"object"},"type":"array"},"requiredDuringSchedulingIgnoredDuringExecution":{"description":"If the affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node. If the affinity requirements specified by this field cease to be met at some point during pod execution (e.g. due to a pod label update), the system may or may not try to eventually evict the pod from its node. When there are multiple elements, the lists of nodes corresponding to each podAffinityTerm are intersected, i.e. all terms must be satisfied.","items":{"description":"Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running","properties":{"labelSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"matchLabelKeys":{"description":"MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MatchLabelKeys and LabelSelector. Also, MatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"mismatchLabelKeys":{"description":"MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MismatchLabelKeys and LabelSelector. Also, MismatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"namespaceSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"namespaces":{"description":"namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".","items":{"type":"string"},"type":"array"},"topologyKey":{"description":"This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.","type":"string"}},"required":["topologyKey"],"type":"object"},"type":"array"}},"type":"object"}
+                  podAntiAffinity: &pod-anti-affinity #!jq_placeholder .definitions["io.k8s.api.core.v1.PodSpec"].properties.affinity.properties.podAntiAffinity #podantiaffinity-v1-core
+                    {"description":"Pod anti affinity is a group of inter pod anti affinity scheduling rules.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#podantiaffinity-v1-core","properties":{"preferredDuringSchedulingIgnoredDuringExecution":{"description":"The scheduler will prefer to schedule pods to nodes that satisfy the anti-affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions. The node that is most preferred is the one with the greatest sum of weights, i.e. for each node that meets all of the scheduling requirements (resource request, requiredDuringScheduling anti-affinity expressions, etc.), compute a sum by iterating through the elements of this field and adding \"weight\" to the sum if the node has pods which matches the corresponding podAffinityTerm; the node(s) with the highest sum are the most preferred.","items":{"description":"The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)","properties":{"podAffinityTerm":{"description":"Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running","properties":{"labelSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"matchLabelKeys":{"description":"MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MatchLabelKeys and LabelSelector. Also, MatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"mismatchLabelKeys":{"description":"MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MismatchLabelKeys and LabelSelector. Also, MismatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"namespaceSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"namespaces":{"description":"namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".","items":{"type":"string"},"type":"array"},"topologyKey":{"description":"This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.","type":"string"}},"required":["topologyKey"],"type":"object"},"weight":{"description":"weight associated with matching the corresponding podAffinityTerm, in the range 1-100.","format":"int32","type":"integer"}},"required":["weight","podAffinityTerm"],"type":"object"},"type":"array"},"requiredDuringSchedulingIgnoredDuringExecution":{"description":"If the anti-affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node. If the anti-affinity requirements specified by this field cease to be met at some point during pod execution (e.g. due to a pod label update), the system may or may not try to eventually evict the pod from its node. When there are multiple elements, the lists of nodes corresponding to each podAffinityTerm are intersected, i.e. all terms must be satisfied.","items":{"description":"Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running","properties":{"labelSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"matchLabelKeys":{"description":"MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MatchLabelKeys and LabelSelector. Also, MatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"mismatchLabelKeys":{"description":"MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `LabelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both MismatchLabelKeys and LabelSelector. Also, MismatchLabelKeys cannot be set when LabelSelector isn't set. This is an alpha field and requires enabling MatchLabelKeysInPodAffinity feature gate.","items":{"type":"string"},"type":"array"},"namespaceSelector":{"description":"A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.","properties":{"matchExpressions":{"description":"matchExpressions is a list of label selector requirements. The requirements are ANDed.","items":{"description":"A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.","properties":{"key":{"description":"key is the label key that the selector applies to.","type":"string"},"operator":{"description":"operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.","type":"string"},"values":{"description":"values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.","items":{"type":"string"},"type":"array"}},"required":["key","operator"],"type":"object"},"type":"array"},"matchLabels":{"additionalProperties":{"type":"string"},"description":"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.","type":"object"}},"type":"object"},"namespaces":{"description":"namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".","items":{"type":"string"},"type":"array"},"topologyKey":{"description":"This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.","type":"string"}},"required":["topologyKey"],"type":"object"},"type":"array"}},"type":"object"}
+              op:
+                type: string
+                description: |
+                  The kind of operation that will be performed on the SGCluster. Available operations are:
+
+                  * `benchmark`: run a benchmark on the specified SGCluster and report the results in the status.
+                  * `vacuum`: perform a [vacuum](https://www.postgresql.org/docs/current/sql-vacuum.html) operation on the specified SGCluster.
+                  * `repack`: run [`pg_repack`](https://github.com/reorg/pg_repack) command on the specified SGCluster.
+                  * `majorVersionUpgrade`: perform a major version upgrade of PostgreSQL using [`pg_upgrade`](https://www.postgresql.org/docs/current/pgupgrade.html) command.
+                  * `restart`: perform a restart of the cluster.
+                  * `minorVersionUpgrade`: perform a minor version upgrade of PostgreSQL.
+                  * `securityUpgrade`: perform a security upgrade of the cluster.
+              runAt:
+                type: string
+                description: |
+                  An ISO 8601 date, that holds UTC scheduled date of the operation execution.
+
+                  If not specified or if the date it's in the past, it will be interpreted ASAP.
+              timeout:
+                type: string
+                description: |
+                  An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies a timeout after which the operation execution will be canceled.
+
+                  If the operation can not be performed due to timeout expiration, the condition `Failed` will have a status of `True` and the reason will be `OperationTimedOut`.
+
+                  If not specified the operation will never fail for timeout expiration.
+              maxRetries:
+                type: integer
+                description: |
+                  The maximum number of retries the operation is allowed to do after a failure.
+
+                  A value of `0` (zero) means no retries are made. Defaults to: `0`.
+              benchmark:
+                type: object
+                description: |
+                  Configuration of the benchmark
+                properties:
+                  type:
+                    type: string
+                    description: |
+                      The type of benchmark that will be performed on the SGCluster. Available benchmarks are:
+
+                      * `pgbench`: run [pgbench](https://www.postgresql.org/docs/current/pgbench.html) on the specified SGCluster and report the results in the status.
+                      * `sampling`: samples real queries and store them in the SGDbOps status in order to be used by a `pgbench` benchmark using `replay` mode.
+                  database:
+                    type: string
+                    description: |
+                      When specified will indicate the database where the benchmark will run upon.
+                      
+                      If not specified a target database with a random name will be created and removed after the benchmark completes.
+                  credentials:
+                    type: object
+                    description: The credentials of the user that will be used by the benchmark
+                    required: ["username","password"]
+                    properties:
+                      username:
+                        type: object
+                        description: |
+                          The username that will be used by the benchmark.
+                          
+                          If not specified the default superuser username (by default postgres) will be used.
+                        required: ["name", "key"]
+                        properties:
+                          name:
+                            type: string
+                            description: |
+                              The Secret name where the username is stored.
+                          key:
+                            type: string
+                            description: |
+                              The Secret key where the username is stored.
+                      password:
+                        type: object
+                        description: |
+                          The password that will be used by the benchmark
+                          
+                          If not specified the default superuser password will be used.
+                        required: ["name", "key"]
+                        properties:
+                          name:
+                            type: string
+                            description: |
+                              The Secret name where the password is stored.
+                          key:
+                            type: string
+                            description: |
+                              The Secret key where the password is stored.
+                  sampling:
+                    type: object
+                    description: |
+                      Configuration of sampling benchmark.
+                    required: [ targetDatabase, topQueriesCollectDuration, samplingDuration ]
+                    properties:
+                      targetDatabase:
+                        type: string
+                        description: |
+                          The target database to be sampled. By default `postgres`.
+                          
+                          The benchmark database will be used to store the sampled queries but user must specify a target database to be sampled in the `sampling` section.
+                      topQueriesCollectDuration:
+                        type: string
+                        description: An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies how long the to wait before selecting top queries in order to collect enough stats.
+                      samplingDuration:
+                        type: string
+                        description: An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies how long will last the sampling of real queries that will be replayed later.
+                      mode:
+                        type: string
+                        description: |
+                          The mode used to select the top queries used for sampling:
+                          
+                          * `time`: The top queries will be selected among the most slow queries.
+                          * `calls`: The top queries will be selected among the most called queries.
+                          * `custom`: The `customTopQueriesQuery` will be used to select top queries.
+                      topQueriesFilter:
+                        type: string
+                        description: Regular expression for filtering representative statements when selecting top queries. Will be ignored if `mode` is set to `custom`. By default is `^ *(with|select) `. See https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-POSIX-REGEXP
+                      topQueriesPercentile:
+                        type: integer
+                        description: Percentile of queries to consider as part of the top queries. Will be ignored if `mode` is set to `custom`. By default `95`.
+                      topQueriesMin:
+                        type: integer
+                        description: Minimum number of queries to consider as part of the top queries. By default `5`.
+                      customTopQueriesQuery:
+                        type: string
+                        description: |
+                          The query used to select top queries. Will be ignored if `mode` is not set to `custom`.
+                          
+                          The query must return at most 2 columns:
+                          
+                          * First column returned by the query must be a column holding the query identifier, also available in pg_stat_activity (column `query_id`) and pg_stat_statements (column `queryid`).
+                          * Second column is optional and, if returned, must hold a json object containing only text keys and values stat will be used to generate the stats.
+                          
+                          See also:
+
+                          * https://www.postgresql.org/docs/current/monitoring-stats.html#MONITORING-PG-STAT-ACTIVITY-VIEW
+                          * https://www.postgresql.org/docs/current/pgstatstatements.html#PGSTATSTATEMENTS-PG-STAT-STATEMENTS
+                      queries:
+                        type: integer
+                        description: Number of sampled queries to include in the result. By default `10`.
+                      omitTopQueriesInStatus:
+                        type: boolean
+                        description: When `true` omit to include the top queries stats in the SGDbOps status. By default `false`.
+                      samplingMinInterval:
+                        type: integer
+                        description: Minimum number of microseconds the sampler will wait between each sample is taken. By default `10000` (10 milliseconds).
+                  pgbench:
+                    type: object
+                    description: |
+                      Configuration of [pgbench](https://www.postgresql.org/docs/current/pgbench.html) benchmark
+                    properties:
+                      mode:
+                        type: string
+                        description: |
+                          The pgbench benchmark type:
+                          
+                          * `tpcb-like`: The benchmark is inspired by the [TPC-B benchmark](https://www.tpc.org/TPC_Documents_Latest_Versions/TPC-B_v2.0.0.pdf). It is the default mode when `connectionType` is set to `primary-service`.
+                          * `select-only`: The `tpcb-like` but only using SELECTs commands. It is the default mode when `connectionType` is set to `replicas-service`.
+                          * `custom`: will use the scripts in the `custom` section to initialize and and run commands for the benchmark.
+                          * `replay`: will replay the sampled queries of a sampling benchmark SGDbOps. If the `custom` section is specified it will be used instead. Queries can be referenced setting `custom.scripts.replay` to the index of the query in the sampling benchmark SGDbOps's status (index start from 0).
+                          
+                          See also https://www.postgresql.org/docs/current/pgbench.html#TRANSACTIONS-AND-SCRIPTS
+                      databaseSize:
+                        type: string
+                        pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
+                        description: |
+                          Size of the database to generate. This size is specified either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).
+                      duration:
+                        type: string
+                        description: |
+                          An ISO 8601 duration in the format `PnDTnHnMn.nS`, that specifies how long the benchmark will run.
+                      usePreparedStatements:
+                        type: boolean
+                        description: |
+                          **Deprecated** this field is ignored, use `queryMode` instead.
+  
+                          Use extended query protocol with prepared statements. Defaults to: `false`.
+                      queryMode:
+                        type: string
+                        description: |
+                          Protocol to use for submitting queries to the server:
+
+                          * `simple`: use simple query protocol.
+                          * `extended`: use extended query protocol.
+                          * `prepared`: use extended query protocol with prepared statements.
+  
+                          In the prepared mode, pgbench reuses the parse analysis result starting from the second query iteration, so pgbench runs faster than in other modes.
+  
+                          The default is `simple` query protocol. See also https://www.postgresql.org/docs/current/protocol.html
+                      concurrentClients:
+                        type: integer
+                        description: |
+                          Number of clients simulated, that is, number of concurrent database sessions. Defaults to: `1`.
+                      threads:
+                        type: integer
+                        description: |
+                          Number of worker threads within pgbench. Using more than one thread can be helpful on multi-CPU machines. Clients are distributed as evenly as possible among available threads. Default is `1`.
+                      samplingRate:
+                        type: number
+                        description: |
+                          Sampling rate, used when collecting data, to reduce the amount of collected data. If this option is given, only the specified fraction of transactions are collected. 1.0 means all transactions will be logged, 0.05 means only 5% of the transactions will be logged.
+                      foreignKeys:
+                        type: boolean
+                        description: |
+                          Create foreign key constraints between the standard tables. (This option only take effect if `custom.initiailization` is not specified).
+                      unloggedTables:
+                        type: boolean
+                        description: |
+                          Create all tables as unlogged tables, rather than permanent tables. (This option only take effect if `custom.initiailization` is not specified).
+                      partitionMethod:
+                        type: string
+                        description: |
+                          Create a partitioned pgbench_accounts table with the specified method. Expected values are `range` or `hash`. This option requires that partitions is set to non-zero. If unspecified, default is `range`. (This option only take effect if `custom.initiailization` is not specified).
+                      partitions:
+                        type: integer
+                        description: |
+                          Create a partitioned pgbench_accounts table with the specified number of partitions of nearly equal size for the scaled number of accounts. Default is 0, meaning no partitioning. (This option only take effect if `custom.initiailization` is not specified).
+                      initSteps:
+                        type: string
+                        description: |
+                          Perform just a selected set of the normal initialization steps. init_steps specifies the initialization steps to be performed, using one character per step. Each step is invoked in the specified order. The default is dtgvp. The available steps are:
+  
+                          * `d` (Drop): Drop any existing pgbench tables.
+                          * `t` (create Tables): Create the tables used by the standard pgbench scenario, namely pgbench_accounts, pgbench_branches, pgbench_history, and pgbench_tellers.
+                          * `g` or `G` (Generate data, client-side or server-side): Generate data and load it into the standard tables, replacing any data already present.
+                            With `g` (client-side data generation), data is generated in pgbench client and then sent to the server. This uses the client/server bandwidth extensively through a COPY. pgbench uses the FREEZE option with version 14 or later of PostgreSQL to speed up subsequent VACUUM, unless partitions are enabled. Using g causes logging to print one message every 100,000 rows while generating data for the pgbench_accounts table.
+                            With `G` (server-side data generation), only small queries are sent from the pgbench client and then data is actually generated in the server. No significant bandwidth is required for this variant, but the server will do more work. Using G causes logging not to print any progress message while generating data.
+                            The default initialization behavior uses client-side data generation (equivalent to g).
+                          * `v` (Vacuum): Invoke VACUUM on the standard tables.
+                          * `p` (create Primary keys): Create primary key indexes on the standard tables.
+                          * `f` (create Foreign keys): Create foreign key constraints between the standard tables. (Note that this step is not performed by default.)
+                      fillfactor:
+                        type: integer
+                        description: |
+                          Create the pgbench_accounts, pgbench_tellers and pgbench_branches tables with the given fillfactor. Default is 100.
+                      noVacuum:
+                        type: boolean
+                        description: |
+                          Perform no vacuuming during initialization. (This option suppresses the `v` initialization step, even if it was specified in `initSteps`.)
+                      samplingSGDbOps:
+                        type: string
+                        description: benchmark SGDbOps of type sampling that will be used to replay sampled queries.
+                      custom:
+                        type: object
+                        description: This section allow to configure custom SQL for initialization and scripts used by pgbench.
+                        properties:
+                          initialization:
+                            type: object
+                            description: |
+                              The custom SQL for initialization that will be executed in place of pgbench default initialization.
+                              
+                              If not specified the default pgbench initialization will be performed instead.
+                            properties: &script-properties
+                              script:
+                                type: string
+                                description: |
+                                  Raw SQL script to execute. This field is mutually exclusive with `scriptFrom` field.
+                              scriptFrom:
+                                type: object
+                                description: |
+                                  Reference to either a Kubernetes [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) or a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) that contains the SQL script to execute. This field is mutually exclusive with `script` field.
+  
+                                  Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive, and one of them is required.
+                                properties:
+                                  secretKeyRef:
+                                    type: object
+                                    description: |
+                                      A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#secretkeyselector-v1-core) that contains the SQL script to execute. This field is mutually exclusive with `configMapKeyRef` field.
+                                    properties:
+                                      name:
+                                        type: string
+                                        description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                      key:
+                                        type: string
+                                        description: The key of the secret to select from. Must be a valid secret key.
+                                  configMapKeyRef:
+                                    type: object
+                                    description: |
+                                      A [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) reference that contains the SQL script to execute. This field is mutually exclusive with `secretKeyRef` field.
+                                    properties:
+                                      name:
+                                        type: string
+                                        description: |
+                                          The name of the ConfigMap that contains the SQL script to execute.
+                                      key:
+                                        type: string
+                                        description: |
+                                          The key name within the ConfigMap that contains the SQL script to execute.
+                          scripts:
+                            type: array
+                            description: The custom SQL scripts that will be executed by pgbench during the benchmark instead of default pgbench scripts
+                            minItems: 1
+                            items:
+                              type: object
+                              description: A custom SQL script that will be executed by pgbench during the benchmark instead of default pgbench scripts
+                              properties:
+                                <<: *script-properties
+                                builtin:
+                                  type: string
+                                  description: |
+                                    The name of the builtin script to use. See https://www.postgresql.org/docs/current/pgbench.html#PGBENCH-OPTION-BUILTIN
+                                    
+                                    When specified fields `replay`, `script` and `scriptFrom` must not be set.
+                                replay:
+                                  type: integer
+                                  description: |
+                                    The index of the query in the sampling benchmark SGDbOps's status (index start from 0).
+                                    
+                                    When specified fields `builtin`, `script` and `scriptFrom` must not be set.
+                                weight:
+                                  type: integer
+                                  description: The weight of this custom SQL script.
+                    required: [ "databaseSize", "duration" ]
+                  connectionType:
+                    type: string
+                    description: |
+                      Specify the service where the benchmark will connect to:
+
+                      * `primary-service`: Connect to the primary service
+                      * `replicas-service`: Connect to the replicas service
+                required: [ "type" ]
+              vacuum:
+                type: object
+                description: |
+                  Configuration of [vacuum](https://www.postgresql.org/docs/current/sql-vacuum.html) operation
+                properties:
+                  full:
+                    type: boolean
+                    description: |
+                      If true selects "full" vacuum, which can reclaim more space, but takes much longer and exclusively locks the table.
+                      This method also requires extra disk space, since it writes a new copy of the table and doesn't release the old copy
+                        until the operation is complete. Usually this should only be used when a significant amount of space needs to be
+                        reclaimed from within the table. Defaults to: `false`.
+                  freeze:
+                    type: boolean
+                    description: |
+                      If true selects aggressive "freezing" of tuples. Specifying FREEZE is equivalent to performing VACUUM with the
+                        vacuum_freeze_min_age and vacuum_freeze_table_age parameters set to zero. Aggressive freezing is always performed
+                        when the table is rewritten, so this option is redundant when FULL is specified. Defaults to: `false`.
+                  analyze:
+                    type: boolean
+                    description: |
+                      If true, updates statistics used by the planner to determine the most efficient way to execute a query. Defaults to: `true`.
+                  disablePageSkipping:
+                    type: boolean
+                    description: |
+                      Normally, VACUUM will skip pages based on the visibility map. Pages where all tuples are known to be frozen can always be
+                        skipped, and those where all tuples are known to be visible to all transactions may be skipped except when performing an
+                        aggressive vacuum. Furthermore, except when performing an aggressive vacuum, some pages may be skipped in order to avoid
+                        waiting for other sessions to finish using them. This option disables all page-skipping behavior, and is intended to be
+                        used only when the contents of the visibility map are suspect, which should happen only if there is a hardware or
+                        software issue causing database corruption. Defaults to: `false`.
+                  databases:
+                    type: array
+                    description: |
+                      List of databases to vacuum or repack, don't specify to select all databases
+                    items:
+                      type: object
+                      required: [ "name" ]
+                      properties:
+                        name:
+                          type: string
+                          description: the name of the database
+                        full:
+                          type: boolean
+                          description: |
+                            If true selects "full" vacuum, which can reclaim more space, but takes much longer and exclusively locks the table.
+                            This method also requires extra disk space, since it writes a new copy of the table and doesn't release the old copy
+                              until the operation is complete. Usually this should only be used when a significant amount of space needs to be
+                              reclaimed from within the table. Defaults to: `false`.
+                        freeze:
+                          type: boolean
+                          description: |
+                            If true selects aggressive "freezing" of tuples. Specifying FREEZE is equivalent to performing VACUUM with the
+                              vacuum_freeze_min_age and vacuum_freeze_table_age parameters set to zero. Aggressive freezing is always performed
+                              when the table is rewritten, so this option is redundant when FULL is specified. Defaults to: `false`.
+                        analyze:
+                          type: boolean
+                          description: |
+                            If true, updates statistics used by the planner to determine the most efficient way to execute a query. Defaults to: `true`.
+                        disablePageSkipping:
+                          type: boolean
+                          description: |
+                            Normally, VACUUM will skip pages based on the visibility map. Pages where all tuples are known to be frozen can always be
+                              skipped, and those where all tuples are known to be visible to all transactions may be skipped except when performing an
+                              aggressive vacuum. Furthermore, except when performing an aggressive vacuum, some pages may be skipped in order to avoid
+                              waiting for other sessions to finish using them. This option disables all page-skipping behavior, and is intended to be
+                              used only when the contents of the visibility map are suspect, which should happen only if there is a hardware or
+                              software issue causing database corruption. Defaults to: `false`.
+              repack:
+                type: object
+                description: |
+                  Configuration of [`pg_repack`](https://github.com/reorg/pg_repack) command
+                properties:
+                  noOrder:
+                    type: boolean
+                    description: |
+                      If true do vacuum full instead of cluster. Defaults to: `false`.
+                  waitTimeout:
+                    type: string
+                    description: |
+                      If specified, an ISO 8601 duration format `PnDTnHnMn.nS` to set a timeout to cancel other backends on conflict.
+                  noKillBackend:
+                    type: boolean
+                    description: |
+                      If true don't kill other backends when timed out. Defaults to: `false`.
+                  noAnalyze:
+                    type: boolean
+                    description: |
+                      If true don't analyze at end. Defaults to: `false`.
+                  excludeExtension:
+                    type: boolean
+                    description: |
+                      If true don't repack tables which belong to specific extension. Defaults to: `false`.
+                  databases:
+                    type: array
+                    description: |
+                      List of database to vacuum or repack, don't specify to select all databases
+                    items:
+                      type: object
+                      required: [ "name" ]
+                      properties:
+                        name:
+                          type: string
+                          description: the name of the database
+                        noOrder:
+                          type: boolean
+                          description: |
+                            If true do vacuum full instead of cluster. Defaults to: `false`.
+                        waitTimeout:
+                          type: string
+                          description: |
+                            If specified, an ISO 8601 duration format `PnDTnHnMn.nS` to set a timeout to cancel other backends on conflict.
+                        noKillBackend:
+                          type: boolean
+                          description: |
+                            If true don't kill other backends when timed out. Defaults to: `false`.
+                        noAnalyze:
+                          type: boolean
+                          description: |
+                            If true don't analyze at end. Defaults to: `false`.
+                        excludeExtension:
+                          type: boolean
+                          description: |
+                            If true don't repack tables which belong to specific extension. Defaults to: `false`.
+              majorVersionUpgrade:
+                type: object
+                description: |
+                  Configuration of major version upgrade (see also [`pg_upgrade`](https://www.postgresql.org/docs/current/pgupgrade.html) command)
+                properties:
+                  postgresVersion:
+                    type: string
+                    description: |
+                      The target postgres version that must have the same major version of the target SGCluster.
+                  postgresExtensions:
+                    type: array
+                    description: |
+                      A major version upgrade can not be performed if a required extension is not present for the target major version of the upgrade.
+                      In those cases you will have to provide the target extension version of the extension for the target major version of postgres.
+                      Beware that in some cases it is not possible to upgrade an extension alongside postgres. This is the case for PostGIS or timescaledb.
+                       In such cases you will have to upgrade the extension before or after the major version upgrade. Please make sure you read the
+                       documentation of each extension in order to understand if it is possible to upgrade it during a major version upgrade of postgres.
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The name of the extension to deploy.
+                        publisher:
+                          type: string
+                          description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
+                          default: com.ongres
+                        version:
+                          type: string
+                          description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default and if only a version is available that one will be used.
+                        repository:
+                          type: string
+                          description: |
+                            The repository base URL from where to obtain the extension to deploy.
+
+                            **This section is filled by the operator.**
+                      required: ["name"]
+                  sgPostgresConfig:
+                    type: string
+                    description: |
+                      The postgres config that must have the same major version of the target postgres version.
+                  backupPath:
+                    type: string
+                    description: |
+                      The path were the backup is stored. If not set this field is filled up by the operator.
+
+                      When provided will indicate were the backups and WAL files will be stored.
+
+                      The path should be different from the current `.spec.configurations.backups[].path` value for the target `SGCluster`
+                        in order to avoid mixing WAL files of two distinct major versions of postgres.
+                  link:
+                    type: boolean
+                    description: |
+                      If true use hard links instead of copying files to the new cluster. This option is mutually exclusive with `clone`. Defaults to: `false`.
+                  clone:
+                    type: boolean
+                    description: |
+                      If true use efficient file cloning (also known as "reflinks" on some systems) instead of copying files to the new cluster.
+                      This can result in near-instantaneous copying of the data files, giving the speed advantages of `link` while leaving the old
+                        cluster untouched. This option is mutually exclusive with `link`. Defaults to: `false`.
+
+                      File cloning is only supported on some operating systems and file systems. If it is selected but not supported, the pg_upgrade
+                        run will error. At present, it is supported on Linux (kernel 4.5 or later) with Btrfs and XFS (on file systems created with
+                        reflink support), and on macOS with APFS.
+                  check:
+                    type: boolean
+                    description: |
+                      If true does some checks to see if the cluster can perform a major version upgrade without changing any data. Defaults to: `false`.
+                  toInstallPostgresExtensions:
+                    type: array
+                    description: |
+                      The list of Postgres extensions to install.
+                      
+                      **This section is filled by the operator.**
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The name of the extension to install.
+                        publisher:
+                          type: string
+                          description: The id of the publisher of the extension to install.
+                        version:
+                          type: string
+                          description: The version of the extension to install.
+                        repository:
+                          type: string
+                          description: The repository base URL from where the extension will be installed from.
+                        postgresVersion:
+                          type: string
+                          description: The postgres major version of the extension to install.
+                        build:
+                          type: string
+                          description: The build version of the extension to install.
+                        extraMounts:
+                          type: array
+                          description: The extra mounts of the extension to install.
+                          items:
+                            type: string
+                            description: The extra mount of the installed extension.
+                      required: ["name", "publisher", "version", "repository", "postgresVersion"]
+              restart:
+                type: object
+                description: |
+                  Configuration of restart
+                properties:
+                  method:
+                    type: string
+                    description: |
+                      The method used to perform the restart operation. Available methods are:
+
+                      * `InPlace`: the in-place method does not require more resources than those that are available.
+                        In case only an instance of the StackGres cluster is present this mean the service disruption will
+                        last longer so we encourage use the reduced impact restart and especially for a production environment.
+                      * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+                        resources in order to spawn a new updated replica that will be removed when the procedure completes.
+                  onlyPendingRestart:
+                    type: boolean
+                    description: |
+                      By default all Pods are restarted. Setting this option to `true` allow to restart only those Pods which
+                        are in pending restart state as detected by the operation. Defaults to: `false`.
+              minorVersionUpgrade:
+                type: object
+                description: |
+                  Configuration of minor version upgrade
+                properties:
+                  postgresVersion:
+                    type: string
+                    description: |
+                      The target postgres version that must have the same major version of the target SGCluster.
+                  method:
+                    type: string
+                    description: |
+                      The method used to perform the minor version upgrade operation. Available methods are:
+
+                      * `InPlace`: the in-place method does not require more resources than those that are available.
+                        In case only an instance of the StackGres cluster is present this mean the service disruption will
+                        last longer so we encourage use the reduced impact restart and especially for a production environment.
+                      * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+                        resources in order to spawn a new updated replica that will be removed when the procedure completes.
+              securityUpgrade:
+                type: object
+                description: |
+                  Configuration of security upgrade
+                properties:
+                  method:
+                    type: string
+                    description: |
+                      The method used to perform the security upgrade operation. Available methods are:
+
+                      * `InPlace`: the in-place method does not require more resources than those that are available.
+                        In case only an instance of the StackGres cluster is present this mean the service disruption will
+                        last longer so we encourage use the reduced impact restart and especially for a production environment.
+                      * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+                        resources in order to spawn a new updated replica that will be removed when the procedure completes.
+            required: ["sgCluster", "op"]
+          status:
+            type: object
+            properties:
+              conditions:
+                type: array
+                description: |
+                  Possible conditions are:
+
+                  * Running: to indicate when the operation is actually running
+                  * Completed: to indicate when the operation has completed successfully
+                  * Failed: to indicate when the operation has failed
+                items:
+                  type: object
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition transitioned from one status to another.
+                      type: string
+                    message:
+                      description: A human-readable message indicating details about the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of `True`, `False` or `Unknown`.
+                      type: string
+                    type:
+                      description: Type of deployment condition.
+                      type: string
+              opRetries:
+                type: integer
+                description: |
+                  The number of retries performed by the operation
+              opStarted:
+                type: string
+                description: |
+                  The ISO 8601 timestamp of when the operation started running
+              benchmark:
+                type: object
+                description: |
+                  The results of the benchmark
+                properties:
+                  sampling:
+                    type: object
+                    description: The results of the sampling benchmark
+                    properties:
+                      topQueries:
+                        type: array
+                        description: The top queries sampled with the stats from pg_stat_statements. If is omitted if `omitTopQueriesInStatus` is set to `true`.
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: The query id of the representative statement calculated by Postgres
+                            stats:
+                              type: object
+                              description: stats collected by the top queries query
+                              additionalProperties:
+                                type: string
+                      queries:
+                        type: array
+                        description: The queries sampled.
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: The query id of the representative statement calculated by Postgres
+                            query:
+                              type: string
+                              description: A sampled SQL query
+                            timestamp:
+                              type: string
+                              description: The sampled query timestamp
+                  pgbench:
+                    type: object
+                    description: The results of the pgbench benchmark
+                    properties:
+                      scaleFactor:
+                        type: number
+                        nullable: true
+                        description: |
+                          The scale factor used to run pgbench (`--scale`).
+                      transactionsProcessed:
+                        type: integer
+                        nullable: true
+                        description: |
+                          The number of transactions processed.
+                      latency:
+                        type: object
+                        description: |
+                          The latency results of the pgbench benchmark
+                        properties:
+                          average:
+                            type: object
+                            description: |
+                              Average latency of transactions
+                            properties:
+                              value: 
+                                type: number
+                                nullable: true
+                                description: |
+                                  The latency average value
+                              unit: 
+                                type: string
+                                nullable: false
+                                description: |
+                                  The latency measure unit
+                          standardDeviation:
+                            type: object
+                            description: |
+                              The latency standard deviation of transactions.
+                            properties:
+                              value: 
+                                type: number
+                                nullable: true
+                                description: |
+                                  The latency standard deviation value
+                              unit: 
+                                type: string
+                                nullable: false
+                                description: |
+                                  The latency measure unit
+                      transactionsPerSecond:
+                        type: object
+                        description: |
+                          All the transactions per second results of the pgbench benchmark
+                        properties:
+                          includingConnectionsEstablishing:
+                            type: object
+                            description: |
+                              Number of Transactions Per Second (tps) including connection establishing.
+                            properties:
+                              value: 
+                                type: number
+                                description: |
+                                  The Transactions Per Second (tps) including connections establishing value
+                              unit:
+                                type: string
+                                description: |
+                                  Transactions Per Second (tps) measure unit
+                          excludingConnectionsEstablishing:
+                            type: object
+                            description: |
+                              Number of Transactions Per Second (tps) excluding connection establishing.
+                            properties:
+                              value: 
+                                type: number
+                                nullable: true
+                                description: |
+                                  The Transactions Per Second (tps) excluding connections establishing value
+                              unit: 
+                                type: string
+                                nullable: false
+                                description: |
+                                  Transactions Per Second (tps) measure unit
+                          overTime:
+                            type: object
+                            description: The Transactions Per Second (tps) values aggregated over unit of time
+                            properties:
+                              valuesUnit:
+                                type: string
+                                description: The Transactions Per Second (tps) measures unit
+                              values:
+                                type: array
+                                description: The Transactions Per Second (tps) values aggregated over unit of time
+                                items:
+                                  type: number
+                              intervalDurationUnit:
+                                type: string
+                                description: The interval duration measure unit
+                              intervalDuration:
+                                type: number
+                                description: The interval duration used to aggregate the transactions per second.
+                      statements:
+                        type: array
+                        description: Average per-statement latency (execution time from the perspective of the client) of each command after the benchmark finishes
+                        items:
+                          type: object
+                          description: Average per-statement latency (execution time from the perspective of the client) of a command after the benchmark finishes
+                          properties:
+                            script:
+                              type: integer
+                              description: The script index (`0` if no custom scripts have been defined)
+                            command:
+                              type: string
+                              description: The command
+                            latency:
+                              type: number
+                              description: Average latency of the command 
+                            unit:
+                              type: string
+                              description: The average latency measure unit
+                      hdrHistogram:
+                        type: string
+                        description: Compressed and base 64 encoded HdrHistogram
+              majorVersionUpgrade:
+                type: object
+                description: |
+                  The results of a major version upgrade
+                properties:
+                  sourcePostgresVersion:
+                    type: string
+                    description: |
+                      The postgres version currently used by the primary instance
+                  targetPostgresVersion:
+                    type: string
+                    description: |
+                      The postgres version that the cluster will be upgraded to
+                  primaryInstance:
+                    type: string
+                    description: |
+                      The primary instance when the operation started
+                  initialInstances:
+                    type: array
+                    description: |
+                      The instances present when the operation started
+                    items:
+                      type: string
+                  pendingToRestartInstances:
+                    type: array
+                    description: |
+                      The instances that are pending to be restarted
+                    items:
+                      type: string
+                  restartedInstances:
+                    type: array
+                    description: |
+                      The instances that have been restarted
+                    items:
+                      type: string
+                  phase:
+                    type: string
+                    description: |
+                      The phase the operation is or was executing)
+                  failure:
+                    type: string
+                    description: |
+                      A failure message (when available)
+              restart:
+                type: object
+                description: |
+                  The results of a restart
+                properties:
+                  primaryInstance:
+                    type: string
+                    description: |
+                      The primary instance when the operation started
+                  initialInstances:
+                    type: array
+                    description: |
+                      The instances present when the operation started
+                    items:
+                      type: string
+                  pendingToRestartInstances:
+                    type: array
+                    description: |
+                      The instances that are pending to be restarted
+                    items:
+                      type: string
+                  restartedInstances:
+                    type: array
+                    description: |
+                      The instances that have been restarted
+                    items:
+                      type: string
+                  switchoverInitiated:
+                    type: string
+                    description: |
+                      An ISO 8601 date indicating if and when the switchover initiated
+                  switchoverFinalized:
+                    type: string
+                    description: |
+                      An ISO 8601 date indicating if and when the switchover finalized
+                  failure:
+                    type: string
+                    description: |
+                      A failure message (when available)
+              minorVersionUpgrade:
+                type: object
+                description: |
+                  The results of a minor version upgrade
+                properties:
+                  sourcePostgresVersion:
+                    type: string
+                    description: |
+                      The postgres version currently used by the primary instance
+                  targetPostgresVersion:
+                    type: string
+                    description: |
+                      The postgres version that the cluster will be upgraded (or downgraded) to
+                  primaryInstance:
+                    type: string
+                    description: |
+                      The primary instance when the operation started
+                  initialInstances:
+                    type: array
+                    description: |
+                      The instances present when the operation started
+                    items:
+                      type: string
+                  pendingToRestartInstances:
+                    type: array
+                    description: |
+                      The instances that are pending to be restarted
+                    items:
+                      type: string
+                  restartedInstances:
+                    type: array
+                    description: |
+                      The instances that have been restarted
+                    items:
+                      type: string
+                  switchoverInitiated:
+                    type: string
+                    description: |
+                      An ISO 8601 date indicating if and when the switchover initiated
+                  switchoverFinalized:
+                    type: string
+                    description: |
+                      An ISO 8601 date indicating if and when the switchover finalized
+                  failure:
+                    type: string
+                    description: |
+                      A failure message (when available)
+              securityUpgrade:
+                type: object
+                description: |
+                  The results of a security upgrade
+                properties:
+                  primaryInstance:
+                    type: string
+                    description: |
+                      The primary instance when the operation started
+                  initialInstances:
+                    type: array
+                    description: |
+                      The instances present when the operation started
+                    items:
+                      type: string
+                  pendingToRestartInstances:
+                    type: array
+                    description: |
+                      The instances that are pending to be restarted
+                    items:
+                      type: string
+                  restartedInstances:
+                    type: array
+                    description: |
+                      The instances that have been restarted
+                    items:
+                      type: string
+                  switchoverInitiated:
+                    type: string
+                    description: |
+                      An ISO 8601 date indicating if and when the switchover initiated
+                  switchoverFinalized:
+                    type: string
+                    description: |
+                      An ISO 8601 date indicating if and when the switchover finalized
+                  failure:
+                    type: string
+                    description: |
+                      A failure message (when available)

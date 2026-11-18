@@ -1,0 +1,66 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgpgconfigs.stackgres.io
+spec:
+  group: stackgres.io
+  scope: Namespaced
+  names:
+    kind: SGPostgresConfig
+    listKind: SGPostgresConfigList
+    plural: sgpgconfigs
+    singular: sgpgconfig
+    shortNames:
+      - sgpgc
+      - sgpostgresconfig
+      - sgpostgresconfigs
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    additionalPrinterColumns:
+    - name: version
+      type: string
+      jsonPath: .spec.postgresVersion
+    schema:
+      openAPIV3Schema:
+        type: object
+        required: ["metadata", "spec"]
+        properties:
+          metadata:
+            type: object
+            properties:
+              name:
+                type: string
+                description: |
+                  Name of the Postgres Configuration. The configuration may be referenced by zero or more SGClusters, and if so it would be referenced by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with the `-` character allowed anywhere except the first or last character.
+
+                  The name must be unique across all Postgres configurations in the same namespace.
+          spec:
+            type: object
+            properties:
+              postgresVersion:
+                type: string
+                description: |
+                  The **major** Postgres version the configuration is for. Postgres major versions contain one number starting with version 10 (`10`, `11`, `12`, etc), and two numbers separated by a dot for previous versions (`9.6`, `9.5`, etc).
+
+                  Note that Postgres maintains full compatibility across minor versions, and hence a configuration for a given major version will work for any minor version of that same major version.
+
+                  Check [StackGres component versions](https://stackgres.io/doc/latest/intro/versions) to see the Postgres versions supported by this version of StackGres.
+              postgresql.conf:
+                type: object
+                additionalProperties:
+                  type: string
+                description: |
+                  The `postgresql.conf` parameters the configuration contains, represented as an object where the keys are valid names for the `postgresql.conf` configuration file parameters of the given `postgresVersion`. You may check [postgresqlco.nf](https://postgresqlco.nf) as a reference on how to tune and find the valid parameters for a given major version.
+            required: ["postgresVersion", "postgresql.conf"]
+          status:
+            type: object
+            properties:
+              defaultParameters:
+                type: object
+                additionalProperties:
+                  type: string
+                description: |
+                  The `postgresql.conf` default parameters which are used if not set.
+            required: ["defaultParameters"]

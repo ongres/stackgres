@@ -1,0 +1,3917 @@
+---
+title: SGStream
+weight: 14
+url: /reference/crd/sgstream
+description: Details about SGStream
+showToc: true
+---
+
+___
+**Kind:** SGStream
+
+**listKind:** SGStreamList
+
+**plural:** sgstreams
+
+**singular:** sgstream
+
+**shortNames** sgstr
+___
+
+The `SGStream` custom resource represents a stream of Change Data Capture (CDC) events from a source database to a target service.
+
+**Example:**
+
+```yaml
+apiVersion: stackgres.io/v1alpha1
+kind: SGStream
+metadata:
+  name: cloudevent
+spec:
+  source:
+    type: SGCluster
+    sgCluster:
+      name: my-cluster
+  target:
+    type: CloudEvent
+    cloudEvent:
+      binding: http
+      format: json
+      http:
+        url: cloudevent-service
+```
+
+
+
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "stackgres.io/v1alpha1",
+    "immutable": true,
+    "name": "apiVersion",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "SGStream",
+    "immutable": true,
+    "name": "kind",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "Refer to the Kubernetes API documentation for the fields of the `metadata` field.",
+    "link": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta",
+    "name": "metadata",
+    "required": true,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspec",
+    "description": "Specification of the desired behavior of a StackGres stream.\n\nA stream represents the process of performing a change data capture (CDC) operation on a data source that generates a stream of events containing information about the changes happening (or happened) to the database in real time (or from the beginning).\n\nThe stream allows specifying different types for the target of the CDC operation. See `SGStream.spec.target.type`.\n\nThe stream performs two distinct operation to generate data source changes for the target:\n\n* Snapshotting: allows capturing the content of the data source in a specific point in time and stream it as if they were changes, thus providing a stream of events as they were an aggregate from the beginning of the existence of the data source.\n* Streaming: allows capturing the changes that are happening in real time in the data source and stream them as changes continuously.\n\nThe CDC is performed using [Debezium Engine](https://debezium.io/documentation/reference/stable/development/engine.html). SGStream extends functionality of Debezium by providing a [custom signaling channel](https://debezium.io/documentation/reference/stable/configuration/signalling.html#debezium-custom-signaling-channel) that allows sending signals by simply adding annotation to the SGStream resources.\nTo send a signal simply create an annotation with the following format:\n\n\n```\n\nmetadata:\n  annotations:\n    debezium-signal.stackgres.io/\u003csignal type\u003e: \u003csignal data\u003e\n\n```\n\n\nAlso, SGStream provide the following custom signals implementations:\n  \n  * `tombstone`: allows stopping completely Debezium streaming and the SGStream. This signal is useful to give an end to the streaming in a graceful way allowing for the removal of the logical slot created by Debezium.\n  * `command`: allows executing any SQL command on the target database. Only available then the target type is `SGCluster`.",
+    "name": "spec",
+    "required": true,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamstatus",
+    "description": "Status of a StackGres stream.",
+    "name": "status",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+## SGStream.spec
+<sup><sup>[↩ Parent](#sgstream)</sup></sup>
+
+Specification of the desired behavior of a StackGres stream.
+
+A stream represents the process of performing a change data capture (CDC) operation on a data source that generates a stream of events containing information about the changes happening (or happened) to the database in real time (or from the beginning).
+
+The stream allows specifying different types for the target of the CDC operation. See `SGStream.spec.target.type`.
+
+The stream performs two distinct operation to generate data source changes for the target:
+
+* Snapshotting: allows capturing the content of the data source in a specific point in time and stream it as if they were changes, thus providing a stream of events as they were an aggregate from the beginning of the existence of the data source.
+* Streaming: allows capturing the changes that are happening in real time in the data source and stream them as changes continuously.
+
+The CDC is performed using [Debezium Engine](https://debezium.io/documentation/reference/stable/development/engine.html). SGStream extends functionality of Debezium by providing a [custom signaling channel](https://debezium.io/documentation/reference/stable/configuration/signalling.html#debezium-custom-signaling-channel) that allows sending signals by simply adding annotation to the SGStream resources.
+To send a signal simply create an annotation with the following format:
+
+
+```
+
+metadata:
+  annotations:
+    debezium-signal.stackgres.io/<signal type>: <signal data>
+
+```
+
+
+Also, SGStream provide the following custom signals implementations:
+  
+  * `tombstone`: allows stopping completely Debezium streaming and the SGStream. This signal is useful to give an end to the streaming in a graceful way allowing for the removal of the logical slot created by Debezium.
+  * `command`: allows executing any SQL command on the target database. Only available then the target type is `SGCluster`.
+
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpods",
+    "description": "The configuration for SGStream Pod",
+    "name": "pods",
+    "required": true,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspecsource",
+    "description": "The data source of the stream to which change data capture will be applied.",
+    "name": "source",
+    "required": true,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspectarget",
+    "description": "The target of this stream.",
+    "name": "target",
+    "required": true,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspecdebeziumengineproperties",
+    "description": "See https://debezium.io/documentation/reference/stable/development/engine.html#engine-properties\n Each property is converted from myPropertyName to my.property.name",
+    "name": "debeziumEngineProperties",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "The maximum number of retries the streaming operation is allowed to do after a failure.\n\nA value of `0` (zero) means no retries are made. A value of `-1` means retries are unlimited. Defaults to: `-1`.",
+    "name": "maxRetries",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "anchor": "sgstreamspecmetadata",
+    "description": "Metadata information for stream created resources.",
+    "name": "metadata",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+### SGStream.spec.pods
+<sup><sup>[↩ Parent](#sgstreamspec)</sup></sup>
+
+The configuration for SGStream Pod
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodspersistentvolume",
+    "description": "Pod's persistent volume configuration.",
+    "name": "persistentVolume",
+    "required": true,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspecpodsresources",
+    "description": "The resources assigned to the stream container.\n\nSee https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+    "name": "resources",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspecpodsscheduling",
+    "description": "Pod custom scheduling, affinity and topology spread constratins configuration.",
+    "name": "scheduling",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.pods.persistentVolume
+<sup><sup>[↩ Parent](#sgstreamspecpods)</sup></sup>
+
+Pod's persistent volume configuration.
+
+**Example:**
+
+
+```yaml
+
+apiVersion: stackgres.io/v1alpha1
+kind: SGStream
+metadata:
+  name: stackgres
+spec:
+  pods:
+    persistentVolume:
+      size: '5Gi'
+      storageClass: default
+
+```
+
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Size of the PersistentVolume for stream Pod. This size is specified either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).",
+    "name": "size",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolume for stream.",
+    "name": "storageClass",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.pods.resources
+<sup><sup>[↩ Parent](#sgstreamspecpods)</sup></sup>
+
+The resources assigned to the stream container.
+
+See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsresourcesclaimsindex",
+    "description": "Claims lists the names of resources, defined in spec.resourceClaims, that are used by this container.\n\nThis field depends on the DynamicResourceAllocation feature gate.\n\nThis field is immutable. It can only be set for containers.",
+    "name": "claims",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+    "name": "limits",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Requests cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+    "name": "requests",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.resources.claims[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsresources)</sup></sup>
+
+ResourceClaim references one entry in PodSpec.ResourceClaims.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Name must match the name of one entry in pod.spec.resourceClaims of the Pod where this field is used. It makes that resource available inside a container.",
+    "name": "name",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "Request is the name chosen for a request in the referenced claim. If empty, everything from the claim is made available, otherwise only the result of this request.",
+    "name": "request",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.pods.scheduling
+<sup><sup>[↩ Parent](#sgstreamspecpods)</sup></sup>
+
+Pod custom scheduling, affinity and topology spread constratins configuration.
+
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingnodeaffinity",
+    "description": "Node affinity is a group of node affinity scheduling rules.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#nodeaffinity-v1-core",
+    "name": "nodeAffinity",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/",
+    "name": "nodeSelector",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinity",
+    "description": "Pod affinity is a group of inter pod affinity scheduling rules.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podaffinity-v1-core",
+    "name": "podAffinity",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinity",
+    "description": "Pod anti affinity is a group of inter pod anti affinity scheduling rules.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podantiaffinity-v1-core",
+    "name": "podAntiAffinity",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "If specified, indicates the pod's priority. \"system-node-critical\" and \"system-cluster-critical\" are two special keywords which indicate the highest priorities with the former being the highest priority. Any other name must be defined by creating a PriorityClass object with that name. If not specified, the pod priority will be default or zero if there is no default.",
+    "name": "priorityClassName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingtolerationsindex",
+    "description": "If specified, the pod's tolerations.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#toleration-v1-core",
+    "name": "tolerations",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingtopologyspreadconstraintsindex",
+    "description": "TopologySpreadConstraints describes how a group of pods ought to spread across topology domains. Scheduler will schedule pods in a way which abides by the constraints. All topologySpreadConstraints are ANDed.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#topologyspreadconstraint-v1-core",
+    "name": "topologySpreadConstraints",
+    "required": false,
+    "type": "[]object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.nodeAffinity
+<sup><sup>[↩ Parent](#sgstreamspecpodsscheduling)</sup></sup>
+
+Node affinity is a group of node affinity scheduling rules.
+
+See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#nodeaffinity-v1-core
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingnodeaffinitypreferredduringschedulingignoredduringexecutionindex",
+    "description": "The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions. The node that is most preferred is the one with the greatest sum of weights, i.e. for each node that meets all of the scheduling requirements (resource request, requiredDuringScheduling affinity expressions, etc.), compute a sum by iterating through the elements of this field and adding \"weight\" to the sum if the node matches the corresponding matchExpressions; the node(s) with the highest sum are the most preferred.",
+    "name": "preferredDuringSchedulingIgnoredDuringExecution",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingnodeaffinityrequiredduringschedulingignoredduringexecution",
+    "description": "A node selector represents the union of the results of one or more label queries over a set of nodes; that is, it represents the OR of the selectors represented by the node selector terms.",
+    "name": "requiredDuringSchedulingIgnoredDuringExecution",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingnodeaffinity)</sup></sup>
+
+An empty preferred scheduling term matches all objects with implicit weight 0 (i.e. it's a no-op). A null preferred scheduling term matches no objects (i.e. is also a no-op).
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingnodeaffinitypreferredduringschedulingignoredduringexecutionindexpreference",
+    "description": "A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.",
+    "name": "preference",
+    "required": true,
+    "type": "object"
+  },
+  {
+    "description": "Weight associated with matching the corresponding nodeSelectorTerm, in the range 1-100.",
+    "format": "int32",
+    "name": "weight",
+    "required": true,
+    "type": "integer"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].preference
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingnodeaffinitypreferredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingnodeaffinitypreferredduringschedulingignoredduringexecutionindexpreferencematchexpressionsindex",
+    "description": "A list of node selector requirements by node's labels.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingnodeaffinitypreferredduringschedulingignoredduringexecutionindexpreferencematchfieldsindex",
+    "description": "A list of node selector requirements by node's fields.",
+    "name": "matchFields",
+    "required": false,
+    "type": "[]object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].preference.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingnodeaffinitypreferredduringschedulingignoredduringexecutionindexpreference)</sup></sup>
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].preference.matchFields[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingnodeaffinitypreferredduringschedulingignoredduringexecutionindexpreference)</sup></sup>
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingnodeaffinity)</sup></sup>
+
+A node selector represents the union of the results of one or more label queries over a set of nodes; that is, it represents the OR of the selectors represented by the node selector terms.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingnodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindex",
+    "description": "Required. A list of node selector terms. The terms are ORed.",
+    "name": "nodeSelectorTerms",
+    "required": true,
+    "type": "[]object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingnodeaffinityrequiredduringschedulingignoredduringexecution)</sup></sup>
+
+A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingnodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindexmatchexpressionsindex",
+    "description": "A list of node selector requirements by node's labels.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingnodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindexmatchfieldsindex",
+    "description": "A list of node selector requirements by node's fields.",
+    "name": "matchFields",
+    "required": false,
+    "type": "[]object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[index].matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingnodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindex)</sup></sup>
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[index].matchFields[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingnodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindex)</sup></sup>
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity
+<sup><sup>[↩ Parent](#sgstreamspecpodsscheduling)</sup></sup>
+
+Pod affinity is a group of inter pod affinity scheduling rules.
+
+See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podaffinity-v1-core
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindex",
+    "description": "The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions. The node that is most preferred is the one with the greatest sum of weights, i.e. for each node that meets all of the scheduling requirements (resource request, requiredDuringScheduling affinity expressions, etc.), compute a sum by iterating through the elements of this field and adding \"weight\" to the sum if the node has pods which matches the corresponding podAffinityTerm; the node(s) with the highest sum are the most preferred.",
+    "name": "preferredDuringSchedulingIgnoredDuringExecution",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinityrequiredduringschedulingignoredduringexecutionindex",
+    "description": "If the affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node. If the affinity requirements specified by this field cease to be met at some point during pod execution (e.g. due to a pod label update), the system may or may not try to eventually evict the pod from its node. When there are multiple elements, the lists of nodes corresponding to each podAffinityTerm are intersected, i.e. all terms must be satisfied.",
+    "name": "requiredDuringSchedulingIgnoredDuringExecution",
+    "required": false,
+    "type": "[]object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinity)</sup></sup>
+
+The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm",
+    "description": "Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key \u003ctopologyKey\u003e matches that of any node on which a pod of the set of pods is running",
+    "name": "podAffinityTerm",
+    "required": true,
+    "type": "object"
+  },
+  {
+    "description": "weight associated with matching the corresponding podAffinityTerm, in the range 1-100.",
+    "format": "int32",
+    "name": "weight",
+    "required": true,
+    "type": "integer"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running
+
+{{< crd-properties >}}
+[
+  {
+    "description": "This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.",
+    "name": "topologyKey",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector",
+    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "name": "labelSelector",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `labelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both matchLabelKeys and labelSelector. Also, matchLabelKeys cannot be set when labelSelector isn't set.",
+    "name": "matchLabelKeys",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `labelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both mismatchLabelKeys and labelSelector. Also, mismatchLabelKeys cannot be set when labelSelector isn't set.",
+    "name": "mismatchLabelKeys",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector",
+    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "name": "namespaceSelector",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".",
+    "name": "namespaces",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselectormatchexpressionsindex",
+    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+    "name": "matchLabels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector)</sup></sup>
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "key is the label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselectormatchexpressionsindex",
+    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+    "name": "matchLabels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector)</sup></sup>
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "key is the label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinity)</sup></sup>
+
+Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running
+
+{{< crd-properties >}}
+[
+  {
+    "description": "This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.",
+    "name": "topologyKey",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector",
+    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "name": "labelSelector",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `labelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both matchLabelKeys and labelSelector. Also, matchLabelKeys cannot be set when labelSelector isn't set.",
+    "name": "matchLabelKeys",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `labelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both mismatchLabelKeys and labelSelector. Also, mismatchLabelKeys cannot be set when labelSelector isn't set.",
+    "name": "mismatchLabelKeys",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector",
+    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "name": "namespaceSelector",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".",
+    "name": "namespaces",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselectormatchexpressionsindex",
+    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+    "name": "matchLabels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector)</sup></sup>
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "key is the label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselectormatchexpressionsindex",
+    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+    "name": "matchLabels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector)</sup></sup>
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "key is the label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity
+<sup><sup>[↩ Parent](#sgstreamspecpodsscheduling)</sup></sup>
+
+Pod anti affinity is a group of inter pod anti affinity scheduling rules.
+
+See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#podantiaffinity-v1-core
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindex",
+    "description": "The scheduler will prefer to schedule pods to nodes that satisfy the anti-affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions. The node that is most preferred is the one with the greatest sum of weights, i.e. for each node that meets all of the scheduling requirements (resource request, requiredDuringScheduling anti-affinity expressions, etc.), compute a sum by iterating through the elements of this field and subtracting \"weight\" from the sum if the node has pods which matches the corresponding podAffinityTerm; the node(s) with the highest sum are the most preferred.",
+    "name": "preferredDuringSchedulingIgnoredDuringExecution",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinityrequiredduringschedulingignoredduringexecutionindex",
+    "description": "If the anti-affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node. If the anti-affinity requirements specified by this field cease to be met at some point during pod execution (e.g. due to a pod label update), the system may or may not try to eventually evict the pod from its node. When there are multiple elements, the lists of nodes corresponding to each podAffinityTerm are intersected, i.e. all terms must be satisfied.",
+    "name": "requiredDuringSchedulingIgnoredDuringExecution",
+    "required": false,
+    "type": "[]object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinity)</sup></sup>
+
+The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm",
+    "description": "Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key \u003ctopologyKey\u003e matches that of any node on which a pod of the set of pods is running",
+    "name": "podAffinityTerm",
+    "required": true,
+    "type": "object"
+  },
+  {
+    "description": "weight associated with matching the corresponding podAffinityTerm, in the range 1-100.",
+    "format": "int32",
+    "name": "weight",
+    "required": true,
+    "type": "integer"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running
+
+{{< crd-properties >}}
+[
+  {
+    "description": "This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.",
+    "name": "topologyKey",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector",
+    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "name": "labelSelector",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `labelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both matchLabelKeys and labelSelector. Also, matchLabelKeys cannot be set when labelSelector isn't set.",
+    "name": "matchLabelKeys",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `labelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both mismatchLabelKeys and labelSelector. Also, mismatchLabelKeys cannot be set when labelSelector isn't set.",
+    "name": "mismatchLabelKeys",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector",
+    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "name": "namespaceSelector",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".",
+    "name": "namespaces",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselectormatchexpressionsindex",
+    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+    "name": "matchLabels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector)</sup></sup>
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "key is the label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselectormatchexpressionsindex",
+    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+    "name": "matchLabels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector)</sup></sup>
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "key is the label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinity)</sup></sup>
+
+Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-located is defined as running on a node whose value of the label with key <topologyKey> matches that of any node on which a pod of the set of pods is running
+
+{{< crd-properties >}}
+[
+  {
+    "description": "This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose value of the label with key topologyKey matches that of any node on which any of the selected pods is running. Empty topologyKey is not allowed.",
+    "name": "topologyKey",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector",
+    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "name": "labelSelector",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `labelSelector` as `key in (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both matchLabelKeys and labelSelector. Also, matchLabelKeys cannot be set when labelSelector isn't set.",
+    "name": "matchLabelKeys",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration. The keys are used to lookup values from the incoming pod labels, those key-value labels are merged with `labelSelector` as `key notin (value)` to select the group of existing pods which pods will be taken into consideration for the incoming pod's pod (anti) affinity. Keys that don't exist in the incoming pod labels will be ignored. The default value is empty. The same key is forbidden to exist in both mismatchLabelKeys and labelSelector. Also, mismatchLabelKeys cannot be set when labelSelector isn't set.",
+    "name": "mismatchLabelKeys",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector",
+    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "name": "namespaceSelector",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector. null or empty namespaces list and null namespaceSelector means \"this pod's namespace\".",
+    "name": "namespaces",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselectormatchexpressionsindex",
+    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+    "name": "matchLabels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector)</sup></sup>
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "key is the label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingpodantiaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselectormatchexpressionsindex",
+    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+    "name": "matchLabels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingpodantiaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector)</sup></sup>
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "key is the label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.tolerations[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsscheduling)</sup></sup>
+
+The pod this Toleration is attached to tolerates any taint that matches the triple <key,value,effect> using the matching operator <operator>.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.",
+    "name": "effect",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.",
+    "name": "key",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Operator represents a key's relationship to the value. Valid operators are Exists, Equal, Lt, and Gt. Defaults to Equal. Exists is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category. Lt and Gt perform numeric comparisons (requires feature gate TaintTolerationComparisonOperators).",
+    "name": "operator",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.",
+    "format": "int64",
+    "name": "tolerationSeconds",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.",
+    "name": "value",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.topologySpreadConstraints[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsscheduling)</sup></sup>
+
+TopologySpreadConstraint specifies how to spread matching pods among the given topology.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "MaxSkew describes the degree to which pods may be unevenly distributed. When `whenUnsatisfiable=DoNotSchedule`, it is the maximum permitted difference between the number of matching pods in the target topology and the global minimum. The global minimum is the minimum number of matching pods in an eligible domain or zero if the number of eligible domains is less than MinDomains. For example, in a 3-zone cluster, MaxSkew is set to 1, and pods with the same labelSelector spread as 2/2/1: In this case, the global minimum is 1. | zone1 | zone2 | zone3 | |  P P  |  P P  |   P   | - if MaxSkew is 1, incoming pod can only be scheduled to zone3 to become 2/2/2; scheduling it onto zone1(zone2) would make the ActualSkew(3-1) on zone1(zone2) violate MaxSkew(1). - if MaxSkew is 2, incoming pod can be scheduled onto any zone. When `whenUnsatisfiable=ScheduleAnyway`, it is used to give higher precedence to topologies that satisfy it. It's a required field. Default value is 1 and 0 is not allowed.",
+    "format": "int32",
+    "name": "maxSkew",
+    "required": true,
+    "type": "integer"
+  },
+  {
+    "description": "TopologyKey is the key of node labels. Nodes that have a label with this key and identical values are considered to be in the same topology. We consider each \u003ckey, value\u003e as a \"bucket\", and try to put balanced number of pods into each bucket. We define a domain as a particular instance of a topology. Also, we define an eligible domain as a domain whose nodes meet the requirements of nodeAffinityPolicy and nodeTaintsPolicy. e.g. If TopologyKey is \"kubernetes.io/hostname\", each Node is a domain of that topology. And, if TopologyKey is \"topology.kubernetes.io/zone\", each zone is a domain of that topology. It's a required field.",
+    "name": "topologyKey",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "WhenUnsatisfiable indicates how to deal with a pod if it doesn't satisfy the spread constraint. - DoNotSchedule (default) tells the scheduler not to schedule it. - ScheduleAnyway tells the scheduler to schedule the pod in any location,\n  but giving higher precedence to topologies that would help reduce the\n  skew.\nA constraint is considered \"Unsatisfiable\" for an incoming pod if and only if every possible node assignment for that pod would violate \"MaxSkew\" on some topology. For example, in a 3-zone cluster, MaxSkew is set to 1, and pods with the same labelSelector spread as 3/1/1: | zone1 | zone2 | zone3 | | P P P |   P   |   P   | If WhenUnsatisfiable is set to DoNotSchedule, incoming pod can only be scheduled to zone2(zone3) to become 3/2/1(3/1/2) as ActualSkew(2-1) on zone2(zone3) satisfies MaxSkew(1). In other words, the cluster can still be imbalanced, but scheduler won't make it *more* imbalanced. It's a required field.",
+    "name": "whenUnsatisfiable",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspecpodsschedulingtopologyspreadconstraintsindexlabelselector",
+    "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+    "name": "labelSelector",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "MatchLabelKeys is a set of pod label keys to select the pods over which spreading will be calculated. The keys are used to lookup values from the incoming pod labels, those key-value labels are ANDed with labelSelector to select the group of existing pods over which spreading will be calculated for the incoming pod. The same key is forbidden to exist in both MatchLabelKeys and LabelSelector. MatchLabelKeys cannot be set when LabelSelector isn't set. Keys that don't exist in the incoming pod labels will be ignored. A null or empty list means only match against labelSelector.\n\nThis is a beta field and requires the MatchLabelKeysInPodTopologySpread feature gate to be enabled (enabled by default).",
+    "name": "matchLabelKeys",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "MinDomains indicates a minimum number of eligible domains. When the number of eligible domains with matching topology keys is less than minDomains, Pod Topology Spread treats \"global minimum\" as 0, and then the calculation of Skew is performed. And when the number of eligible domains with matching topology keys equals or greater than minDomains, this value has no effect on scheduling. As a result, when the number of eligible domains is less than minDomains, scheduler won't schedule more than maxSkew Pods to those domains. If value is nil, the constraint behaves as if MinDomains is equal to 1. Valid values are integers greater than 0. When value is not nil, WhenUnsatisfiable must be DoNotSchedule.\n\nFor example, in a 3-zone cluster, MaxSkew is set to 2, MinDomains is set to 5 and pods with the same labelSelector spread as 2/2/2: | zone1 | zone2 | zone3 | |  P P  |  P P  |  P P  | The number of domains is less than 5(MinDomains), so \"global minimum\" is treated as 0. In this situation, new pod with the same labelSelector cannot be scheduled, because computed skew will be 3(3 - 0) if new Pod is scheduled to any of the three zones, it will violate MaxSkew.",
+    "format": "int32",
+    "name": "minDomains",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "NodeAffinityPolicy indicates how we will treat Pod's nodeAffinity/nodeSelector when calculating pod topology spread skew. Options are: - Honor: only nodes matching nodeAffinity/nodeSelector are included in the calculations. - Ignore: nodeAffinity/nodeSelector are ignored. All nodes are included in the calculations.\n\nIf this value is nil, the behavior is equivalent to the Honor policy.",
+    "name": "nodeAffinityPolicy",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "NodeTaintsPolicy indicates how we will treat node taints when calculating pod topology spread skew. Options are: - Honor: nodes without taints, along with tainted nodes for which the incoming pod has a toleration, are included. - Ignore: node taints are ignored. All nodes are included.\n\nIf this value is nil, the behavior is equivalent to the Ignore policy.",
+    "name": "nodeTaintsPolicy",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.topologySpreadConstraints[index].labelSelector
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingtopologyspreadconstraintsindex)</sup></sup>
+
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecpodsschedulingtopologyspreadconstraintsindexlabelselectormatchexpressionsindex",
+    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+    "name": "matchExpressions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+    "name": "matchLabels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.pods.scheduling.topologySpreadConstraints[index].labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#sgstreamspecpodsschedulingtopologyspreadconstraintsindexlabelselector)</sup></sup>
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "key is the label key that the selector applies to.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+    "name": "operator",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+    "name": "values",
+    "required": false,
+    "type": "[]string"
+  }
+]
+{{< /crd-properties >}}
+
+### SGStream.spec.source
+<sup><sup>[↩ Parent](#sgstreamspec)</sup></sup>
+
+The data source of the stream to which change data capture will be applied. 
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The type of data source. Available data source types are:\n\n* `SGCluster`: an SGCluster in the same namespace\n* `Postgres`: any Postgres instance",
+    "name": "type",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspecsourcepostgres",
+    "description": "The configuration of the data source required when type is `Postgres`.",
+    "name": "postgres",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspecsourcesgcluster",
+    "description": "The configuration of the data source required when type is `SGCluster`.",
+    "name": "sgCluster",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.source.postgres
+<sup><sup>[↩ Parent](#sgstreamspecsource)</sup></sup>
+
+The configuration of the data source required when type is `Postgres`.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The hostname of the Postgres instance.",
+    "name": "host",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "The target database name to which the CDC process will connect to.\n\nIf not specified the default postgres database will be targeted.",
+    "name": "database",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspecsourcepostgresdebeziumproperties",
+    "description": "Specific property of the debezium Postgres connector.\n\nSee https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-connector-properties\n\nEach property is converted from myPropertyName to my.property.name",
+    "name": "debeziumProperties",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "A list of regular expressions that allow matching one or more `\u003cschema\u003e.\u003ctable\u003e.\u003ccolumn\u003e` entries to be filtered out before sending to the target.\n\nThis property is mutually exclusive with `includes`.",
+    "name": "excludes",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "A list of regular expressions that allow matching one or more `\u003cschema\u003e.\u003ctable\u003e.\u003ccolumn\u003e` entries to be filtered before sending to the target.\n\nThis property is mutually exclusive with `excludes`.",
+    "name": "includes",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "anchor": "sgstreamspecsourcepostgrespassword",
+    "description": "The password used by the CDC process to connect to the database.\n\nIf not specified the default superuser password will be used.",
+    "name": "password",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "The port of the Postgres instance. When not specified port 5432 will be used.",
+    "name": "port",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "anchor": "sgstreamspecsourcepostgresusername",
+    "description": "The username used by the CDC process to connect to the database.\n\nIf not specified the default superuser username (by default postgres) will be used.",
+    "name": "username",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.source.postgres.debeziumProperties
+<sup><sup>[↩ Parent](#sgstreamspecsourcepostgres)</sup></sup>
+
+Specific property of the debezium Postgres connector.
+
+See https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-connector-properties
+
+Each property is converted from myPropertyName to my.property.name
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Default `bytes`. Specifies how binary (bytea) columns should be represented in change events:\n\n* `bytes` represents binary data as byte array.\n* `base64` represents binary data as base64-encoded strings.\n* `base64-url-safe` represents binary data as base64-url-safe-encoded strings.\n* `hex` represents binary data as hex-encoded (base16) strings.",
+    "name": "binaryHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "An optional section, that allows specifying, for a hash algorithm and a salt, a list of regular expressions that match the fully-qualified names of character-based columns. Fully-qualified names for columns are of the form \u003cschemaName\u003e.\u003ctableName\u003e.\u003ccolumnName\u003e.\n To match the name of a column Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the column; the expression does not match substrings that might be present in a column name. In the resulting change event record, the values for the specified columns are replaced with pseudonyms.\n A pseudonym consists of the hashed value that results from applying the specified hashAlgorithm and salt. Based on the hash function that is used, referential integrity is maintained, while column values are replaced with pseudonyms. Supported hash functions are described in the [MessageDigest section](https://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#MessageDigest) of the Java Cryptography Architecture Standard Algorithm Name Documentation.\n In the following example, CzQMA0cB5K is a randomly selected salt.\n columnMaskHash.SHA-256.CzQMA0cB5K=[inventory.orders.customerName,inventory.shipment.customerName]\n If necessary, the pseudonym is automatically shortened to the length of the column. The connector configuration can include multiple properties that specify different hash algorithms and salts.\n Depending on the hash algorithm used, the salt selected, and the actual data set, the resulting data set might not be completely masked.\n \n The hash algorithm (e.g. SHA-256) type and configuration.",
+    "name": "columnMaskHash",
+    "required": false,
+    "type": "map[string]map[string][]string"
+  },
+  {
+    "description": "Similar to columnMaskHash but using hashing strategy version 2.\n Hashing strategy version 2 should be used to ensure fidelity if the value is being hashed in different places or systems.\n\nThe hash algorithm (e.g. SHA-256) type and configuration.",
+    "name": "columnMaskHashV2",
+    "required": false,
+    "type": "map[string]map[string][]string"
+  },
+  {
+    "description": "An optional, list of regular expressions that match the fully-qualified names of character-based columns. Set this property if you want the connector to mask the values for a set of columns, for example, if they contain sensitive data. Set length to a positive integer to replace data in the specified columns with the number of asterisk (*) characters specified by the length in the property name. Set length to 0 (zero) to replace data in the specified columns with an empty string.\n The fully-qualified name of a column observes the following format: schemaName.tableName.columnName.\n To match the name of a column, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the column; the expression does not match substrings that might be present in a column name.\n You can specify multiple properties with different lengths in a single configuration.",
+    "name": "columnMaskWithLengthChars",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `[.*]`. An optional, list of regular expressions that match the fully-qualified names of columns for which you want the connector to emit extra parameters that represent column metadata. When this property is set, the connector adds the following fields to the schema of event records:\n\n* `__debezium.source.column.type`\n* `__debezium.source.column.length`\n* `__debezium.source.column.scale`\n\nThese parameters propagate a column’s original type name and length (for variable-width types), respectively.\n Enabling the connector to emit this extra data can assist in properly sizing specific numeric or character-based columns in sink databases.\n The fully-qualified name of a column observes one of the following formats: databaseName.tableName.columnName, or databaseName.schemaName.tableName.columnName.\n To match the name of a column, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the column; the expression does not match substrings that might be present in a column name.",
+    "name": "columnPropagateSourceType",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "An optional, list of regular expressions that match the fully-qualified names of character-based columns. Set this property if you want to truncate the data in a set of columns when it exceeds the number of characters specified by the length in the property name. Set length to a positive integer value, for example, column.truncate.to.20.chars.\n The fully-qualified name of a column observes the following format: \u003cschemaName\u003e.\u003ctableName\u003e.\u003ccolumnName\u003e.\n To match the name of a column, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the column; the expression does not match substrings that might be present in a column name.\n You can specify multiple properties with different lengths in a single configuration.",
+    "name": "columnTruncateToLengthChars",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Enumerates a comma-separated list of the symbolic names of the [custom converter](https://debezium.io/documentation/reference/stable/development/converters.html#custom-converters) instances that the connector can use. For example,\n\n\n```\n\nisbn:\n  type: io.debezium.test.IsbnConverter\n  schemaName: io.debezium.postgresql.type.Isbn\n\n```\n\n\nYou must set the converters property to enable the connector to use a custom converter.\n For each converter that you configure for a connector, you must also add a .type property, which specifies the fully-qualified name of the class that implements the converter interface.\nIf you want to further control the behavior of a configured converter, you can add one or more configuration parameters to pass values to the converter. To associate any additional configuration parameter with a converter, prefix the parameter names with the symbolic name of the converter.\n Each property is converted from myPropertyName to my.property.name",
+    "name": "converters",
+    "required": false,
+    "type": "map[string]map[string]string"
+  },
+  {
+    "description": "The custom metric tags will accept key-value pairs to customize the MBean object name which should be appended the end of regular name, each key would represent a tag for the MBean object name, and the corresponding value would be the value of that tag the key is. For example:\n\n\n```\n\ncustomMetricTags:\n  k1: v1\n  k2: v2\n\n```",
+    "name": "customMetricTags",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "A list of SQL statements that the connector executes when it establishes a JDBC connection to the database.\n The connector may establish JDBC connections at its own discretion. Consequently, this property is useful for configuration of session parameters only, and not for executing DML statements.\n The connector does not execute these statements when it creates a connection for reading the transaction log.",
+    "name": "databaseInitialStatements",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `0`. Specifies the time, in milliseconds, that the connector waits for a query to complete. Set the value to 0 (zero) to remove the timeout limit.",
+    "name": "databaseQueryTimeoutMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `[.*]`. An optional, list of regular expressions that specify the fully-qualified names of data types that are defined for columns in a database. When this property is set, for columns with matching data types, the connector emits event records that include the following extra fields in their schema:\n\n* `__debezium.source.column.type`\n* `__debezium.source.column.length`\n* `__debezium.source.column.scale`\n\nThese parameters propagate a column’s original type name and length (for variable-width types), respectively.\n Enabling the connector to emit this extra data can assist in properly sizing specific numeric or character-based columns in sink databases.\n The fully-qualified name of a column observes one of the following formats: databaseName.tableName.typeName, or databaseName.schemaName.tableName.typeName.\n To match the name of a data type, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the data type; the expression does not match substrings that might be present in a type name.\n For the list of PostgreSQL-specific data type names, see the [PostgreSQL data type mappings](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-data-types).",
+    "name": "datatypePropagateSourceType",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `precise`. Specifies how the connector should handle values for DECIMAL and NUMERIC columns:\n\n* `precise`: represents values by using java.math.BigDecimal to represent values in binary form in change events.\n* `double`: represents values by using double values, which might result in a loss of precision but which is easier to use.\n* `string`: encodes values as formatted strings, which are easy to consume but semantic information about the real type is lost. For more information, see [Decimal types](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-decimal-types).",
+    "name": "decimalHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `-1`. Specifies how the connector responds after an operation that results in a retriable error, such as a connection error.\n\nSet one of the following options:\n\n* `-1`: No limit. The connector always restarts automatically, and retries the operation, regardless of the number of previous failures.\n* `0`: Disabled. The connector fails immediately, and never retries the operation. User intervention is required to restart the connector.\n* `\u003e 0`: The connector restarts automatically until it reaches the specified maximum number of retries. After the next failure, the connector stops, and user intervention is required to restart it.",
+    "name": "errorsMaxRetries",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `fail`. Specifies how the connector should react to exceptions during processing of events:\n\n* `fail`: propagates the exception, indicates the offset of the problematic event, and causes the connector to stop.\n* `warn`: logs the offset of the problematic event, skips that event, and continues processing.\n* `skip`: skips the problematic event and continues processing.",
+    "name": "eventProcessingFailureHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. This property specifies whether Debezium adds context headers with the prefix `__debezium.context.` to the messages that it emits.\nThese headers are required by the OpenLineage integration and provide metadata that enables downstream processing systems to track and identify the sources of change events.\n\nThe property adds following headers:\n\n* `__debezium.context.connectorLogicalName`: The logical name of the Debezium connector.\n* `__debezium.context.taskId`: The unique identifier of the connector task.\n* `__debezium.context.connectorName`: The name of the Debezium connector.",
+    "name": "extendedHeadersEnabled",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `none`. Specifies how field names should be adjusted for compatibility with the message converter used by the connector. Possible settings:\n\n* `none` does not apply any adjustment.\n* `avro` replaces the characters that cannot be used in the Avro type name with underscore.\n* `avro_unicode` replaces the underscore or characters that cannot be used in the Avro type name with corresponding unicode like _uxxxx. Note: _ is an escape sequence like backslash in Java\n\nFor more information, see [Avro naming](https://debezium.io/documentation/reference/stable/configuration/avro.html#avro-naming).",
+    "name": "fieldNameAdjustmentMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. Determines whether the connector should commit the LSN of the processed records in the source postgres database so that the WAL logs can be deleted. Specify false if you don’t want the connector to do this. Please note that if set to false LSN will not be acknowledged by Debezium and as a result WAL logs will not be cleared which might result in disk space issues. User is expected to handle the acknowledgement of LSN outside Debezium.",
+    "name": "flushLsnSource",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `warn`. Specifies the action to trigger if the number of tables that the connector captures exceeds the number that you specify in the `guardrailCollectionsMax` property. Set the property to one of the following values:\n\n* `fail`: The connector fails and reports an exception.\n* `warn`: The connector logs a warning.",
+    "name": "guardrailCollectionsLimitAction",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `0`. Specifies the maximum number of tables that the connector can capture. Exceeding this limit triggers the action specified by `guardrailCollectionsLimitAction`. Set this property to 0 to prevent the connector from triggering guardrail actions.",
+    "name": "guardrailCollectionsMax",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Specifies a query that the connector executes on the source database when the connector sends a heartbeat message.\n This is useful for resolving the situation described in [WAL disk space consumption](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-wal-disk-space), where capturing changes from a low-traffic database on the same host as a high-traffic database prevents Debezium from processing WAL records and thus acknowledging WAL positions with the database. To address this situation, create a heartbeat table in the low-traffic database, and set this property to a statement that inserts records into that table, for example:\n\n \n```\n\n INSERT INTO test_heartbeat_table (text) VALUES ('test_heartbeat')\n \n```\n\n \n This allows the connector to receive changes from the low-traffic database and acknowledge their LSNs, which prevents unbounded WAL growth on the database host.",
+    "name": "heartbeatActionQuery",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `0`. Controls how frequently the connector sends heartbeat messages to a target topic. The default behavior is that the connector does not send heartbeat messages.\n Heartbeat messages are useful for monitoring whether the connector is receiving change events from the database. Heartbeat messages might help decrease the number of change events that need to be re-sent when a connector restarts. To send heartbeat messages, set this property to a positive integer, which indicates the number of milliseconds between heartbeat messages.\n Heartbeat messages are needed when there are many updates in a database that is being tracked but only a tiny number of updates are related to the table(s) and schema(s) for which the connector is capturing changes. In this situation, the connector reads from the database transaction log as usual but rarely emits change records to target. This means that no offset updates are committed to target and the connector does not have an opportunity to send the latest retrieved LSN to the database. The database retains WAL files that contain events that have already been processed by the connector. Sending heartbeat messages enables the connector to send the latest retrieved LSN to the database, which allows the database to reclaim disk space being used by no longer needed WAL files.",
+    "name": "heartbeatIntervalMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `json`. Specifies how the connector should handle values for hstore columns:\n\n* `map`: represents values by using MAP.\n* `json`: represents values by using json string. This setting encodes values as formatted strings such as {\"key\" : \"val\"}. For more information, see [PostgreSQL HSTORE type](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-hstore-type).",
+    "name": "hstoreHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. Specifies connector behavior when the connector encounters a field whose data type is unknown. The default behavior is that the connector omits the field from the change event and logs a warning.\n Set this property to true if you want the change event to contain an opaque binary representation of the field. This lets consumers decode the field. You can control the exact representation by setting the binaryHandlingMode property.\n\u003e *NOTE*: Consumers risk backward compatibility issues when `includeUnknownDatatypes` is set to `true`. Not only may the database-specific binary representation change between releases, but if the data type is eventually supported by Debezium, the data type will be sent downstream in a logical type, which would require adjustments by consumers. In general, when encountering unsupported data types, create a feature request so that support can be added.",
+    "name": "includeUnknownDatatypes",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `1024`. The maximum number of rows that the connector fetches and reads into memory during an incremental snapshot chunk. Increasing the chunk size provides greater efficiency, because the snapshot runs fewer snapshot queries of a greater size. However, larger chunk sizes also require more memory to buffer the snapshot data. Adjust the chunk size to a value that provides the best performance in your environment.",
+    "name": "incrementalSnapshotChunkSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `insert_insert`. Specifies the watermarking mechanism that the connector uses during an incremental snapshot to deduplicate events that might be captured by an incremental snapshot and then recaptured after streaming resumes.\n\nYou can specify one of the following options:\n\n* `insert_insert`: When you send a signal to initiate an incremental snapshot, for every chunk that Debezium reads during the snapshot, it writes an entry to the signaling data collection to record the signal to open the snapshot window. After the snapshot completes, Debezium inserts a second entry to record the closing of the window.\n* `insert_delete`: When you send a signal to initiate an incremental snapshot, for every chunk that Debezium reads, it writes a single entry to the signaling data collection to record the signal to open the snapshot window. After the snapshot completes, this entry is removed. No entry is created for the signal to close the snapshot window. Set this option to prevent rapid growth of the signaling data collection.",
+    "name": "incrementalSnapshotWatermarkingStrategy",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `numeric`. Specifies how the connector should handle values for interval columns:\n\n * `numeric`: represents intervals using approximate number of microseconds.\n * `string`: represents intervals exactly by using the string pattern representation P\u003cyears\u003eY\u003cmonths\u003eM\u003cdays\u003eDT\u003chours\u003eH\u003cminutes\u003eM\u003cseconds\u003eS. For example: P1Y2M3DT4H5M6.78S. For more information, see [PostgreSQL basic types](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-basic-types).",
+    "name": "intervalHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `2048`. Positive integer value that specifies the maximum size of each batch of events that the connector processes.",
+    "name": "maxBatchSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `8192`. Positive integer value that specifies the maximum number of records that the blocking queue can hold. When Debezium reads events streamed from the database, it places the events in the blocking queue before it writes/sends them. The blocking queue can provide backpressure for reading change events from the database in cases where the connector ingests messages faster than it can write / send them, or when target becomes unavailable. Events that are held in the queue are disregarded when the connector periodically records offsets. Always set the value of maxQueueSize to be larger than the value of maxBatchSize.",
+    "name": "maxQueueSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `0`. A long integer value that specifies the maximum volume of the blocking queue in bytes. By default, volume limits are not specified for the blocking queue. To specify the number of bytes that the queue can consume, set this property to a positive long value.\n If maxQueueSize is also set, writing to the queue is blocked when the size of the queue reaches the limit specified by either property. For example, if you set maxQueueSize=1000, and maxQueueSizeInBytes=5000, writing to the queue is blocked after the queue contains 1000 records, or after the volume of the records in the queue reaches 5000 bytes.",
+    "name": "maxQueueSizeInBytes",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "A list of expressions that specify the columns that the connector uses to form custom message keys for change event records that are published to the topics for specified tables.\n By default, Debezium uses the primary key column of a table as the message key for records that it emits. In place of the default, or to specify a key for tables that lack a primary key, you can configure custom message keys based on one or more columns.\n To establish a custom message key for a table, list the table, followed by the columns to use as the message key. Each list entry takes the following format:\n \u003cfully-qualified_tableName\u003e:\u003ckeyColumn\u003e,\u003ckeyColumn\u003e\n To base a table key on multiple column names, insert commas between the column names.\n Each fully-qualified table name is a regular expression in the following format:\n \u003cschemaName\u003e.\u003ctableName\u003e\n The property can include entries for multiple tables. Use a semicolon to separate table entries in the list.\n The following example sets the message key for the tables inventory.customers and purchase.orders:\n inventory.customers:pk1,pk2;(.*).purchaseorders:pk3,pk4\n For the table inventory.customer, the columns pk1 and pk2 are specified as the message key. For the purchaseorders tables in any schema, the columns pk3 and pk4 serve as the message key.\n There is no limit to the number of columns that you use to create custom message keys. However, it’s best to use the minimum number that are required to specify a unique key.\n Note that having this property set and REPLICA IDENTITY set to DEFAULT on the tables, will cause the tombstone events to not be created properly if the key columns are not part of the primary key of the table. Setting REPLICA IDENTITY to FULL is the only solution.",
+    "name": "messageKeyColumns",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "An optional, comma-separated list of regular expressions that match the names of the logical decoding message prefixes that you do not want the connector to capture. When this property is set, the connector does not capture logical decoding messages that use the specified prefixes. All other messages are captured.\n\nTo exclude all logical decoding messages, set the value of this property to `.*`.\n\nTo match the name of a message prefix, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire message prefix string; the expression does not match substrings that might be present in a prefix.\n\nIf you include this property in the configuration, do not also set `messagePrefixIncludeList` property.\n\nFor information about the structure of message events and about their ordering semantics, see [message events](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-message-events).",
+    "name": "messagePrefixExcludeList",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "An optional, comma-separated list of regular expressions that match the names of the logical decoding message prefixes that you want the connector to capture. By default, the connector captures all logical decoding messages. When this property is set, the connector captures only logical decoding message with the prefixes specified by the property. All other logical decoding messages are excluded.\n\nTo match the name of a message prefix, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire message prefix string; the expression does not match substrings that might be present in a prefix.\n\nIf you include this property in the configuration, do not also set the `messagePrefixExcludeList` property.\n\nFor information about the structure of message events and about their ordering semantics, see [message events](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-message-events).",
+    "name": "messagePrefixIncludeList",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `2`. Specifies how many decimal digits should be used when converting Postgres money type to java.math.BigDecimal, which represents the values in change events. Applicable only when decimalHandlingMode is set to precise.",
+    "name": "moneyFractionDigits",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "List of notification channel names that are enabled for the connector. By default, the following channels are available: sink, log and jmx. Optionally, you can also implement a [custom notification channel](https://debezium.io/documentation/reference/stable/configuration/signalling.html#debezium-signaling-enabling-custom-signaling-channel).",
+    "name": "notificationEnabledChannels",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `pgoutput`. The name of the [PostgreSQL logical decoding plug-in](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-output-plugin) installed on the PostgreSQL server. Supported values are decoderbufs, and pgoutput.",
+    "name": "pluginName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `500`. Positive integer value that specifies the number of milliseconds the connector should wait for new change events to appear before it starts processing a batch of events. Defaults to 500 milliseconds.",
+    "name": "pollIntervalMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `false`. Determines whether the connector generates events with transaction boundaries and enriches change event envelopes with transaction metadata. Specify true if you want the connector to do this. For more information, see [Transaction metadata](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-transaction-metadata).",
+    "name": "provideTransactionMetadata",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `all_tables`. Applies only when streaming changes by using [the pgoutput plug-in](https://www.postgresql.org/docs/current/sql-createpublication.html). The setting determines how creation of a [publication](https://www.postgresql.org/docs/current/logical-replication-publication.html) should work. Specify one of the following values:\n\n* `all_tables` - If a publication exists, the connector uses it. If a publication does not exist, the connector creates a publication for all tables in the database for which the connector is capturing changes. For the connector to create a publication it must access the database through a database user account that has permission to create publications and perform replications. You grant the required permission by using the following SQL command CREATE PUBLICATION \u003cpublication_name\u003e FOR ALL TABLES;.\n* `disabled` - The connector does not attempt to create a publication. A database administrator or the user configured to perform replications must have created the publication before running the connector. If the connector cannot find the publication, the connector throws an exception and stops.\n* `filtered` - If a publication exists, the connector uses it. If no publication exists, the connector creates a new publication for tables that match the current filter configuration as specified by the schema include, schema exclude, table include and table exclude configuration properties. For example: `CREATE PUBLICATION \u003cpublication_name\u003e FOR TABLE \u003ctbl1, tbl2, tbl3\u003e`. If the publication exists, the connector updates the publication for tables that match the current filter configuration. For example: `ALTER PUBLICATION \u003cpublication_name\u003e SET TABLE \u003ctbl1, tbl2, tbl3\u003e`.\n* `no_tables` - If a publication exists, the connector uses it. If a publication does not exist, the connector creates a publication without specifying any table by running a SQL command in the following format: `CREATE PUBLICATION \u003cpublication_name\u003e;`. Set the `no_tables` option if you want the connector to capture only logical decoding messages, and not capture any other change events, such as those caused by INSERT, UPDATE, and DELETE operations on any table. If you select this option, to prevent the connector from emitting and processing READ events, you can specify names of schemas or tables for which you do not want to capture changes, for example, by using table exclude configuration or schema exclude configuration (like \"public.*\").",
+    "name": "publicationAutocreateMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default \u003cSGStream name\u003e.\u003cSGStream namespace\u003e (with all characters that are not `[a-zA-Z0-9]` changed to `_` character). The name of the PostgreSQL publication created for streaming changes when using pgoutput. This publication is created at start-up if it does not already exist and it includes all tables. Debezium then applies its own include/exclude list filtering, if configured, to limit the publication to change events for the specific tables of interest. The connector user must have superuser permissions to create this publication, so it is usually preferable to create the publication before starting the connector for the first time. If the publication already exists, either for all tables or configured with a subset of tables, Debezium uses the publication as it is defined.",
+    "name": "publicationName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `false`. Specifies how the connector captures and emits events for changes that it captures from partitioned tables. This setting applies only if the `publicationAutocreateMode` property is set to `all_tables` or `filtered`, and Debezium creates the publication for the captured tables.\n\nSet one of the following options:\n\n* `true` : The connector emits change events for all partitions to a topic with the name of the base table. When the connector creates a publication, it submits a `CREATE PUBLICATION` statement in which the publish_via_`partition_root parameter` is set to true. As a result, the publication ignores the partition in which changes originate, and only records the name of the source table.\n* `false`: The connector emits changes from each source partition to a topic that reflects the name of the partition. When the connector creates the publication, the `CREATE PUBLICATION` statement omits the `publish_via_partition_root parameter` so that the publication always uses the name of the source partition to publish change events.",
+    "name": "publishViaPartitionRoot",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. Specifies whether a connector writes watermarks to the signal data collection to track the progress of an incremental snapshot. Set the value to `true` to enable a connector that has a read-only connection to the database to use an incremental snapshot watermarking strategy that does not require writing to the signal data collection.",
+    "name": "readOnly",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "The setting determines the value for [replica identity](https://www.postgresql.org/docs/current/sql-altertable.html#SQL-ALTERTABLE-REPLICA-IDENTITY) at table level.\n  This option will overwrite the existing value in database. A comma-separated list of regular expressions that match fully-qualified tables and replica identity value to be used in the table.\n  Each expression must match the pattern '\u003cfully-qualified table name\u003e:\u003creplica identity\u003e', where the table name could be defined as (SCHEMA_NAME.TABLE_NAME), and the replica identity values are:\n  DEFAULT - Records the old values of the columns of the primary key, if any. This is the default for non-system tables.\n  INDEX index_name - Records the old values of the columns covered by the named index, that must be unique, not partial, not deferrable, and include only columns marked NOT NULL. If this index is dropped, the behavior is the same as NOTHING.\n  FULL - Records the old values of all columns in the row.\n  NOTHING - Records no information about the old row. This is the default for system tables.\n  For example,\n  schema1.*:FULL,schema2.table2:NOTHING,schema2.table3:INDEX idx_name",
+    "name": "replicaIdentityAutosetValues",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `10000` (10 seconds). The number of milliseconds to wait before restarting a connector after a retriable error occurs.",
+    "name": "retriableRestartConnectorWaitMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `none`. Specifies how schema names should be adjusted for compatibility with the message converter used by the connector. Possible settings:\n\n* `none` does not apply any adjustment.\n* `avro` replaces the characters that cannot be used in the Avro type name with underscore.\n* `avro_unicode` replaces the underscore or characters that cannot be used in the Avro type name with corresponding unicode like _uxxxx. Note: _ is an escape sequence like backslash in Java",
+    "name": "schemaNameAdjustmentMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `columns_diff`. Specify the conditions that trigger a refresh of the in-memory schema for a table.\n\n* `columns_diff`: is the safest mode. It ensures that the in-memory schema stays in sync with the database table’s schema at all times.\n* `columns_diff_exclude_unchanged_toast`: instructs the connector to refresh the in-memory schema cache if there is a discrepancy with the schema derived from the incoming message, unless unchanged TOASTable data fully accounts for the discrepancy.\n\nThis setting can significantly improve connector performance if there are frequently-updated tables that have TOASTed data that are rarely part of updates. However, it is possible for the in-memory schema to become outdated if TOASTable columns are dropped from the table.",
+    "name": "schemaRefreshMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Fully-qualified name of the data collection that is used to send signals to the connector. Use the following format to specify the collection name: \u003cschemaName\u003e.\u003ctableName\u003e",
+    "name": "signalDataCollection",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `[sgstream-annotations]`. List of the signaling channel names that are enabled for the connector. By default, the following channels are available: sgstream-annotations, source, kafka, file and jmx. Optionally, you can also implement a [custom signaling channel](https://debezium.io/documentation/reference/stable/configuration/signalling.html#debezium-signaling-enabling-custom-signaling-channel).",
+    "name": "signalEnabledChannels",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `false`. Specifies whether to skip publishing messages when there is no change in included columns. This would essentially filter messages if there is no change in columns included as per includes or excludes fields. Note: Only works when REPLICA IDENTITY of the table is set to FULL",
+    "name": "skipMessagesWithoutChange",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `none`. A list of operation types that will be skipped during streaming.\n\nThe operations include: \n* `c` for inserts/create\n* `u` for updates\n* `d` for deletes\n* `t` for truncates\n* `none` to not skip any operations. By default, no operations are skipped.",
+    "name": "skippedOperations",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `true`. Whether or not to delete the logical replication slot when the connector stops in a graceful, expected way. The default behavior is that the replication slot remains configured for the connector when the connector stops. When the connector restarts, having the same replication slot enables the connector to start processing where it left off. Set to true in only testing or development environments. Dropping the slot allows the database to discard WAL segments. When the connector restarts it performs a new snapshot or it can continue from a persistent offset in the target offsets topic.",
+    "name": "slotDropOnStop",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. Specifies whether the connector creates a failover slot. If you omit this setting, or if the primary server runs PostgreSQL 16 or earlier, the connector does not create a failover slot.\n\nPostgreSQL uses the `synchronized_standby_slots` parameter to configure replication slot synchronization between primary and standby servers. Set this parameter on the primary server to specify the physical replication slots that it synchronizes with on standby servers.",
+    "name": "slotFailover",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `6`. If connecting to a replication slot fails, this is the maximum number of consecutive attempts to connect.",
+    "name": "slotMaxRetries",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default \u003cSGStream namespace\u003e.\u003cSGStream name\u003e (with all characters that are not `[a-zA-Z0-9]` changed to `_` character). The name of the PostgreSQL logical decoding slot that was created for streaming changes from a particular plug-in for a particular database/schema. The server uses this slot to stream events to the Debezium connector that you are configuring.\n\nSlot names must conform to [PostgreSQL replication slot naming rules](https://www.postgresql.org/docs/current/static/warm-standby.html#STREAMING-REPLICATION-SLOTS-MANIPULATION), which state: \"Each replication slot has a name, which can contain lower-case letters, numbers, and the underscore character.\"",
+    "name": "slotName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `10000` (10 seconds). The number of milliseconds to wait between retry attempts when the connector fails to connect to a replication slot.",
+    "name": "slotRetryDelayMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Parameters to pass to the configured logical decoding plug-in. For example:\n\n\n```\n\nslotStreamParams:\n  add-tables: \"public.table,public.table2\"\n  include-lsn: \"true\"\n\n```",
+    "name": "slotStreamParams",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "An interval in milliseconds that the connector should wait before performing a snapshot when the connector starts. If you are starting multiple connectors in a cluster, this property is useful for avoiding snapshot interruptions, which might cause re-balancing of connectors.",
+    "name": "snapshotDelayMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `10240`. During a snapshot, the connector reads table content in batches of rows. This property specifies the maximum number of rows in a batch.",
+    "name": "snapshotFetchSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default \u003cAll tables / All tables filtered in `includes` field / All tables that are not filtered out in `excludes` field\u003e. An optional, list of regular expressions that match the fully-qualified names (\u003cschemaName\u003e.\u003ctableName\u003e) of the tables to include in a snapshot. The specified items must be named in the connector’s table.include.list property. This property takes effect only if the connector’s snapshotMode property is set to a value other than `never`. This property does not affect the behavior of incremental snapshots.\n   To match the name of a table, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the table; it does not match substrings that might be present in a table name.",
+    "name": "snapshotIncludeCollectionList",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `serializable`. Specifies the transaction isolation level and the type of locking, if any, that the connector applies when it reads data during an initial snapshot or ad hoc blocking snapshot.\n\nEach isolation level strikes a different balance between optimizing concurrency and performance on the one hand, and maximizing data consistency and accuracy on the other. Snapshots that use stricter isolation levels result in higher quality, more consistent data, but the cost of the improvement is decreased performance due to longer lock times and fewer concurrent transactions. Less restrictive isolation levels can increase efficiency, but at the expense of inconsistent data. For more information about transaction isolation levels in PostgreSQL, see the [PostgreSQL documentation](https://www.postgresql.org/docs/current/transaction-iso.html).\n\nSpecify one of the following isolation levels:\n\n* `serializable`: The default, and most restrictive isolation level. This option prevents serialization anomalies and provides the highest degree of data integrity. To ensure the data consistency of captured tables, a snapshot runs in a transaction that uses a repeatable read isolation level, blocking concurrent DDL changes on the tables, and locking the database to index creation. When this option is set, users or administrators cannot perform certain operations, such as creating a table index, until the snapshot concludes. The entire range of table keys remains locked until the snapshot completes. This option matches the snapshot behavior that was available in the connector before the introduction of this property.\n* `repeatable_read`: Prevents other transactions from updating table rows during the snapshot. New records captured by the snapshot can appear twice; first, as part of the initial snapshot, and then again in the streaming phase. However, this level of consistency is tolerable for database mirroring. Ensures data consistency between the tables being scanned and blocking DDL on the selected tables, and concurrent index creation throughout the database. Allows for serialization anomalies.\n* `read_committed`: In PostgreSQL, there is no difference between the behavior of the Read Uncommitted and Read Committed isolation modes. As a result, for this property, the read_committed option effectively provides the least restrictive level of isolation. Setting this option sacrifices some consistency for initial and ad hoc blocking snapshots, but provides better database performance for other users during the snapshot. In general, this transaction consistency level is appropriate for data mirroring. Other transactions cannot update table rows during the snapshot. However, minor data inconsistencies can occur when a record is added during the initial snapshot, and the connector later recaptures the record after the streaming phase begins.\n* `read_uncommitted`: Nominally, this option offers the least restrictive level of isolation. However, as explained in the description for the read-committed option, for the Debezium PostgreSQL connector, this option provides the same level of isolation as the read_committed option.",
+    "name": "snapshotIsolationMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `10000`. Positive integer value that specifies the maximum amount of time (in milliseconds) to wait to obtain table locks when performing a snapshot. If the connector cannot acquire table locks in this time interval, the snapshot fails. [How the connector performs snapshots](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-snapshots) provides details.",
+    "name": "snapshotLockTimeoutMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `none`. Specifies how the connector holds locks on tables while performing a schema snapshot. Set one of the following options:\n\n* `shared`: The connector holds a table lock that prevents exclusive table access during the initial portion phase of the snapshot in which database schemas and other metadata are read. After the initial phase, the snapshot no longer requires table locks.\n* `none`: The connector avoids locks entirely. Do not use this mode if schema changes might occur during the snapshot.\n\n\u003e *WARNING*: Do not use this mode if schema changes might occur during the snapshot.\n\n* `custom`: The connector performs a snapshot according to the implementation specified by the snapshotLockingModeCustomName property, which is a custom implementation of the io.debezium.spi.snapshot.SnapshotLock interface.",
+    "name": "snapshotLockingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "When snapshotLockingMode is set to custom, use this setting to specify the name of the custom implementation provided in the name() method that is defined by the 'io.debezium.spi.snapshot.SnapshotLock' interface. For more information, see [custom snapshotter SPI](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#connector-custom-snapshot).",
+    "name": "snapshotLockingModeCustomName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `1`. Specifies the number of threads that the connector uses when performing an initial snapshot. To enable parallel initial snapshots, set the property to a value greater than 1. In a parallel initial snapshot, the connector processes multiple tables concurrently. This feature is incubating.",
+    "name": "snapshotMaxThreads",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `initial`. Specifies the criteria for performing a snapshot when the connector starts:\n\n* `always` - The connector performs a snapshot every time that it starts. The snapshot includes the structure and data of the captured tables. Specify this value to populate topics with a complete representation of the data from the captured tables every time that the connector starts. After the snapshot completes, the connector begins to stream event records for subsequent database changes.\n* `initial` - The connector performs a snapshot only when no offsets have been recorded for the logical server name.\n* `initial_only` - The connector performs an initial snapshot and then stops, without processing any subsequent changes.\n* `no_data` - The connector never performs snapshots. When a connector is configured this way, after it starts, it behaves as follows: If there is a previously stored LSN in the offsets topic, the connector continues streaming changes from that position. If no LSN is stored, the connector starts streaming changes from the point in time when the PostgreSQL logical replication slot was created on the server. Use this snapshot mode only when you know all data of interest is still reflected in the WAL.\n* `never` - Deprecated see no_data.\n* `when_needed` - After the connector starts, it performs a snapshot only if it detects one of the following circumstances: \n  It cannot detect any topic offsets.\n  A previously recorded offset specifies a log position that is not available on the server.\n* `configuration_based` - With this option, you control snapshot behavior through a set of connector properties that have the prefix 'snapshotModeConfigurationBased'.\n* `custom` - The connector performs a snapshot according to the implementation specified by the snapshotModeCustomName property, which defines a custom implementation of the io.debezium.spi.snapshot.Snapshotter interface.\n\nFor more information, see the [table of snapshot.mode options](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-connector-snapshot-mode-options).",
+    "name": "snapshotMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, set this property to specify whether the connector includes table data when it performs a snapshot.",
+    "name": "snapshotModeConfigurationBasedSnapshotData",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, this property specifies whether the connector attempts to snapshot table data if it does not find the last committed offset in the transaction log. Set the value to true to instruct the connector to perform a new snapshot.",
+    "name": "snapshotModeConfigurationBasedSnapshotOnDataError",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, set this property to specify whether the connector includes table schema in a snapshot if the schema history topic is not available.",
+    "name": "snapshotModeConfigurationBasedSnapshotOnSchemaError",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, set this property to specify whether the connector includes the table schema when it performs a snapshot.",
+    "name": "snapshotModeConfigurationBasedSnapshotSchema",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, set this property to specify whether the connector begins to stream change events after a snapshot completes.",
+    "name": "snapshotModeConfigurationBasedStartStream",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "When snapshotMode is set as custom, use this setting to specify the name of the custom implementation provided in the name() method that is defined by the 'io.debezium.spi.snapshot.Snapshotter' interface. The provided implementation is called after a connector restart to determine whether to perform a snapshot. For more information, see [custom snapshotter SPI](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#connector-custom-snapshot).",
+    "name": "snapshotModeCustomName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `select_all`. Specifies how the connector queries data while performing a snapshot. Set one of the following options:\n\n* `select_all`: The connector performs a select all query by default, optionally adjusting the columns selected based on the column include and exclude list configurations.\n* `custom`: The connector performs a snapshot query according to the implementation specified by the snapshotQueryModeCustomName property, which defines a custom implementation of the io.debezium.spi.snapshot.SnapshotQuery interface. This setting enables you to manage snapshot content in a more flexible manner compared to using the snapshotSelectStatementOverrides property.",
+    "name": "snapshotQueryMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "When snapshotQueryMode is set as custom, use this setting to specify the name of the custom implementation provided in the name() method that is defined by the 'io.debezium.spi.snapshot.SnapshotQuery' interface. For more information, see [custom snapshotter SPI](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#connector-custom-snapshot).",
+    "name": "snapshotQueryModeCustomName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Specifies the table rows to include in a snapshot. Use the property if you want a snapshot to include only a subset of the rows in a table. This property affects snapshots only. It does not apply to events that the connector reads from the log.\n The property contains a hierarchy of fully-qualified table names in the form \u003cschemaName\u003e.\u003ctableName\u003e. For example,\n\n\n```\n\nsnapshotSelectStatementOverrides: \n  \"customers.orders\": \"SELECT * FROM [customers].[orders] WHERE delete_flag = 0 ORDER BY id DESC\"\n\n```\n\n\nIn the resulting snapshot, the connector includes only the records for which delete_flag = 0.",
+    "name": "snapshotSelectStatementOverrides",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "Default `10000`. Frequency for sending replication connection status updates to the server, given in milliseconds. The property also controls how frequently the database status is checked to detect a dead connection in case the database was shut down.",
+    "name": "statusUpdateIntervalMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Specifies the time, in milliseconds, that the connector delays the start of the streaming process after it completes a snapshot. Setting a delay interval helps to prevent the connector from restarting snapshots in the event that a failure occurs immediately after the snapshot completes, but before the streaming process begins. Set a delay value that is higher than the value of the `offsetFlushIntervalMs` property that is set for the Kafka Connect worker.",
+    "name": "streamingDelayMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `adaptive`. Time, date, and timestamps can be represented with different kinds of precision:\n\n* `adaptive`: captures the time and timestamp values exactly as in the database using either millisecond, microsecond, or nanosecond precision values based on the database column’s type.\n* `adaptive_time_microseconds`: captures the date, datetime and timestamp values exactly as in the database using either millisecond, microsecond, or nanosecond precision values based on the database column’s type. An exception is TIME type fields, which are always captured as microseconds.\n* `connect`: always represents time and timestamp values by using Kafka Connect’s built-in representations for Time, Date, and Timestamp, which use millisecond precision regardless of the database columns' precision. For more information, see [temporal values](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-temporal-types).",
+    "name": "timePrecisionMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. Controls whether a delete event is followed by a tombstone event.\n\n* `true` - a delete operation is represented by a delete event and a subsequent tombstone event.\n* `false` - only a delete event is emitted.\n\nAfter a source record is deleted, emitting a tombstone event (the default behavior) allows to completely delete all events that pertain to the key of the deleted row in case [log compaction](https://kafka.apache.org/documentation/#compaction) is enabled for the topic.",
+    "name": "tombstonesOnDelete",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `10000`. The size used for holding the topic names in bounded concurrent hash map. This cache will help to determine the topic name corresponding to a given data collection.",
+    "name": "topicCacheSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `.`. Specify the delimiter for topic name, defaults to \".\".",
+    "name": "topicDelimiter",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `__debezium-heartbeat`. Controls the name of the topic to which the connector sends heartbeat messages. For example, if the topic prefix is fulfillment, the default topic name is __debezium-heartbeat.fulfillment.",
+    "name": "topicHeartbeatPrefix",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `io.debezium.schema.SchemaTopicNamingStrategy`. The name of the TopicNamingStrategy class that should be used to determine the topic name for data change, schema change, transaction, heartbeat event etc., defaults to SchemaTopicNamingStrategy.",
+    "name": "topicNamingStrategy",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `transaction`. Controls the name of the topic to which the connector sends transaction metadata messages. For example, if the topic prefix is fulfillment, the default topic name is fulfillment.transaction.",
+    "name": "topicTransaction",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `__debezium_unavailable_value`. Specifies the constant that the connector provides to indicate that the original value is a toasted value that is not provided by the database. If the setting of unavailable.value.placeholder starts with the hex: prefix it is expected that the rest of the string represents hexadecimally encoded octets. For more information, see [toasted values](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-toasted-values).",
+    "name": "unavailableValuePlaceholder",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `0`. How often, in milliseconds, the XMIN will be read from the replication slot. The XMIN value provides the lower bounds of where a new replication slot could start from. The default value of 0 disables XMIN tracking.",
+    "name": "xminFetchIntervalMs",
+    "required": false,
+    "type": "integer"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.source.postgres.password
+<sup><sup>[↩ Parent](#sgstreamspecsourcepostgres)</sup></sup>
+
+The password used by the CDC process to connect to the database.
+
+If not specified the default superuser password will be used.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The Secret key where the password is stored.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "The Secret name where the password is stored.",
+    "name": "name",
+    "required": true,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.source.postgres.username
+<sup><sup>[↩ Parent](#sgstreamspecsourcepostgres)</sup></sup>
+
+The username used by the CDC process to connect to the database.
+
+If not specified the default superuser username (by default postgres) will be used.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The Secret key where the username is stored.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "The Secret name where the username is stored.",
+    "name": "name",
+    "required": true,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.source.sgCluster
+<sup><sup>[↩ Parent](#sgstreamspecsource)</sup></sup>
+
+The configuration of the data source required when type is `SGCluster`.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The target SGCluster name.",
+    "name": "name",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "The target database name to which the CDC process will connect to.\n\nIf not specified the default postgres database will be targeted.",
+    "name": "database",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspecsourcesgclusterdebeziumproperties",
+    "description": "Specific property of the debezium Postgres connector.\n\nSee https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-connector-properties\n\nEach property is converted from myPropertyName to my.property.name",
+    "name": "debeziumProperties",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "A list of regular expressions that allow matching one or more `\u003cschema\u003e.\u003ctable\u003e.\u003ccolumn\u003e` entries to be filtered out before sending to the target.\n\nThis property is mutually exclusive with `includes`.",
+    "name": "excludes",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "A list of regular expressions that allow matching one or more `\u003cschema\u003e.\u003ctable\u003e.\u003ccolumn\u003e` entries to be filtered before sending to the target.\n\nThis property is mutually exclusive with `excludes`.",
+    "name": "includes",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "anchor": "sgstreamspecsourcesgclusterpassword",
+    "description": "The password used by the CDC process to connect to the database.\n\nIf not specified the default superuser password will be used.",
+    "name": "password",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "When set to `true` replication slot and publication will not be dropped after receiving the tombstone signal.",
+    "name": "skipDropReplicationSlotAndPublicationOnTombstone",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "anchor": "sgstreamspecsourcesgclusterusername",
+    "description": "The username used by the CDC process to connect to the database.\n\nIf not specified the default superuser username (by default postgres) will be used.",
+    "name": "username",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.source.sgCluster.debeziumProperties
+<sup><sup>[↩ Parent](#sgstreamspecsourcesgcluster)</sup></sup>
+
+Specific property of the debezium Postgres connector.
+
+See https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-connector-properties
+
+Each property is converted from myPropertyName to my.property.name
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Default `bytes`. Specifies how binary (bytea) columns should be represented in change events:\n\n* `bytes` represents binary data as byte array.\n* `base64` represents binary data as base64-encoded strings.\n* `base64-url-safe` represents binary data as base64-url-safe-encoded strings.\n* `hex` represents binary data as hex-encoded (base16) strings.",
+    "name": "binaryHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "An optional section, that allows specifying, for a hash algorithm and a salt, a list of regular expressions that match the fully-qualified names of character-based columns. Fully-qualified names for columns are of the form \u003cschemaName\u003e.\u003ctableName\u003e.\u003ccolumnName\u003e.\n To match the name of a column Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the column; the expression does not match substrings that might be present in a column name. In the resulting change event record, the values for the specified columns are replaced with pseudonyms.\n A pseudonym consists of the hashed value that results from applying the specified hashAlgorithm and salt. Based on the hash function that is used, referential integrity is maintained, while column values are replaced with pseudonyms. Supported hash functions are described in the [MessageDigest section](https://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#MessageDigest) of the Java Cryptography Architecture Standard Algorithm Name Documentation.\n In the following example, CzQMA0cB5K is a randomly selected salt.\n columnMaskHash.SHA-256.CzQMA0cB5K=[inventory.orders.customerName,inventory.shipment.customerName]\n If necessary, the pseudonym is automatically shortened to the length of the column. The connector configuration can include multiple properties that specify different hash algorithms and salts.\n Depending on the hash algorithm used, the salt selected, and the actual data set, the resulting data set might not be completely masked.\n \n The hash algorithm (e.g. SHA-256) type and configuration.",
+    "name": "columnMaskHash",
+    "required": false,
+    "type": "map[string]map[string][]string"
+  },
+  {
+    "description": "Similar to columnMaskHash but using hashing strategy version 2.\n Hashing strategy version 2 should be used to ensure fidelity if the value is being hashed in different places or systems.\n\nThe hash algorithm (e.g. SHA-256) type and configuration.",
+    "name": "columnMaskHashV2",
+    "required": false,
+    "type": "map[string]map[string][]string"
+  },
+  {
+    "description": "An optional, list of regular expressions that match the fully-qualified names of character-based columns. Set this property if you want the connector to mask the values for a set of columns, for example, if they contain sensitive data. Set length to a positive integer to replace data in the specified columns with the number of asterisk (*) characters specified by the length in the property name. Set length to 0 (zero) to replace data in the specified columns with an empty string.\n The fully-qualified name of a column observes the following format: schemaName.tableName.columnName.\n To match the name of a column, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the column; the expression does not match substrings that might be present in a column name.\n You can specify multiple properties with different lengths in a single configuration.",
+    "name": "columnMaskWithLengthChars",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `[.*]`. An optional, list of regular expressions that match the fully-qualified names of columns for which you want the connector to emit extra parameters that represent column metadata. When this property is set, the connector adds the following fields to the schema of event records:\n\n* `__debezium.source.column.type`\n* `__debezium.source.column.length`\n* `__debezium.source.column.scale`\n\nThese parameters propagate a column’s original type name and length (for variable-width types), respectively.\n Enabling the connector to emit this extra data can assist in properly sizing specific numeric or character-based columns in sink databases.\n The fully-qualified name of a column observes one of the following formats: databaseName.tableName.columnName, or databaseName.schemaName.tableName.columnName.\n To match the name of a column, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the column; the expression does not match substrings that might be present in a column name.",
+    "name": "columnPropagateSourceType",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "An optional, list of regular expressions that match the fully-qualified names of character-based columns. Set this property if you want to truncate the data in a set of columns when it exceeds the number of characters specified by the length in the property name. Set length to a positive integer value, for example, column.truncate.to.20.chars.\n The fully-qualified name of a column observes the following format: \u003cschemaName\u003e.\u003ctableName\u003e.\u003ccolumnName\u003e.\n To match the name of a column, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the column; the expression does not match substrings that might be present in a column name.\n You can specify multiple properties with different lengths in a single configuration.",
+    "name": "columnTruncateToLengthChars",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Enumerates a comma-separated list of the symbolic names of the [custom converter](https://debezium.io/documentation/reference/stable/development/converters.html#custom-converters) instances that the connector can use. For example,\n\n\n```\n\nisbn:\n  type: io.debezium.test.IsbnConverter\n  schemaName: io.debezium.postgresql.type.Isbn\n\n```\n\n\nYou must set the converters property to enable the connector to use a custom converter.\n For each converter that you configure for a connector, you must also add a .type property, which specifies the fully-qualified name of the class that implements the converter interface.\nIf you want to further control the behavior of a configured converter, you can add one or more configuration parameters to pass values to the converter. To associate any additional configuration parameter with a converter, prefix the parameter names with the symbolic name of the converter.\n Each property is converted from myPropertyName to my.property.name",
+    "name": "converters",
+    "required": false,
+    "type": "map[string]map[string]string"
+  },
+  {
+    "description": "The custom metric tags will accept key-value pairs to customize the MBean object name which should be appended the end of regular name, each key would represent a tag for the MBean object name, and the corresponding value would be the value of that tag the key is. For example:\n\n\n```\n\ncustomMetricTags:\n  k1: v1\n  k2: v2\n\n```",
+    "name": "customMetricTags",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "A list of SQL statements that the connector executes when it establishes a JDBC connection to the database.\n The connector may establish JDBC connections at its own discretion. Consequently, this property is useful for configuration of session parameters only, and not for executing DML statements.\n The connector does not execute these statements when it creates a connection for reading the transaction log.",
+    "name": "databaseInitialStatements",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `0`. Specifies the time, in milliseconds, that the connector waits for a query to complete. Set the value to 0 (zero) to remove the timeout limit.",
+    "name": "databaseQueryTimeoutMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `[.*]`. An optional, list of regular expressions that specify the fully-qualified names of data types that are defined for columns in a database. When this property is set, for columns with matching data types, the connector emits event records that include the following extra fields in their schema:\n\n* `__debezium.source.column.type`\n* `__debezium.source.column.length`\n* `__debezium.source.column.scale`\n\nThese parameters propagate a column’s original type name and length (for variable-width types), respectively.\n Enabling the connector to emit this extra data can assist in properly sizing specific numeric or character-based columns in sink databases.\n The fully-qualified name of a column observes one of the following formats: databaseName.tableName.typeName, or databaseName.schemaName.tableName.typeName.\n To match the name of a data type, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the data type; the expression does not match substrings that might be present in a type name.\n For the list of PostgreSQL-specific data type names, see the [PostgreSQL data type mappings](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-data-types).",
+    "name": "datatypePropagateSourceType",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `precise`. Specifies how the connector should handle values for DECIMAL and NUMERIC columns:\n\n* `precise`: represents values by using java.math.BigDecimal to represent values in binary form in change events.\n* `double`: represents values by using double values, which might result in a loss of precision but which is easier to use.\n* `string`: encodes values as formatted strings, which are easy to consume but semantic information about the real type is lost. For more information, see [Decimal types](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-decimal-types).",
+    "name": "decimalHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `-1`. Specifies how the connector responds after an operation that results in a retriable error, such as a connection error.\n\nSet one of the following options:\n\n* `-1`: No limit. The connector always restarts automatically, and retries the operation, regardless of the number of previous failures.\n* `0`: Disabled. The connector fails immediately, and never retries the operation. User intervention is required to restart the connector.\n* `\u003e 0`: The connector restarts automatically until it reaches the specified maximum number of retries. After the next failure, the connector stops, and user intervention is required to restart it.",
+    "name": "errorsMaxRetries",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `fail`. Specifies how the connector should react to exceptions during processing of events:\n\n* `fail`: propagates the exception, indicates the offset of the problematic event, and causes the connector to stop.\n* `warn`: logs the offset of the problematic event, skips that event, and continues processing.\n* `skip`: skips the problematic event and continues processing.",
+    "name": "eventProcessingFailureHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. This property specifies whether Debezium adds context headers with the prefix `__debezium.context.` to the messages that it emits.\nThese headers are required by the OpenLineage integration and provide metadata that enables downstream processing systems to track and identify the sources of change events.\n\nThe property adds following headers:\n\n* `__debezium.context.connectorLogicalName`: The logical name of the Debezium connector.\n* `__debezium.context.taskId`: The unique identifier of the connector task.\n* `__debezium.context.connectorName`: The name of the Debezium connector.",
+    "name": "extendedHeadersEnabled",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `none`. Specifies how field names should be adjusted for compatibility with the message converter used by the connector. Possible settings:\n\n* `none` does not apply any adjustment.\n* `avro` replaces the characters that cannot be used in the Avro type name with underscore.\n* `avro_unicode` replaces the underscore or characters that cannot be used in the Avro type name with corresponding unicode like _uxxxx. Note: _ is an escape sequence like backslash in Java\n\nFor more information, see [Avro naming](https://debezium.io/documentation/reference/stable/configuration/avro.html#avro-naming).",
+    "name": "fieldNameAdjustmentMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. Determines whether the connector should commit the LSN of the processed records in the source postgres database so that the WAL logs can be deleted. Specify false if you don’t want the connector to do this. Please note that if set to false LSN will not be acknowledged by Debezium and as a result WAL logs will not be cleared which might result in disk space issues. User is expected to handle the acknowledgement of LSN outside Debezium.",
+    "name": "flushLsnSource",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `warn`. Specifies the action to trigger if the number of tables that the connector captures exceeds the number that you specify in the `guardrailCollectionsMax` property. Set the property to one of the following values:\n\n* `fail`: The connector fails and reports an exception.\n* `warn`: The connector logs a warning.",
+    "name": "guardrailCollectionsLimitAction",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `0`. Specifies the maximum number of tables that the connector can capture. Exceeding this limit triggers the action specified by `guardrailCollectionsLimitAction`. Set this property to 0 to prevent the connector from triggering guardrail actions.",
+    "name": "guardrailCollectionsMax",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Specifies a query that the connector executes on the source database when the connector sends a heartbeat message.\n This is useful for resolving the situation described in [WAL disk space consumption](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-wal-disk-space), where capturing changes from a low-traffic database on the same host as a high-traffic database prevents Debezium from processing WAL records and thus acknowledging WAL positions with the database. To address this situation, create a heartbeat table in the low-traffic database, and set this property to a statement that inserts records into that table, for example:\n\n \n```\n\n INSERT INTO test_heartbeat_table (text) VALUES ('test_heartbeat')\n \n```\n\n \n This allows the connector to receive changes from the low-traffic database and acknowledge their LSNs, which prevents unbounded WAL growth on the database host.",
+    "name": "heartbeatActionQuery",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `0`. Controls how frequently the connector sends heartbeat messages to a target topic. The default behavior is that the connector does not send heartbeat messages.\n Heartbeat messages are useful for monitoring whether the connector is receiving change events from the database. Heartbeat messages might help decrease the number of change events that need to be re-sent when a connector restarts. To send heartbeat messages, set this property to a positive integer, which indicates the number of milliseconds between heartbeat messages.\n Heartbeat messages are needed when there are many updates in a database that is being tracked but only a tiny number of updates are related to the table(s) and schema(s) for which the connector is capturing changes. In this situation, the connector reads from the database transaction log as usual but rarely emits change records to target. This means that no offset updates are committed to target and the connector does not have an opportunity to send the latest retrieved LSN to the database. The database retains WAL files that contain events that have already been processed by the connector. Sending heartbeat messages enables the connector to send the latest retrieved LSN to the database, which allows the database to reclaim disk space being used by no longer needed WAL files.",
+    "name": "heartbeatIntervalMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `json`. Specifies how the connector should handle values for hstore columns:\n\n* `map`: represents values by using MAP.\n* `json`: represents values by using json string. This setting encodes values as formatted strings such as {\"key\" : \"val\"}. For more information, see [PostgreSQL HSTORE type](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-hstore-type).",
+    "name": "hstoreHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. Specifies connector behavior when the connector encounters a field whose data type is unknown. The default behavior is that the connector omits the field from the change event and logs a warning.\n Set this property to true if you want the change event to contain an opaque binary representation of the field. This lets consumers decode the field. You can control the exact representation by setting the binaryHandlingMode property.\n\u003e *NOTE*: Consumers risk backward compatibility issues when `includeUnknownDatatypes` is set to `true`. Not only may the database-specific binary representation change between releases, but if the data type is eventually supported by Debezium, the data type will be sent downstream in a logical type, which would require adjustments by consumers. In general, when encountering unsupported data types, create a feature request so that support can be added.",
+    "name": "includeUnknownDatatypes",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `1024`. The maximum number of rows that the connector fetches and reads into memory during an incremental snapshot chunk. Increasing the chunk size provides greater efficiency, because the snapshot runs fewer snapshot queries of a greater size. However, larger chunk sizes also require more memory to buffer the snapshot data. Adjust the chunk size to a value that provides the best performance in your environment.",
+    "name": "incrementalSnapshotChunkSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `insert_insert`. Specifies the watermarking mechanism that the connector uses during an incremental snapshot to deduplicate events that might be captured by an incremental snapshot and then recaptured after streaming resumes.\n\nYou can specify one of the following options:\n\n* `insert_insert`: When you send a signal to initiate an incremental snapshot, for every chunk that Debezium reads during the snapshot, it writes an entry to the signaling data collection to record the signal to open the snapshot window. After the snapshot completes, Debezium inserts a second entry to record the closing of the window.\n* `insert_delete`: When you send a signal to initiate an incremental snapshot, for every chunk that Debezium reads, it writes a single entry to the signaling data collection to record the signal to open the snapshot window. After the snapshot completes, this entry is removed. No entry is created for the signal to close the snapshot window. Set this option to prevent rapid growth of the signaling data collection.",
+    "name": "incrementalSnapshotWatermarkingStrategy",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `numeric`. Specifies how the connector should handle values for interval columns:\n\n * `numeric`: represents intervals using approximate number of microseconds.\n * `string`: represents intervals exactly by using the string pattern representation P\u003cyears\u003eY\u003cmonths\u003eM\u003cdays\u003eDT\u003chours\u003eH\u003cminutes\u003eM\u003cseconds\u003eS. For example: P1Y2M3DT4H5M6.78S. For more information, see [PostgreSQL basic types](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-basic-types).",
+    "name": "intervalHandlingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `2048`. Positive integer value that specifies the maximum size of each batch of events that the connector processes.",
+    "name": "maxBatchSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `8192`. Positive integer value that specifies the maximum number of records that the blocking queue can hold. When Debezium reads events streamed from the database, it places the events in the blocking queue before it writes/sends them. The blocking queue can provide backpressure for reading change events from the database in cases where the connector ingests messages faster than it can write / send them, or when target becomes unavailable. Events that are held in the queue are disregarded when the connector periodically records offsets. Always set the value of maxQueueSize to be larger than the value of maxBatchSize.",
+    "name": "maxQueueSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `0`. A long integer value that specifies the maximum volume of the blocking queue in bytes. By default, volume limits are not specified for the blocking queue. To specify the number of bytes that the queue can consume, set this property to a positive long value.\n If maxQueueSize is also set, writing to the queue is blocked when the size of the queue reaches the limit specified by either property. For example, if you set maxQueueSize=1000, and maxQueueSizeInBytes=5000, writing to the queue is blocked after the queue contains 1000 records, or after the volume of the records in the queue reaches 5000 bytes.",
+    "name": "maxQueueSizeInBytes",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "A list of expressions that specify the columns that the connector uses to form custom message keys for change event records that are published to the topics for specified tables.\n By default, Debezium uses the primary key column of a table as the message key for records that it emits. In place of the default, or to specify a key for tables that lack a primary key, you can configure custom message keys based on one or more columns.\n To establish a custom message key for a table, list the table, followed by the columns to use as the message key. Each list entry takes the following format:\n \u003cfully-qualified_tableName\u003e:\u003ckeyColumn\u003e,\u003ckeyColumn\u003e\n To base a table key on multiple column names, insert commas between the column names.\n Each fully-qualified table name is a regular expression in the following format:\n \u003cschemaName\u003e.\u003ctableName\u003e\n The property can include entries for multiple tables. Use a semicolon to separate table entries in the list.\n The following example sets the message key for the tables inventory.customers and purchase.orders:\n inventory.customers:pk1,pk2;(.*).purchaseorders:pk3,pk4\n For the table inventory.customer, the columns pk1 and pk2 are specified as the message key. For the purchaseorders tables in any schema, the columns pk3 and pk4 serve as the message key.\n There is no limit to the number of columns that you use to create custom message keys. However, it’s best to use the minimum number that are required to specify a unique key.\n Note that having this property set and REPLICA IDENTITY set to DEFAULT on the tables, will cause the tombstone events to not be created properly if the key columns are not part of the primary key of the table. Setting REPLICA IDENTITY to FULL is the only solution.",
+    "name": "messageKeyColumns",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "An optional, comma-separated list of regular expressions that match the names of the logical decoding message prefixes that you do not want the connector to capture. When this property is set, the connector does not capture logical decoding messages that use the specified prefixes. All other messages are captured.\n\nTo exclude all logical decoding messages, set the value of this property to `.*`.\n\nTo match the name of a message prefix, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire message prefix string; the expression does not match substrings that might be present in a prefix.\n\nIf you include this property in the configuration, do not also set `messagePrefixIncludeList` property.\n\nFor information about the structure of message events and about their ordering semantics, see [message events](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-message-events).",
+    "name": "messagePrefixExcludeList",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "An optional, comma-separated list of regular expressions that match the names of the logical decoding message prefixes that you want the connector to capture. By default, the connector captures all logical decoding messages. When this property is set, the connector captures only logical decoding message with the prefixes specified by the property. All other logical decoding messages are excluded.\n\nTo match the name of a message prefix, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire message prefix string; the expression does not match substrings that might be present in a prefix.\n\nIf you include this property in the configuration, do not also set the `messagePrefixExcludeList` property.\n\nFor information about the structure of message events and about their ordering semantics, see [message events](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-message-events).",
+    "name": "messagePrefixIncludeList",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `2`. Specifies how many decimal digits should be used when converting Postgres money type to java.math.BigDecimal, which represents the values in change events. Applicable only when decimalHandlingMode is set to precise.",
+    "name": "moneyFractionDigits",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "List of notification channel names that are enabled for the connector. By default, the following channels are available: sink, log and jmx. Optionally, you can also implement a [custom notification channel](https://debezium.io/documentation/reference/stable/configuration/signalling.html#debezium-signaling-enabling-custom-signaling-channel).",
+    "name": "notificationEnabledChannels",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `pgoutput`. The name of the [PostgreSQL logical decoding plug-in](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-output-plugin) installed on the PostgreSQL server. Supported values are decoderbufs, and pgoutput.",
+    "name": "pluginName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `500`. Positive integer value that specifies the number of milliseconds the connector should wait for new change events to appear before it starts processing a batch of events. Defaults to 500 milliseconds.",
+    "name": "pollIntervalMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `false`. Determines whether the connector generates events with transaction boundaries and enriches change event envelopes with transaction metadata. Specify true if you want the connector to do this. For more information, see [Transaction metadata](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-transaction-metadata).",
+    "name": "provideTransactionMetadata",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `all_tables`. Applies only when streaming changes by using [the pgoutput plug-in](https://www.postgresql.org/docs/current/sql-createpublication.html). The setting determines how creation of a [publication](https://www.postgresql.org/docs/current/logical-replication-publication.html) should work. Specify one of the following values:\n\n* `all_tables` - If a publication exists, the connector uses it. If a publication does not exist, the connector creates a publication for all tables in the database for which the connector is capturing changes. For the connector to create a publication it must access the database through a database user account that has permission to create publications and perform replications. You grant the required permission by using the following SQL command CREATE PUBLICATION \u003cpublication_name\u003e FOR ALL TABLES;.\n* `disabled` - The connector does not attempt to create a publication. A database administrator or the user configured to perform replications must have created the publication before running the connector. If the connector cannot find the publication, the connector throws an exception and stops.\n* `filtered` - If a publication exists, the connector uses it. If no publication exists, the connector creates a new publication for tables that match the current filter configuration as specified by the schema include, schema exclude, table include and table exclude configuration properties. For example: `CREATE PUBLICATION \u003cpublication_name\u003e FOR TABLE \u003ctbl1, tbl2, tbl3\u003e`. If the publication exists, the connector updates the publication for tables that match the current filter configuration. For example: `ALTER PUBLICATION \u003cpublication_name\u003e SET TABLE \u003ctbl1, tbl2, tbl3\u003e`.\n* `no_tables` - If a publication exists, the connector uses it. If a publication does not exist, the connector creates a publication without specifying any table by running a SQL command in the following format: `CREATE PUBLICATION \u003cpublication_name\u003e;`. Set the `no_tables` option if you want the connector to capture only logical decoding messages, and not capture any other change events, such as those caused by INSERT, UPDATE, and DELETE operations on any table. If you select this option, to prevent the connector from emitting and processing READ events, you can specify names of schemas or tables for which you do not want to capture changes, for example, by using table exclude configuration or schema exclude configuration (like \"public.*\").",
+    "name": "publicationAutocreateMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default \u003cSGStream name\u003e.\u003cSGStream namespace\u003e (with all characters that are not `[a-zA-Z0-9]` changed to `_` character). The name of the PostgreSQL publication created for streaming changes when using pgoutput. This publication is created at start-up if it does not already exist and it includes all tables. Debezium then applies its own include/exclude list filtering, if configured, to limit the publication to change events for the specific tables of interest. The connector user must have superuser permissions to create this publication, so it is usually preferable to create the publication before starting the connector for the first time. If the publication already exists, either for all tables or configured with a subset of tables, Debezium uses the publication as it is defined.",
+    "name": "publicationName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `false`. Specifies how the connector captures and emits events for changes that it captures from partitioned tables. This setting applies only if the `publicationAutocreateMode` property is set to `all_tables` or `filtered`, and Debezium creates the publication for the captured tables.\n\nSet one of the following options:\n\n* `true` : The connector emits change events for all partitions to a topic with the name of the base table. When the connector creates a publication, it submits a `CREATE PUBLICATION` statement in which the publish_via_`partition_root parameter` is set to true. As a result, the publication ignores the partition in which changes originate, and only records the name of the source table.\n* `false`: The connector emits changes from each source partition to a topic that reflects the name of the partition. When the connector creates the publication, the `CREATE PUBLICATION` statement omits the `publish_via_partition_root parameter` so that the publication always uses the name of the source partition to publish change events.",
+    "name": "publishViaPartitionRoot",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. Specifies whether a connector writes watermarks to the signal data collection to track the progress of an incremental snapshot. Set the value to `true` to enable a connector that has a read-only connection to the database to use an incremental snapshot watermarking strategy that does not require writing to the signal data collection.",
+    "name": "readOnly",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "The setting determines the value for [replica identity](https://www.postgresql.org/docs/current/sql-altertable.html#SQL-ALTERTABLE-REPLICA-IDENTITY) at table level.\n  This option will overwrite the existing value in database. A comma-separated list of regular expressions that match fully-qualified tables and replica identity value to be used in the table.\n  Each expression must match the pattern '\u003cfully-qualified table name\u003e:\u003creplica identity\u003e', where the table name could be defined as (SCHEMA_NAME.TABLE_NAME), and the replica identity values are:\n  DEFAULT - Records the old values of the columns of the primary key, if any. This is the default for non-system tables.\n  INDEX index_name - Records the old values of the columns covered by the named index, that must be unique, not partial, not deferrable, and include only columns marked NOT NULL. If this index is dropped, the behavior is the same as NOTHING.\n  FULL - Records the old values of all columns in the row.\n  NOTHING - Records no information about the old row. This is the default for system tables.\n  For example,\n  schema1.*:FULL,schema2.table2:NOTHING,schema2.table3:INDEX idx_name",
+    "name": "replicaIdentityAutosetValues",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `10000` (10 seconds). The number of milliseconds to wait before restarting a connector after a retriable error occurs.",
+    "name": "retriableRestartConnectorWaitMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `none`. Specifies how schema names should be adjusted for compatibility with the message converter used by the connector. Possible settings:\n\n* `none` does not apply any adjustment.\n* `avro` replaces the characters that cannot be used in the Avro type name with underscore.\n* `avro_unicode` replaces the underscore or characters that cannot be used in the Avro type name with corresponding unicode like _uxxxx. Note: _ is an escape sequence like backslash in Java",
+    "name": "schemaNameAdjustmentMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `columns_diff`. Specify the conditions that trigger a refresh of the in-memory schema for a table.\n\n* `columns_diff`: is the safest mode. It ensures that the in-memory schema stays in sync with the database table’s schema at all times.\n* `columns_diff_exclude_unchanged_toast`: instructs the connector to refresh the in-memory schema cache if there is a discrepancy with the schema derived from the incoming message, unless unchanged TOASTable data fully accounts for the discrepancy.\n\nThis setting can significantly improve connector performance if there are frequently-updated tables that have TOASTed data that are rarely part of updates. However, it is possible for the in-memory schema to become outdated if TOASTable columns are dropped from the table.",
+    "name": "schemaRefreshMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Fully-qualified name of the data collection that is used to send signals to the connector. Use the following format to specify the collection name: \u003cschemaName\u003e.\u003ctableName\u003e",
+    "name": "signalDataCollection",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `[sgstream-annotations]`. List of the signaling channel names that are enabled for the connector. By default, the following channels are available: sgstream-annotations, source, kafka, file and jmx. Optionally, you can also implement a [custom signaling channel](https://debezium.io/documentation/reference/stable/configuration/signalling.html#debezium-signaling-enabling-custom-signaling-channel).",
+    "name": "signalEnabledChannels",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `false`. Specifies whether to skip publishing messages when there is no change in included columns. This would essentially filter messages if there is no change in columns included as per includes or excludes fields. Note: Only works when REPLICA IDENTITY of the table is set to FULL",
+    "name": "skipMessagesWithoutChange",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `none`. A list of operation types that will be skipped during streaming.\n\nThe operations include: \n* `c` for inserts/create\n* `u` for updates\n* `d` for deletes\n* `t` for truncates\n* `none` to not skip any operations. By default, no operations are skipped.",
+    "name": "skippedOperations",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `true`. Whether or not to delete the logical replication slot when the connector stops in a graceful, expected way. The default behavior is that the replication slot remains configured for the connector when the connector stops. When the connector restarts, having the same replication slot enables the connector to start processing where it left off. Set to true in only testing or development environments. Dropping the slot allows the database to discard WAL segments. When the connector restarts it performs a new snapshot or it can continue from a persistent offset in the target offsets topic.",
+    "name": "slotDropOnStop",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. Specifies whether the connector creates a failover slot. If you omit this setting, or if the primary server runs PostgreSQL 16 or earlier, the connector does not create a failover slot.\n\nPostgreSQL uses the `synchronized_standby_slots` parameter to configure replication slot synchronization between primary and standby servers. Set this parameter on the primary server to specify the physical replication slots that it synchronizes with on standby servers.",
+    "name": "slotFailover",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `6`. If connecting to a replication slot fails, this is the maximum number of consecutive attempts to connect.",
+    "name": "slotMaxRetries",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default \u003cSGStream namespace\u003e.\u003cSGStream name\u003e (with all characters that are not `[a-zA-Z0-9]` changed to `_` character). The name of the PostgreSQL logical decoding slot that was created for streaming changes from a particular plug-in for a particular database/schema. The server uses this slot to stream events to the Debezium connector that you are configuring.\n\nSlot names must conform to [PostgreSQL replication slot naming rules](https://www.postgresql.org/docs/current/static/warm-standby.html#STREAMING-REPLICATION-SLOTS-MANIPULATION), which state: \"Each replication slot has a name, which can contain lower-case letters, numbers, and the underscore character.\"",
+    "name": "slotName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `10000` (10 seconds). The number of milliseconds to wait between retry attempts when the connector fails to connect to a replication slot.",
+    "name": "slotRetryDelayMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Parameters to pass to the configured logical decoding plug-in. For example:\n\n\n```\n\nslotStreamParams:\n  add-tables: \"public.table,public.table2\"\n  include-lsn: \"true\"\n\n```",
+    "name": "slotStreamParams",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "An interval in milliseconds that the connector should wait before performing a snapshot when the connector starts. If you are starting multiple connectors in a cluster, this property is useful for avoiding snapshot interruptions, which might cause re-balancing of connectors.",
+    "name": "snapshotDelayMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `10240`. During a snapshot, the connector reads table content in batches of rows. This property specifies the maximum number of rows in a batch.",
+    "name": "snapshotFetchSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default \u003cAll tables / All tables filtered in `includes` field / All tables that are not filtered out in `excludes` field\u003e. An optional, list of regular expressions that match the fully-qualified names (\u003cschemaName\u003e.\u003ctableName\u003e) of the tables to include in a snapshot. The specified items must be named in the connector’s table.include.list property. This property takes effect only if the connector’s snapshotMode property is set to a value other than `never`. This property does not affect the behavior of incremental snapshots.\n   To match the name of a table, Debezium applies the regular expression that you specify as an anchored regular expression. That is, the specified expression is matched against the entire name string of the table; it does not match substrings that might be present in a table name.",
+    "name": "snapshotIncludeCollectionList",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `serializable`. Specifies the transaction isolation level and the type of locking, if any, that the connector applies when it reads data during an initial snapshot or ad hoc blocking snapshot.\n\nEach isolation level strikes a different balance between optimizing concurrency and performance on the one hand, and maximizing data consistency and accuracy on the other. Snapshots that use stricter isolation levels result in higher quality, more consistent data, but the cost of the improvement is decreased performance due to longer lock times and fewer concurrent transactions. Less restrictive isolation levels can increase efficiency, but at the expense of inconsistent data. For more information about transaction isolation levels in PostgreSQL, see the [PostgreSQL documentation](https://www.postgresql.org/docs/current/transaction-iso.html).\n\nSpecify one of the following isolation levels:\n\n* `serializable`: The default, and most restrictive isolation level. This option prevents serialization anomalies and provides the highest degree of data integrity. To ensure the data consistency of captured tables, a snapshot runs in a transaction that uses a repeatable read isolation level, blocking concurrent DDL changes on the tables, and locking the database to index creation. When this option is set, users or administrators cannot perform certain operations, such as creating a table index, until the snapshot concludes. The entire range of table keys remains locked until the snapshot completes. This option matches the snapshot behavior that was available in the connector before the introduction of this property.\n* `repeatable_read`: Prevents other transactions from updating table rows during the snapshot. New records captured by the snapshot can appear twice; first, as part of the initial snapshot, and then again in the streaming phase. However, this level of consistency is tolerable for database mirroring. Ensures data consistency between the tables being scanned and blocking DDL on the selected tables, and concurrent index creation throughout the database. Allows for serialization anomalies.\n* `read_committed`: In PostgreSQL, there is no difference between the behavior of the Read Uncommitted and Read Committed isolation modes. As a result, for this property, the read_committed option effectively provides the least restrictive level of isolation. Setting this option sacrifices some consistency for initial and ad hoc blocking snapshots, but provides better database performance for other users during the snapshot. In general, this transaction consistency level is appropriate for data mirroring. Other transactions cannot update table rows during the snapshot. However, minor data inconsistencies can occur when a record is added during the initial snapshot, and the connector later recaptures the record after the streaming phase begins.\n* `read_uncommitted`: Nominally, this option offers the least restrictive level of isolation. However, as explained in the description for the read-committed option, for the Debezium PostgreSQL connector, this option provides the same level of isolation as the read_committed option.",
+    "name": "snapshotIsolationMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `10000`. Positive integer value that specifies the maximum amount of time (in milliseconds) to wait to obtain table locks when performing a snapshot. If the connector cannot acquire table locks in this time interval, the snapshot fails. [How the connector performs snapshots](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-snapshots) provides details.",
+    "name": "snapshotLockTimeoutMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `none`. Specifies how the connector holds locks on tables while performing a schema snapshot. Set one of the following options:\n\n* `shared`: The connector holds a table lock that prevents exclusive table access during the initial portion phase of the snapshot in which database schemas and other metadata are read. After the initial phase, the snapshot no longer requires table locks.\n* `none`: The connector avoids locks entirely. Do not use this mode if schema changes might occur during the snapshot.\n\n\u003e *WARNING*: Do not use this mode if schema changes might occur during the snapshot.\n\n* `custom`: The connector performs a snapshot according to the implementation specified by the snapshotLockingModeCustomName property, which is a custom implementation of the io.debezium.spi.snapshot.SnapshotLock interface.",
+    "name": "snapshotLockingMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "When snapshotLockingMode is set to custom, use this setting to specify the name of the custom implementation provided in the name() method that is defined by the 'io.debezium.spi.snapshot.SnapshotLock' interface. For more information, see [custom snapshotter SPI](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#connector-custom-snapshot).",
+    "name": "snapshotLockingModeCustomName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `1`. Specifies the number of threads that the connector uses when performing an initial snapshot. To enable parallel initial snapshots, set the property to a value greater than 1. In a parallel initial snapshot, the connector processes multiple tables concurrently. This feature is incubating.",
+    "name": "snapshotMaxThreads",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `initial`. Specifies the criteria for performing a snapshot when the connector starts:\n\n* `always` - The connector performs a snapshot every time that it starts. The snapshot includes the structure and data of the captured tables. Specify this value to populate topics with a complete representation of the data from the captured tables every time that the connector starts. After the snapshot completes, the connector begins to stream event records for subsequent database changes.\n* `initial` - The connector performs a snapshot only when no offsets have been recorded for the logical server name.\n* `initial_only` - The connector performs an initial snapshot and then stops, without processing any subsequent changes.\n* `no_data` - The connector never performs snapshots. When a connector is configured this way, after it starts, it behaves as follows: If there is a previously stored LSN in the offsets topic, the connector continues streaming changes from that position. If no LSN is stored, the connector starts streaming changes from the point in time when the PostgreSQL logical replication slot was created on the server. Use this snapshot mode only when you know all data of interest is still reflected in the WAL.\n* `never` - Deprecated see no_data.\n* `when_needed` - After the connector starts, it performs a snapshot only if it detects one of the following circumstances: \n  It cannot detect any topic offsets.\n  A previously recorded offset specifies a log position that is not available on the server.\n* `configuration_based` - With this option, you control snapshot behavior through a set of connector properties that have the prefix 'snapshotModeConfigurationBased'.\n* `custom` - The connector performs a snapshot according to the implementation specified by the snapshotModeCustomName property, which defines a custom implementation of the io.debezium.spi.snapshot.Snapshotter interface.\n\nFor more information, see the [table of snapshot.mode options](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-connector-snapshot-mode-options).",
+    "name": "snapshotMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, set this property to specify whether the connector includes table data when it performs a snapshot.",
+    "name": "snapshotModeConfigurationBasedSnapshotData",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, this property specifies whether the connector attempts to snapshot table data if it does not find the last committed offset in the transaction log. Set the value to true to instruct the connector to perform a new snapshot.",
+    "name": "snapshotModeConfigurationBasedSnapshotOnDataError",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, set this property to specify whether the connector includes table schema in a snapshot if the schema history topic is not available.",
+    "name": "snapshotModeConfigurationBasedSnapshotOnSchemaError",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, set this property to specify whether the connector includes the table schema when it performs a snapshot.",
+    "name": "snapshotModeConfigurationBasedSnapshotSchema",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `false`. If the snapshotMode is set to configuration_based, set this property to specify whether the connector begins to stream change events after a snapshot completes.",
+    "name": "snapshotModeConfigurationBasedStartStream",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "When snapshotMode is set as custom, use this setting to specify the name of the custom implementation provided in the name() method that is defined by the 'io.debezium.spi.snapshot.Snapshotter' interface. The provided implementation is called after a connector restart to determine whether to perform a snapshot. For more information, see [custom snapshotter SPI](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#connector-custom-snapshot).",
+    "name": "snapshotModeCustomName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `select_all`. Specifies how the connector queries data while performing a snapshot. Set one of the following options:\n\n* `select_all`: The connector performs a select all query by default, optionally adjusting the columns selected based on the column include and exclude list configurations.\n* `custom`: The connector performs a snapshot query according to the implementation specified by the snapshotQueryModeCustomName property, which defines a custom implementation of the io.debezium.spi.snapshot.SnapshotQuery interface. This setting enables you to manage snapshot content in a more flexible manner compared to using the snapshotSelectStatementOverrides property.",
+    "name": "snapshotQueryMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "When snapshotQueryMode is set as custom, use this setting to specify the name of the custom implementation provided in the name() method that is defined by the 'io.debezium.spi.snapshot.SnapshotQuery' interface. For more information, see [custom snapshotter SPI](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#connector-custom-snapshot).",
+    "name": "snapshotQueryModeCustomName",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Specifies the table rows to include in a snapshot. Use the property if you want a snapshot to include only a subset of the rows in a table. This property affects snapshots only. It does not apply to events that the connector reads from the log.\n The property contains a hierarchy of fully-qualified table names in the form \u003cschemaName\u003e.\u003ctableName\u003e. For example,\n\n\n```\n\nsnapshotSelectStatementOverrides: \n  \"customers.orders\": \"SELECT * FROM [customers].[orders] WHERE delete_flag = 0 ORDER BY id DESC\"\n\n```\n\n\nIn the resulting snapshot, the connector includes only the records for which delete_flag = 0.",
+    "name": "snapshotSelectStatementOverrides",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "Default `10000`. Frequency for sending replication connection status updates to the server, given in milliseconds. The property also controls how frequently the database status is checked to detect a dead connection in case the database was shut down.",
+    "name": "statusUpdateIntervalMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Specifies the time, in milliseconds, that the connector delays the start of the streaming process after it completes a snapshot. Setting a delay interval helps to prevent the connector from restarting snapshots in the event that a failure occurs immediately after the snapshot completes, but before the streaming process begins. Set a delay value that is higher than the value of the `offsetFlushIntervalMs` property that is set for the Kafka Connect worker.",
+    "name": "streamingDelayMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `adaptive`. Time, date, and timestamps can be represented with different kinds of precision:\n\n* `adaptive`: captures the time and timestamp values exactly as in the database using either millisecond, microsecond, or nanosecond precision values based on the database column’s type.\n* `adaptive_time_microseconds`: captures the date, datetime and timestamp values exactly as in the database using either millisecond, microsecond, or nanosecond precision values based on the database column’s type. An exception is TIME type fields, which are always captured as microseconds.\n* `connect`: always represents time and timestamp values by using Kafka Connect’s built-in representations for Time, Date, and Timestamp, which use millisecond precision regardless of the database columns' precision. For more information, see [temporal values](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-temporal-types).",
+    "name": "timePrecisionMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. Controls whether a delete event is followed by a tombstone event.\n\n* `true` - a delete operation is represented by a delete event and a subsequent tombstone event.\n* `false` - only a delete event is emitted.\n\nAfter a source record is deleted, emitting a tombstone event (the default behavior) allows to completely delete all events that pertain to the key of the deleted row in case [log compaction](https://kafka.apache.org/documentation/#compaction) is enabled for the topic.",
+    "name": "tombstonesOnDelete",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `10000`. The size used for holding the topic names in bounded concurrent hash map. This cache will help to determine the topic name corresponding to a given data collection.",
+    "name": "topicCacheSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `.`. Specify the delimiter for topic name, defaults to \".\".",
+    "name": "topicDelimiter",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `__debezium-heartbeat`. Controls the name of the topic to which the connector sends heartbeat messages. For example, if the topic prefix is fulfillment, the default topic name is __debezium-heartbeat.fulfillment.",
+    "name": "topicHeartbeatPrefix",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `io.debezium.schema.SchemaTopicNamingStrategy`. The name of the TopicNamingStrategy class that should be used to determine the topic name for data change, schema change, transaction, heartbeat event etc., defaults to SchemaTopicNamingStrategy.",
+    "name": "topicNamingStrategy",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `transaction`. Controls the name of the topic to which the connector sends transaction metadata messages. For example, if the topic prefix is fulfillment, the default topic name is fulfillment.transaction.",
+    "name": "topicTransaction",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `__debezium_unavailable_value`. Specifies the constant that the connector provides to indicate that the original value is a toasted value that is not provided by the database. If the setting of unavailable.value.placeholder starts with the hex: prefix it is expected that the rest of the string represents hexadecimally encoded octets. For more information, see [toasted values](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-toasted-values).",
+    "name": "unavailableValuePlaceholder",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `0`. How often, in milliseconds, the XMIN will be read from the replication slot. The XMIN value provides the lower bounds of where a new replication slot could start from. The default value of 0 disables XMIN tracking.",
+    "name": "xminFetchIntervalMs",
+    "required": false,
+    "type": "integer"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.source.sgCluster.password
+<sup><sup>[↩ Parent](#sgstreamspecsourcesgcluster)</sup></sup>
+
+The password used by the CDC process to connect to the database.
+
+If not specified the default superuser password will be used.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The Secret key where the password is stored.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "The Secret name where the password is stored.",
+    "name": "name",
+    "required": true,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.source.sgCluster.username
+<sup><sup>[↩ Parent](#sgstreamspecsourcesgcluster)</sup></sup>
+
+The username used by the CDC process to connect to the database.
+
+If not specified the default superuser username (by default postgres) will be used.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The Secret key where the username is stored.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "The Secret name where the username is stored.",
+    "name": "name",
+    "required": true,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+### SGStream.spec.target
+<sup><sup>[↩ Parent](#sgstreamspec)</sup></sup>
+
+The target of this stream.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Indicate the type of target of this stream. Possible values are:\n\n* `CloudEvent`: events will be sent to a cloud event receiver.\n* `PgLambda`: events will trigger the execution of a lambda script by integrating with [Knative Service](https://knative.dev/docs/serving/) (Knative must be already installed).\n* `SGCluster`: events will be sunk to an SGCluster allowing migration of data.",
+    "name": "type",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspectargetcloudevent",
+    "description": "Configuration section for `CloudEvent` target type.",
+    "name": "cloudEvent",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspectargetpglambda",
+    "description": "Configuration section for `PgLambda` target type.",
+    "name": "pgLambda",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspectargetsgcluster",
+    "description": "The configuration of the data target required when type is `SGCluster`.",
+    "name": "sgCluster",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.target.cloudEvent
+<sup><sup>[↩ Parent](#sgstreamspectarget)</sup></sup>
+
+Configuration section for `CloudEvent` target type.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The CloudEvent binding (http by default).\n\nOnly http is supported at the moment.",
+    "name": "binding",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The CloudEvent format (json by default).\n\nOnly json is supported at the moment.",
+    "name": "format",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspectargetcloudeventhttp",
+    "description": "The http binding configuration.",
+    "name": "http",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.target.cloudEvent.http
+<sup><sup>[↩ Parent](#sgstreamspectargetcloudevent)</sup></sup>
+
+The http binding configuration.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The URL used to send the CloudEvents to the endpoint.",
+    "name": "url",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "Set the connect timeout.\n\nValue 0 represents infinity (default). Negative values are not allowed.",
+    "name": "connectTimeout",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Headers to include when sending CloudEvents to the endpoint.",
+    "name": "headers",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "Set the read timeout. The value is the timeout to read a response.\n\nValue 0 represents infinity (default). Negative values are not allowed.",
+    "name": "readTimeout",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "default": 60,
+    "description": "The maximum amount of delay in seconds after an error before retrying again.\n\nThe initial delay will use 10% of this value and then increase the value exponentially up to the maximum amount of seconds specified with this field.",
+    "name": "retryBackoffDelay",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Set the retry limit. When set the event will be sent again after an error for the specified limit of times. When not set the event will be sent again after an error.",
+    "name": "retryLimit",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "When `true` disable hostname verification.",
+    "name": "skipHostnameVerification",
+    "required": false,
+    "type": "boolean"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.target.pgLambda
+<sup><sup>[↩ Parent](#sgstreamspectarget)</sup></sup>
+
+Configuration section for `PgLambda` target type.
+
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspectargetpglambdaknative",
+    "description": "Knative Service configuration.",
+    "name": "knative",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "Script to execute. This field is mutually exclusive with `scriptFrom` field.",
+    "name": "script",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspectargetpglambdascriptfrom",
+    "description": "Reference to either a Kubernetes [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) or a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) that contains the script to execute. This field is mutually exclusive with `script` field.\n\nFields `secretKeyRef` and `configMapKeyRef` are mutually exclusive, and one of them is required.",
+    "name": "scriptFrom",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "The PgLambda script format (javascript by default).\n\n* `javascript`: the script will receive the following variable:\n  * `request`: the HTTP request object. See https://nodejs.org/docs/latest-v18.x/api/http.html#class-httpclientrequest\n  * `response`: the HTTP response object. See https://nodejs.org/docs/latest-v18.x/api/http.html#class-httpserverresponse\n  * `event`: the CloudEvent event object. See https://github.com/cloudevents/sdk-javascript",
+    "name": "scriptType",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.target.pgLambda.knative
+<sup><sup>[↩ Parent](#sgstreamspectargetpglambda)</sup></sup>
+
+Knative Service configuration.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Annotations to set to Knative Service",
+    "name": "annotations",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "anchor": "sgstreamspectargetpglambdaknativehttp",
+    "description": "PgLambda uses a CloudEvent http binding to send events to the Knative Service. This section allows modifying the configuration of this binding.",
+    "name": "http",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "Labels to set to Knative Service",
+    "name": "labels",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.target.pgLambda.knative.http
+<sup><sup>[↩ Parent](#sgstreamspectargetpglambdaknative)</sup></sup>
+
+PgLambda uses a CloudEvent http binding to send events to the Knative Service. This section allows modifying the configuration of this binding.
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Set the connect timeout.\n\nValue 0 represents infinity (default). Negative values are not allowed.",
+    "name": "connectTimeout",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Headers to include when sending CloudEvents to the endpoint.",
+    "name": "headers",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "Set the read timeout. The value is the timeout to read a response.\n\nValue 0 represents infinity (default). Negative values are not allowed.",
+    "name": "readTimeout",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "default": 60,
+    "description": "The maximum amount of delay in seconds after an error before retrying again.\n\nThe initial delay will use 10% of this value and then increase the value exponentially up to the maximum amount of seconds specified with this field.",
+    "name": "retryBackoffDelay",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Set the retry limit. When set the event will be sent again after an error for the specified limit of times. When not set the event will be sent again after an error.",
+    "name": "retryLimit",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "When `true` disable hostname verification.",
+    "name": "skipHostnameVerification",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "The URL used to send the CloudEvents to the endpoint.",
+    "name": "url",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.target.pgLambda.scriptFrom
+<sup><sup>[↩ Parent](#sgstreamspectargetpglambda)</sup></sup>
+
+Reference to either a Kubernetes [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) or a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) that contains the script to execute. This field is mutually exclusive with `script` field.
+
+Fields `secretKeyRef` and `configMapKeyRef` are mutually exclusive, and one of them is required.
+
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspectargetpglambdascriptfromconfigmapkeyref",
+    "description": "A [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) reference that contains the script to execute. This field is mutually exclusive with `secretKeyRef` field.",
+    "name": "configMapKeyRef",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspectargetpglambdascriptfromsecretkeyref",
+    "description": "A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core) that contains the script to execute. This field is mutually exclusive with `configMapKeyRef` field.",
+    "name": "secretKeyRef",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.target.pgLambda.scriptFrom.configMapKeyRef
+<sup><sup>[↩ Parent](#sgstreamspectargetpglambdascriptfrom)</sup></sup>
+
+A [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) reference that contains the script to execute. This field is mutually exclusive with `secretKeyRef` field.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The key name within the ConfigMap that contains the script to execute.",
+    "name": "key",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The name of the ConfigMap that contains the script to execute.",
+    "name": "name",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.target.pgLambda.scriptFrom.secretKeyRef
+<sup><sup>[↩ Parent](#sgstreamspectargetpglambdascriptfrom)</sup></sup>
+
+A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#secretkeyselector-v1-core) that contains the script to execute. This field is mutually exclusive with `configMapKeyRef` field.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The key of the secret to select from. Must be a valid secret key.",
+    "name": "key",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).",
+    "name": "name",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.target.sgCluster
+<sup><sup>[↩ Parent](#sgstreamspectarget)</sup></sup>
+
+The configuration of the data target required when type is `SGCluster`.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The target SGCluster name.",
+    "name": "name",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "The target database name to which the data will be migrated.\n\nIf not specified the default postgres database will be targeted.",
+    "name": "database",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Allow to set a [SIMILAR TO regular expression](https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-SIMILARTO-REGEXP) to match the names of the roles to skip during import of DDL.\n\nWhen not set and source is an SGCluster will match the superuser, replicator and authenticator usernames.",
+    "name": "ddlImportRoleSkipFilter",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamspectargetsgclusterdebeziumproperties",
+    "description": "Specific property of the debezium JDBC sink.\n\nSee https://debezium.io/documentation/reference/stable/connectors/jdbc.html#jdbc-connector-configuration\n\nEach property is converted from myPropertyName to my.property.name",
+    "name": "debeziumProperties",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspectargetsgclusterpassword",
+    "description": "The password used by the CDC sink process to connect to the database.\n\nIf not specified the default superuser password will be used.",
+    "name": "password",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "When `true` disable import of DDL and tables will be created on demand by Debezium.\n\n\u003e **IMPORTANT**: DDL import is only supported when the source is an SGCluster.",
+    "name": "skipDdlImport",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "When `true` disable drop of indexes and constraints. Indexes and constraints are dropped in order to improve snapshotting performance.",
+    "name": "skipDropIndexesAndConstraints",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "When `true` disable drop of primary keys. Primary keys are dropped to improve snapshotting performance. This option is required to be set to `true` when using [incremental snapshotting](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-incremental-snapshots).",
+    "name": "skipDropPrimaryKeys",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "When `true` disable restore of indexes on the first non-snapshot event. This option is required to be set to `true` when using [incremental snapshotting](https://debezium.io/documentation/reference/stable/connectors/postgresql.html#postgresql-incremental-snapshots). This option is ignored when `skipDropIndexesAndConstraints` is set to `true`.",
+    "name": "skipRestoreIndexesAfterSnapshot",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "anchor": "sgstreamspectargetsgclusterusername",
+    "description": "The username used by the CDC sink process to connect to the database.\n\nIf not specified the default superuser username (by default postgres) will be used.",
+    "name": "username",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.target.sgCluster.debeziumProperties
+<sup><sup>[↩ Parent](#sgstreamspectargetsgcluster)</sup></sup>
+
+Specific property of the debezium JDBC sink.
+
+See https://debezium.io/documentation/reference/stable/connectors/jdbc.html#jdbc-connector-configuration
+
+Each property is converted from myPropertyName to my.property.name
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Default `500`. Specifies how many records to attempt to batch together into the destination table.\n\u003e Note that if you set `consumerMaxPollRecords` in the Connect worker properties to a value lower than `batchSize`, batch processing will be capped by `consumerMaxPollRecords` and the desired `batchSize` won’t be reached. You can also configure the connector’s underlying consumer’s `maxPollRecords` using `consumerOverrideMaxPollRecords` in the connector configuration.",
+    "name": "batchSize",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `${topic}`. Specifies a string pattern that the connector uses to construct the names of destination tables.\nWhen the property is set to `${topic}`, SGStream writes the event record to a destination table with a name that matches the name of the source topic.\nYou can also configure this property to extract values from specific fields in incoming event records and then use those values to dynamically generate the names of target tables. This ability to generate table names from values in the message source would otherwise require the use of a custom single message transformation (SMT).\nTo configure the property to dynamically generate the names of destination tables, set its value to a pattern such as `${source._field_}`. When you specify this type of pattern, the connector extracts values from the source block of the Debezium change event, and then uses those values to construct the table name. For example, you might set the value of the property to the pattern `${source.schema}_${source.table}`. Based on this pattern, if the connector reads an event in which the schema field in the source block contains the value, user, and the table field contains the value, tab, the connector writes the event record to a table with the name `user_tab`.",
+    "name": "collectionNameFormat",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `io.stackgres.stream.jobs.migration.StreamMigrationTableNamingStrategy`. Specifies the fully-qualified class name of a TableNamingStrategy implementation that the connector uses to resolve table names from incoming event topic names.\nThe default behavior is to:\n* Replace the ${topic} placeholder in the `tableNameFormat` configuration property with the event’s topic.\n* Sanitize the table name by replacing dots (`.`) with underscores (`_`).",
+    "name": "collectionNamingStrategy",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `io.debezium.connector.jdbc.naming.DefaultColumnNamingStrategy`. Specifies the fully-qualified class name of a ColumnNamingStrategy implementation that the connector uses to resolve column names from event field names.\nBy default, the connector uses the field name as the column name.",
+    "name": "columnNamingStrategy",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `32`. Specifies the number of connections that the connector attempts to acquire if the connection pool exceeds its maximum size.",
+    "name": "connectionPoolAcquire_increment",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `32`. Specifies the maximum number of concurrent connections that the pool maintains.",
+    "name": "connectionPoolMax_size",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `5`. Specifies the minimum number of connections in the pool.",
+    "name": "connectionPoolMin_size",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `1800`. Specifies the number of seconds that an unused connection is kept before it is discarded.",
+    "name": "connectionPoolTimeout",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `false`. Specifies whether the connector retries after a transient JDBC connection error.\nWhen enabled (`true`), the connector treats connection issues (such as socket closures or timeouts) as retriable, allowing it to retry processing instead of failing the task. This reduces downtime and improves resilience against temporary disruptions.\n\n\u003e Setting this option to `true` can reduce downtime. However, in master-replica environments with asynchronous replication, it may lead to data loss if retries occur before all changes are fully replicated.\n\u003e Use with caution where strong data consistency is required.",
+    "name": "connectionRestartOnErrors",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Parameters that are set in the JDBC connection URL. See https://jdbc.postgresql.org/documentation/use/",
+    "name": "connectionUrlParameters",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. Specifies whether the connector processes DELETE or tombstone events and removes the corresponding row from the database. Use of this option requires that you set the `primaryKeyMode` to `record_key`.",
+    "name": "deleteEnabled",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `true`. Parameter `insertMode` is ignored and the insert mode is detected from the record hints.",
+    "name": "detectInsertMode",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `public`. Specifies the schema name where the PostgreSQL PostGIS extension is installed. The default is `public`; however, if the PostGIS extension was installed in another schema, this property should be used to specify the alternate schema name.",
+    "name": "dialectPostgresPostgisSchema",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `false`. Specifies whether the connector automatically sets an IDENTITY_INSERT before an INSERT or UPSERT operation into the identity column of SQL Server tables, and then unsets it immediately after the operation. When the default setting (`false`) is in effect, an INSERT or UPSERT operation into the IDENTITY column of a table results in a SQL exception.",
+    "name": "dialectSqlserverIdentityInsert",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `5`. Specifies the maximum number of retries that the connector performs after an attempt to flush changes to the target database results in certain database errors. If the number of retries exceeds the retry value, the sink connector enters a FAILED state.",
+    "name": "flushMaxRetries",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `1000`. Specifies the number of milliseconds that the connector waits to retry a flush operation that failed.",
+    "name": "flushRetryDelayMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `upsert`. Specifies the strategy used to insert events into the database. The following options are available:\n* `insert`: Specifies that all events should construct INSERT-based SQL statements. Use this option only when no primary key is used, or when you can be certain that no updates can occur to rows with existing primary key values.\n* `update`: Specifies that all events should construct UPDATE-based SQL statements. Use this option only when you can be certain that the connector receives only events that apply to existing rows.\n* `upsert`: Specifies that the connector adds events to the table using upsert semantics. That is, if the primary key does not exist, the connector performs an INSERT operation, and if the key does exist, the connector performs an UPDATE operation. When idempotent writes are required, the connector should be configured to use this option.",
+    "name": "insertMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Either the name of the primary key column or a comma-separated list of fields to derive the primary key from.\nWhen `primaryKeyMode` is set to `record_key` and the event’s key is a primitive type, it is expected that this property specifies the column name to be used for the key.\nWhen the `primaryKeyMode` is set to `record_key` with a non-primitive key, or record_value, it is expected that this property specifies a comma-separated list of field names from either the key or value. If the primary.key.mode is set to record_key with a non-primitive key, or record_value, and this property is not specified, the connector derives the primary key from all fields of either the record key or record value, depending on the specified mode.",
+    "name": "primaryKeyFields",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Default `record_key`. Specifies how the connector resolves the primary key columns from the event.\n* `none`: Specifies that no primary key columns are created.\n* `record_key`: Specifies that the primary key columns are sourced from the event’s record key. If the record key is a primitive type, the `primaryKeyFields` property is required to specify the name of the primary key column. If the record key is a struct type, the `primaryKeyFields` property is optional, and can be used to specify a subset of columns from the event’s key as the table’s primary key.\n* `record_value`: Specifies that the primary key columns are sourced from the event's value. You can set the `primaryKeyFields` property to define the primary key as a subset of fields from the event’s value; otherwise all fields are used by default.",
+    "name": "primaryKeyMode",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. Specifies whether generated SQL statements use quotation marks to delimit table and column names. See the Quoting and case sensitivity section for more details.",
+    "name": "quoteIdentifiers",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `true`. When `true` the placeholders are removed from the records.",
+    "name": "removePlaceholders",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `basic`. Specifies how the connector evolves the destination table schemas. For more information, see Schema evolution. The following options are available:\n`none`: Specifies that the connector does not evolve the destination schema.\n`basic`: Specifies that basic evolution occurs. The connector adds missing columns to the table by comparing the incoming event’s record schema to the database table structure.",
+    "name": "schemaEvolution",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `true`. Specifies whether the connector processes TRUNCATE events and truncates the corresponding tables from the database.\nAlthough support for TRUNCATE statements has been available in Db2 since version 9.7, currently, the JDBC connector is unable to process standard TRUNCATE events that the Db2 connector emits.\nTo ensure that the JDBC connector can process TRUNCATE events received from Db2, perform the truncation by using an alternative to the standard TRUNCATE TABLE statement. For example:\n\n\n```\n\nALTER TABLE \u003ctable_name\u003e ACTIVATE NOT LOGGED INITIALLY WITH EMPTY TABLE\n\n```\n\n\nThe user account that submits the preceding query requires ALTER privileges on the table to be truncated.",
+    "name": "truncateEnabled",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Specifies whether to enable the Debezium JDBC connector’s reduction buffer.\n\nChoose one of the following settings:\n\n* `false`: (default) The connector writes each change event that it consumes as a separate logical SQL change.\n* `true`: The connector uses the reduction buffer to reduce change events before it writes them to the sink database. That is, if multiple events refer to the same primary key, the connector consolidates the SQL queries and writes only a single logical SQL change, based on the row state that is reported in the most recent offset record. Choose this option to reduce the SQL load on the target database.\n\nTo optimize query processing in a PostgreSQL sink database when the reduction buffer is enabled, you must also enable the database to execute the batched queries by adding the `reWriteBatchedInserts` parameter to the JDBC connection URL.",
+    "name": "useReductionBuffer",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `UTC`. Specifies the timezone used when inserting JDBC temporal values.",
+    "name": "useTimeZone",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.target.sgCluster.password
+<sup><sup>[↩ Parent](#sgstreamspectargetsgcluster)</sup></sup>
+
+The password used by the CDC sink process to connect to the database.
+
+If not specified the default superuser password will be used.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The Secret key where the password is stored.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "The Secret name where the password is stored.",
+    "name": "name",
+    "required": true,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+##### SGStream.spec.target.sgCluster.username
+<sup><sup>[↩ Parent](#sgstreamspectargetsgcluster)</sup></sup>
+
+The username used by the CDC sink process to connect to the database.
+
+If not specified the default superuser username (by default postgres) will be used.
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The Secret key where the username is stored.",
+    "name": "key",
+    "required": true,
+    "type": "string"
+  },
+  {
+    "description": "The Secret name where the username is stored.",
+    "name": "name",
+    "required": true,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+### SGStream.spec.debeziumEngineProperties
+<sup><sup>[↩ Parent](#sgstreamspec)</sup></sup>
+
+See https://debezium.io/documentation/reference/stable/development/engine.html#engine-properties
+ Each property is converted from myPropertyName to my.property.name
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Default `-1`. The maximum number of retries on connection errors before failing (-1 = no limit, 0 = disabled, \u003e 0 = num of retries).",
+    "name": "errorsMaxRetries",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `300`. Initial delay (in ms) for retries when encountering connection errors. This value will be doubled upon every retry but won’t exceed errorsRetryDelayMaxMs.",
+    "name": "errorsRetryDelayInitialMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `10000`. Max delay (in ms) between retries when encountering conn",
+    "name": "errorsRetryDelayMaxMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `io.debezium.engine.spi.OffsetCommitPolicy.PeriodicCommitOffsetPolicy`. The name of the Java class of the commit policy. It defines when offsets commit has to be triggered based on the number of events processed and the time elapsed since the last commit. This class must implement the interface OffsetCommitPolicy. The default is a periodic commit policy based upon time intervals.",
+    "name": "offsetCommitPolicy",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `60000`. Interval at which to try committing offsets. The default is 1 minute.",
+    "name": "offsetFlushIntervalMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `5000`. Maximum number of milliseconds to wait for records to flush and partition offset data to be committed to offset storage before cancelling the process and restoring the offset data to be committed in a future attempt. The default is 5 seconds.",
+    "name": "offsetFlushTimeoutMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Predicates can be applied to transformations to make the transformations optional.\n\nAn example of the configuration is:\n\n\n```\n\npredicates:\n  headerExists: # (1)\n   type: \"org.apache.kafka.connect.transforms.predicates.HasHeaderKey\" # (2)\n   name: \"header.name\" # (3)\ntransforms:\n  filter: # (4)\n    type: \"io.debezium.embedded.ExampleFilterTransform\" # (5)\n    predicate: \"headerExists\" # (6)\n    negate: \"true\" # (7)\n\n```\n\n\n1. One predicate is defined - headerExists\n2. Implementation of the headerExists predicate is org.apache.kafka.connect.transforms.predicates.HasHeaderKey\n3. The headerExists predicate has one configuration option - name\n4. One transformation is defined - filter\n5. Implementation of the filter transformation is io.debezium.embedded.ExampleFilterTransform\n6. The filter transformation requires the predicate headerExists\n7. The filter transformation expects the value of the predicate to be negated, making the predicate determine if the header does not exist",
+    "name": "predicates",
+    "required": false,
+    "type": "map[string]map[string]string"
+  },
+  {
+    "description": "Default `ORDERED`. \n\nDetermines how the records should be produced.\n\n* `ORDERED`\n\n  Records are processed sequentially; that is, they are produced in the order in which they were obtained from the database.\n\n* `UNORDERED`\n\n  Records are processed non-sequentially; that is, they can be produced in a different order than in the source database.\n\nThe non-sequential processing of the `UNORDERED` option results in better throughput, because records are produced immediately after any SMT processing and message serialization is complete, without waiting for other records. This option doesn’t have any effect when the ChangeConsumer method is provided to the engine.",
+    "name": "recordProcessingOrder",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Default `1000`. Maximum time in milliseconds to wait for processing submitted records after a task shutdown is called.",
+    "name": "recordProcessingShutdownTimeoutMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The number of threads that are available to process change event records. If no value is specified (the default), the engine uses the Java [ThreadPoolExecutor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html) to dynamically adjust the number of threads, based on the current workload. Maximum number of threads is number of CPU cores on given machine. If a value is specified, the engine uses the Java [fixed thread pool](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Executors.html) method to create a thread pool with the specified number of threads. To use all available cores on given machine, set the placeholder value, AVAILABLE_CORES.",
+    "name": "recordProcessingThreads",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Default `false`. Specifies whether the default ChangeConsumer should be created from the provided Consumer, resulting in serial Consumer processing. This option has no effect if you specified the ChangeConsumer interface when you used the API to create the engine.",
+    "name": "recordProcessingWithSerialConsumer",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Default `180000`. Time, in milliseconds, that the engine waits for a task’s lifecycle management operations (starting and stopping) to complete.",
+    "name": "taskManagementTimeoutMs",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Before the messages are delivered to the handler it is possible to run them through a pipeline of Kafka Connect Simple Message Transforms (SMT). Each SMT can pass the message unchanged, modify it or filter it out. The chain is configured using property transforms. The property contains a list of logical names of the transformations to be applied (the specified keys). Properties transforms.\u003clogical_name\u003e.type then defines the name of the implementation class for each transformation and transforms.\u003clogical_name\u003e.* configuration options that are passed to the transformation.\n\nAn example of the configuration is:\n\n\n```\n\ntransforms: # (1)\n  router:\n    type: \"org.apache.kafka.connect.transforms.RegexRouter\" # (2)\n    regex: \"(.*)\" # (3)\n    replacement: \"trf$1\" # (3)\n  filter:\n    type: \"io.debezium.embedded.ExampleFilterTransform\" # (4)\n\n```\n\n\n1. Two transformations are defined - filter and router\n2. Implementation of the router transformation is org.apache.kafka.connect.transforms.RegexRouter\n3. The router transformation has two configurations options -regex and replacement\n4. Implementation of the filter transformation is io.debezium.embedded.ExampleFilterTransform",
+    "name": "transforms",
+    "required": false,
+    "type": "map[string]map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+### SGStream.spec.metadata
+<sup><sup>[↩ Parent](#sgstreamspec)</sup></sup>
+
+Metadata information for stream created resources.
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamspecmetadataannotations",
+    "description": "Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to resources created and managed by StackGres.",
+    "name": "annotations",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamspecmetadatalabels",
+    "description": "Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to be passed to resources created and managed by StackGres.",
+    "name": "labels",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.metadata.annotations
+<sup><sup>[↩ Parent](#sgstreamspecmetadata)</sup></sup>
+
+Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to resources created and managed by StackGres.
+
+**Example:**
+
+
+```yaml
+
+apiVersion: stackgres.io/v1alpha1
+kind: SGStream
+metadata:
+  name: stackgres
+spec:
+  metadata:
+    annotations:
+      pods:
+        key: value
+
+```
+
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).",
+    "name": "allResources",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).",
+    "name": "pods",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/).",
+    "name": "serviceAccount",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+#### SGStream.spec.metadata.labels
+<sup><sup>[↩ Parent](#sgstreamspecmetadata)</sup></sup>
+
+Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to be passed to resources created and managed by StackGres.
+
+**Example:**
+
+
+```yaml
+
+apiVersion: stackgres.io/v1alpha1
+kind: SGStream
+metadata:
+  name: stackgres
+spec:
+  metadata:
+    labels:
+      pods:
+        customLabel: customLabelValue
+
+```
+
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).",
+    "name": "allResources",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).",
+    "name": "pods",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/).",
+    "name": "serviceAccount",
+    "required": false,
+    "type": "map[string]string"
+  }
+]
+{{< /crd-properties >}}
+
+## SGStream.status
+<sup><sup>[↩ Parent](#sgstream)</sup></sup>
+
+Status of a StackGres stream.
+
+
+{{< crd-properties >}}
+[
+  {
+    "anchor": "sgstreamstatusconditionsindex",
+    "description": "Possible conditions are:\n\n* Running: to indicate when the operation is actually running\n* Completed: to indicate when the operation has completed successfully\n* Failed: to indicate when the operation has failed",
+    "name": "conditions",
+    "required": false,
+    "type": "[]object"
+  },
+  {
+    "anchor": "sgstreamstatusevents",
+    "description": "Events status",
+    "name": "events",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "description": "The failure message",
+    "name": "failure",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "anchor": "sgstreamstatussnapshot",
+    "description": "Snapshot status",
+    "name": "snapshot",
+    "required": false,
+    "type": "object"
+  },
+  {
+    "anchor": "sgstreamstatusstreaming",
+    "description": "Streaming status",
+    "name": "streaming",
+    "required": false,
+    "type": "object"
+  }
+]
+{{< /crd-properties >}}
+
+### SGStream.status.conditions[index]
+<sup><sup>[↩ Parent](#sgstreamstatus)</sup></sup>
+
+
+
+{{< crd-properties >}}
+[
+  {
+    "description": "Last time the condition transitioned from one status to another.",
+    "name": "lastTransitionTime",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "A human-readable message indicating details about the transition.",
+    "name": "message",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The reason for the condition last transition.",
+    "name": "reason",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Status of the condition, one of `True`, `False` or `Unknown`.",
+    "name": "status",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Type of deployment condition.",
+    "name": "type",
+    "required": false,
+    "type": "string"
+  }
+]
+{{< /crd-properties >}}
+
+### SGStream.status.events
+<sup><sup>[↩ Parent](#sgstreamstatus)</sup></sup>
+
+Events status
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The last error seen sending events that this stream has seen since the last start or metrics reset.",
+    "name": "lastErrorSeen",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The last event that the stream has sent since the last start or metrics reset.",
+    "name": "lastEventSent",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "It is true if the last event that the stream has tried to send since the last start or metrics reset was sent successfully.",
+    "name": "lastEventWasSent",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "The total number of errors sending events that this stream has seen since the last start or metrics reset.",
+    "name": "totalNumberOfErrorsSeen",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The total number of events that this stream has sent since the last start or metrics reset.",
+    "name": "totalNumberOfEventsSent",
+    "required": false,
+    "type": "integer"
+  }
+]
+{{< /crd-properties >}}
+
+### SGStream.status.snapshot
+<sup><sup>[↩ Parent](#sgstreamstatus)</sup></sup>
+
+Snapshot status
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The list of tables that are captured by the connector.",
+    "name": "capturedTables",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "The lower bound of the primary key set defining the current chunk.",
+    "name": "chunkFrom",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The identifier of the current snapshot chunk.",
+    "name": "chunkId",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The upper bound of the primary key set defining the current chunk.",
+    "name": "chunkTo",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The current volume, in bytes, of records in the queue.",
+    "name": "currentQueueSizeInBytes",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The last snapshot event that the connector has read.",
+    "name": "lastEvent",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The maximum buffer of the queue in bytes. This metric is available if max.queue.size.in.bytes is set to a positive long value.",
+    "name": "maxQueueSizeInBytes",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The number of milliseconds since the connector has read and processed the most recent event.",
+    "name": "milliSecondsSinceLastEvent",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The number of events that have been filtered by include/exclude list filtering rules configured on the connector.",
+    "name": "numberOfEventsFiltered",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The free capacity of the queue used to cache events from the snapshotter.",
+    "name": "queueRemainingCapacity",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The length of the queue used to cache events from the snapshotter.",
+    "name": "queueTotalCapacity",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The number of tables that the snapshot has yet to copy.",
+    "name": "remainingTableCount",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Map containing the number of rows scanned for each table in the snapshot. Tables are incrementally added to the Map during processing. Updates every 10,000 rows scanned and upon completing a table.",
+    "name": "rowsScanned",
+    "required": false,
+    "type": "map[string]integer"
+  },
+  {
+    "description": "Whether the snapshot was aborted.",
+    "name": "snapshotAborted",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "Whether the snapshot completed.",
+    "name": "snapshotCompleted",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "The total number of seconds that the snapshot has taken so far, even if not complete. Includes also time when snapshot was paused.",
+    "name": "snapshotDurationInSeconds",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Whether the snapshot was paused.",
+    "name": "snapshotPaused",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "The total number of seconds that the snapshot was paused. If the snapshot was paused several times, the paused time adds up.",
+    "name": "snapshotPausedDurationInSeconds",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "Whether the snapshot was started.",
+    "name": "snapshotRunning",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "The lower bound of the primary key set of the currently snapshotted table.",
+    "name": "tableFrom",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The upper bound of the primary key set of the currently snapshotted table.",
+    "name": "tableTo",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The total number of events that this connector has seen since last started or reset.",
+    "name": "totalNumberOfEventsSeen",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The total number of tables that are being included in the snapshot.",
+    "name": "totalTableCount",
+    "required": false,
+    "type": "integer"
+  }
+]
+{{< /crd-properties >}}
+
+### SGStream.status.streaming
+<sup><sup>[↩ Parent](#sgstreamstatus)</sup></sup>
+
+Streaming status
+
+{{< crd-properties >}}
+[
+  {
+    "description": "The list of tables that are captured by the connector.",
+    "name": "capturedTables",
+    "required": false,
+    "type": "[]string"
+  },
+  {
+    "description": "Flag that denotes whether the connector is currently connected to the database server.",
+    "name": "connected",
+    "required": false,
+    "type": "boolean"
+  },
+  {
+    "description": "The current volume, in bytes, of records in the queue.",
+    "name": "currentQueueSizeInBytes",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The last streaming event that the connector has read.",
+    "name": "lastEvent",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "Transaction identifier of the last processed transaction.",
+    "name": "lastTransactionId",
+    "required": false,
+    "type": "string"
+  },
+  {
+    "description": "The maximum buffer of the queue in bytes. This metric is available if max.queue.size.in.bytes is set to a positive long value.",
+    "name": "maxQueueSizeInBytes",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The number of milliseconds between the last change event’s timestamp and the connector processing it. The values will incorporate any differences between the clocks on the machines where the database server and the connector are running.",
+    "name": "milliSecondsBehindSource",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The number of milliseconds since the connector has read and processed the most recent event.",
+    "name": "milliSecondsSinceLastEvent",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The number of processed transactions that were committed.",
+    "name": "numberOfCommittedTransactions",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The number of events that have been filtered by include/exclude list filtering rules configured on the connector.",
+    "name": "numberOfEventsFiltered",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The free capacity of the queue used to cache events from the streamer.",
+    "name": "queueRemainingCapacity",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The length of the queue used to cache events from the streamer.",
+    "name": "queueTotalCapacity",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The coordinates of the last received event.",
+    "name": "sourceEventPosition",
+    "required": false,
+    "type": "map[string]string"
+  },
+  {
+    "description": "The total number of create events that this connector has seen since the last start or metrics reset.",
+    "name": "totalNumberOfCreateEventsSeen",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The total number of delete events that this connector has seen since the last start or metrics reset.",
+    "name": "totalNumberOfDeleteEventsSeen",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The total number of events that this connector has seen since the last start or metrics reset.",
+    "name": "totalNumberOfEventsSeen",
+    "required": false,
+    "type": "integer"
+  },
+  {
+    "description": "The total number of update events that this connector has seen since the last start or metrics reset.",
+    "name": "totalNumberOfUpdateEventsSeen",
+    "required": false,
+    "type": "integer"
+  }
+]
+{{< /crd-properties >}}
