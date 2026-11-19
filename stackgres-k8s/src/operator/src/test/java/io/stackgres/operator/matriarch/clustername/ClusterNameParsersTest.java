@@ -92,4 +92,24 @@ class ClusterNameParsersTest {
         "#!/bin/bash\necho hello\n").isEmpty());
   }
 
+  @Test
+  void validValueAcceptsRealNames() {
+    assertEquals(Optional.of("my-cluster"), MetadataResponses.validValue("my-cluster"));
+    assertEquals(Optional.of("prod.eks.cluster_1"),
+        MetadataResponses.validValue("  prod.eks.cluster_1  "));
+  }
+
+  @Test
+  void validValueRejectsCaptivePortalHtml() {
+    // The exact shape a travel-WiFi captive portal returned with HTTP 200.
+    String portal = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\">\n"
+        + "<html><head><title>Waiting...</title></head><body></body></html>";
+    assertTrue(MetadataResponses.validValue(portal).isEmpty());
+    assertTrue(MetadataResponses.validValue("<html>x</html>").isEmpty());
+    assertTrue(MetadataResponses.validValue("has space").isEmpty());
+    assertTrue(MetadataResponses.validValue("line1\nline2").isEmpty());
+    assertTrue(MetadataResponses.validValue(null).isEmpty());
+    assertTrue(MetadataResponses.validValue("   ").isEmpty());
+  }
+
 }

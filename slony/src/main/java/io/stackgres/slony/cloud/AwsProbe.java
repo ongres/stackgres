@@ -43,7 +43,10 @@ class AwsProbe implements CloudProbe {
                     .header("X-aws-ec2-metadata-token-ttl-seconds", "21600")
                     .build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() == 200)
+            // Only a response that identifies itself as IMDS ("Server: EC2ws") yields a usable token.
+            if (response.statusCode() == 200
+                    && MetadataResponses.serverIs(response, "EC2ws")
+                    && response.body() != null && !response.body().isBlank())
                 return response.body().strip();
         } catch (Exception e) {
             // ignored
@@ -60,8 +63,9 @@ class AwsProbe implements CloudProbe {
         if (token != null)
             builder.header("X-aws-ec2-metadata-token", token);
         HttpResponse<String> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() == 200)
-            return response.body().strip();
+        // The genuine IMDS identifies itself as "Server: EC2ws"; a captive portal / proxy will not.
+        if (response.statusCode() == 200 && MetadataResponses.serverIs(response, "EC2ws"))
+            return MetadataResponses.validValueOrNull(response.body());
         return null;
     }
 

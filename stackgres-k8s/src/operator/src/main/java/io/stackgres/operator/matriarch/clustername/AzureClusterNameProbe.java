@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.matriarch.clustername;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -20,6 +21,10 @@ import org.jboss.logging.Logger;
  * that name from IMDS and parse the cluster segment. This is a heuristic — resource-group and
  * cluster names may themselves contain underscores — so it is best-effort and only ever logged in
  * Phase 1.
+ *
+ * <p>Azure IMDS requires the {@code Metadata: true} request header and serves text/JSON, never HTML;
+ * responses are rejected if they declare an HTML content type, and the value must both start with the
+ * {@code MC_} prefix and be a valid short token, so a captive portal / random responder is rejected.
  */
 class AzureClusterNameProbe implements CloudClusterNameProbe {
 
@@ -35,13 +40,18 @@ class AzureClusterNameProbe implements CloudClusterNameProbe {
   @Override
   public Optional<String> detect(HttpClient client) {
     try {
-      String resourceGroup = get(client,
+      Optional<String> resourceGroup = get(client,
           "/metadata/instance/compute/resourceGroupName?api-version=2021-02-01&format=text");
-      Optional<String> name = parseClusterNameFromNodeResourceGroup(resourceGroup);
+      Optional<String> name = resourceGroup
+          .flatMap(AzureClusterNameProbe::parseClusterNameFromNodeResourceGroup)
+          .flatMap(MetadataResponses::validValue);
       name.ifPresent(n -> LOG.debugf("AKS cluster name from node resource group %s: %s",
-          resourceGroup, n));
+          resourceGroup.orElse("?"), n));
       return name;
-    } catch (Exception e) {
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return Optional.empty();
+    } catch (IOException e) {
       LOG.debugf("AKS probe failed: %s", e.getMessage());
       return Optional.empty();
     }
@@ -68,7 +78,8 @@ class AzureClusterNameProbe implements CloudClusterNameProbe {
     return cluster.isBlank() ? Optional.empty() : Optional.of(cluster);
   }
 
-  private static String get(HttpClient client, String path) throws Exception {
+  private static Optional<String> get(HttpClient client, String path)
+      throws IOException, InterruptedException {
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(ENDPOINT + path))
         .timeout(REQUEST_TIMEOUT)
@@ -76,7 +87,11 @@ class AzureClusterNameProbe implements CloudClusterNameProbe {
         .GET()
         .build();
     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-    return response.statusCode() == 200 ? response.body() : null;
+    // Azure IMDS serves text/JSON, never HTML; reject an HTML captive-portal response.
+    if (response.statusCode() != 200 || !MetadataResponses.isNotHtml(response)) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(response.body());
   }
 
 }

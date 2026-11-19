@@ -44,7 +44,11 @@ class GcpProbe implements CloudProbe {
                 .GET()
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() == 200)
+        // The genuine GCE metadata server echoes "Metadata-Flavor: Google" and never serves HTML;
+        // a captive portal / proxy will not, so a bare 200 is not enough.
+        if (response.statusCode() == 200
+                && MetadataResponses.headerMatches(response, "Metadata-Flavor", "Google")
+                && MetadataResponses.isNotHtml(response))
             return response.body().strip();
         return null;
     }

@@ -25,7 +25,9 @@ import org.jboss.logging.Logger;
  *   <li>parsing {@code /latest/user-data}: the AL2 {@code /etc/eks/bootstrap.sh <cluster>} argument,
  *       or the AL2023 nodeadm {@code NodeConfig} ({@code spec.cluster.name}).</li>
  * </ol>
- * Uses IMDSv2 (token) with a fall back to IMDSv1. Any miss returns empty.
+ * Uses IMDSv2 (token) with a fall back to IMDSv1. Every response must identify itself as
+ * {@code Server: EC2ws} — the genuine IMDS signature — so a captive portal / random responder that
+ * answers {@code 200} is rejected. Any miss returns empty.
  */
 class AwsClusterNameProbe implements CloudClusterNameProbe {
 
@@ -49,16 +51,22 @@ class AwsClusterNameProbe implements CloudClusterNameProbe {
   public Optional<String> detect(HttpClient client) {
     try {
       String token = imdsv2Token(client);
-      String tag = get(client, token, "/latest/meta-data/tags/instance/aws:eks:cluster-name");
-      if (tag != null && !tag.isBlank()) {
-        LOG.debugf("EKS cluster name from instance tag: %s", tag.strip());
-        return Optional.of(tag.strip());
+      Optional<String> tag =
+          get(client, token, "/latest/meta-data/tags/instance/aws:eks:cluster-name")
+              .flatMap(MetadataResponses::validValue);
+      if (tag.isPresent()) {
+        LOG.debugf("EKS cluster name from instance tag: %s", tag.get());
+        return tag;
       }
-      String userData = get(client, token, "/latest/user-data");
-      Optional<String> fromUserData = parseClusterNameFromUserData(userData);
+      Optional<String> fromUserData = get(client, token, "/latest/user-data")
+          .flatMap(AwsClusterNameProbe::parseClusterNameFromUserData)
+          .flatMap(MetadataResponses::validValue);
       fromUserData.ifPresent(n -> LOG.debugf("EKS cluster name from user-data: %s", n));
       return fromUserData;
-    } catch (Exception e) {
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return Optional.empty();
+    } catch (IOException e) {
       LOG.debugf("EKS probe failed: %s", e.getMessage());
       return Optional.empty();
     }
@@ -97,7 +105,10 @@ class AwsClusterNameProbe implements CloudClusterNameProbe {
           .header("X-aws-ec2-metadata-token-ttl-seconds", "21600")
           .build();
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() == 200) {
+      // Only a response that identifies itself as IMDS yields a usable token.
+      if (response.statusCode() == 200
+          && MetadataResponses.serverIs(response, "EC2ws")
+          && response.body() != null && !response.body().isBlank()) {
         return response.body().strip();
       }
     } catch (InterruptedException e) {
@@ -108,7 +119,8 @@ class AwsClusterNameProbe implements CloudClusterNameProbe {
     return null;
   }
 
-  private static String get(HttpClient client, String token, String path) throws Exception {
+  private static Optional<String> get(HttpClient client, String token, String path)
+      throws IOException, InterruptedException {
     HttpRequest.Builder builder = HttpRequest.newBuilder()
         .uri(URI.create(ENDPOINT + path))
         .timeout(REQUEST_TIMEOUT)
@@ -117,7 +129,11 @@ class AwsClusterNameProbe implements CloudClusterNameProbe {
       builder.header("X-aws-ec2-metadata-token", token);
     }
     HttpResponse<String> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
-    return response.statusCode() == 200 ? response.body() : null;
+    // The genuine IMDS identifies itself as "Server: EC2ws"; a captive portal / proxy will not.
+    if (response.statusCode() != 200 || !MetadataResponses.serverIs(response, "EC2ws")) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(response.body());
   }
 
 }

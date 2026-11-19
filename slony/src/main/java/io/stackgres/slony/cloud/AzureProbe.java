@@ -42,8 +42,10 @@ class AzureProbe implements CloudProbe {
                 .GET()
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() == 200)
-            return response.body().strip();
+        // Azure IMDS serves text/JSON, never HTML, and returns short token values; reject an HTML
+        // captive-portal response or any non-token body.
+        if (response.statusCode() == 200 && MetadataResponses.isNotHtml(response))
+            return MetadataResponses.validValueOrNull(response.body());
         return null;
     }
 
