@@ -24,6 +24,15 @@ get_extensions_metadata_url() {
   printf '%s' "$(printf '%s' "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/$EXTENSIONS_METADATA_VERSION/$NAME"
 }
 
+# The name of the file that stores a catalog file in the extensions cache, that depends on the
+# repository and the catalog version so that a catalog is never read for another repository or
+# catalog version
+get_extensions_metadata_cache_name() {
+  local NAME="$1"
+  printf 'local-extensions-%s-%s' \
+    "$(get_extensions_metadata_url "$NAME" | md5sum | cut -d ' ' -f 1)" "$NAME"
+}
+
 get_extensions_index_hash() {
   cache_extensions_index
   md5sum "$TARGET_PATH/extensions-index.json" | cut -d ' ' -f 1
@@ -34,12 +43,24 @@ cache_extensions_index() {
   then
     if [ "$EXTENSIONS_CACHE_ENABLED" = true ] && [ -n "$EXTENSIONS_CACHE_HOST_PATH" ]
     then
-      docker run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" alpine \
-        sh -c 'cat /extensions/local-extensions-index.json 2>/dev/null' | jq . > "$TARGET_PATH/extensions-index.json" \
+      docker run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" \
+        -e NAME="$(get_extensions_metadata_cache_name index.json)" alpine \
+        sh -c 'cat "/extensions/$NAME" 2>/dev/null' | jq . > "$TARGET_PATH/extensions-index.json" \
         || true
-      docker run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" alpine \
-        sh -c 'cat /extensions/local-extensions-hashes.json 2>/dev/null' | jq . > "$TARGET_PATH/extensions-hashes.json" \
+      docker run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" \
+        -e NAME="$(get_extensions_metadata_cache_name hashes.json)" alpine \
+        sh -c 'cat "/extensions/$NAME" 2>/dev/null' | jq . > "$TARGET_PATH/extensions-hashes.json" \
         || true
+    else
+      rm -f "$TARGET_PATH/extensions-index.json" "$TARGET_PATH/extensions-hashes.json"
+    fi
+    if ! jq -e '.extensions' "$TARGET_PATH/extensions-index.json" > /dev/null 2>&1
+    then
+      rm -f "$TARGET_PATH/extensions-index.json"
+    fi
+    if ! jq -e '.extensions' "$TARGET_PATH/extensions-hashes.json" > /dev/null 2>&1
+    then
+      rm -f "$TARGET_PATH/extensions-hashes.json"
     fi
     if [ ! -s "$TARGET_PATH/extensions-index.json" ]
     then
@@ -50,33 +71,31 @@ cache_extensions_index() {
     then
       curl -s -f "$(get_extensions_metadata_url hashes.json)" \
         > "$TARGET_PATH/extensions-hashes.json"
-      rm -f "$TARGET_PATH/extensions-unwrapped-hashes.json"
     fi
-    if [ ! -f "$TARGET_PATH/extensions-unwrapped-hashes.json" ]
-    then
-      jq '
-        .publishers = (.publishers | map(
-          {
-            key: .id,
-            value: .
-          }
-          ) | from_entries)
-        | .extensions = (.extensions | map(
-          {
-            key: .name,
-            value: .
-          }
-          ) | from_entries)
-        ' "$TARGET_PATH/extensions-hashes.json" > "$TARGET_PATH/extensions-unwrapped-hashes.json"
-    fi
+    jq '
+      .publishers = (.publishers | map(
+        {
+          key: .id,
+          value: .
+        }
+        ) | from_entries)
+      | .extensions = (.extensions | map(
+        {
+          key: .name,
+          value: .
+        }
+        ) | from_entries)
+      ' "$TARGET_PATH/extensions-hashes.json" > "$TARGET_PATH/extensions-unwrapped-hashes.json"
     if [ "$EXTENSIONS_CACHE_ENABLED" = true ] && [ -n "$EXTENSIONS_CACHE_HOST_PATH" ]
     then
       jq . "$TARGET_PATH/extensions-index.json" \
-        | docker run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" alpine \
-          sh -c 'cat > /extensions/local-extensions-index.json'
+        | docker run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" \
+          -e NAME="$(get_extensions_metadata_cache_name index.json)" alpine \
+          sh -c 'cat > "/extensions/$NAME"'
       jq . "$TARGET_PATH/extensions-hashes.json" \
-        | docker run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" alpine \
-          sh -c 'cat > /extensions/local-extensions-hashes.json'
+        | docker run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" \
+          -e NAME="$(get_extensions_metadata_cache_name hashes.json)" alpine \
+          sh -c 'cat > "/extensions/$NAME"'
     fi
     EXTENSIONS_INDEX_CACHED=true
   fi
@@ -99,8 +118,23 @@ get_versions_of_extension() {
   cache_extensions_index
 
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"
-  PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | grep "/patroni:.*-$FLAVOR$POSTGRES_VERSION")"
-  PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | sort | tail -n 1)"
+  # Match the exact Postgres version (so that 15.2 does not match 15.20) or, when only the major
+  # is given, any minor of that major
+  if [ "$POSTGRES_VERSION" = "${POSTGRES_VERSION%%.*}" ]
+  then
+    PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | grep "/patroni:" | grep -F -- "-$FLAVOR$POSTGRES_VERSION.")"
+  else
+    PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | grep "/patroni:" | grep -F -- "-$FLAVOR$POSTGRES_VERSION-build-")"
+  fi
+  # Pick the image with the latest Postgres version and build, comparing them as versions (so that
+  # 15.20 is newer than 15.2 and 15.19)
+  PATRONI_IMAGE="$(printf '%s\n' "$PATRONI_IMAGE" \
+    | while read -r IMAGE
+      do
+        IMAGE_VERSION="${IMAGE##*-"$FLAVOR"}"
+        printf '%s %s %s\n' "${IMAGE_VERSION%%-build-*}" "${IMAGE_VERSION##*-build-}" "$IMAGE"
+      done \
+    | sort -t ' ' -k 1V,1V -k 2V,2V | tail -n 1 | cut -d ' ' -f 3)"
   PATRONI_IMAGE_TAG="${PATRONI_IMAGE##*:}"
   PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PATRONI_IMAGE##*-$FLAVOR}"
   PATRONI_IMAGE_POSTGRES_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
@@ -108,7 +142,9 @@ get_versions_of_extension() {
   PATRONI_IMAGE_BUILD_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION##*-build-}"
   PATRONI_IMAGE_BUILD_MAJOR_VERSION="${PATRONI_IMAGE_BUILD_VERSION%%.*}"
   EXTENSIONS_ARCH="$(uname -m)"
+  # A build may only run on the Postgres minors between postgresFromVersion and postgresToVersion
   VERSIONS="$(jq -r "$(cat << EOF
+def postgres_version: split(".") | map(tonumber? // 0);
 .extensions[] | select(.name == "$EXTENSION_NAME").versions
   | sort_by(.version|split(".")) | reverse[]
   | select((.availableFor
@@ -117,6 +153,10 @@ get_versions_of_extension() {
         or .postgresVersion == "$PATRONI_IMAGE_POSTGRES_MAJOR_VERSION")
       and (if .build == null then true
         else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)
+      and (.postgresFromVersion == null
+        or (.postgresFromVersion | postgres_version) <= ("$PATRONI_IMAGE_POSTGRES_VERSION" | postgres_version))
+      and (.postgresToVersion == null
+        or (.postgresToVersion | postgres_version) >= ("$PATRONI_IMAGE_POSTGRES_VERSION" | postgres_version))
       and ((.arch == null and "$EXTENSIONS_ARCH" == "x86_64") or (.arch == "$EXTENSIONS_ARCH"))))
       | length) > 0).version
 EOF
