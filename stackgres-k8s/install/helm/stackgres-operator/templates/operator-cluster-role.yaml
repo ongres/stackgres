@@ -17,6 +17,13 @@ rules:
   verbs:
   - get
   - list
+# Read-only node access for best-effort cluster-name detection (matriarch cloud uplink):
+# parse kind's spec.providerID / control-plane node name. See ClusterNameDetector.
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs:
+  - get
+  - list
 - apiGroups: ["storage.k8s.io"]
   resources: ["storageclasses"]
   verbs: 
