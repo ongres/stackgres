@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Cloud-only: the edge aggregates multiple environments, so clusters carry an {@code environmentId}, several
+ * Cloud-only: the edge aggregates multiple environments, so clusters carry an {@code environmentId} (the environment's name), several
  * environments are visible, and {@code cluster list -A} lists across all of them. Read-only — inspects
  * whatever the configured token can already see.
  */

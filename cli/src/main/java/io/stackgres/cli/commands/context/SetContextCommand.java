@@ -23,7 +23,7 @@ public class SetContextCommand extends StackGresSubCommand {
     Boolean tls;
 
     // Named --default-env, not --environment, to avoid clashing with the inherited global -E/--environment.
-    @Option(names = "--default-env", paramLabel = "<id>", description = "The environment this context targets by default")
+    @Option(names = "--default-env", paramLabel = "<name>", description = "The environment this context targets by default")
     String environment;
 
     @Override

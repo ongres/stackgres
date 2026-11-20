@@ -6,7 +6,7 @@ function _stackgres() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    {-E,--environment}"[The target environment name]:environment:__stackgres_list_environments" \
     "--context[Use a named context from ~/.stackgres/config.yaml]:context:__stackgres_list_contexts" \
     "1: :(cluster environment context slon login logout status)" \
     "*::arg:->args"
@@ -97,7 +97,7 @@ function _stackgres_cluster_get() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    {-E,--environment}"[The target environment name]:environment:__stackgres_list_environments" \
     "--context[Use a named context]:context:__stackgres_list_contexts" \
     "1:cluster:__stackgres_list_all_clusters" \
     "*::arg:->args"
@@ -109,7 +109,7 @@ function _stackgres_cluster_list() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    {-E,--environment}"[The target environment name]:environment:__stackgres_list_environments" \
     {-A,--all-environments}"[List across all environments (the default when no environment is active)]" \
     "--context[Use a named context]:context:__stackgres_list_contexts" \
     "--show-tags[Shows the cluster tags in the list]" \
@@ -124,7 +124,7 @@ function _stackgres_cluster_create() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    {-E,--environment}"[The target environment name]:environment:__stackgres_list_environments" \
     "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-n,--name}"[The cluster name]:arg:->args" \
     {-F,--flavor}"[The database flavor]:flavor:(postgres ivorysql)" \
@@ -175,7 +175,7 @@ function _stackgres_cluster_delete() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    {-E,--environment}"[The target environment name]:environment:__stackgres_list_environments" \
     "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-t,--tag}"[Only delete clusters that are tagged accordingly]:arg:->args" \
     {-f,--force}"[Force deletion (doesn't ask for confirmation)]" \
@@ -200,7 +200,7 @@ function _stackgres_cluster_start() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    {-E,--environment}"[The target environment name]:environment:__stackgres_list_environments" \
     "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-t,--tag}"[Only start clusters that are tagged accordingly]:arg:->args" \
     {-a,--all}"[Start all stopped clusters]" \
@@ -224,7 +224,7 @@ function _stackgres_cluster_stop() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    {-E,--environment}"[The target environment name]:environment:__stackgres_list_environments" \
     "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-t,--tag}"[Only stop clusters that are tagged accordingly]:arg:->args" \
     {-a,--all}"[Stop all clusters]" \
@@ -248,7 +248,7 @@ function _stackgres_cluster_restart() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    {-E,--environment}"[The target environment id]:environment:__stackgres_list_environments" \
+    {-E,--environment}"[The target environment name]:environment:__stackgres_list_environments" \
     "--context[Use a named context]:context:__stackgres_list_contexts" \
     {-t,--tag}"[Only restart clusters that are tagged accordingly]:arg:->args" \
     {-a,--all}"[Restart all clusters]" \
@@ -683,7 +683,7 @@ function _stackgres_environment() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    "1: :(list get use delete node)" \
+    "1: :(list get use rename delete node)" \
     "*::arg:->args"
 
   case $line[1] in
@@ -695,6 +695,9 @@ function _stackgres_environment() {
     ;;
     use)
       _stackgres_environment_use
+    ;;
+    rename)
+      _stackgres_environment_rename
     ;;
     delete|rm)
       _stackgres_environment_delete
@@ -711,7 +714,7 @@ function _stackgres_environment_list() {
 
   _arguments -C \
     {-h,--help}"[Display help]" \
-    {-q,--quiet}"[Only display the environment IDs]" \
+    {-q,--quiet}"[Only display the environment names]" \
     "*::arg:->args"
 
 }
@@ -732,6 +735,17 @@ function _stackgres_environment_use() {
   _arguments -C \
     {-h,--help}"[Display help]" \
     "1:environment:__stackgres_list_environments" \
+    "*::arg:->args"
+
+}
+
+function _stackgres_environment_rename() {
+  local line
+
+  _arguments -C \
+    {-h,--help}"[Display help]" \
+    "1:environment:__stackgres_list_environments" \
+    "2:new name: " \
     "*::arg:->args"
 
 }

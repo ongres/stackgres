@@ -28,7 +28,7 @@ public final class TestConfig {
     /** Pre-issued JWT for the cloud target (empty = none, as for a direct matriarch). */
     public static final String TOKEN = prop("stackgres.systemtest.token", "");
 
-    /** Environment id to scope to (cloud, when several exist); empty = default/implicit. */
+    /** Name of the environment to scope to (cloud, when several exist); empty = default/implicit. */
     public static final String ENVIRONMENT = prop("stackgres.systemtest.environment", "");
 
     /** Base URL for the cloud's REST endpoints (e.g. {@code GET /events}); derived from the endpoint host. */

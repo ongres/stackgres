@@ -24,11 +24,11 @@ import org.eclipse.microprofile.config.Config;
 import org.jboss.logging.Logger;
 
 /**
- * Phase 1 (detect-and-log only): resolves a best-effort name for the Kubernetes cluster the operator
- * runs in and logs it. Nothing is persisted, added to the {@code Environment} proto, sent over the
- * cloud uplink, or shown in the UI — this exists so the detection chain can be validated from the
- * operator logs, on any cloud or local cluster, before any wire/identity work (see
- * {@code matriarch/doc/environment-cluster-name-plan.md}).
+ * Resolves a best-effort name for the Kubernetes cluster the operator runs in. The result is logged at
+ * startup and is the environment name this install presents ({@code EnvironmentIdentity}): on its local
+ * api.v1 and, as a <em>proposal</em>, on its cloud registration — the cloud owns the final, per-tenant
+ * unique and user-editable name. Nothing is persisted here; detection is repeated on each operator start
+ * (see {@code matriarch/doc/environment-cluster-name-plan.md}).
  *
  * <p>Resolution order, first non-empty wins:
  * <ol>
@@ -66,9 +66,27 @@ public class ClusterNameDetector {
   public record Detected(String name, String source) {
   }
 
+  // The first successful detection, reused for the life of the process. An empty result is NOT cached
+  // (the API may just not have been reachable yet), so a later call retries.
+  private volatile Detected cached;
+
+  /** The detected name, resolved once and memoized (a miss is retried on the next call). */
+  public Optional<Detected> detected() {
+    Detected result = cached;
+    if (result != null) {
+      return Optional.of(result);
+    }
+    synchronized (this) {
+      if (cached == null) {
+        cached = detect().orElse(null);
+      }
+      return Optional.ofNullable(cached);
+    }
+  }
+
   void onStart(@Observes StartupEvent ev) {
     try {
-      Optional<Detected> detected = detect();
+      Optional<Detected> detected = detected();
       if (detected.isPresent()) {
         LOG.infof("detected cluster name: %s (source=%s)",
             detected.get().name(), detected.get().source());
@@ -80,7 +98,9 @@ public class ClusterNameDetector {
     }
   }
 
-  /** Run the resolution chain. Public/package-visible for wiring and tests. */
+  /**
+   * Run the resolution chain (uncached — prefer {@link #detected()}). Public for wiring and tests.
+   */
   public Optional<Detected> detect() {
     Optional<String> override = config.getOptionalValue("STACKGRES_CLUSTER_NAME", String.class)
         .map(String::strip)

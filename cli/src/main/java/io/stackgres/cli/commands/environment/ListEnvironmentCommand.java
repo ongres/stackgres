@@ -14,7 +14,7 @@ public class ListEnvironmentCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();
 
-    @Option(names = {"-q", "--quiet"}, description = "Only display the environment IDs")
+    @Option(names = {"-q", "--quiet"}, description = "Only display the environment names")
     boolean quiet;
 
     @Override
@@ -23,14 +23,14 @@ public class ListEnvironmentCommand extends StackGresSubCommand {
         List<EnvironmentInfo> environments = client.listEnvironments();
 
         if (quiet) {
-            environments.forEach(e -> outln(e.id()));
+            environments.forEach(e -> outln(e.name()));
             return;
         }
         if (environments.isEmpty()) {
             outln("There are no environments");
             return;
         }
-        // Same table as `status`; per-field detail (health, as-of, surfaces) is in `environment get`.
+        // Same table as `status`; per-field detail (last seen, surfaces, tags) is in `environment get`.
         EnvironmentTable.print(environments, this::outln);
     }
 }

@@ -180,7 +180,7 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
      * slony node via {@link NodeLogRelay}; shared by the direct gRPC call and the cloud uplink's AbortLogs.
      */
     public Runnable startTailNodeLogs(TailNodeLogsRequest request, StreamObserver<LogLine> out) {
-        Node node = slonys.currentNode(identity.id());
+        Node node = slonys.currentNode(identity.name());
         if (node == null) {
             out.onError(Status.NOT_FOUND.withDescription("no node").asRuntimeException());
             return null;
@@ -255,12 +255,13 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
     // The bare-metal matriarch is a single environment — itself. Serving api.v1 ListEnvironments/
     // GetEnvironment (returning that one LIVE entry) lets the CLI treat local and cloud uniformly:
     // `stackgres environment list` works against a local matriarch too, and env auto-resolution sees
-    // exactly one. The id comes from EnvironmentIdentity (config or generated-and-persisted), so it is
-    // stable and unique across matriarchs — and it matches the id stamped on the clusters below.
+    // exactly one. An environment is identified to users by its NAME (EnvironmentIdentity: config, else
+    // this host's name) — that is what every environment_id of this API carries: the clusters and nodes
+    // stamped below and the source_info keys.
 
-    /** Map a cluster and stamp this environment's id (the mapper leaves environment_id empty). */
+    /** Map a cluster and stamp this environment's name (the mapper leaves environment_id empty). */
     private io.stackgres.proto.api.v1.Cluster stampEnv(io.stackgres.matriarch.model.Cluster cluster) {
-        return ProtoMapper.toProto(cluster).toBuilder().setEnvironmentId(identity.id()).build();
+        return ProtoMapper.toProto(cluster).toBuilder().setEnvironmentId(identity.name()).build();
     }
 
     @Override
@@ -268,7 +269,7 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
         Environment env = identity.environment();
         responseObserver.onNext(ListEnvironmentsResponse.newBuilder()
                 .addEnvironment(env)
-                .putSourceInfo(env.getId().getValue(), ProtoMapper.liveSourceInfo())
+                .putSourceInfo(env.getName(), ProtoMapper.liveSourceInfo())
                 .build());
         responseObserver.onCompleted();
     }
@@ -277,7 +278,7 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
     public void getEnvironment(GetEnvironmentRequest request, StreamObserver<GetEnvironmentResponse> responseObserver) {
         Environment env = identity.environment();
         String requested = request.getEnvironmentId();
-        if (requested != null && !requested.isBlank() && !requested.equals(env.getId().getValue())) {
+        if (!identity.matches(requested)) {
             responseObserver.onError(Status.NOT_FOUND.withDescription("no such environment: " + requested).asRuntimeException());
             return;
         }
@@ -295,7 +296,7 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
         for (Cluster cluster : matriarch.listClusters())
             if (matchesTags(cluster.spec().tags(), filter))
                 resp.addCluster(stampEnv(cluster));
-        resp.putSourceInfo(identity.id(), ProtoMapper.liveSourceInfo());
+        resp.putSourceInfo(identity.name(), ProtoMapper.liveSourceInfo());
         responseObserver.onNext(resp.build());
         responseObserver.onCompleted();
     }
@@ -311,18 +312,18 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
     @Override
     public void listNodes(ListNodesRequest request, StreamObserver<ListNodesResponse> responseObserver) {
         ListNodesResponse.Builder resp = ListNodesResponse.newBuilder();
-        Node node = slonys.currentNode(identity.id());
+        Node node = slonys.currentNode(identity.name());
         if (node != null && matchesTags(node.getTagsMap(), request.getTagsMap())) {
             resp.addNode(node);
         }
-        resp.putSourceInfo(identity.id(), ProtoMapper.liveSourceInfo());
+        resp.putSourceInfo(identity.name(), ProtoMapper.liveSourceInfo());
         responseObserver.onNext(resp.build());
         responseObserver.onCompleted();
     }
 
     @Override
     public void getNode(GetNodeRequest request, StreamObserver<GetNodeResponse> responseObserver) {
-        Node node = slonys.currentNode(identity.id());
+        Node node = slonys.currentNode(identity.name());
         if (node == null || !node.getId().getValue().equals(request.getId().getValue())) {
             responseObserver.onError(Status.NOT_FOUND.withDescription("no such node").asRuntimeException());
             return;
@@ -336,7 +337,7 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
 
     @Override
     public void deleteNode(DeleteNodeRequest request, StreamObserver<DeleteNodeResponse> responseObserver) {
-        Node node = slonys.currentNode(identity.id());
+        Node node = slonys.currentNode(identity.name());
         if (node == null) {
             responseObserver.onError(Status.NOT_FOUND.withDescription("no node to delete").asRuntimeException());
             return;
@@ -461,20 +462,20 @@ public class StackGresApiResource extends StackGresApiGrpc.StackGresApiImplBase 
         for (ClusterEvent event : clusterEvents.events(id)) {   // chronological snapshot; WatchEvents stays UNIMPLEMENTED
             resp.addEvent(ProtoMapper.toProtoEvent(event));
         }
-        resp.putSourceInfo(identity.id(), ProtoMapper.liveSourceInfo());
+        resp.putSourceInfo(identity.name(), ProtoMapper.liveSourceInfo());
         responseObserver.onNext(resp.build());
         responseObserver.onCompleted();
     }
 
     @Override
     public void getNodeEvents(io.stackgres.proto.api.v1.GetNodeEventsRequest request, StreamObserver<io.stackgres.proto.api.v1.GetNodeEventsResponse> responseObserver) {
-        Node node = slonys.currentNode(identity.id());
+        Node node = slonys.currentNode(identity.name());
         String nodeId = node != null ? node.getId().getValue() : "";
         io.stackgres.proto.api.v1.GetNodeEventsResponse.Builder resp = io.stackgres.proto.api.v1.GetNodeEventsResponse.newBuilder();
         for (NodeEventStore.Stored stored : nodeEventStore.events()) {
             resp.addEvent(ProtoMapper.toNodeEvent(stored.event(), nodeId, stored.timestampMillis()));
         }
-        resp.putSourceInfo(identity.id(), ProtoMapper.liveSourceInfo());
+        resp.putSourceInfo(identity.name(), ProtoMapper.liveSourceInfo());
         responseObserver.onNext(resp.build());
         responseObserver.onCompleted();
     }

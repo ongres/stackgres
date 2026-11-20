@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,11 +27,13 @@ import io.grpc.ServerInterceptor;
 import io.grpc.stub.StreamObserver;
 import io.stackgres.matriarch.Matriarch;
 import io.stackgres.operator.app.OperatorInstallationInfoHolder;
+import io.stackgres.operator.matriarch.clustername.ClusterNameDetector;
 import io.stackgres.proto.api.v1.Environment;
 import io.stackgres.proto.control.v1.CloudMessage;
 import io.stackgres.proto.control.v1.MatriarchMessage;
 import io.stackgres.proto.control.v1.RegistrationAck;
 import io.stackgres.proto.control.v1.UplinkGrpc;
+import io.stackgres.proto.types.v1.ApiSurface;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -69,7 +72,13 @@ class CloudUplinkClientTest {
 
     client = new CloudUplinkClient();
     client.matriarch = matriarch;
-    client.installationInfoHolder = holder;
+    EnvironmentIdentity identity = new EnvironmentIdentity();
+    identity.installationInfoHolder = holder;
+    ClusterNameDetector detector = mock(ClusterNameDetector.class);
+    when(detector.detected())
+        .thenReturn(Optional.of(new ClusterNameDetector.Detected("prod-eu", "gke")));
+    identity.clusterNameDetector = detector;
+    client.identity = identity;
     client.enabled = true;
     client.url = "localhost:" + server.getPort();
     client.plaintext = true;
@@ -78,12 +87,16 @@ class CloudUplinkClientTest {
 
     client.start();
 
-    // First message: Registration (installation id as environment id + kind).
+    // First message: Registration — the installation id (the cloud's key), the proposed name (the
+    // detected cluster name), kind and surfaces.
     MatriarchMessage reg = received.poll(5, TimeUnit.SECONDS);
     assertNotNull(reg, "expected a Registration");
     assertTrue(reg.hasRegistration());
     Environment env = reg.getRegistration().getEnvironment();
     assertEquals("env-test", env.getId().getValue());
+    assertEquals("prod-eu", env.getName());
+    assertEquals(List.of(ApiSurface.API_SURFACE_CLUSTER_LIFECYCLE, ApiSurface.API_SURFACE_EVENTS),
+        env.getSurfaceList());
     assertEquals(Environment.Kind.KIND_K8S_STACKGRES, env.getKind());
 
     // Second message: the snapshot the cloud asked for in its ack.

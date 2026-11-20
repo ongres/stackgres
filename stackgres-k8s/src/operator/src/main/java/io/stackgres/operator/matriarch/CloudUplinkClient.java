@@ -19,7 +19,6 @@ import io.stackgres.matriarch.Matriarch;
 import io.stackgres.matriarch.event.ClusterEvent;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
-import io.stackgres.operator.app.OperatorInstallationInfoHolder;
 import io.stackgres.proto.api.v1.ClusterOperationProgress;
 import io.stackgres.proto.api.v1.Environment;
 import io.stackgres.proto.api.v1.GetClusterCredentialsResponse;
@@ -46,8 +45,10 @@ import org.jboss.logging.Logger;
  * The matriarch-side end of the {@code control.v1} link: dials OUT to stackgres-cloud, registers this
  * StackGres install as an environment, and streams its state up — the mirror of how {@code slon} dials
  * up to a matriarch, one level higher. Opt-in via {@code stackgres.cloud.enabled}; authenticates with
- * the {@code STACKGRES_TOKEN} JWT (env credential, P10). The api.v1 {@code environment_id} is the
- * StackGres installation id. It pushes snapshots/events and answers resync, and dispatches cloud-routed
+ * the {@code STACKGRES_TOKEN} JWT (env credential, P10). The environment registers under the StackGres
+ * installation id (the cloud's stable key) and proposes its detected cluster name; the cloud owns the
+ * user-facing name (see {@link EnvironmentIdentity}). It pushes snapshots/events and answers resync,
+ * and dispatches cloud-routed
  * user writes (create/delete/credentials) to the api.v1 write handlers, relaying their progress back up.
  *
  * <p>All sends run on a single "actor" thread so the (non-thread-safe) request {@link StreamObserver}
@@ -69,7 +70,7 @@ public class CloudUplinkClient {
   Matriarch matriarch;
 
   @Inject
-  OperatorInstallationInfoHolder installationInfoHolder;
+  EnvironmentIdentity identity;
 
   @Inject
   ClusterWriteService writeService;
@@ -132,7 +133,7 @@ public class CloudUplinkClient {
       LOG.warn("stackgres.cloud.enabled=true but STACKGRES_ENDPOINT_URL is empty — uplink not started");
       return;
     }
-    environmentId = resolveEnvironmentId();
+    environmentId = identity.id();
     actor = Executors.newSingleThreadScheduledExecutor(r -> {
       Thread t = new Thread(r, "cloud-uplink");
       t.setDaemon(true);
@@ -198,7 +199,7 @@ public class CloudUplinkClient {
               .setAgentVersion(AGENT)
               .setResumeFromSeq(0))   // PoC: always re-anchor on a fresh snapshot
           .build());
-      LOG.infof("cloud uplink registered env=%s", environmentId);
+      LOG.infof("cloud uplink registered env=%s", environmentId);   // the name is in the Registration
     } catch (RuntimeException e) {
       LOG.warnf("cloud uplink connect failed: %s — retrying in %dms", e.getMessage(), backoffMs);
       scheduleReconnect();
@@ -422,16 +423,12 @@ public class CloudUplinkClient {
     return null;
   }
 
-  private String resolveEnvironmentId() {
-    String id = installationInfoHolder.getInstallationId();
-    return id == null || id.isBlank() ? "local" : id;
-  }
-
+  /**
+   * This install as the cloud should register it: the installation id (the cloud's stable key), the
+   * PROPOSED name (the cloud assigns the final, per-tenant unique one) and surfaces.
+   */
   private Environment environmentProto() {
-    return Environment.newBuilder()
-        .setId(Id.newBuilder().setValue(environmentId))
-        .setKind(Environment.Kind.KIND_K8S_STACKGRES)
-        .build();
+    return identity.environment();
   }
 
   private final class DownstreamHandler implements StreamObserver<CloudMessage> {

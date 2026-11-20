@@ -13,7 +13,6 @@ import io.stackgres.matriarch.event.ClusterEvent;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.model.ClusterNotFoundException;
-import io.stackgres.operator.app.OperatorInstallationInfoHolder;
 import io.stackgres.proto.api.v1.ClusterOperationProgress;
 import io.stackgres.proto.api.v1.CreateClusterRequest;
 import io.stackgres.proto.api.v1.DeleteClusterRequest;
@@ -34,8 +33,6 @@ import io.stackgres.proto.api.v1.RestartClusterRequest;
 import io.stackgres.proto.api.v1.StackGresApiGrpc;
 import io.stackgres.proto.api.v1.StartClusterRequest;
 import io.stackgres.proto.api.v1.StopClusterRequest;
-import io.stackgres.proto.types.v1.ApiSurface;
-import io.stackgres.proto.types.v1.Id;
 import jakarta.inject.Inject;
 
 /**
@@ -59,7 +56,7 @@ public class StackGresApiService extends StackGresApiGrpc.StackGresApiImplBase {
   ClusterWriteService writeService;
 
   @Inject
-  OperatorInstallationInfoHolder installationInfoHolder;
+  EnvironmentIdentity identity;
 
   // This operator's build version (from the Maven project version, baked in by Quarkus at build time).
   @org.eclipse.microprofile.config.inject.ConfigProperty(name = "quarkus.application.version",
@@ -76,10 +73,12 @@ public class StackGresApiService extends StackGresApiGrpc.StackGresApiImplBase {
     responseObserver.onCompleted();
   }
 
-  /** The environment identity for this StackGres install (falls back to "local"). */
+  /**
+   * What every {@code environment_id} of this API carries (clusters, source_info keys): the environment's
+   * name — its user-facing identifier, see {@link EnvironmentIdentity}.
+   */
   private String environmentId() {
-    String id = installationInfoHolder.getInstallationId();
-    return id == null || id.isBlank() ? "local" : id;
+    return identity.name();
   }
 
   /**
@@ -88,12 +87,7 @@ public class StackGresApiService extends StackGresApiGrpc.StackGresApiImplBase {
    * auto-resolution see exactly one environment.
    */
   private Environment environment() {
-    String id = environmentId();
-    return Environment.newBuilder()
-        .setId(Id.newBuilder().setValue(id))
-        .setKind(Environment.Kind.KIND_K8S_STACKGRES)
-        .addSurface(ApiSurface.API_SURFACE_EVENTS)
-        .build();
+    return identity.environment();
   }
 
   @Override
@@ -102,7 +96,7 @@ public class StackGresApiService extends StackGresApiGrpc.StackGresApiImplBase {
     Environment env = environment();
     responseObserver.onNext(ListEnvironmentsResponse.newBuilder()
         .addEnvironment(env)
-        .putSourceInfo(env.getId().getValue(), ClusterProtoMapper.liveSourceInfo())
+        .putSourceInfo(env.getName(), ClusterProtoMapper.liveSourceInfo())
         .build());
     responseObserver.onCompleted();
   }
@@ -112,7 +106,7 @@ public class StackGresApiService extends StackGresApiGrpc.StackGresApiImplBase {
       StreamObserver<GetEnvironmentResponse> responseObserver) {
     Environment env = environment();
     String requested = request.getEnvironmentId();
-    if (requested != null && !requested.isBlank() && !requested.equals(env.getId().getValue())) {
+    if (!identity.matches(requested)) {
       responseObserver.onError(Status.NOT_FOUND
           .withDescription("no such environment: " + requested).asRuntimeException());
       return;

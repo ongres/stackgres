@@ -9,7 +9,7 @@ import picocli.CommandLine.Parameters;
 /**
  * Sets the active environment for the current context (kubectl {@code set-context --namespace}). With
  * it, single-cluster and mutating commands scope here without {@code -E}, and {@code cluster list} shows
- * just this environment. Omit the id (or pass {@code -}) to clear it — back to "all environments".
+ * just this environment. Omit the name (or pass {@code -}) to clear it — back to "all environments".
  *
  * <p>No ceremony required: if there is no current context yet, a {@code default} one is materialized
  * on the fly. Any connection setting the context doesn't already have is captured from the environment
@@ -19,16 +19,16 @@ import picocli.CommandLine.Parameters;
 @Command(name = "use", description = "Sets (or clears) the active environment for the current context")
 public class UseEnvironmentCommand extends StackGresSubCommand {
 
-    @Parameters(index = "0", paramLabel = "<id>", arity = "0..1",
-            description = "The environment id; omit or pass '-' to clear (all environments)")
-    String id;
+    @Parameters(index = "0", paramLabel = "<name>", arity = "0..1",
+            description = "The environment name; omit or pass '-' to clear (all environments)")
+    String environment;
 
     @Override
     public void run() {
         CliConfig config = CliConfig.load();
         String name = config.writeContextName();   // current context, or "default" (auto-created)
         Context existing = config.find(name).orElse(null);
-        String env = (id == null || id.isBlank() || "-".equals(id)) ? null : id;
+        String env = (environment == null || environment.isBlank() || "-".equals(environment)) ? null : environment;
 
         // Fill only fields the context doesn't already have, from the environment. Token excluded.
         String endpoint = existing != null && existing.endpoint() != null

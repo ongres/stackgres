@@ -373,14 +373,14 @@ public class MatriarchClient {
         }
         List<EnvironmentInfo> envs = listEnvironments();
         if (envs.size() == 1) {
-            return activeEnvironmentCache = envs.get(0).id();
+            return activeEnvironmentCache = envs.get(0).name();
         }
         if (envs.isEmpty()) {
             throw new RuntimeException("no environments are available on this endpoint");
         }
-        String ids = envs.stream().map(EnvironmentInfo::id).collect(java.util.stream.Collectors.joining(", "));
+        String names = envs.stream().map(EnvironmentInfo::name).collect(java.util.stream.Collectors.joining(", "));
         throw new RuntimeException("no active environment selected — this endpoint exposes several ("
-                + ids + "). Choose one with 'stackgres environment use <id>' or pass -E <id>.");
+                + names + "). Choose one with 'stackgres environment use <name>' or pass -E <name>.");
     }
 
     /**
@@ -414,7 +414,7 @@ public class MatriarchClient {
             throw new RuntimeException("no environments are available on this endpoint");
         }
         if (envs.size() == 1) {
-            return remember(name, findInEnvironment(envs.get(0).id(), name).orElseThrow(() ->
+            return remember(name, findInEnvironment(envs.get(0).name(), name).orElseThrow(() ->
                     new RuntimeException("The cluster with name " + name + " doesn't exist")));
         }
         // Several environments, none chosen: search them all and let a unique name resolve itself.
@@ -426,7 +426,7 @@ public class MatriarchClient {
         if (matches.size() > 1) {
             String ids = matches.stream().map(ClusterRow::environmentId).collect(java.util.stream.Collectors.joining(", "));
             throw new RuntimeException("Cluster '" + name + "' exists in multiple environments ("
-                    + ids + "). Pick one with -E <id> or 'stackgres environment use <id>'.");
+                    + ids + "). Pick one with -E <name> or 'stackgres environment use <name>'.");
         }
         ClusterRow row = matches.get(0);
         System.err.println(Strings.commentAnsi("ⓘ " + verb + " cluster '" + name
@@ -477,23 +477,23 @@ public class MatriarchClient {
             return;
         }
         EnvironmentInfo current = environments.stream()
-                .filter(e -> environmentId.equals(e.id())).findFirst().orElse(null);
+                .filter(e -> environmentId.equals(e.name())).findFirst().orElse(null);
         String problem;
         if (current == null) {
-            problem = "⚠ Environment '" + environmentId + "' no longer exists. Output might be outdated.";
-        } else if ("Disconnected".equalsIgnoreCase(current.health())) {
+            problem = "⚠ Environment '" + environmentId + "' no longer exists (it may have been renamed or deleted). Output might be outdated.";
+        } else if ("Disconnected".equalsIgnoreCase(current.status())) {
             problem = "⚠ Environment '" + environmentId + "' is disconnected. Output might be outdated.";
         } else {
             return; // connected — nothing to warn about
         }
         List<String> connected = environments.stream()
-                .filter(e -> "Connected".equalsIgnoreCase(e.health()))
-                .map(EnvironmentInfo::id).toList();
+                .filter(e -> "Connected".equalsIgnoreCase(e.status()))
+                .map(EnvironmentInfo::name).toList();
         String hint;
         if (connected.size() == 1) {
             hint = " Did you mean '" + connected.get(0) + "'? Switch with: stackgres environment use " + connected.get(0);
         } else if (!connected.isEmpty()) {
-            hint = " Connected: " + String.join(", ", connected) + ". Switch with: stackgres environment use <id>";
+            hint = " Connected: " + String.join(", ", connected) + ". Switch with: stackgres environment use <name>";
         } else {
             hint = "";
         }
@@ -528,7 +528,7 @@ public class MatriarchClient {
             logDebug("Received response: ", response);
             List<EnvironmentInfo> out = new java.util.ArrayList<>();
             for (io.stackgres.proto.api.v1.Environment env : response.getEnvironmentList()) {
-                out.add(mapEnvironment(env, response.getSourceInfoMap().get(env.getId().getValue())));
+                out.add(mapEnvironment(env, response.getSourceInfoMap().get(environmentName(env))));
             }
             return out;
         } catch (StatusRuntimeException e) {
@@ -536,10 +536,10 @@ public class MatriarchClient {
         }
     }
 
-    public void deleteEnvironment(String environmentId) {
+    public void deleteEnvironment(String environment) {
         try {
             stackGresClient().deleteEnvironment(io.stackgres.proto.api.v1.DeleteEnvironmentRequest.newBuilder()
-                    .setEnvironmentId(environmentId).build());
+                    .setEnvironmentId(environment).build());
         } catch (StatusRuntimeException e) {
             if (e.getStatus().getCode() == io.grpc.Status.Code.UNIMPLEMENTED) {
                 throw new RuntimeException("this endpoint does not support deleting environments "
@@ -549,9 +549,28 @@ public class MatriarchClient {
         }
     }
 
-    public EnvironmentInfo getEnvironment(String environmentId) {
+    /**
+     * Rename an environment (the cloud owns the names; unique per user). Returns it under its new name.
+     */
+    public EnvironmentInfo renameEnvironment(String environment, String newName) {
         try {
-            GetEnvironmentResponse response = stackGresClient().getEnvironment(GetEnvironmentRequest.newBuilder().setEnvironmentId(environmentId).build());
+            io.stackgres.proto.api.v1.RenameEnvironmentResponse response = stackGresClient().renameEnvironment(
+                    io.stackgres.proto.api.v1.RenameEnvironmentRequest.newBuilder()
+                            .setEnvironmentId(environment).setNewName(newName).build());
+            logDebug("Received response: ", response);
+            return mapEnvironment(response.getEnvironment(), response.getSourceInfo());
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus().getCode() == io.grpc.Status.Code.UNIMPLEMENTED) {
+                throw new RuntimeException("this endpoint does not support renaming environments "
+                        + "(names are managed by the cloud — connect to it; a local matriarch's name comes from its configuration)");
+            }
+            throw statusError(e);
+        }
+    }
+
+    public EnvironmentInfo getEnvironment(String environment) {
+        try {
+            GetEnvironmentResponse response = stackGresClient().getEnvironment(GetEnvironmentRequest.newBuilder().setEnvironmentId(environment).build());
             logDebug("Received response: ", response);
             return mapEnvironment(response.getEnvironment(), response.getSourceInfo());
         } catch (StatusRuntimeException e) {
@@ -561,11 +580,18 @@ public class MatriarchClient {
 
     private static EnvironmentInfo mapEnvironment(io.stackgres.proto.api.v1.Environment env, io.stackgres.proto.types.v1.SourceInfo si) {
         String kind = kindName(env.getKind());
-        String source = si == null ? "" : sourceName(si.getSource());
-        String health = si == null ? "" : healthName(si.getEnvironmentHealth());
+        String status = si == null ? "" : statusName(si.getEnvironmentHealth());
         Instant asOf = (si != null && si.hasAsOf()) ? Instant.ofEpochSecond(si.getAsOf().getSeconds(), si.getAsOf().getNanos()) : null;
         List<String> surfaces = env.getSurfaceList().stream().map(s -> titleCase(s.name().replace("API_SURFACE_", ""))).toList();
-        return new EnvironmentInfo(env.getId().getValue(), kind, source, health, asOf, surfaces);
+        return new EnvironmentInfo(environmentName(env), kind, status, asOf, surfaces, env.getTagsMap());
+    }
+
+    /**
+     * An environment's identifier: its name. A server that predates names sends only the id, which was
+     * then the identifier — fall back to it so the CLI keeps working against such an endpoint.
+     */
+    private static String environmentName(io.stackgres.proto.api.v1.Environment env) {
+        return env.getName().isBlank() ? env.getId().getValue() : env.getName();
     }
 
     // Render the api.v1 enums as human-friendly names for display (Bare Metal, K8s, Live, Connected, ...).
@@ -579,15 +605,7 @@ public class MatriarchClient {
         };
     }
 
-    private static String sourceName(io.stackgres.proto.types.v1.SourceInfo.Source source) {
-        return switch (source) {
-            case LIVE -> "Live";
-            case CACHED -> "Cached";
-            default -> "Unknown";
-        };
-    }
-
-    private static String healthName(io.stackgres.proto.types.v1.SourceInfo.EnvironmentHealth health) {
+    private static String statusName(io.stackgres.proto.types.v1.SourceInfo.EnvironmentHealth health) {
         return switch (health) {
             case CONNECTED -> "Connected";
             case DEGRADED -> "Degraded";

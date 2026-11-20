@@ -47,7 +47,7 @@ public final class CliContext {
         environmentOverride = blankToNull(environment);
     }
 
-    /** The resolved environment id used for api.v1 requests (convenience for {@link #resolve()}). */
+    /** The resolved environment name used for api.v1 requests (convenience for {@link #resolve()}). */
     public static String environment() {
         return resolve().environment();
     }

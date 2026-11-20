@@ -9,7 +9,7 @@ import java.util.function.Function;
 
 /**
  * The environment table, shared by {@code status} and {@code environment list} so both render
- * identically. Fuller per-field detail (health, as-of, surfaces) lives in {@code environment get}.
+ * identically. Fuller per-field detail (last seen, surfaces, tags) lives in {@code environment get}.
  */
 public final class EnvironmentTable {
 
@@ -20,12 +20,12 @@ public final class EnvironmentTable {
      * Print the count line, a blank line, and the table via {@code out} (e.g. a command's {@code outln}).
      */
     public static void print(List<EnvironmentInfo> environments, Consumer<String> out) {
-        int idLen = width(environments, EnvironmentInfo::id, "ID", 8);
+        int nameLen = width(environments, EnvironmentInfo::name, "Name", 8);
         int kindLen = width(environments, EnvironmentInfo::kind, "Kind", 12);
-        String fmt = "%-" + idLen + "s%-" + kindLen + "s%-8s";
-        out.accept(String.format(fmt, "ID", "Kind", "Source"));
+        String fmt = "%-" + nameLen + "s%-" + kindLen + "s%-12s";
+        out.accept(String.format(fmt, "Name", "Kind", "Status"));
         for (EnvironmentInfo e : environments) {
-            out.accept(String.format(fmt, e.id(), e.kind(), e.source()));
+            out.accept(String.format(fmt, e.name(), e.kind(), e.status()));
         }
     }
 

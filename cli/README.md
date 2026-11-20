@@ -39,7 +39,7 @@ context (`~/.stackgres/config.yaml`) > default**. The environment variables:
 | `STACKGRES_ENDPOINT_URL`  | The gRPC endpoint (matriarch or cloud) the CLI connects to, `host:port` (default: `localhost:50051`). |
 | `STACKGRES_ENDPOINT_TLS`  | Force TLS on/off (`true`/`false`). Default: auto — TLS unless the endpoint is `localhost:`.           |
 | `STACKGRES_TOKEN`         | Bearer JWT for authentication (required by the cloud; a local matriarch is unauthenticated).          |
-| `STACKGRES_ENVIRONMENT`   | The target environment id for api.v1 calls (default: the context's environment, or `local`).         |
+| `STACKGRES_ENVIRONMENT`   | The target environment name for api.v1 calls (default: the context's environment, or `local`).         |
 | `STACKGRES_CONTEXT`       | The named context to use, overriding the config's current-context.                                   |
 | `STACKGRES_CONFIG`        | Path to the config file (default: `~/.stackgres/config.yaml`).                                        |
 

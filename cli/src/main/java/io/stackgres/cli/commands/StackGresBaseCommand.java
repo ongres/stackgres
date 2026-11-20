@@ -11,7 +11,7 @@ public abstract class StackGresBaseCommand {
     @Option(names = {"-X", "--debug"}, description = "Prints debug and error stacktrace information", hidden = true)
     protected boolean debug;
 
-    @Option(names = {"-E", "--environment"}, paramLabel = "<id>", description = "The target environment id (default: $STACKGRES_ENVIRONMENT, the context's environment, or 'local'). Use 'stackgres environment list' to see available ids.")
+    @Option(names = {"-E", "--environment"}, paramLabel = "<name>", description = "The target environment name (default: $STACKGRES_ENVIRONMENT, the context's environment, or 'local'). Use 'stackgres environment list' to see the available names.")
     public void setEnvironment(String environment) {
         CliContext.setEnvironment(environment);
     }

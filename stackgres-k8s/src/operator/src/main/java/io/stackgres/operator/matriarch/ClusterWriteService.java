@@ -35,7 +35,6 @@ import io.stackgres.matriarch.Matriarch;
 import io.stackgres.matriarch.model.Cluster;
 import io.stackgres.matriarch.model.ClusterId;
 import io.stackgres.matriarch.model.status.RunStatus;
-import io.stackgres.operator.app.OperatorInstallationInfoHolder;
 import io.stackgres.proto.api.v1.ClusterOperationProgress;
 import io.stackgres.proto.api.v1.ClusterSelector;
 import io.stackgres.proto.api.v1.CreateClusterRequest;
@@ -105,7 +104,7 @@ public class ClusterWriteService {
   ManagedExecutor executor;
 
   @Inject
-  OperatorInstallationInfoHolder installationInfoHolder;
+  EnvironmentIdentity identity;
 
   // Namespace a created cluster lands in: the request's placement["namespace"] hint, else this default.
   @ConfigProperty(name = "matriarch.cluster.default-namespace", defaultValue = "default")
@@ -464,9 +463,11 @@ public class ClusterWriteService {
     return ns == null || ns.isBlank() ? defaultNamespace : ns;
   }
 
+  /**
+   * What a cluster's {@code environment_id} carries: this environment's name (its user-facing id).
+   */
   private String environmentId() {
-    String id = installationInfoHolder.getInstallationId();
-    return id == null || id.isBlank() ? "local" : id;
+    return identity.name();
   }
 
   private ClusterOperationProgress frame(OperationStatus status, Cluster c, String envId) {

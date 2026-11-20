@@ -103,10 +103,9 @@ public class GetClusterCommand extends StackGresSubCommand {
             environments = List.of();
         }
         EnvironmentInfo env = environments.stream()
-                .filter(e -> e.id().equals(row.environmentId())).findFirst().orElse(null);
+                .filter(e -> e.name().equals(row.environmentId())).findFirst().orElse(null);
         boolean multiEnv = environments.size() > 1;
-        boolean stale = env != null
-                && ("Disconnected".equalsIgnoreCase(env.health()) || "Cached".equalsIgnoreCase(env.source()));
+        boolean stale = env != null && "Disconnected".equalsIgnoreCase(env.status());
         String envLine = multiEnv ? "\nEnvironment:  " + row.environmentId() : "";
         String lastSeen = stale ? "\nLast seen:    " + Times.stampAndAgo(env.asOf()) : "";
 

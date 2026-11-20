@@ -41,6 +41,10 @@ service StackGresApi {
   // first). A local matriarch — its own single environment — leaves this
   // UNIMPLEMENTED.
   rpc DeleteEnvironment(DeleteEnvironmentRequest) returns (DeleteEnvironmentResponse);
+  // Change an environment's name (its user-facing identifier). Served by the
+  // cloud edge, which owns the per-tenant name registry; a local matriarch
+  // returns UNIMPLEMENTED. ALREADY_EXISTS if the new name is taken.
+  rpc RenameEnvironment(RenameEnvironmentRequest) returns (RenameEnvironmentResponse);
 
   // --- Clusters: CRUD + lifecycle. Creates/deletes are accepted-then-watch
   // status streams, not transactions (§3.6, §9.1). ---
@@ -118,10 +122,21 @@ message GetServerInfoResponse {
 // Environment
 // ===========================================================================
 
+// Identity: an environment is identified to users by its `name` — unique per
+// tenant and editable. Every `environment_id` field in this API (requests,
+// Cluster/Node.environment_id, source_info map keys) carries that NAME; the
+// field names predate it. `id` is the matriarch's stable installation id: the
+// matriarch sends it on Registration and the cloud keys its cache by it, but
+// the cloud edge does not serve it (left unset in its responses).
 message Environment {
   types.v1.Id id = 1;
-  reserved 2;              // was `name` — removed; environments are identified by id only
-  reserved "name";
+  // The environment's name. Matriarch -> cloud (Registration): the PROPOSED
+  // name (e.g. the detected Kubernetes cluster name); the cloud assigns the
+  // first free of `name`, `name-1`, `name-2`, … per tenant and keeps it across
+  // reconnects. Served to clients: the assigned (possibly renamed) name.
+  // (Tag 2 was `string name` before, removed for a while and reinstated: same
+  // type and meaning, so older senders stay compatible.)
+  string name = 2;
   Kind kind = 3;
   // Which api.v1 surfaces this environment implements (version-negotiation
   // unit, §5.1). Cloud edges gate per-RPC on this.
@@ -146,7 +161,7 @@ message ListEnvironmentsRequest {
 message ListEnvironmentsResponse {
   repeated Environment environment = 1;
   types.v1.PageInfo page = 2;
-  // Per-environment freshness/health (§4.2), keyed by environment id. The
+  // Per-environment freshness/health (§4.2), keyed by environment name. The
   // local matriarch returns a single LIVE entry.
   map<string, types.v1.SourceInfo> source_info = 3;
 }
@@ -161,6 +176,14 @@ message DeleteEnvironmentRequest {
   string environment_id = 1;
 }
 message DeleteEnvironmentResponse {
+}
+message RenameEnvironmentRequest {
+  string environment_id = 1;   // the current name
+  string new_name = 2;
+}
+message RenameEnvironmentResponse {
+  Environment environment = 1;
+  types.v1.SourceInfo source_info = 2;
 }
 
 // ===========================================================================

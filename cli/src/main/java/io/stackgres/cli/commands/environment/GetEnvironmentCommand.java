@@ -12,18 +12,23 @@ public class GetEnvironmentCommand extends StackGresSubCommand {
 
     private final MatriarchClient client = new MatriarchClient();
 
-    @Parameters(index = "0", paramLabel = "<id>", description = "The environment id")
-    String id;
+    @Parameters(index = "0", paramLabel = "<name>", description = "The environment name")
+    String name;
 
     @Override
     public void run() {
         if (debug) client.setDebug();
-        EnvironmentInfo e = client.getEnvironment(id);
-        field("ID", e.id());
+        EnvironmentInfo e = client.getEnvironment(name);
+        field("Name", e.name());
         field("Kind", e.kind());
-        field("Source", e.source());
-        field("Health", e.health());
+        field("Status", e.status());
         field("Last seen", Times.stampAndAgo(e.asOf()));
         field("Surfaces", String.join(", ", e.surfaces()));
+        if (!e.tags().isEmpty()) {
+            field("Tags", e.tags().entrySet().stream()
+                    .map(t -> t.getKey() + "=" + t.getValue())
+                    .sorted()
+                    .collect(java.util.stream.Collectors.joining(", ")));
+        }
     }
 }
