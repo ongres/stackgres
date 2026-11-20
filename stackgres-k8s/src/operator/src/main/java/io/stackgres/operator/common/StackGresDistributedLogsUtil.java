@@ -25,7 +25,7 @@ public interface StackGresDistributedLogsUtil {
   String POSTGRESQL_VERSION = "17";
   String PREVIOUS_TIMESCALEDB_EXTENSION_NAME = "timescaledb";
   String TIMESCALEDB_EXTENSION_NAME = "timescaledb_tsl";
-  String TIMESCALEDB_EXTENSION_VERSION = "2.23.1";
+  String TIMESCALEDB_EXTENSION_VERSION = "2.31.2";
 
   static String getPostgresVersion(StackGresDistributedLogs distributedLogs) {
     return Optional.of(distributedLogs)
