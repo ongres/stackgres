@@ -109,6 +109,22 @@ get_oldest_version_of_extension() {
   get_versions_of_extension "$1" "$2" "$3" | tail -n 1
 }
 
+# Return the latest version of an extension that has a build for both postgres versions
+get_latest_common_version_of_extension() {
+  local SOURCE_VERSIONS
+  local TARGET_VERSIONS
+  local COMMON_VERSION
+  SOURCE_VERSIONS="$(get_versions_of_extension "$1" "$2" "$4")" || return 1
+  TARGET_VERSIONS="$(get_versions_of_extension "$1" "$3" "$4")" || return 1
+  COMMON_VERSION="$(printf '%s\n' "$SOURCE_VERSIONS" | grep -xF "$TARGET_VERSIONS" | head -n 1)"
+  if [ -z "$COMMON_VERSION" ]
+  then
+    echo "Can not find any version of extension $1 for both postgres $2 and $3" >&2
+    return 1
+  fi
+  echo "$COMMON_VERSION"
+}
+
 get_versions_of_extension() {
   local EXTENSION_NAME="$1"
   local POSTGRES_VERSION="$2"
@@ -145,9 +161,9 @@ get_versions_of_extension() {
   # A build only runs on the Postgres flavor it was built for (no flavor is vanilla Postgres) and
   # may only run on the Postgres minors between postgresFromVersion and postgresToVersion
   VERSIONS="$(jq -r "$(cat << EOF
-def postgres_version: split(".") | map(tonumber? // 0);
+def version_numbers: split(".") | map(tonumber? // 0);
 .extensions[] | select(.name == "$EXTENSION_NAME").versions
-  | sort_by(.version|split(".")) | reverse[]
+  | sort_by(.version | version_numbers) | reverse[]
   | select((.availableFor
     | map(select(
       (.postgresVersion == "$PATRONI_IMAGE_POSTGRES_VERSION"
@@ -156,9 +172,9 @@ def postgres_version: split(".") | map(tonumber? // 0);
         else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)
       and ((.flavor // "$EXTENSIONS_DEFAULT_FLAVOR") == "$FLAVOR")
       and (.postgresFromVersion == null
-        or (.postgresFromVersion | postgres_version) <= ("$PATRONI_IMAGE_POSTGRES_VERSION" | postgres_version))
+        or (.postgresFromVersion | version_numbers) <= ("$PATRONI_IMAGE_POSTGRES_VERSION" | version_numbers))
       and (.postgresToVersion == null
-        or (.postgresToVersion | postgres_version) >= ("$PATRONI_IMAGE_POSTGRES_VERSION" | postgres_version))
+        or (.postgresToVersion | version_numbers) >= ("$PATRONI_IMAGE_POSTGRES_VERSION" | version_numbers))
       and ((.arch == null and "$EXTENSIONS_ARCH" == "x86_64") or (.arch == "$EXTENSIONS_ARCH"))))
       | length) > 0).version
 EOF
