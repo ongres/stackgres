@@ -755,6 +755,69 @@ spec:
                         last longer so we encourage use the reduced impact restart and especially for a production environment.
                       * `ReducedImpact`: this procedure is the same as the in-place method but require additional
                         resources in order to spawn a new updated replica that will be removed when the procedure completes.
+                  postgresExtensions:
+                    type: array
+                    description: |
+                      The extensions whose version has to change for the target postgres version. Each extension listed here replaces the
+                       extension with the same name of the SGCluster when its postgres version is changed to the target one.
+
+                      A minor version upgrade can not be performed if a required extension has no build for the target postgres version (an
+                       extension build may set the minimum and the maximum postgres version it runs on). In those cases you will have to provide
+                       a version of the extension that has a build for the target postgres version.
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The name of the extension to deploy.
+                        publisher:
+                          type: string
+                          default: com.ongres
+                          description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
+                        version:
+                          type: string
+                          description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default and if only a version is available that one will be used.
+                        repository:
+                          type: string
+                          description: |
+                            The repository base URL from where to obtain the extension to deploy.
+
+                            **This section is filled by the operator.**
+                      required: ["name"]
+                  toInstallPostgresExtensions:
+                    type: array
+                    description: |
+                      The list of Postgres extensions to install.
+                      
+                      **This section is filled by the operator.**
+                    items:
+                      type: object
+                      required: ["name", "publisher", "version", "repository", "postgresVersion"]
+                      properties:
+                        name:
+                          type: string
+                          description: The name of the extension to install.
+                        publisher:
+                          type: string
+                          description: The id of the publisher of the extension to install.
+                        version:
+                          type: string
+                          description: The version of the extension to install.
+                        repository:
+                          type: string
+                          description: The repository base URL from where the extension will be installed from.
+                        postgresVersion:
+                          type: string
+                          description: The postgres major version of the extension to install.
+                        build:
+                          type: string
+                          description: The build version of the extension to install.
+                        extraMounts:
+                          type: array
+                          description: The extra mounts of the extension to install.
+                          items:
+                            type: string
+                            description: The extra mount of the installed extension.
                   statusUpdateDelay:
                     type: string
                     default: PT5S

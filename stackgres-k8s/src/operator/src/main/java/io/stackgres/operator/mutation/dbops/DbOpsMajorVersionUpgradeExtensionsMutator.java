@@ -5,44 +5,27 @@
 
 package io.stackgres.operator.mutation.dbops;
 
-import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgrade;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.StackGresDbOpsReview;
-import io.stackgres.operator.mutation.AbstractExtensionsMutator;
 import io.stackgres.operator.validation.ValidationUtil;
-import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class DbOpsMajorVersionUpgradeExtensionsMutator
-    extends AbstractExtensionsMutator<StackGresDbOps, StackGresDbOpsReview>
-    implements DbOpsMutator {
-
-  private final ExtensionMetadataManager extensionMetadataManager;
-  private final CustomResourceFinder<StackGresCluster> clusterFinder;
-
-  private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-      supportedPostgresVersions;
+    extends AbstractDbOpsVersionUpgradeExtensionsMutator {
 
   @Inject
   public DbOpsMajorVersionUpgradeExtensionsMutator(
@@ -55,49 +38,25 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
       ExtensionMetadataManager extensionMetadataManager,
       CustomResourceFinder<StackGresCluster> clusterFinder,
       Map<StackGresComponent, Map<StackGresVersion, List<String>>> supportedPostgresVersions) {
-    this.extensionMetadataManager = extensionMetadataManager;
-    this.clusterFinder = clusterFinder;
-    this.supportedPostgresVersions = supportedPostgresVersions;
+    super(extensionMetadataManager, clusterFinder, supportedPostgresVersions);
   }
 
   @Override
-  public StackGresDbOps mutate(StackGresDbOpsReview review, StackGresDbOps resource) {
-    if (review.getRequest().getOperation() != Operation.CREATE) {
-      return resource;
-    }
-    if (review.getRequest().getObject().getSpec().getSgCluster() == null
-        || Optional.of(review.getRequest().getObject())
+  protected boolean isVersionUpgrade(StackGresDbOps dbOps) {
+    return Optional.of(dbOps)
         .map(StackGresDbOps::getSpec)
         .map(StackGresDbOpsSpec::getMajorVersionUpgrade)
-        .isEmpty()) {
-      return resource;
-    }
-    return super.mutate(review, resource);
+        .isPresent();
   }
 
   @Override
-  protected boolean extensionsChanged(
-      StackGresDbOpsReview review,
-      StackGresCluster cluster,
-      StackGresCluster oldCluster) {
-    String postgresVersion = Optional.of(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgres)
-        .map(StackGresClusterPostgres::getVersion)
-        .flatMap(getPostgresFlavorComponent(cluster).get(cluster)::findVersion)
-        .orElse(null);
-    if (postgresVersion == null
-        || !supportedPostgresVersions
-        .get(getPostgresFlavorComponent(cluster))
-        .get(StackGresVersion.getStackGresVersion(cluster))
-        .contains(postgresVersion)) {
-      return false;
-    }
-    return super.extensionsChanged(review, cluster, oldCluster);
+  protected String getTargetPostgresVersion(StackGresDbOps dbOps) {
+    return dbOps.getSpec().getMajorVersionUpgrade().getPostgresVersion();
   }
 
   @Override
-  protected ExtensionMetadataManager getExtensionMetadataManager() {
-    return extensionMetadataManager;
+  protected List<StackGresClusterExtension> getPostgresExtensions(StackGresDbOps dbOps) {
+    return dbOps.getSpec().getMajorVersionUpgrade().getPostgresExtensions();
   }
 
   @Override
@@ -107,53 +66,6 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
         .map(StackGresDbOps::getSpec)
         .map(StackGresDbOpsSpec::getMajorVersionUpgrade)
         .map(StackGresDbOpsMajorVersionUpgrade::getToInstallPostgresExtensions);
-  }
-
-  @Override
-  protected StackGresCluster getCluster(StackGresDbOpsReview review) {
-    var cluster = clusterFinder.findByNameAndNamespace(
-        review.getRequest().getObject().getSpec().getSgCluster(),
-        review.getRequest().getObject().getMetadata().getNamespace())
-        .orElse(null);
-    if (cluster == null) {
-      throw new RuntimeException(
-          "SGCluster " + review.getRequest().getObject().getSpec().getSgCluster()
-          + "." + review.getRequest().getObject().getMetadata().getNamespace()
-          + " not found");
-    }
-    cluster.getSpec().getPostgres().setVersion(
-        review.getRequest().getObject().getSpec().getMajorVersionUpgrade().getPostgresVersion());
-    return cluster;
-  }
-
-  @Override
-  protected StackGresCluster getOldCluster(StackGresDbOpsReview review) {
-    return null;
-  }
-
-  @Override
-  protected List<StackGresClusterExtension> getExtensions(
-      StackGresDbOps resource, StackGresCluster cluster) {
-    List<StackGresClusterExtension> dbOpsExtensions =
-        Optional.of(resource.getSpec().getMajorVersionUpgrade())
-        .map(StackGresDbOpsMajorVersionUpgrade::getPostgresExtensions)
-        .orElse(List.of());
-    return Seq.seq(Optional.of(cluster)
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPostgres)
-        .map(StackGresClusterPostgres::getExtensions)
-        .orElse(List.of()))
-        .filter(extension -> dbOpsExtensions.stream()
-            .map(StackGresClusterExtension::getName)
-            .noneMatch(extension.getName()::equals))
-        .append(dbOpsExtensions)
-        .toList();
-  }
-
-  @Override
-  protected List<ExtensionTuple> getDefaultExtensions(
-      StackGresDbOps resource, StackGresCluster cluster) {
-    return StackGresUtil.getDefaultClusterExtensions(cluster);
   }
 
   @Override

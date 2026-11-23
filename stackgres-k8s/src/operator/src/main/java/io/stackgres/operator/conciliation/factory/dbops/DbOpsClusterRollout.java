@@ -10,16 +10,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMinorVersionUpgradeStatusBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsRestartStatusBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsSecurityUpgradeStatusBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgrade;
@@ -146,6 +151,7 @@ public class DbOpsClusterRollout implements ResourceGenerator<StackGresDbOpsCont
           .editSpec()
           .editPostgres()
           .withVersion(config.getSource().getSpec().getMinorVersionUpgrade().getPostgresVersion())
+          .withExtensions(getMinorVersionUpgradeExtensions(config).orElse(null))
           .endPostgres()
           .endSpec()
           .editStatus()
@@ -162,6 +168,27 @@ public class DbOpsClusterRollout implements ResourceGenerator<StackGresDbOpsCont
           .endStatus();
     }
     return builder;
+  }
+
+  /**
+   * Return the extensions of the SGCluster where those set in the minor version upgrade replace
+   * the ones with the same name, or nothing when the minor version upgrade sets no extension.
+   */
+  private Optional<List<StackGresClusterExtension>> getMinorVersionUpgradeExtensions(
+      StackGresDbOpsContext config) {
+    return Optional.ofNullable(config.getSource().getSpec().getMinorVersionUpgrade()
+        .getPostgresExtensions())
+        .filter(Predicate.not(List::isEmpty))
+        .map(dbOpsExtensions -> Seq.seq(Optional.of(config.getCluster())
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPostgres)
+            .map(StackGresClusterPostgres::getExtensions)
+            .orElse(List.of()))
+            .filter(extension -> dbOpsExtensions.stream()
+                .map(StackGresClusterExtension::getName)
+                .noneMatch(extension.getName()::equals))
+            .append(dbOpsExtensions)
+            .toList());
   }
 
 }

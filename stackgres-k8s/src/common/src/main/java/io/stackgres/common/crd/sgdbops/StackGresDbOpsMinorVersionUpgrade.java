@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgdbops;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,8 +14,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 
 @RegisterForReflection
@@ -31,6 +35,10 @@ public class StackGresDbOpsMinorVersionUpgrade extends AdditionalProperties {
   @ValidEnum(enumClass = DbOpsMethodType.class, allowNulls = true,
       message = "method must be InPlace or ReducedImpact")
   private String method;
+
+  private List<@Valid StackGresClusterExtension> postgresExtensions;
+
+  private List<@Valid StackGresClusterInstalledExtension> toInstallPostgresExtensions;
 
   private String statusUpdateDelay;
 
@@ -63,9 +71,27 @@ public class StackGresDbOpsMinorVersionUpgrade extends AdditionalProperties {
     this.statusUpdateDelay = statusUpdateDelay;
   }
 
+  public List<StackGresClusterExtension> getPostgresExtensions() {
+    return postgresExtensions;
+  }
+
+  public void setPostgresExtensions(List<StackGresClusterExtension> postgresExtensions) {
+    this.postgresExtensions = postgresExtensions;
+  }
+
+  public List<StackGresClusterInstalledExtension> getToInstallPostgresExtensions() {
+    return toInstallPostgresExtensions;
+  }
+
+  public void setToInstallPostgresExtensions(
+      List<StackGresClusterInstalledExtension> toInstallPostgresExtensions) {
+    this.toInstallPostgresExtensions = toInstallPostgresExtensions;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(method, postgresVersion, statusUpdateDelay);
+    return Objects.hash(method, postgresExtensions, postgresVersion, statusUpdateDelay,
+        toInstallPostgresExtensions);
   }
 
   @Override
@@ -79,7 +105,9 @@ public class StackGresDbOpsMinorVersionUpgrade extends AdditionalProperties {
     StackGresDbOpsMinorVersionUpgrade other = (StackGresDbOpsMinorVersionUpgrade) obj;
     return Objects.equals(method, other.method)
         && Objects.equals(postgresVersion, other.postgresVersion)
-        && Objects.equals(statusUpdateDelay, other.statusUpdateDelay);
+        && Objects.equals(statusUpdateDelay, other.statusUpdateDelay)
+        && Objects.equals(postgresExtensions, other.postgresExtensions)
+        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 
   @Override

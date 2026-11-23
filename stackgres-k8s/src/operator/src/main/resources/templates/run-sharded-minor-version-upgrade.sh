@@ -8,8 +8,17 @@ run_op() {
   echo "Starting sharded dbops $NORMALIZED_OP_NAME"
 
   echo "Setting postgres version $TARGET_POSTGRES_VERSION for $SHARDED_CLUSTER_CRD_KIND $SHARDED_CLUSTER_NAME"
+  if [ -n "$TARGET_POSTGRES_EXTENSIONS_JSON" ]
+  then
+    echo "Setting postgres extensions $TARGET_POSTGRES_EXTENSIONS_JSON for $SHARDED_CLUSTER_CRD_KIND $SHARDED_CLUSTER_NAME"
+  fi
   if ! kubectl patch "$SHARDED_CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_CLUSTER_NAME" --type merge \
-    -p "{\"spec\":{\"postgres\":{\"version\":$(printf %s "$TARGET_POSTGRES_VERSION" | to_json_string)}}}" \
+    -p "{\"spec\":{\"postgres\":{\"version\":$(printf %s "$TARGET_POSTGRES_VERSION" | to_json_string)$(
+      if [ -n "$TARGET_POSTGRES_EXTENSIONS_JSON" ]
+      then
+        printf ',"extensions":%s' "$TARGET_POSTGRES_EXTENSIONS_JSON"
+      fi
+      )}}}" \
     > /tmp/dbops-update-sharded-cluster 2>&1
   then
     echo "FAILURE=$NORMALIZED_OP_NAME failed. Can not update $SHARDED_CLUSTER_CRD_KIND: $(cat /tmp/dbops-update-sharded-cluster)" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
@@ -42,6 +51,14 @@ spec:
   minorVersionUpgrade:
     method: $METHOD
     postgresVersion: $(printf %s "$TARGET_POSTGRES_VERSION" | to_json_string)
+$(
+    if [ -n "$CLUSTER_POSTGRES_EXTENSIONS_JSON" ]
+    then
+      cat << INNER_EOF
+    postgresExtensions: $CLUSTER_POSTGRES_EXTENSIONS_JSON
+INNER_EOF
+    fi
+)
 EOF
 )"
     if ! printf %s "$DBOPS_YAML" | kubectl replace --force -f - > /tmp/dbops-create-dbops 2>&1

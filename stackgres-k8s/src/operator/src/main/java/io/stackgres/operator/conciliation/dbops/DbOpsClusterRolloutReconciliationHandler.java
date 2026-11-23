@@ -78,6 +78,13 @@ public class DbOpsClusterRolloutReconciliationHandler
             cluster.getSpec().getPostgres().getVersion());
       }
       if (Optional.ofNullable(cluster.getSpec())
+          .map(StackGresClusterSpec::getPostgres)
+          .map(StackGresClusterPostgres::getExtensions)
+          .isPresent()) {
+        currentCluster.getSpec().getPostgres().setExtensions(
+            cluster.getSpec().getPostgres().getExtensions());
+      }
+      if (Optional.ofNullable(cluster.getSpec())
           .map(StackGresClusterSpec::getInstances)
           .isPresent()) {
         currentCluster.getSpec().setInstances(cluster.getSpec().getInstances());

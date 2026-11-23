@@ -5,8 +5,12 @@
 
 package io.stackgres.apiweb.dto.dbops;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.cluster.ClusterExtension;
+import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
 import io.stackgres.common.AdditionalProperties;
 import io.stackgres.common.StackGresUtil;
 
@@ -17,6 +21,10 @@ public class DbOpsMinorVersionUpgrade extends AdditionalProperties {
   private String postgresVersion;
 
   private String method;
+
+  private List<ClusterExtension> postgresExtensions;
+
+  private List<ClusterInstalledExtension> toInstallPostgresExtensions;
 
   private String statusUpdateDelay;
 
@@ -42,6 +50,23 @@ public class DbOpsMinorVersionUpgrade extends AdditionalProperties {
 
   public void setStatusUpdateDelay(String statusUpdateDelay) {
     this.statusUpdateDelay = statusUpdateDelay;
+  }
+
+  public List<ClusterExtension> getPostgresExtensions() {
+    return postgresExtensions;
+  }
+
+  public void setPostgresExtensions(List<ClusterExtension> postgresExtensions) {
+    this.postgresExtensions = postgresExtensions;
+  }
+
+  public List<ClusterInstalledExtension> getToInstallPostgresExtensions() {
+    return toInstallPostgresExtensions;
+  }
+
+  public void setToInstallPostgresExtensions(
+      List<ClusterInstalledExtension> toInstallPostgresExtensions) {
+    this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
 
   @Override

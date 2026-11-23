@@ -42,6 +42,7 @@ Check each specific parameter on the manifest, they are all the same that you ca
 - **minorVersionUpgrade:**
   - **method:** InPlace or ReducedImpact
   - **postgresVersion:** Target postgres version.
+  - **postgresExtensions:** Optional, the extensions whose version has to change for the target postgres version (see [Extensions and Minor Version Upgrade](#extensions-and-minor-version-upgrade)).
 
 Once you apply the manifest you can check the operation status with: 
 
@@ -57,6 +58,31 @@ You can check the operation log by checking the pods logs:
 ```bash
 ❯ kubectl logs minor-v-upgrade-g7jf8 
 ```
+
+## Extensions and Minor Version Upgrade
+
+An extension build may run only on a range of Postgres minor versions: it may set the minimum and the maximum Postgres version it runs on. When an extension of the SGCluster sets a version with no build for the target Postgres version, the SGDbOps is rejected, and the error lists the available versions of that extension. In that case, specify the target extension version in the `postgresExtensions` section. Each extension listed there replaces the extension with the same name of the SGCluster when its Postgres version is changed to the target one:
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: minor-v-upgrade
+  namespace: default
+spec:
+  minorVersionUpgrade:
+    method: InPlace
+    postgresVersion: "17.12"
+    postgresExtensions:
+    - name: timescaledb
+      version: "2.31.2"
+  op: minorVersionUpgrade
+  sgCluster: demo
+```
+
+An extension of the SGCluster that sets no version gets the latest version available for the target Postgres version, so it does not need to be listed.
+
+> **Important:** StackGres only installs the extension binaries of the specified version. The user must execute the `ALTER EXTENSION ... UPDATE TO` command, including any custom procedure required by each particular extension.
 
 ## Minor version upgrade using the Web Console
 

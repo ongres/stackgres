@@ -11,6 +11,7 @@ import static io.stackgres.common.StackGresShardedClusterUtil.getWorkerClusterNa
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +29,9 @@ import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -89,6 +93,18 @@ public class ShardedDbOpsMinorVersionUpgradeJob extends AbstractShardedDbOpsJob 
             .withValue(Optional.ofNullable(minorVersionUpgrade)
                 .map(StackGresShardedDbOpsMinorVersionUpgrade::getMethod)
                 .orElse(DbOpsMethodType.IN_PLACE.toString()))
+            .build(),
+            new EnvVarBuilder()
+            .withName("TARGET_POSTGRES_EXTENSIONS_JSON")
+            .withValue(getTargetPostgresExtensions(cluster, minorVersionUpgrade)
+                .map(extensions -> jsonMapper.valueToTree(extensions).toString())
+                .orElse(""))
+            .build(),
+            new EnvVarBuilder()
+            .withName("CLUSTER_POSTGRES_EXTENSIONS_JSON")
+            .withValue(getClusterPostgresExtensions(minorVersionUpgrade)
+                .map(extensions -> jsonMapper.valueToTree(extensions).toString())
+                .orElse(""))
             .build(),
             new EnvVarBuilder()
             .withName("CLUSTER_NAMES")
@@ -226,6 +242,52 @@ public class ShardedDbOpsMinorVersionUpgradeJob extends AbstractShardedDbOpsJob 
   @Override
   protected boolean isExclusiveOp() {
     return true;
+  }
+
+  /**
+   * Return the extensions of the SGShardedCluster where those set in the minor version upgrade
+   * replace the ones with the same name, or nothing when the minor version upgrade sets no
+   * extension.
+   */
+  private Optional<List<StackGresClusterExtension>> getTargetPostgresExtensions(
+      StackGresShardedCluster cluster,
+      StackGresShardedDbOpsMinorVersionUpgrade minorVersionUpgrade) {
+    return Optional.ofNullable(minorVersionUpgrade)
+        .map(StackGresShardedDbOpsMinorVersionUpgrade::getPostgresExtensions)
+        .filter(Predicate.not(List::isEmpty))
+        .map(dbOpsExtensions -> Seq.seq(Optional.of(cluster)
+            .map(StackGresShardedCluster::getSpec)
+            .map(StackGresShardedClusterSpec::getPostgres)
+            .map(StackGresClusterPostgres::getExtensions)
+            .orElse(List.of()))
+            .filter(extension -> dbOpsExtensions.stream()
+                .map(StackGresClusterExtension::getName)
+                .noneMatch(extension.getName()::equals))
+            .append(dbOpsExtensions)
+            .toList());
+  }
+
+  /**
+   * Return the extensions to set in the SGDbOps of each SGCluster: the SGClusters of an
+   * SGShardedCluster set the extension versions resolved for the current postgres version, so
+   * they get those resolved for the target postgres version.
+   */
+  private Optional<List<StackGresClusterExtension>> getClusterPostgresExtensions(
+      StackGresShardedDbOpsMinorVersionUpgrade minorVersionUpgrade) {
+    return Optional.ofNullable(minorVersionUpgrade)
+        .filter(ignored -> Optional.ofNullable(minorVersionUpgrade.getPostgresExtensions())
+            .filter(Predicate.not(List::isEmpty))
+            .isPresent())
+        .map(StackGresShardedDbOpsMinorVersionUpgrade::getToInstallPostgresExtensions)
+        .filter(Predicate.not(List::isEmpty))
+        .map(extensions -> extensions.stream()
+            .map(extension -> new StackGresClusterExtensionBuilder()
+                .withName(extension.getName())
+                .withPublisher(extension.getPublisher())
+                .withVersion(extension.getVersion())
+                .withRepository(extension.getRepository())
+                .build())
+            .toList());
   }
 
 }

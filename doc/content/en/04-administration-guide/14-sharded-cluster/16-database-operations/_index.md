@@ -196,6 +196,12 @@ spec:
     method: ReducedImpact
 ```
 
+> **Important**: a minor version upgrade cannot be performed if a required extension has no
+>  build for the target postgres version (an extension build may set the minimum and the maximum
+>  postgres version it runs on). In such cases you may specify the target extension versions
+>  using the `postgresExtensions` section: they replace the extensions with the same name of the
+>  SGShardedCluster and are set in the SGDbOps of each SGCluster.
+
 ### Minor Version Upgrade Methods
 
 - **InPlace**: Faster, brief unavailability possible

@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.dbops;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 
@@ -18,6 +19,7 @@ import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -110,6 +112,79 @@ class DbOpsClusterRolloutTest {
 
     assertEquals(1, resources.size());
     assertEquals(StackGresCluster.KIND, resources.get(0).getKind());
+  }
+
+  @Test
+  void generateResource_whenMinorVersionUpgradeOp_shouldSetTheVersionAndKeepTheExtensions() {
+    StackGresDbOps dbOps = Fixtures.dbOps().loadMinorVersionUpgrade().get();
+    dbOps.getSpec().setRunAt(null);
+
+    StackGresCluster generatedCluster = generateMinorVersionUpgradeCluster(dbOps);
+
+    assertEquals(dbOps.getSpec().getMinorVersionUpgrade().getPostgresVersion(),
+        generatedCluster.getSpec().getPostgres().getVersion());
+    assertNull(generatedCluster.getSpec().getPostgres().getExtensions());
+  }
+
+  @Test
+  void generateResource_whenMinorVersionUpgradeOpWithExtensions_shouldReplaceTheExtensions() {
+    StackGresDbOps dbOps = Fixtures.dbOps().loadMinorVersionUpgrade().get();
+    dbOps.getSpec().setRunAt(null);
+    cluster.getSpec().getPostgres().setExtensions(List.of(
+        new StackGresClusterExtensionBuilder()
+        .withName("timescaledb")
+        .withVersion("1.0.0")
+        .build(),
+        new StackGresClusterExtensionBuilder()
+        .withName("pg_repack")
+        .withVersion("1.0.0")
+        .build()));
+    dbOps.getSpec().getMinorVersionUpgrade().setPostgresExtensions(List.of(
+        new StackGresClusterExtensionBuilder()
+        .withName("timescaledb")
+        .withVersion("2.0.0")
+        .build()));
+
+    StackGresCluster generatedCluster = generateMinorVersionUpgradeCluster(dbOps);
+
+    assertEquals(dbOps.getSpec().getMinorVersionUpgrade().getPostgresVersion(),
+        generatedCluster.getSpec().getPostgres().getVersion());
+    assertEquals(
+        List.of(
+            new StackGresClusterExtensionBuilder()
+            .withName("pg_repack")
+            .withVersion("1.0.0")
+            .build(),
+            new StackGresClusterExtensionBuilder()
+            .withName("timescaledb")
+            .withVersion("2.0.0")
+            .build()),
+        generatedCluster.getSpec().getPostgres().getExtensions());
+  }
+
+  private StackGresCluster generateMinorVersionUpgradeCluster(StackGresDbOps dbOps) {
+    Pod pod = new PodBuilder()
+        .withNewMetadata()
+        .withName("test-0")
+        .endMetadata()
+        .build();
+
+    lenient().when(patroniMember.getMember()).thenReturn("test-0");
+    lenient().when(patroniMember.isPrimary()).thenReturn(true);
+
+    StackGresDbOpsContext context = StackGresDbOpsContext.builder()
+        .config(config)
+        .source(dbOps)
+        .foundCluster(cluster)
+        .foundProfile(clusterProfile)
+        .foundClusterPods(List.of(pod))
+        .foundClusterPatroniMembers(List.of(patroniMember))
+        .build();
+
+    List<HasMetadata> resources = dbOpsClusterRollout.generateResource(context).toList();
+
+    assertEquals(1, resources.size());
+    return (StackGresCluster) resources.get(0);
   }
 
   @Test
