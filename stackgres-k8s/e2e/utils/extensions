@@ -38,39 +38,47 @@ get_extensions_index_hash() {
   md5sum "$TARGET_PATH/extensions-index.json" | cut -d ' ' -f 1
 }
 
+# A catalog file is valid when it is not empty (jq 1.6 exits with 0 for an empty file) and has the
+# extensions
+is_extensions_metadata_file() {
+  [ -s "$1" ] && jq -e '.extensions' "$1" > /dev/null 2>&1
+}
+
+# Specs run in parallel and share the cached catalog files, so each file is written to a temporary
+# file that is then moved in place: a spec never reads a file that another spec is writing
 cache_extensions_index() {
   if [ "$EXTENSIONS_INDEX_CACHED" != true ] || [ ! -f "$TARGET_PATH/extensions-index.json" ]
   then
+    local INDEX_FILE
+    local HASHES_FILE
+    local UNWRAPPED_HASHES_FILE
+    INDEX_FILE="$(mktemp "$TARGET_PATH/extensions-index.json.XXXXXX")"
+    HASHES_FILE="$(mktemp "$TARGET_PATH/extensions-hashes.json.XXXXXX")"
+    UNWRAPPED_HASHES_FILE="$(mktemp "$TARGET_PATH/extensions-unwrapped-hashes.json.XXXXXX")"
     if [ "$EXTENSIONS_CACHE_ENABLED" = true ] && [ -n "$EXTENSIONS_CACHE_HOST_PATH" ]
     then
       docker run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" \
         -e NAME="$(get_extensions_metadata_cache_name index.json)" alpine \
-        sh -c 'cat "/extensions/$NAME" 2>/dev/null' | jq . > "$TARGET_PATH/extensions-index.json" \
+        sh -c 'cat "/extensions/$NAME" 2>/dev/null' | jq . > "$INDEX_FILE" 2>/dev/null \
         || true
       docker run --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" \
         -e NAME="$(get_extensions_metadata_cache_name hashes.json)" alpine \
-        sh -c 'cat "/extensions/$NAME" 2>/dev/null' | jq . > "$TARGET_PATH/extensions-hashes.json" \
+        sh -c 'cat "/extensions/$NAME" 2>/dev/null' | jq . > "$HASHES_FILE" 2>/dev/null \
         || true
-    else
-      rm -f "$TARGET_PATH/extensions-index.json" "$TARGET_PATH/extensions-hashes.json"
     fi
-    if ! jq -e '.extensions' "$TARGET_PATH/extensions-index.json" > /dev/null 2>&1
+    if ! is_extensions_metadata_file "$INDEX_FILE"
     then
-      rm -f "$TARGET_PATH/extensions-index.json"
+      curl -s -f "$(get_extensions_metadata_url index.json)" > "$INDEX_FILE"
     fi
-    if ! jq -e '.extensions' "$TARGET_PATH/extensions-hashes.json" > /dev/null 2>&1
+    if ! is_extensions_metadata_file "$HASHES_FILE"
     then
-      rm -f "$TARGET_PATH/extensions-hashes.json"
+      curl -s -f "$(get_extensions_metadata_url hashes.json)" > "$HASHES_FILE"
     fi
-    if [ ! -s "$TARGET_PATH/extensions-index.json" ]
+    if ! is_extensions_metadata_file "$INDEX_FILE" || ! is_extensions_metadata_file "$HASHES_FILE"
     then
-      curl -s -f "$(get_extensions_metadata_url index.json)" \
-        > "$TARGET_PATH/extensions-index.json"
-    fi
-    if [ ! -s "$TARGET_PATH/extensions-hashes.json" ]
-    then
-      curl -s -f "$(get_extensions_metadata_url hashes.json)" \
-        > "$TARGET_PATH/extensions-hashes.json"
+      echo "Can not download the extensions catalog from $EXTENSIONS_REPOSITORY_URL" >&2
+      rm -f "$INDEX_FILE" "$HASHES_FILE" "$UNWRAPPED_HASHES_FILE"
+      return 1
     fi
     jq '
       .publishers = (.publishers | map(
@@ -85,18 +93,22 @@ cache_extensions_index() {
           value: .
         }
         ) | from_entries)
-      ' "$TARGET_PATH/extensions-hashes.json" > "$TARGET_PATH/extensions-unwrapped-hashes.json"
+      ' "$HASHES_FILE" > "$UNWRAPPED_HASHES_FILE"
     if [ "$EXTENSIONS_CACHE_ENABLED" = true ] && [ -n "$EXTENSIONS_CACHE_HOST_PATH" ]
     then
-      jq . "$TARGET_PATH/extensions-index.json" \
+      jq . "$INDEX_FILE" \
         | docker run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" \
           -e NAME="$(get_extensions_metadata_cache_name index.json)" alpine \
-          sh -c 'cat > "/extensions/$NAME"'
-      jq . "$TARGET_PATH/extensions-hashes.json" \
+          sh -c 'FILE="$(mktemp "/extensions/$NAME.XXXXXX")" && cat > "$FILE" && mv -f "$FILE" "/extensions/$NAME"'
+      jq . "$HASHES_FILE" \
         | docker run -i --rm -v "$EXTENSIONS_CACHE_HOST_PATH:/extensions" \
           -e NAME="$(get_extensions_metadata_cache_name hashes.json)" alpine \
-          sh -c 'cat > "/extensions/$NAME"'
+          sh -c 'FILE="$(mktemp "/extensions/$NAME.XXXXXX")" && cat > "$FILE" && mv -f "$FILE" "/extensions/$NAME"'
     fi
+    chmod a+r "$INDEX_FILE" "$HASHES_FILE" "$UNWRAPPED_HASHES_FILE"
+    mv -f "$INDEX_FILE" "$TARGET_PATH/extensions-index.json"
+    mv -f "$HASHES_FILE" "$TARGET_PATH/extensions-hashes.json"
+    mv -f "$UNWRAPPED_HASHES_FILE" "$TARGET_PATH/extensions-unwrapped-hashes.json"
     EXTENSIONS_INDEX_CACHED=true
   fi
 }
