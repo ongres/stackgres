@@ -1,0 +1,224 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/sharded-dbops"
+
+# The extensions repository caps the builds of citus and citus_columnar released before the
+# Postgres minor 17.12 with a maximum Postgres version (postgresToVersion), so a minor version
+# upgrade from 17.11 to 17.12 of an SGShardedCluster that sets one of those versions has to change
+# the version of the citus extensions
+
+e2e_use_extensions() {
+  true
+}
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/sharded-dbops")"
+}
+
+e2e_test_install() {
+  SOURCE_POSTGRES_VERSION=17.11
+  TARGET_POSTGRES_VERSION=17.12
+  E2E_POSTGRES_VERSION="$SOURCE_POSTGRES_VERSION"
+  # The name of the spec is longer than the maximum length of the name of an SGShardedCluster
+  CLUSTER_NAME="$(get_sgshardedcluster_name sharded-minor-upgrade-ext)"
+
+  SOURCE_CITUS_VERSION="$(get_latest_version_of_extension_without_build_for citus \
+    "$SOURCE_POSTGRES_VERSION" "$TARGET_POSTGRES_VERSION")"
+  SOURCE_CITUS_COLUMNAR_VERSION="$(get_latest_version_of_extension_without_build_for citus_columnar \
+    "$SOURCE_POSTGRES_VERSION" "$TARGET_POSTGRES_VERSION")"
+  TARGET_CITUS_VERSION="$(get_latest_version_of_extension citus "$TARGET_POSTGRES_VERSION")"
+  TARGET_CITUS_COLUMNAR_VERSION="$(get_latest_version_of_extension citus_columnar "$TARGET_POSTGRES_VERSION")"
+
+  if [ -z "$SOURCE_CITUS_VERSION" ] \
+    || [ -z "$SOURCE_CITUS_COLUMNAR_VERSION" ] \
+    || [ -z "$TARGET_CITUS_VERSION" ] \
+    || [ -z "$TARGET_CITUS_COLUMNAR_VERSION" ]
+  then
+    fail "The extensions repository has no citus version that runs on postgres $SOURCE_POSTGRES_VERSION but not on $TARGET_POSTGRES_VERSION"
+  fi
+
+  create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "1" "0" \
+    --set-string cluster.postgres.extensions[0].name=citus \
+    --set-string cluster.postgres.extensions[0].version="$SOURCE_CITUS_VERSION" \
+    --set-string cluster.postgres.extensions[1].name=citus_columnar \
+    --set-string cluster.postgres.extensions[1].version="$SOURCE_CITUS_COLUMNAR_VERSION"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  if [ "$(get_sharded_cluster_extension_version citus)" = "$SOURCE_CITUS_VERSION" ]
+  then
+    success "SGShardedCluster installed citus $SOURCE_CITUS_VERSION"
+  else
+    fail "SGShardedCluster did not install citus $SOURCE_CITUS_VERSION"
+  fi
+}
+
+# Return the latest version of an extension that has a build for the first postgres version but not
+# for the second one
+get_latest_version_of_extension_without_build_for() {
+  local TARGET_VERSIONS
+  TARGET_VERSIONS="$(get_versions_of_extension "$1" "$3")" || return 1
+  get_versions_of_extension "$1" "$2" | grep -vxF "$TARGET_VERSIONS" | head -n 1
+}
+
+e2e_test() {
+  run_test "Checking that minor version upgrade sharded dbops creation fails when an extension has no build for the target postgres minor" check_sharded_dbops_minor_version_upgrade_creation_fail_on_extension_without_build_for_target_minor
+
+  run_test "Checking that minor version upgrade sharded dbops with the extension versions for the target postgres minor is working" check_sharded_dbops_minor_version_upgrade_with_extensions_is_working
+}
+
+get_sharded_cluster_extension_version() {
+  kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq -r --arg name "$1" '.status.extensions[]? | select(.name == $name) | .version'
+}
+
+check_sharded_dbops_minor_version_upgrade_creation_fail_on_extension_without_build_for_target_minor() {
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name minor-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+
+  if ! create_sharded_minor_version_upgrade_dbops false \
+    > "$LOG_PATH/sharded-minor-version-upgrade-without-extensions.log" 2>&1 \
+    && grep -qF "citus $SOURCE_CITUS_VERSION (available " \
+      "$LOG_PATH/sharded-minor-version-upgrade-without-extensions.log"
+  then
+    success "The SGShardedDbOps creation has failed since citus $SOURCE_CITUS_VERSION has no build for postgres $TARGET_POSTGRES_VERSION"
+  else
+    cat "$LOG_PATH/sharded-minor-version-upgrade-without-extensions.log"
+    fail "The SGShardedDbOps creation has not failed with the expected error"
+  fi
+}
+
+check_sharded_dbops_minor_version_upgrade_with_extensions_is_working() {
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name minor-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+
+  generate_sharded_mock_data
+
+  create_sharded_minor_version_upgrade_dbops true
+
+  if [ "$(kubectl get sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" -o json \
+    | jq -r '.spec.minorVersionUpgrade.toInstallPostgresExtensions[]
+      | select(.name == "citus") | .version')" = "$TARGET_CITUS_VERSION" ]
+  then
+    success "The SGShardedDbOps will install citus $TARGET_CITUS_VERSION"
+  else
+    fail "The SGShardedDbOps will not install citus $TARGET_CITUS_VERSION"
+  fi
+
+  if wait_until eval '[ "$(kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template "{{ .spec.postgres.version }}")" = "$TARGET_POSTGRES_VERSION" ]'
+  then
+    success "SGShardedCluster postgres version was updated to the target version"
+  else
+    fail "SGShardedCluster postgres version was not updated to the target version"
+  fi
+
+  if [ "$(kubectl get sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq -r '.spec.postgres.extensions[] | select(.name == "citus") | .version')" = "$TARGET_CITUS_VERSION" ]
+  then
+    success "SGShardedCluster citus version was updated to $TARGET_CITUS_VERSION"
+  else
+    fail "SGShardedCluster citus version was not updated to $TARGET_CITUS_VERSION"
+  fi
+
+  local DBOPS_NAME
+  local MEMBER
+  for MEMBER in coord worker0 worker1
+  do
+    DBOPS_NAME="$SHARDED_DBOPS_NAME-$MEMBER"
+    wait_dbops_is_completed "$DBOPS_NAME"
+  done
+
+  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
+
+  wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  check_sharded_members_postgres_version "$TARGET_POSTGRES_VERSION"
+
+  for MEMBER in coord worker0 worker1
+  do
+    if wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$MEMBER" -o json \
+      | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[]
+        | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[]
+        | select(.name == \"citus\" and .version == \"$TARGET_CITUS_VERSION\") | length" \
+      | jq -s "length")" = 1 ]'
+    then
+      success "Member $CLUSTER_NAME-$MEMBER installed citus $TARGET_CITUS_VERSION"
+    else
+      fail "Member $CLUSTER_NAME-$MEMBER did not install citus $TARGET_CITUS_VERSION"
+    fi
+  done
+
+  for MEMBER in worker0 worker1 coord
+  do
+    if wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-$MEMBER-0" -c "postgres-util" -- \
+      psql -q -d citus -v ON_ERROR_STOP=1 -c "ALTER EXTENSION citus UPDATE"
+    then
+      success "citus was updated in member $CLUSTER_NAME-$MEMBER"
+    else
+      fail "citus was not updated in member $CLUSTER_NAME-$MEMBER"
+    fi
+  done
+
+  if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-coord-0" -c "postgres-util" -- \
+    psql -q -t -A -d citus -c "SELECT extversion = default_version
+      FROM pg_extension JOIN pg_available_extensions ON (extname = name) WHERE extname = 'citus'")" = t ] \
+    && kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-coord-0" -c "postgres-util" -- \
+      psql -q -t -A -d citus -c "SELECT citus_version()" | grep -qF "Citus $TARGET_CITUS_VERSION "
+  then
+    success "citus was updated to $TARGET_CITUS_VERSION"
+  else
+    fail "citus was not updated to $TARGET_CITUS_VERSION"
+  fi
+
+  check_sharded_mock_data
+}
+
+create_sharded_minor_version_upgrade_dbops() {
+  local WITH_EXTENSIONS="$1"
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGShardedDbOps
+metadata:
+  name: $SHARDED_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgShardedCluster: $CLUSTER_NAME
+  op: minorVersionUpgrade
+  minorVersionUpgrade:
+    postgresVersion: "$TARGET_POSTGRES_VERSION"
+    method: InPlace
+$(
+  if [ "$WITH_EXTENSIONS" = true ]
+  then
+    cat << INNER_EOF
+    postgresExtensions:
+    - name: citus
+      version: "$TARGET_CITUS_VERSION"
+    - name: citus_columnar
+      version: "$TARGET_CITUS_COLUMNAR_VERSION"
+INNER_EOF
+  fi
+)
+EOF
+}
+
+generate_sharded_mock_data() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -d citus -v ON_ERROR_STOP=1 \
+    -c "CREATE TABLE e2e_version_upgrade_check(num integer)" \
+    -c "INSERT INTO e2e_version_upgrade_check(num) VALUES (0),(1),(1),(2),(3),(5),(8),(13),(21)"
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -d citus -v ON_ERROR_STOP=1 \
+    -c "SELECT create_distributed_table('e2e_version_upgrade_check', 'num')"
+}
+
+check_sharded_mock_data() {
+  if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -q -t -A -d citus -c "SELECT SUM(num) FROM e2e_version_upgrade_check")" = 54 ]'
+  then
+    success "Mock data survived the upgrade"
+  else
+    fail "Mock data did not survive the upgrade"
+  fi
+}
