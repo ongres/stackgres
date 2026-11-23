@@ -17,7 +17,9 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -171,8 +173,8 @@ class StackGresUtilTest {
 
   @ParameterizedTest
   @CsvSource({
-      "17, 14.0.0",
-      "16, 14.0.0",
+      "17, 14.3.0",
+      "16, 14.3.0",
       "15, 13.2.0",
       "14, 12.1.6",
       "13, 11.3-1",
@@ -195,6 +197,73 @@ class StackGresUtilTest {
             new ExtensionTuple("citus_columnar", citusVersion),
             new ExtensionTuple("pg_cron")),
         extensions);
+  }
+
+  @Test
+  void getShardedClusterExtensionsKeepingInstalledVersions_withoutStatus_shouldReturnTheDefaults() {
+    StackGresShardedCluster cluster = getShardedClusterForPostgresMajorVersion("17");
+    cluster.setStatus(null);
+
+    assertEquals(
+        List.of(
+            new ExtensionTuple("citus", "14.3.0"),
+            new ExtensionTuple("citus_columnar", "14.3.0"),
+            new ExtensionTuple("pg_cron")),
+        StackGresUtil.getShardedClusterExtensionsKeepingInstalledVersions(cluster));
+  }
+
+  @Test
+  void getShardedClusterExtensionsKeepingInstalledVersions_withInstalledVersions_shouldKeepThem() {
+    StackGresShardedCluster cluster = getShardedClusterForPostgresMajorVersion("17");
+    cluster.setStatus(new StackGresShardedClusterStatus());
+    cluster.getStatus().setExtensions(List.of(
+        getInstalledExtension("citus", "14.0.0", "17"),
+        getInstalledExtension("citus_columnar", "14.0.0", "17"),
+        getInstalledExtension("pg_cron", "1.6.4", "17")));
+
+    assertEquals(
+        List.of(
+            new ExtensionTuple("citus", "14.0.0"),
+            new ExtensionTuple("citus_columnar", "14.0.0"),
+            new ExtensionTuple("pg_cron")),
+        StackGresUtil.getShardedClusterExtensionsKeepingInstalledVersions(cluster));
+  }
+
+  @Test
+  void getShardedClusterExtensionsKeepingInstalledVersions_installedForAnotherMajor_shouldReturnDefaults() {
+    StackGresShardedCluster cluster = getShardedClusterForPostgresMajorVersion("17");
+    cluster.setStatus(new StackGresShardedClusterStatus());
+    cluster.getStatus().setExtensions(List.of(
+        getInstalledExtension("citus", "13.2.0", "15"),
+        getInstalledExtension("citus_columnar", "13.2.0", "15")));
+
+    assertEquals(
+        List.of(
+            new ExtensionTuple("citus", "14.3.0"),
+            new ExtensionTuple("citus_columnar", "14.3.0"),
+            new ExtensionTuple("pg_cron")),
+        StackGresUtil.getShardedClusterExtensionsKeepingInstalledVersions(cluster));
+  }
+
+  private StackGresShardedCluster getShardedClusterForPostgresMajorVersion(
+      String postgresMajorVersion) {
+    StackGresShardedCluster cluster = Fixtures.shardedCluster().loadDefault().get();
+    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()
+        .streamOrderedVersions()
+        .filter(version -> version.startsWith(postgresMajorVersion + "."))
+        .findFirst()
+        .get());
+    return cluster;
+  }
+
+  private StackGresClusterInstalledExtension getInstalledExtension(
+      String name, String version, String postgresVersion) {
+    StackGresClusterInstalledExtension installedExtension = new StackGresClusterInstalledExtension();
+    installedExtension.setName(name);
+    installedExtension.setPublisher("com.ongres");
+    installedExtension.setVersion(version);
+    installedExtension.setPostgresVersion(postgresVersion);
+    return installedExtension;
   }
 
   @Test

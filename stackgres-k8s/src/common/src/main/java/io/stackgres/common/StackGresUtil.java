@@ -39,6 +39,7 @@ import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
 import io.stackgres.common.component.Component;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgconfig.StackGresConfigAdminui;
 import io.stackgres.common.crd.sgconfig.StackGresConfigImage;
@@ -372,6 +373,39 @@ public interface StackGresUtil {
     return List.of();
   }
 
+  /**
+   * Return the extensions that an SGShardedCluster installs by default. An extension that was
+   * already installed for the same postgres major version keeps the installed version, so that
+   * raising the default version of an extension does not change the extension of the existing
+   * SGShardedClusters, whose databases still have the previous version.
+   */
+  static List<ExtensionTuple> getShardedClusterExtensionsKeepingInstalledVersions(
+      StackGresShardedCluster cluster) {
+    final String postgresMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
+        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
+    final List<StackGresClusterInstalledExtension> installedExtensions =
+        Optional.ofNullable(cluster.getStatus())
+        .map(StackGresShardedClusterStatus::getExtensions)
+        .orElse(List.of());
+    return getShardedClusterExtensions(cluster)
+        .stream()
+        .map(extension -> installedExtensions.stream()
+            .filter(installedExtension -> Objects.equals(
+                installedExtension.getName(), extension.extensionName()))
+            .filter(installedExtension -> Optional.ofNullable(installedExtension.getPostgresVersion())
+                .map(installedPostgresVersion -> installedPostgresVersion.split("\\.")[0])
+                .filter(postgresMajorVersion::equals)
+                .isPresent())
+            .map(StackGresClusterInstalledExtension::getVersion)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .filter(installedVersion -> extension.extensionVersion().isPresent())
+            .map(installedVersion -> new ExtensionTuple(
+                extension.extensionName(), installedVersion))
+            .orElse(extension))
+        .toList();
+  }
+
   static List<ExtensionTuple> getCitusShardedClusterExtensions(StackGresShardedCluster cluster) {
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
     StackGresVersion sgVersion = StackGresVersion.getStackGresVersion(cluster);
@@ -415,7 +449,7 @@ public interface StackGresUtil {
         .get();
     return List.of(
         pgMajorVersionIndex <= pg16Index
-        ? new ExtensionTuple("citus", "14.0.0")
+        ? new ExtensionTuple("citus", "14.3.0")
             : pgMajorVersionIndex <= pg15Index
             ? new ExtensionTuple("citus", "13.2.0")
                 : pgMajorVersionIndex <= pg14Index
@@ -424,7 +458,7 @@ public interface StackGresUtil {
                     ? new ExtensionTuple("citus", "11.3-1")
                         : new ExtensionTuple("citus", "10.2-5"),
         pgMajorVersionIndex <= pg16Index
-        ? new ExtensionTuple("citus_columnar", "14.0.0")
+        ? new ExtensionTuple("citus_columnar", "14.3.0")
             : pgMajorVersionIndex <= pg15Index
             ? new ExtensionTuple("citus_columnar", "13.2.0")
                 : pgMajorVersionIndex <= pg14Index

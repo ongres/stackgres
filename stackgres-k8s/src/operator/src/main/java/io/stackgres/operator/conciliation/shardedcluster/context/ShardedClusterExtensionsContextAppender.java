@@ -52,7 +52,7 @@ public class ShardedClusterExtensionsContextAppender
             .toList();
     return Seq.seq(extensions)
         .append(
-            StackGresUtil.getShardedClusterExtensions(inputContext)
+            StackGresUtil.getShardedClusterExtensionsKeepingInstalledVersions(inputContext)
             .stream()
             .filter(extension -> extensions.stream()
                 .map(StackGresClusterExtension::getName)
