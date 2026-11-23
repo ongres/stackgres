@@ -142,7 +142,8 @@ get_versions_of_extension() {
   PATRONI_IMAGE_BUILD_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION##*-build-}"
   PATRONI_IMAGE_BUILD_MAJOR_VERSION="${PATRONI_IMAGE_BUILD_VERSION%%.*}"
   EXTENSIONS_ARCH="$(uname -m)"
-  # A build may only run on the Postgres minors between postgresFromVersion and postgresToVersion
+  # A build only runs on the Postgres flavor it was built for (no flavor is vanilla Postgres) and
+  # may only run on the Postgres minors between postgresFromVersion and postgresToVersion
   VERSIONS="$(jq -r "$(cat << EOF
 def postgres_version: split(".") | map(tonumber? // 0);
 .extensions[] | select(.name == "$EXTENSION_NAME").versions
@@ -153,6 +154,7 @@ def postgres_version: split(".") | map(tonumber? // 0);
         or .postgresVersion == "$PATRONI_IMAGE_POSTGRES_MAJOR_VERSION")
       and (if .build == null then true
         else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)
+      and ((.flavor // "$EXTENSIONS_DEFAULT_FLAVOR") == "$FLAVOR")
       and (.postgresFromVersion == null
         or (.postgresFromVersion | postgres_version) <= ("$PATRONI_IMAGE_POSTGRES_VERSION" | postgres_version))
       and (.postgresToVersion == null

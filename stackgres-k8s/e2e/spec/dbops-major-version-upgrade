@@ -28,6 +28,8 @@ e2e_test() {
   run_test "Checking that major version upgrade is working" check_major_version_upgrade_is_working
 
   run_test "Checking that major version upgrade creation fails on missing extension version" check_major_version_upgrade_creation_fail_on_missing_extension_version
+
+  run_test "Checking that major version upgrade creation fails when an extension has no build for the target postgres minor" check_major_version_upgrade_creation_fail_on_extension_without_build_for_target_minor
 }
 
 check_major_version_upgrade_is_working() {
@@ -188,4 +190,99 @@ EOF
   else
     fail "The SGDbOps creation has not failed"
   fi
+}
+# The extensions repository caps the builds of timescaledb released before the Postgres minors
+# 16.16 and 17.12 with a maximum Postgres version (postgresToVersion), and publishes the builds for
+# those minors with a minimum Postgres version (postgresFromVersion)
+check_major_version_upgrade_creation_fail_on_extension_without_build_for_target_minor() {
+  local SOURCE_POSTGRES_VERSION=16.15
+  local OLD_MINOR_TARGET_POSTGRES_VERSION=17.11
+  local NEW_MINOR_TARGET_POSTGRES_VERSION=17.12
+  local SOURCE_TIMESCALEDB_VERSION
+  local NEW_MINOR_TARGET_TIMESCALEDB_VERSION
+  SOURCE_TIMESCALEDB_VERSION="$(get_latest_version_of_extension timescaledb "$SOURCE_POSTGRES_VERSION")"
+  NEW_MINOR_TARGET_TIMESCALEDB_VERSION="$(get_latest_version_of_extension timescaledb "$NEW_MINOR_TARGET_POSTGRES_VERSION")"
+
+  if [ -z "$SOURCE_TIMESCALEDB_VERSION" ] \
+    || [ -z "$NEW_MINOR_TARGET_TIMESCALEDB_VERSION" ] \
+    || ! get_versions_of_extension timescaledb "$OLD_MINOR_TARGET_POSTGRES_VERSION" | grep -qxF "$SOURCE_TIMESCALEDB_VERSION" \
+    || get_versions_of_extension timescaledb "$NEW_MINOR_TARGET_POSTGRES_VERSION" | grep -qxF "$SOURCE_TIMESCALEDB_VERSION"
+  then
+    fail "The extensions repository has no timescaledb version that runs on postgres $SOURCE_POSTGRES_VERSION and $OLD_MINOR_TARGET_POSTGRES_VERSION but not on $NEW_MINOR_TARGET_POSTGRES_VERSION"
+  fi
+
+  remove_cluster_if_exists "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string cluster.postgres.version="$SOURCE_POSTGRES_VERSION" \
+    --set-string cluster.postgres.extensions[0].name=timescaledb \
+    --set-string cluster.postgres.extensions[0].version="$SOURCE_TIMESCALEDB_VERSION"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  remove_cluster_if_exists "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE"
+  create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
+    --set cluster.create=false \
+    --set instanceProfiles=null \
+    --set cluster.configurations.sgPostgresConfig=postgresconf-for-major-version-upgrade \
+    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-major-version-upgrade \
+    --set-string cluster.postgres.version="$NEW_MINOR_TARGET_POSTGRES_VERSION"
+
+  if ! create_major_version_upgrade_dbops_dry_run "$NEW_MINOR_TARGET_POSTGRES_VERSION" \
+    > "$LOG_PATH/major-version-upgrade-new-minor-dry-run.log" 2>&1 \
+    && grep -qF "Extension was not found: timescaledb $SOURCE_TIMESCALEDB_VERSION (available " \
+      "$LOG_PATH/major-version-upgrade-new-minor-dry-run.log" \
+    && grep -qF "$NEW_MINOR_TARGET_TIMESCALEDB_VERSION" \
+      "$LOG_PATH/major-version-upgrade-new-minor-dry-run.log"
+  then
+    success "The SGDbOps creation for postgres $NEW_MINOR_TARGET_POSTGRES_VERSION has failed since timescaledb $SOURCE_TIMESCALEDB_VERSION has no build for it"
+  else
+    cat "$LOG_PATH/major-version-upgrade-new-minor-dry-run.log"
+    fail "The SGDbOps creation for postgres $NEW_MINOR_TARGET_POSTGRES_VERSION has not failed with the expected error"
+  fi
+
+  if create_major_version_upgrade_dbops_dry_run "$OLD_MINOR_TARGET_POSTGRES_VERSION"
+  then
+    success "The SGDbOps creation for postgres $OLD_MINOR_TARGET_POSTGRES_VERSION has not failed since timescaledb $SOURCE_TIMESCALEDB_VERSION has a build for it"
+  else
+    fail "The SGDbOps creation for postgres $OLD_MINOR_TARGET_POSTGRES_VERSION has failed"
+  fi
+
+  if create_major_version_upgrade_dbops_dry_run "$NEW_MINOR_TARGET_POSTGRES_VERSION" "$NEW_MINOR_TARGET_TIMESCALEDB_VERSION"
+  then
+    success "The SGDbOps creation for postgres $NEW_MINOR_TARGET_POSTGRES_VERSION with timescaledb $NEW_MINOR_TARGET_TIMESCALEDB_VERSION has not failed"
+  else
+    fail "The SGDbOps creation for postgres $NEW_MINOR_TARGET_POSTGRES_VERSION with timescaledb $NEW_MINOR_TARGET_TIMESCALEDB_VERSION has failed"
+  fi
+}
+
+create_major_version_upgrade_dbops_dry_run() {
+  local TARGET_POSTGRES_VERSION="$1"
+  local TARGET_TIMESCALEDB_VERSION="$2"
+  cat << EOF | kubectl create --dry-run=server -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
+    check: true
+$(
+  if [ -n "$TARGET_TIMESCALEDB_VERSION" ]
+  then
+    cat << INNER_EOF
+    postgresExtensions:
+    - name: timescaledb
+      version: "$TARGET_TIMESCALEDB_VERSION"
+INNER_EOF
+  fi
+)
+EOF
 }

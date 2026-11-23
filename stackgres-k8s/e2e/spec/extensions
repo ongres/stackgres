@@ -36,6 +36,8 @@ e2e_test() {
   #run_test "Check extension with shared library is installed when added and available after restart" check_extension_with_shared_library_installed_when_upgraded
 
   run_test "Check extension with executable is installed and available when added" check_extension_with_executable_installed_when_added
+
+  run_test "Check extension builds are selected by the Postgres minor" check_extension_builds_are_selected_by_postgres_minor
 }
 
 check_extension_installed_after_booting() {
@@ -379,5 +381,96 @@ check_extension_with_executable_installed_when_added() {
     success "Cluster is not pending restart after installing pg_repack ($PG_REPACK_VERSION)"
   else
     fail "Cluster is pending restart after installing pg_repack ($PG_REPACK_VERSION)"
+  fi
+}
+
+# The extensions repository caps the builds of timescaledb released before the Postgres minors
+# 17.12 with a maximum Postgres version (postgresToVersion), and publishes the builds for those
+# minors with a minimum Postgres version (postgresFromVersion)
+check_extension_builds_are_selected_by_postgres_minor() {
+  local OLD_MINOR_POSTGRES_VERSION=17.11
+  local NEW_MINOR_POSTGRES_VERSION=17.12
+  local OLD_MINOR_TIMESCALEDB_VERSION
+  local NEW_MINOR_TIMESCALEDB_VERSION
+  OLD_MINOR_TIMESCALEDB_VERSION="$(get_latest_version_of_extension timescaledb "$OLD_MINOR_POSTGRES_VERSION")"
+  NEW_MINOR_TIMESCALEDB_VERSION="$(get_latest_version_of_extension timescaledb "$NEW_MINOR_POSTGRES_VERSION")"
+
+  if [ -z "$OLD_MINOR_TIMESCALEDB_VERSION" ] \
+    || [ -z "$NEW_MINOR_TIMESCALEDB_VERSION" ] \
+    || get_versions_of_extension timescaledb "$OLD_MINOR_POSTGRES_VERSION" | grep -qxF "$NEW_MINOR_TIMESCALEDB_VERSION" \
+    || get_versions_of_extension timescaledb "$NEW_MINOR_POSTGRES_VERSION" | grep -qxF "$OLD_MINOR_TIMESCALEDB_VERSION"
+  then
+    fail "The extensions repository has no timescaledb version that runs on postgres $OLD_MINOR_POSTGRES_VERSION but not on $NEW_MINOR_POSTGRES_VERSION and the other way round"
+  fi
+
+  remove_cluster_if_exists "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+    --set-string "cluster.postgres.version=$OLD_MINOR_POSTGRES_VERSION" \
+    --set-string 'cluster.postgres.extensions[0].name=timescaledb' \
+    --set-string "cluster.postgres.extensions[0].version=$NEW_MINOR_TIMESCALEDB_VERSION"
+
+  if wait_until eval 'kubectl get event -n "$CLUSTER_NAMESPACE" -o json \
+    --field-selector "involvedObject.kind=SGCluster,involvedObject.name=$CLUSTER_NAME,reason=ClusterConfigFailed" \
+    | jq -r ".items[].message" \
+    | grep -qF "Extension was not found: timescaledb $NEW_MINOR_TIMESCALEDB_VERSION (available "'
+  then
+    success "timescaledb $NEW_MINOR_TIMESCALEDB_VERSION was not found for postgres $OLD_MINOR_POSTGRES_VERSION"
+  else
+    fail "timescaledb $NEW_MINOR_TIMESCALEDB_VERSION was found for postgres $OLD_MINOR_POSTGRES_VERSION"
+  fi
+
+  if ! kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" > /dev/null 2>&1
+  then
+    success "The StatefulSet was not created with timescaledb $NEW_MINOR_TIMESCALEDB_VERSION for postgres $OLD_MINOR_POSTGRES_VERSION"
+  else
+    fail "The StatefulSet was created with timescaledb $NEW_MINOR_TIMESCALEDB_VERSION for postgres $OLD_MINOR_POSTGRES_VERSION"
+  fi
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+    --reset-values \
+    --set-string "cluster.postgres.version=$OLD_MINOR_POSTGRES_VERSION" \
+    --set-string 'cluster.postgres.extensions[0].name=timescaledb'
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "1"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  check_timescaledb_build_is_installed "$OLD_MINOR_POSTGRES_VERSION" "$OLD_MINOR_TIMESCALEDB_VERSION"
+
+  remove_cluster_if_exists "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+    --set-string "cluster.postgres.version=$NEW_MINOR_POSTGRES_VERSION" \
+    --set-string 'cluster.postgres.extensions[0].name=timescaledb'
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "1"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  check_timescaledb_build_is_installed "$NEW_MINOR_POSTGRES_VERSION" "$NEW_MINOR_TIMESCALEDB_VERSION"
+}
+
+check_timescaledb_build_is_installed() {
+  local POSTGRES_VERSION="$1"
+  local TIMESCALEDB_VERSION="$2"
+
+  if wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[]
+      | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[]
+      | select(.name == \"timescaledb\" and .version == \"$TIMESCALEDB_VERSION\") | length" \
+    | jq -s "length")" = 1 ]'
+  then
+    success "timescaledb $TIMESCALEDB_VERSION was installed for postgres $POSTGRES_VERSION"
+  else
+    fail "timescaledb $TIMESCALEDB_VERSION was not installed for postgres $POSTGRES_VERSION"
+  fi
+
+  if run_query -i 0 -q "SELECT version FROM pg_available_extension_versions WHERE name = 'timescaledb'" \
+    | grep -qxF "$TIMESCALEDB_VERSION"
+  then
+    success "timescaledb $TIMESCALEDB_VERSION is available for postgres $POSTGRES_VERSION"
+  else
+    fail "timescaledb $TIMESCALEDB_VERSION is not available for postgres $POSTGRES_VERSION"
   fi
 }

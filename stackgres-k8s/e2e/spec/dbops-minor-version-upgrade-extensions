@@ -1,0 +1,159 @@
+#!/bin/sh
+
+# The extensions repository caps the builds of timescaledb released before the Postgres minor 17.12
+# with a maximum Postgres version (postgresToVersion), and publishes the builds for that minor with
+# a minimum Postgres version (postgresFromVersion), so a minor version upgrade from 17.11 to 17.12
+# has to change the version of timescaledb
+
+e2e_use_extensions() {
+  true
+}
+
+e2e_test_install() {
+  CLUSTER_NAME="$(get_sgcluster_name dbops-minor-version-upgrade-extensions)"
+  DBOPS_NAME="$(get_sgdbops_name minor-version-upgrade)"
+  SOURCE_POSTGRES_VERSION=17.11
+  TARGET_POSTGRES_VERSION=17.12
+
+  SOURCE_TIMESCALEDB_VERSION="$(get_latest_version_of_extension timescaledb "$SOURCE_POSTGRES_VERSION")"
+  TARGET_TIMESCALEDB_VERSION="$(get_latest_version_of_extension timescaledb "$TARGET_POSTGRES_VERSION")"
+
+  if [ -z "$SOURCE_TIMESCALEDB_VERSION" ] \
+    || [ -z "$TARGET_TIMESCALEDB_VERSION" ] \
+    || get_versions_of_extension timescaledb "$TARGET_POSTGRES_VERSION" | grep -qxF "$SOURCE_TIMESCALEDB_VERSION"
+  then
+    fail "The extensions repository has no timescaledb version that runs on postgres $SOURCE_POSTGRES_VERSION but not on $TARGET_POSTGRES_VERSION"
+  fi
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string cluster.postgres.version="$SOURCE_POSTGRES_VERSION" \
+    --set-string cluster.postgres.extensions[0].name=timescaledb \
+    --set-string cluster.postgres.extensions[0].version="$SOURCE_TIMESCALEDB_VERSION" \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.shared_preload_libraries=pg_stat_statements\, auto_explain\, timescaledb'
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 1
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  run_query -i 0 -q 'CREATE DATABASE test;'
+  run_query -i 0 -d test -q "$(cat << 'EOF'
+CREATE EXTENSION timescaledb;
+CREATE TABLE test (time timestamptz NOT NULL, value integer);
+SELECT create_hypertable('test', 'time');
+INSERT INTO test SELECT now() - i * interval '1 hour', i FROM generate_series(1, 100) AS i;
+EOF
+    )"
+}
+
+e2e_test() {
+  run_test "Checking that minor version upgrade creation fails when an extension has no build for the target postgres minor" check_minor_version_upgrade_creation_fail_on_extension_without_build_for_target_minor
+
+  run_test "Checking that minor version upgrade with the extension versions for the target postgres minor is working" check_minor_version_upgrade_with_extensions_is_working
+}
+
+check_minor_version_upgrade_creation_fail_on_extension_without_build_for_target_minor() {
+  if ! create_minor_version_upgrade_dbops > "$LOG_PATH/minor-version-upgrade-without-extensions.log" 2>&1 \
+    && grep -qF "Extension was not found: timescaledb $SOURCE_TIMESCALEDB_VERSION (available " \
+      "$LOG_PATH/minor-version-upgrade-without-extensions.log" \
+    && grep -qF "$TARGET_TIMESCALEDB_VERSION" \
+      "$LOG_PATH/minor-version-upgrade-without-extensions.log"
+  then
+    success "The SGDbOps creation has failed since timescaledb $SOURCE_TIMESCALEDB_VERSION has no build for postgres $TARGET_POSTGRES_VERSION"
+  else
+    cat "$LOG_PATH/minor-version-upgrade-without-extensions.log"
+    fail "The SGDbOps creation has not failed with the expected error"
+  fi
+}
+
+check_minor_version_upgrade_with_extensions_is_working() {
+  create_minor_version_upgrade_dbops "$TARGET_TIMESCALEDB_VERSION"
+
+  if [ "$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o json \
+    | jq -r '.spec.minorVersionUpgrade.toInstallPostgresExtensions[]
+      | select(.name == "timescaledb") | .version')" = "$TARGET_TIMESCALEDB_VERSION" ]
+  then
+    success "The SGDbOps will install timescaledb $TARGET_TIMESCALEDB_VERSION"
+  else
+    fail "The SGDbOps will not install timescaledb $TARGET_TIMESCALEDB_VERSION"
+  fi
+
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
+
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
+
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template '{{ .spec.postgres.version }}')" = "$TARGET_POSTGRES_VERSION" ]
+  then
+    success "The SGCluster postgres version has been updated to $TARGET_POSTGRES_VERSION"
+  else
+    fail "The SGCluster postgres version has not been updated to $TARGET_POSTGRES_VERSION"
+  fi
+
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq -r '.spec.postgres.extensions[] | select(.name == "timescaledb") | .version')" = "$TARGET_TIMESCALEDB_VERSION" ]
+  then
+    success "The SGCluster timescaledb version has been updated to $TARGET_TIMESCALEDB_VERSION"
+  else
+    fail "The SGCluster timescaledb version has not been updated to $TARGET_TIMESCALEDB_VERSION"
+  fi
+
+  if wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[]
+      | select(.installedPostgresExtensions != null) | .installedPostgresExtensions[]
+      | select(.name == \"timescaledb\" and .version == \"$TARGET_TIMESCALEDB_VERSION\") | length" \
+    | jq -s "length")" = 1 ]'
+  then
+    success "timescaledb $TARGET_TIMESCALEDB_VERSION was installed"
+  else
+    fail "timescaledb $TARGET_TIMESCALEDB_VERSION was not installed"
+  fi
+
+  if wait_until run_query -i 0 -d test -q "ALTER EXTENSION timescaledb UPDATE;"
+  then
+    success "timescaledb was updated"
+  else
+    fail "timescaledb was not updated"
+  fi
+
+  if [ "$(run_query -i 0 -d test -q "SELECT extversion FROM pg_extension WHERE extname = 'timescaledb';")" \
+    = "$TARGET_TIMESCALEDB_VERSION" ]
+  then
+    success "timescaledb was updated to $TARGET_TIMESCALEDB_VERSION"
+  else
+    fail "timescaledb was not updated to $TARGET_TIMESCALEDB_VERSION"
+  fi
+
+  if [ "$(run_query -i 0 -d test -q "SELECT count(*) FROM test;")" = 100 ]
+  then
+    success "The data of the hypertable is still available"
+  else
+    fail "The data of the hypertable is not available"
+  fi
+}
+
+create_minor_version_upgrade_dbops() {
+  local TARGET_TIMESCALEDB_VERSION="$1"
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: minorVersionUpgrade
+  minorVersionUpgrade:
+    postgresVersion: "$TARGET_POSTGRES_VERSION"
+$(
+  if [ -n "$TARGET_TIMESCALEDB_VERSION" ]
+  then
+    cat << INNER_EOF
+    postgresExtensions:
+    - name: timescaledb
+      version: "$TARGET_TIMESCALEDB_VERSION"
+INNER_EOF
+  fi
+)
+EOF
+}
