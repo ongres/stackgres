@@ -137,6 +137,30 @@ get_latest_common_version_of_extension() {
   echo "$COMMON_VERSION"
 }
 
+# Print the jq function sortable_version, that renders a version into a fixed width, lexicographically
+# comparable sort key, the same way StackGresUtil.sortableVersion does in the operator: a run of
+# letters is collapsed to its first letter, a run of other non-dot non-digit characters to its
+# first character, and each is separated by dots from what is around it (1.2.0-beta1 becomes
+# 1|2|0|-|b|1), then the leading digits and dots are laid out as 8 zero-padded 8-character fields
+# (so 1.2 and 1.2.0 are equal) and the rest as 8 more fields where an absent one is zzzzzzzz (so a
+# release outranks its pre-releases and suffixes: 1.2.0-alpha2 < 1.2.0-beta1 < 1.2.0,
+# 1.4-1 < 1.4 < 1.5 and 12.1-1 < 12.1.6)
+sortable_version_jq_function() {
+  cat << 'EOF'
+def sortable_version_segment: if length >= 8 then .[0:8] else ("00000000" + .)[-8:] end;
+def sortable_version:
+  gsub("(?<c>[a-zA-Z])[a-zA-Z]*"; "\(.c)")
+  | gsub("(?<c>[^.0-9a-zA-Z])[^.0-9a-zA-Z]*"; "\(.c)")
+  | gsub("(?<c>[^.0-9](?=[^.])|[0-9](?=[^.0-9]))"; "\(.c).")
+  | capture("^(?<numeric>[0-9.]*)(?<prerelease>.*)$")
+  | (.numeric | split(".")) as $numeric
+  | (.prerelease | split(".")) as $prerelease
+  | [range(8) | $numeric[.] // "" | sortable_version_segment]
+    + [range(8) | $prerelease[.] // "" | if . == "" then "zzzzzzzz" else sortable_version_segment end]
+  | join("");
+EOF
+}
+
 get_versions_of_extension() {
   local EXTENSION_NAME="$1"
   local POSTGRES_VERSION="$2"
@@ -173,9 +197,9 @@ get_versions_of_extension() {
   # A build only runs on the Postgres flavor it was built for (no flavor is vanilla Postgres) and
   # may only run on the Postgres minors between postgresFromVersion and postgresToVersion
   VERSIONS="$(jq -r "$(cat << EOF
-def version_numbers: split(".") | map(tonumber? // 0);
+$(sortable_version_jq_function)
 .extensions[] | select(.name == "$EXTENSION_NAME").versions
-  | sort_by(.version | version_numbers) | reverse[]
+  | sort_by(.version | sortable_version) | reverse[]
   | select((.availableFor
     | map(select(
       (.postgresVersion == "$PATRONI_IMAGE_POSTGRES_VERSION"
@@ -184,9 +208,9 @@ def version_numbers: split(".") | map(tonumber? // 0);
         else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)
       and ((.flavor // "$EXTENSIONS_DEFAULT_FLAVOR") == "$FLAVOR")
       and (.postgresFromVersion == null
-        or (.postgresFromVersion | version_numbers) <= ("$PATRONI_IMAGE_POSTGRES_VERSION" | version_numbers))
+        or (.postgresFromVersion | sortable_version) <= ("$PATRONI_IMAGE_POSTGRES_VERSION" | sortable_version))
       and (.postgresToVersion == null
-        or (.postgresToVersion | version_numbers) >= ("$PATRONI_IMAGE_POSTGRES_VERSION" | version_numbers))
+        or (.postgresToVersion | sortable_version) >= ("$PATRONI_IMAGE_POSTGRES_VERSION" | sortable_version))
       and ((.arch == null and "$EXTENSIONS_ARCH" == "x86_64") or (.arch == "$EXTENSIONS_ARCH"))))
       | length) > 0).version
 EOF
