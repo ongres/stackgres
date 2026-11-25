@@ -72,6 +72,16 @@ public interface StackGresUtil {
           + "(?:'(?<quoted>.*)'|(?<unquoted>(?:|[^'\\s#][^\\s#]*)))(?:\\s*#.*)?\\s*$");
   Pattern IMAGE_NAME_WITH_REGISTRY_PATTERN =
       Pattern.compile("^[^/]+\\.[^/]+/.*$");
+  Pattern VERSION_LETTER_RUN_PATTERN =
+      Pattern.compile("([a-zA-Z])[a-zA-Z]*");
+  Pattern VERSION_SYMBOL_RUN_PATTERN =
+      Pattern.compile("([^.0-9a-zA-Z])[^.0-9a-zA-Z]*");
+  Pattern VERSION_SEGMENT_BOUNDARY_PATTERN =
+      Pattern.compile("([^.0-9](?=[^.])|[0-9](?=[^.0-9]))");
+  Pattern VERSION_NUMERIC_PATTERN =
+      Pattern.compile("[0-9.]*");
+  int VERSION_SEGMENTS = 8;
+  int VERSION_SEGMENT_LENGTH = 8;
 
   static String statefulSetDataPersistentVolumeClaimName(ClusterContext cluster) {
     return ResourceUtil.resourceName(cluster.getCluster().getMetadata().getName() + DATA_SUFFIX);
@@ -683,18 +693,70 @@ public interface StackGresUtil {
             : containerRegistry + "/" + imageName + ":" + imageTag;
   }
 
+  /**
+   * Renders a version into a fixed width, lexicographically comparable sort key.
+   *
+   * <p>A run of letters is first collapsed to its first letter, a run of other non-dot non-digit
+   * characters to its first character, and each of those is separated from what is around it by
+   * dots, so {@code 1.2.3beta1} normalises to the segments {@code 1|2|3|b|1} and
+   * {@code 1.2.0-alpha2} to {@code 1|2|0|-|a|2}. Those segments are then laid out in two zones
+   * of eight 8-character fields each:
+   *
+   * <ul>
+   *   <li>the <b>numeric</b> zone takes the leading run of digits and dots, zero-padded. An
+   *       absent segment is {@code 00000000}, so {@code 1.2} and {@code 1.2.0} compare equal
+   *       and both sort below {@code 1.2.3}.
+   *   <li>the <b>pre-release</b> zone takes whatever follows it ({@code beta1}, {@code rc2},
+   *       {@code -1}, ...). An absent segment is {@code zzzzzzzz}, which is what makes a release
+   *       outrank its own pre-releases: {@code 1.2.3} ends in {@code zzzzzzzz} where
+   *       {@code 1.2.3rc1} has {@code 0000000r}. Padding to 8 characters is what makes that hold
+   *       for every marker, including ones above {@code z} such as {@code 1.2.3~rc1}: a
+   *       one-character marker always renders as {@code 0000000?}.
+   * </ul>
+   *
+   * <p>So {@code 1.2.0-alpha2 < 1.2.0-beta1 < 1.2.0}, {@code 1.4-1 < 1.4 < 1.5} and
+   * {@code 12.1-1 < 12.1.6}.
+   *
+   * <p>Known limitation: ranking an absent segment high also applies inside the pre-release
+   * zone, so a bare marker outranks a numbered one and {@code 1.2.3beta} sorts above
+   * {@code 1.2.3beta10}, and only the first letter of a word is compared, so {@code 1.2.3pre1}
+   * and {@code 1.2.3preview1} are equal. A segment longer than 8 characters is truncated to its
+   * first 8.
+   */
   static String sortableVersion(String version) {
-    final String[] versionParts = version.split("\\.", -1);
-    return IntStream.range(0, 5)
-        .mapToObj(i -> zeroPad(i < versionParts.length ? versionParts[i] : "", 10))
+    if (version == null) {
+      return null;
+    }
+    final String normalized = VERSION_SEGMENT_BOUNDARY_PATTERN.matcher(
+        VERSION_SYMBOL_RUN_PATTERN.matcher(
+            VERSION_LETTER_RUN_PATTERN.matcher(version).replaceAll("$1"))
+        .replaceAll("$1"))
+        .replaceAll("$1.");
+    final Matcher numericMatcher = VERSION_NUMERIC_PATTERN.matcher(normalized);
+    final int prereleaseStart = numericMatcher.lookingAt() ? numericMatcher.end() : 0;
+    final String[] numericSegments =
+        normalized.substring(0, prereleaseStart).split("\\.", -1);
+    final String[] prereleaseSegments =
+        normalized.substring(prereleaseStart).split("\\.", -1);
+    return IntStream.range(0, VERSION_SEGMENTS)
+        .mapToObj(i -> zeroPad(versionSegment(numericSegments, i)))
+        .collect(Collectors.joining())
+        + IntStream.range(0, VERSION_SEGMENTS)
+        .mapToObj(i -> versionSegment(prereleaseSegments, i))
+        .map(segment -> segment.isEmpty()
+            ? "z".repeat(VERSION_SEGMENT_LENGTH) : zeroPad(segment))
         .collect(Collectors.joining());
   }
 
-  static String zeroPad(String string, int totalLength) {
-    string = string.substring(0, Math.min(string.length(), 10));
-    return IntStream.range(0, totalLength - string.length())
-        .mapToObj(i -> "0")
-        .collect(Collectors.joining()) + string;
+  private static String versionSegment(String[] segments, int index) {
+    return index < segments.length ? segments[index] : "";
+  }
+
+  private static String zeroPad(String segment) {
+    if (segment.length() >= VERSION_SEGMENT_LENGTH) {
+      return segment.substring(0, VERSION_SEGMENT_LENGTH);
+    }
+    return "0".repeat(VERSION_SEGMENT_LENGTH - segment.length()) + segment;
   }
 
 }

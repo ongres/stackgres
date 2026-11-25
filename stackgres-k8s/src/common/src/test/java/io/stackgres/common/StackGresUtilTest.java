@@ -11,8 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -351,6 +353,81 @@ class StackGresUtilTest {
     assertThat(map1).containsKey(StackGresUtil.MD5SUM_2_KEY);
     assertThat(map1.get(StackGresUtil.MD5SUM_2_KEY)).isNotNull();
     assertThat(map1.get(StackGresUtil.MD5SUM_2_KEY)).isEqualTo(map2.get(StackGresUtil.MD5SUM_2_KEY));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+      "1.9, 1.10",
+      "1.2, 1.2.3",
+      "1.2.3, 2",
+      "15.2, 15.20",
+      "17.11, 17.12",
+      "1.4-1, 1.4",
+      "1.4-1, 1.5",
+      "1.5, 1.6",
+      "10.1-1, 10.2-2",
+      "10.2-4, 10.2-5",
+      "10.2-5, 10.2.5",
+      "12.1-1, 12.1.6",
+      "1.2.3alpha1, 1.2.3beta1",
+      "1.2.3beta1, 1.2.3beta2",
+      "1.2.3beta2, 1.2.3rc1",
+      "1.2.3rc1, 1.2.3",
+      "1.2.3~rc1, 1.2.3",
+      "1.2.0-alpha2, 1.2.0-beta1",
+      "1.2.0-beta1, 1.2.0-beta2",
+      "1.2.0-beta2, 1.2.0-beta10",
+      "1.2.0-beta10, 1.2.0-rc1",
+      "1.2.0-rc1, 1.2.0",
+      "1.2.3beta2, 1.2.3beta10",
+      "1.2.3, 1.2.4beta1",
+      "0.9.2, 0.107-0",
+  })
+  void shouldSortVersions(String olderVersion, String newerVersion) {
+    assertThat(StackGresUtil.sortableVersion(olderVersion))
+        .isLessThan(StackGresUtil.sortableVersion(newerVersion));
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+      "1.2, 1.2.0",
+      "1.2.3, 1.2.3.0",
+  })
+  void shouldSortVersionsAsEqual(String version, String sameVersion) {
+    assertEquals(
+        StackGresUtil.sortableVersion(version),
+        StackGresUtil.sortableVersion(sameVersion));
+  }
+
+  @Test
+  void shouldSortCatalogVersions() {
+    assertEquals(
+        List.of("10.1-1", "10.2-2", "10.2-4", "10.2-5", "10.2.5", "11.0-2", "11.0-4", "11.0.5",
+            "12.1-1", "12.1.6", "13.0.1", "14.3.0"),
+        Stream.of("14.3.0", "12.1.6", "10.2.5", "11.0.5", "10.1-1", "12.1-1", "10.2-4",
+            "11.0-4", "10.2-2", "13.0.1", "10.2-5", "11.0-2")
+        .sorted(Comparator.comparing(StackGresUtil::sortableVersion))
+        .toList());
+    assertEquals(
+        List.of("1.4-1", "1.4", "1.5", "1.6"),
+        Stream.of("1.6", "1.4-1", "1.5", "1.4")
+        .sorted(Comparator.comparing(StackGresUtil::sortableVersion))
+        .toList());
+    assertEquals(
+        List.of("1.4alpha2", "1.4beta1", "1.4", "1.4.1alpha2", "1.4.1beta1", "1.4.1"),
+        Stream.of("1.4.1", "1.4.1beta1", "1.4.1alpha2", "1.4", "1.4beta1", "1.4alpha2")
+        .sorted(Comparator.comparing(StackGresUtil::sortableVersion))
+        .toList());
+    assertEquals(
+        List.of("1.4-alpha2", "1.4-beta1", "1.4", "1.4.1-alpha2", "1.4.1-beta1", "1.4.1"),
+        Stream.of("1.4.1", "1.4.1-beta1", "1.4.1-alpha2", "1.4", "1.4-beta1", "1.4-alpha2")
+        .sorted(Comparator.comparing(StackGresUtil::sortableVersion))
+        .toList());
+  }
+
+  @Test
+  void shouldNotSortNullVersion() {
+    assertThat(StackGresUtil.sortableVersion(null)).isNull();
   }
 
 }
